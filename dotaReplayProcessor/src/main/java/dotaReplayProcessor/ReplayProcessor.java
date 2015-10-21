@@ -133,23 +133,23 @@ public class ReplayProcessor {
                     
             		int cell_x = getEntityProperty(e, "CBodyComponent.m_cellX", null);
             		int cell_y = getEntityProperty(e, "CBodyComponent.m_cellY", null);
-            	    /*float offsetx = getEntityProperty(e, "CBodyComponent.m_vecOrigin.x", null);
-            	    float offsety = getEntityProperty(e, "CBodyComponent.m_vecOrigin.y", null);
-            	    int cellbits = getEntityProperty(e, "CBodyComponent.m_cellbits", null);
+            	    float offsetx = 0;//getEntityProperty(e, "CBodyComponent.m_vecOrigin.x", null);
+            	    float offsety = 0;//getEntityProperty(e, "CBodyComponent.m_vecOrigin.y", null);
+            	    int cellbits = 7;//getEntityProperty(e, "CBodyComponent.m_cellbits", null);
             	    
             	    int cellwidth = 1 << cellbits;
             	    Vector2f pos = new Vector2f();
             	    pos.x = (float)(((cell_x * cellwidth) - MAX_COORD_INTEGER) + (double)offsetx);
             	    pos.y = (float) (((cell_y * cellwidth) - MAX_COORD_INTEGER) + (double)offsety);
-            	    */
+            	    
                     //int alive = getEntityProperty(e, "m_iLifeState", null);
                     //System.err.format("%s, %s\n", entry.x, entry.y);
                     //get the hero's entity name, ex: CDOTA_Hero_Zuus
                     //entry.unit = e.getDtClass().getDtName();
                     //entry.hero_id = hero;
                     
-                    data_fields.put(i+"X", (double)cell_x);
-                    data_fields.put(i+"Y", (double)cell_y);
+                    data_fields.put(i+"X", (double)pos.x);
+                    data_fields.put(i+"Y", (double)pos.y);
                     data_fields.put(i+"Gold", (double)gold);
                     //data_fields.put(i+"Alive", (double)alive);
                 }
