@@ -56,31 +56,48 @@ for i in range(-Num_Box/2,Num_Box/2):
 		x2.append(i*grid_size_x+x_offset)
 		y2.append(j*grid_size_y+y_offset)
 
-#plt.plot(x2,y2,'*')
+plt.plot(x2,y2,'*')
+# xtext_offset = 0.5*grid_size_x
+# ytext_offset = 0.25*grid_size_y
+# for i in range(0,Num_Box):
+# 	for j in range(0,Num_Box):
+# 		tmp_string = "%d,%d" % (i,j)
+# 		plt.text(i*grid_size_x+xmin +xtext_offset,j*grid_size_y+ymin+ytext_offset,tmp_string,fontsize =6)
+
+
+# plt.plot(x_offset,y_offset,'xr')
+# plt.show()
+
+
+#Top Rune
+top_rune = [[10,19],[10,20],[11,18],[11,19],[11,20],[12,18],[12,19]]
+bottom_rune = [[20,12],[21,11],[21,12],[22,11]]
+roshan = [[22,12],[23,12],[23,13],[24,12],[24,13]]
+dire_ancient = [[21,14],[21,15],[22,14],[22,15],[23,14],[23,15],[24,14],[24,15]]
+
+# xtext_offset = 0.5*grid_size_x
+# ytext_offset = 0.25*grid_size_y
+# for elem in top_rune:
+# 	i = elem[0]
+# 	j = elem[1]
+# 	tmp_string = "TR"
+# 	plt.text(i*grid_size_x+xmin +xtext_offset,j*grid_size_y+ymin+ytext_offset,tmp_string,fontsize =6)
+# plt.plot(x_offset,y_offset,'xr')
+# plt.show()
+
+areas = {"TR":top_rune,"BR":bottom_rune,"RS":roshan,"DA":dire_ancient}
+
 xtext_offset = 0.5*grid_size_x
 ytext_offset = 0.25*grid_size_y
-for i in range(0,Num_Box):
-	for j in range(0,Num_Box):
-		tmp_string = "%d,%d" % (i,j)
+for key in areas:
+	tmp_list = areas[key]
+	for elem in areas[key]:
+		i = elem[0]
+		j = elem[1]
+		tmp_string = key
 		plt.text(i*grid_size_x+xmin +xtext_offset,j*grid_size_y+ymin+ytext_offset,tmp_string,fontsize =6)
-
-
 plt.plot(x_offset,y_offset,'xr')
 plt.show()
-
-
-
-
-#Dire midlane Boxes
-# dire_mid_lane = [[16,16],[16,14],[16,13],[16,16],[16,14],[16,13],[17,17],[17,16],[17,14],[17,13],[18,14],[18,13],[18,12],[19,13],[19,12],[19,11],[20,12],[20,11],[20,10],[21,11],[21,10],[21,9],[22,10]]
-
-# row = [0]*Num_Box
-# Grid = [row for i in range(0,Num_Box)]
-
-# for entry in dire_mid_lane:
-# 	Grid[entry[0]][entry[1]]='DML'
-
-# print Grid
 
 
 
