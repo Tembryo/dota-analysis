@@ -57,8 +57,35 @@ for i in range(-Num_Box/2,Num_Box/2):
 		y2.append(j*grid_size_y+y_offset)
 
 #plt.plot(x2,y2,'*')
+xtext_offset = 0.5*grid_size_x
+ytext_offset = 0.25*grid_size_y
+for i in range(0,Num_Box):
+	for j in range(0,Num_Box):
+		tmp_string = "%d,%d" % (i,j)
+		plt.text(i*grid_size_x+xmin +xtext_offset,j*grid_size_y+ymin+ytext_offset,tmp_string,fontsize =6)
+
+
 plt.plot(x_offset,y_offset,'xr')
 plt.show()
+
+
+
+
+#Dire midlane Boxes
+# dire_mid_lane = [[16,16],[16,14],[16,13],[16,16],[16,14],[16,13],[17,17],[17,16],[17,14],[17,13],[18,14],[18,13],[18,12],[19,13],[19,12],[19,11],[20,12],[20,11],[20,10],[21,11],[21,10],[21,9],[22,10]]
+
+# row = [0]*Num_Box
+# Grid = [row for i in range(0,Num_Box)]
+
+# for entry in dire_mid_lane:
+# 	Grid[entry[0]][entry[1]]='DML'
+
+# print Grid
+
+
+
+
+
 
 
 
