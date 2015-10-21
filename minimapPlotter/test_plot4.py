@@ -5,15 +5,14 @@ import csv
 #Select a player number (1-10), inital time t0 and number of time steps and plot the trajectory
 #of that player on the minimap.
 
-p = 3; # player number 
-t0=28000 #The desired start time
-N = 200 # the number of steps
+p = 7; # player number 
+t0=16000 #The desired start time
+N = 20000 # the number of steps
 Step = 10 # the step size i.e., Step = 10 is a sampling rate of 1/10
 Num_Box = 32 #the number of boxes in the grid
 
 replay_data = open('replay_data.csv','rb')
 reader = csv.reader(replay_data)
-
 
 xmin = -8200
 xmax = 8000.0
@@ -46,9 +45,9 @@ plt.plot(x,y,'*')
 x_pos = [(i-xmin)/grid_size_x for i in x]
 y_pos = [(i-ymin)/grid_size_y  for i in y]
 
-print x, y
-print "x_pos, y_pos"
-print x_pos, y_pos
+# print x, y
+# print "x_pos, y_pos"
+# print x_pos, y_pos
 
 # xtext_offset = 0.6*grid_size_x #offsets so that text roughly in middle of box
 # ytext_offset = 0.25*grid_size_y 
@@ -152,6 +151,14 @@ for key in areas:
 		tmp_string = key
 		plt.text(i*grid_size_x+xmin +xtext_offset,j*grid_size_y+ymin+ytext_offset,tmp_string,fontsize =6)
 plt.show()
+
+A = [[0 for x in range(Num_Box)] for x in range(Num_Box)] 
+
+for key in areas:
+	for elem in areas[key]:
+		A[elem[0]][elem[1]] = key
+
+print A
 
 
 
