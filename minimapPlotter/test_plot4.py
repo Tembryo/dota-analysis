@@ -156,9 +156,12 @@ A = [[0 for x in range(Num_Box)] for x in range(Num_Box)]
 
 for key in areas:
 	for elem in areas[key]:
-		A[elem[0]][elem[1]] = key
+		A[Num_Box-1-elem[1]][elem[0]] = key
 
-print A
+for i in range(0,Num_Box):
+	print A[i]
+
+
 
 
 
