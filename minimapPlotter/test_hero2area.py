@@ -1,13 +1,16 @@
 from matplotlib import pyplot as plt
 from scipy.misc import imread
 import csv
+import math
 
 #Select a player number (1-10), inital time t0 and number of time steps and plot the trajectory
 #of that player on the minimap.
 
-p = 7; # player number 
+Num_Players = 10
+Col_per_player =3
+p = 1; # player number 
 t0=16000 #The desired start time
-N = 20000 # the number of steps
+N = 30000 # the number of steps
 Step = 10 # the step size i.e., Step = 10 is a sampling rate of 1/10
 Num_Box = 32 #the number of boxes in the grid
 
@@ -19,8 +22,8 @@ xmax = 8000.0
 ymin = -8200.0
 ymax = 8000.0
 
-grid_size_x = (xmax-xmin)/Num_Box
-grid_size_y = (ymax-ymin)/Num_Box
+grid_size_x = (xmax-xmin)/32
+grid_size_y = (ymax-ymin)/32
 
 img = imread('minimap_annotated.png')
 
@@ -32,22 +35,16 @@ plt.imshow(img, zorder=0, extent=[xmin, xmax, ymin, ymax])
 #with the offset added for convenience to line up with the grid
 x = []
 y= []
+t = []
 
 for i, row in enumerate(reader):
     if i >=t0 and i <= t0+N and i % Step==0:
-    	x.append(float(row[3*(p-1)+1]))
-    	y.append(float(row[3*(p-1)+2]))
+    	x.append(float(row[Col_per_player*(p-1)+1]))
+    	y.append(float(row[Col_per_player*(p-1)+2]))
+    	t.append(float(row[Col_per_player*Num_Players]))
 
 replay_data.close()
 plt.plot(x,y,'*')
-
-#shift and scale the game coordinates so that 0,0 is at (xmin,ymin)
-x_pos = [(i-xmin)/grid_size_x for i in x]
-y_pos = [(i-ymin)/grid_size_y  for i in y]
-
-# print x, y
-# print "x_pos, y_pos"
-# print x_pos, y_pos
 
 # xtext_offset = 0.6*grid_size_x #offsets so that text roughly in middle of box
 # ytext_offset = 0.25*grid_size_y 
@@ -56,7 +53,7 @@ y_pos = [(i-ymin)/grid_size_y  for i in y]
 # 		tmp_string = "%d,%d" % (i,j)
 # 		plt.text(i*grid_size_x+xmin +xtext_offset,j*grid_size_y+ymin+ytext_offset,tmp_string,fontsize =8)
 
-#List of boxes for each area 
+#List of boxes for each area
 
 radiant_ancient = [[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,8],[0,9],[0,10],\
 [1,2],[1,3],[1,4],[1,5],[1,6],[1,7],[1,8],[1,9],[1,10],\
@@ -141,27 +138,54 @@ dire_creep = [[21,14],[21,15],[22,14],[22,15],[23,14],[23,15],[24,14],[24,15]]
 #dictionary associating area labels to lists
 areas = {"RC":radiant_creep,"RS":radiant_secret,"DS":dire_secret,"RJ":radiant_jungle,"DJ":dire_jungle, "DT":dire_top, "DA":dire_ancient,"DM":dire_mid,"DB":dire_bot, "RB": radiant_bot,"RT":radiant_top,"RM":radiant_mid,"RA":radiant_ancient,"TR":top_rune,"BR":bottom_rune,"RH":roshan,"DC":dire_creep}
 
-xtext_offset = 0.6*grid_size_x
-ytext_offset = 0.25*grid_size_y
-for key in areas:
-	tmp_list = areas[key]
-	for elem in areas[key]:
-		i = elem[0]
-		j = elem[1]
-		tmp_string = key
-		plt.text(i*grid_size_x+xmin +xtext_offset,j*grid_size_y+ymin+ytext_offset,tmp_string,fontsize =6)
-plt.show()
-
-A = [[0 for x in range(Num_Box)] for x in range(Num_Box)] 
+A = [[0 for i in range(Num_Box)] for i in range(Num_Box)] 
 
 for key in areas:
 	for elem in areas[key]:
 		A[Num_Box-1-elem[1]][elem[0]] = key
 
-for i in range(0,Num_Box):
-	print A[i]
+
+#shift and scale the game coordinates so that 0,0 is at (xmin,ymin)
+x_pos = [math.floor((i-xmin)/grid_size_x) for i in x]
+y_pos = [math.floor((i-ymin)/grid_size_y)  for i in y]
+
+print x, y
+print x_pos, y_pos
+
+area_state =[]
+for k in range(0,len(x_pos)):
+	i = Num_Box-1-int(y_pos[k])
+	j = int(x_pos[k])
+	area_state.append(A[i][j])
+
+#print area_state
+
+area_state_summary =["start"]
+area_state_times = [t0]
+
+for k in range(0,len(x_pos)):
+	elem = area_state[k]
+	if elem!=0 and elem!=area_state_summary[-1]:
+		area_state_summary.append(elem)
+		area_state_times.append(t[k])
+	k=k+1
+
+print area_state_summary
 
 
+
+#Label boxes on the map to check that they are correct
+
+# xtext_offset = 0.6*grid_size_x
+# ytext_offset = 0.25*grid_size_y
+# for key in areas:
+# 	tmp_list = areas[key]
+# 	for elem in areas[key]:
+# 		i = elem[0]
+# 		j = elem[1]
+# 		tmp_string = key
+		#plt.text(i*grid_size_x+xmin +xtext_offset,j*grid_size_y+ymin+ytext_offset,tmp_string,fontsize =6)
+plt.show()
 
 
 
