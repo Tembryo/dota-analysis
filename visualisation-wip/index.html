@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+<title>Dota Analysis</title>
+<link rel="stylesheet" type="text/css" href="diagram.css"/>
+<style>
+#content-area
+{
+	max-width: 600px;
+}
+</style>
+
+</head>
+<body>
+<div id="content-area">
+<div id="viz" class="svg-container"></div>
+
+<div class="bs-example">
+   <div class="dropdown">
+        <a href="#" data-toggle="dropdown" class="dropdown-toggle">Select a hero <b class="caret"></b></a>
+        <ul class="dropdown-menu">
+            <li><a class="player" href="#" data-id="-1">None</a></li>
+		<li class="divider"></li>
+		<li class="dropdown-header">-Ninjas-in-Pyjamas-</li>
+            <li><a class="player" href="#" data-id="0">Barathrum</a></li>
+            <li><a class="player" href="#" data-id="1">Queen of Pain</a></li>
+            <li><a class="player" href="#" data-id="2">Anti-Mage</a></li>
+            <li><a class="player" href="#" data-id="3">Dazzle</a></li>
+            <li><a class="player" href="#" data-id="4">Dark Seer</a></li>
+		<li class="divider"></li>
+		<li class="dropdown-header">(Monkey) Business</li>
+            <li><a class="player" href="#" data-id="5">Undying</a></li>
+            <li><a class="player" href="#" data-id="6">Witch Doctor</a></li>
+            <li><a class="player" href="#" data-id="7">Necrophos</a></li>
+            <li><a class="player" href="#" data-id="8">Tuskar</a></li>
+            <li><a class="player" href="#" data-id="9">Alchemist</a></li>
+        </ul>
+    </div>
+</div>
+<a href="#" id="download">Download</a>
+</div>
+<script src="diagram.js" charset="utf-8"></script></body>
+</html>
