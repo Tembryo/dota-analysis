@@ -74,7 +74,7 @@ class Dota2Replay:
 		self.Num_Box = 32
 
 
-def readPlayerXYT(replay,player,t0,N,Step):
+def readPlayerData(replay,player,t0,N,Step):
 	#takes in a replay object and read the x,y,t coordiantes of player p from the csv file called replay.filename. 
 	replay_data = open(replay.filename,'rb')
 	reader = csv.reader(replay_data)
@@ -82,69 +82,58 @@ def readPlayerXYT(replay,player,t0,N,Step):
 	x = []
 	y = []
 	t = []
+	g = []
 
 	for i, row in enumerate(reader):
 		if (i >=t0) and (i <= t0+N) and (i % Step==0):
 			x.append(float(row[replay.Col_per_player*(player-1)+1]))
 			y.append(float(row[replay.Col_per_player*(player-1)+2]))
 			t.append(float(row[replay.Col_per_player*replay.Num_Players]))
+			g.append(float(row[replay.Col_per_player*(player-1)]))
 
 	replay_data.close()
-	return x, y, t
+	return x, y, t, g
 
-def assignPlayerArea(replay,player,t0,N,Step,area_matrix):
-
-	replay_data = readPlayerXYT(replay,player,t0,N,Step)
-
+def assignPlayerArea(replay,player_data,area_matrix):
+	#takes in player data (x,y,t,g) and returns a list of areas they visit in that data set
 	grid_size_x = (replay.xmax-replay.xmin)/replay.Num_Box
 	grid_size_y = (replay.ymax-replay.ymin)/replay.Num_Box
-	x = [math.floor((i-replay.xmin)/grid_size_x) for i in data[0]]
-	y = [math.floor((i-replay.ymin)/grid_size_y)  for i in data[1]]
+	x = [math.floor((i-replay.xmin)/grid_size_x) for i in player_data[0]]
+	y = [math.floor((i-replay.ymin)/grid_size_y) for i in player_data[1]]
 
 	area_state =[]
 	for k in range(0,len(x)):
 		i = replay.Num_Box-1-int(y[k])
 		j = int(x[k])
 		area_state.append(area_matrix[i][j])
-	print area_state
+	return area_state
+
+def areaStateSummary(player_data,area_state):
+	area_state_summary =["start"]
+	t= player_data[2]
+	area_state_times = [math.floor(t[0])]
+
+	for k in range(0,len(t)):
+ 		elem = area_state[k]
+ 		if elem!=0 and elem!=area_state_summary[-1]:
+ 			area_state_summary.append(elem)
+ 			area_state_times.append(math.floor(t[k]))
+		k=k+1
+	return area_state_summary,area_state_times
 
 
 replay1= Dota2Replay('replay_data.csv')
 
-player1data = readPlayerXYT(replay1,1,16000,100,10)
-print player1data[1]
+player1data = readPlayerData(replay1,6,20000,10000,10)
+#print player1data[1]
 
-# #shift and scale the game coordinates so that 0,0 is at (xmin,ymin)
-# x_pos = [math.floor((i-xmin)/grid_size_x) for i in x]
-# y_pos = [math.floor((i-ymin)/grid_size_y)  for i in y]
+area_state = assignPlayerArea(replay1,player1data,area_matrix)
+#print area_state
 
-# print x, y
-# print x_pos, y_pos
+summary = areaStateSummary(player1data,area_state)
+print summary[0]
+print summary[1]
 
-# area_state =[]
-# for k in range(0,len(x_pos)):
-# 	i = Num_Box-1-int(y_pos[k])
-# 	j = int(x_pos[k])
-# 	area_state.append(A[i][j])
-
-# #print area_state
-
-# area_state_summary =["start"]
-# area_state_times = [t0]
-
-# for k in range(0,len(x_pos)):
-# 	elem = area_state[k]
-# 	if elem!=0 and elem!=area_state_summary[-1]:
-# 		area_state_summary.append(elem)
-# 		area_state_times.append(t[k])
-# 	k=k+1
-
-# print area_state_summary
-
-
-# map_axis = (-8200,8000.0,-8200.0,8000.0)
-# map1 = MapPlot('minimap_annotated.png',map_axis)
-# map1.mapBoxNum()	
 
 
 
