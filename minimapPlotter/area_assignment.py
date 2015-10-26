@@ -23,6 +23,7 @@ class MapPlot:
 		ytext_offset = 0.25*grid_size_y 
 		return grid_size_x, grid_size_y, xtext_offset, ytext_offset
 
+
 	def mapPlot(self):
 		# standard plot of the image with axes given by [xmin,xmax,ymin,ymax]
 		plt.axis([self.xmin, self.xmax, self.ymin, self.ymax])
@@ -57,6 +58,14 @@ class MapPlot:
 				j = elem[1]
 				tmp_string = key
 				plt.text(i*grid_params[0]+self.xmin +grid_params[2],j*grid_params[1]+self.ymin+grid_params[3],tmp_string,fontsize =6)
+		plt.show()
+
+	def mapPlayerTrack(self,player_data):
+
+		plt.axis([self.xmin, self.xmax, self.ymin, self.ymax])
+		plt.axis('off')
+		plt.imshow(self.img, zorder=0, extent=[self.xmin, self.xmax, self.ymin, self.ymax])
+		plt.plot(player_data[0],player_data[1],'*')
 		plt.show()
 
 
@@ -122,9 +131,9 @@ def areaStateSummary(player_data,area_state):
 	return area_state_summary,area_state_times
 
 
-replay1= Dota2Replay('replay_data.csv')
+replay1= Dota2Replay('replay_data_real.csv')
 
-player1data = readPlayerData(replay1,6,20000,10000,10)
+player1data = readPlayerData(replay1,2,30000,30000,10)
 #print player1data[1]
 
 area_state = assignPlayerArea(replay1,player1data,area_matrix)
@@ -133,6 +142,12 @@ area_state = assignPlayerArea(replay1,player1data,area_matrix)
 summary = areaStateSummary(player1data,area_state)
 print summary[0]
 print summary[1]
+
+map = MapPlot("minimap_annotated.png")
+map.mapPlayerTrack(player1data)
+
+
+
 
 
 
