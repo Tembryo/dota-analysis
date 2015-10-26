@@ -147,8 +147,8 @@ a:focus {
     padding: 100px 0;
     text-align: center;
     color: #fff;
-    background: url(../img/intro-bg.jpg) no-repeat bottom center scroll; 
-    /*background: url(../img/the-international3.jpg) no-repeat bottom center scroll;*/
+    /*background: url(../img/intro-bg.jpg) no-repeat bottom center scroll; */
+    background: url(../img/intro_background.jpg) no-repeat bottom center scroll;
     background-color: #000;
     -webkit-background-size: cover;
     -moz-background-size: cover;
@@ -163,6 +163,7 @@ a:focus {
 
 .intro .intro-body .brand-heading {
     font-size: 40px;
+    
 }
 
 .intro .intro-body .intro-text {
