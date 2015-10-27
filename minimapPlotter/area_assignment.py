@@ -72,6 +72,7 @@ class MapPlot:
 class Dota2Replay:
 
 	def __init__(self,filename):
+		#filename should be a string of the form "filename.csv"
 		self.filename = filename
 		self.replay_type = "Dota2"
 		self.Num_Players = 10
@@ -135,15 +136,32 @@ def areaStateSummary(player_data,area_state):
 		k=k+1
 	return area_state_summary,area_state_times
 
+def writeToJson(replay):
+	s = replay.filename.split(".") 
+	filename = s[0]+ ".json"
+	f = open(filename,"w")
+	f.write("hello world")
+	f.close()
 
-
-# def summaryToJson(replay,t0,N,Step,area_matrix):
-# 	#write all 10 players summaries to a json file
-# 	for player in range (1,11):
-# 		data = readPlayerData(replay,player,t0,N,Step)
-# 		area_state = assignPlayerArea(replay,player_data,area_matrix)
-# 		summary = areaStateSummary(player_data,area_state)
-
+def summaryToJson(replay,t0,N,Step,area_matrix):
+	#write all 10 players summaries to a json file
+	s = replay.filename.split(".") 
+	filename = s[0]+ ".json"
+	f = open(filename,"w")
+	for player in range (1,11):
+		player_data = readPlayerData(replay,player,t0,N,Step)
+		area_state = assignPlayerArea(replay,player_data,area_matrix)
+		summary = areaStateSummary(player_data,area_state)
+		if player == 1:
+			f.write("{\"movement\":[{\"areas\":" + str(summary[0]) + ",")
+			f.write("\"times\":" + str(summary[1]) +"},") 
+		elif (player >1) and (player <10):	
+			f.write("{\"areas\":" + str(summary[0]) + ",")
+			f.write("\"times\":" + str(summary[1]) +"},") 
+		else:
+			f.write("{\"areas\":" + str(summary[0]) + ",")
+			f.write("\"times\":" + str(summary[1]) +"}]}")
+	f.close()
 
 replay1= Dota2Replay('replay_data_real.csv')
 
@@ -159,6 +177,8 @@ print summary[1]
 
 map = MapPlot("minimap_annotated.png")
 map.mapPlayerTrack(player1data)
+
+summaryToJson(replay1,30000,30000,10,area_matrix)
 
 
 
