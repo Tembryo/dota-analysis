@@ -23,6 +23,7 @@ class MapPlot:
 		ytext_offset = 0.25*grid_size_y 
 		return grid_size_x, grid_size_y, xtext_offset, ytext_offset
 
+
 	def mapPlot(self):
 		# standard plot of the image with axes given by [xmin,xmax,ymin,ymax]
 		plt.axis([self.xmin, self.xmax, self.ymin, self.ymax])
@@ -59,10 +60,19 @@ class MapPlot:
 				plt.text(i*grid_params[0]+self.xmin +grid_params[2],j*grid_params[1]+self.ymin+grid_params[3],tmp_string,fontsize =6)
 		plt.show()
 
+	def mapPlayerTrack(self,player_data):
+
+		plt.axis([self.xmin, self.xmax, self.ymin, self.ymax])
+		plt.axis('off')
+		plt.imshow(self.img, zorder=0, extent=[self.xmin, self.xmax, self.ymin, self.ymax])
+		plt.plot(player_data[0],player_data[1],'*')
+		plt.show()
+
 
 class Dota2Replay:
 
 	def __init__(self,filename):
+		#filename should be a string of the form "filename.csv"
 		self.filename = filename
 		self.replay_type = "Dota2"
 		self.Num_Players = 10
@@ -109,22 +119,53 @@ def assignPlayerArea(replay,player_data,area_matrix):
 	return area_state
 
 def areaStateSummary(player_data,area_state):
+	#make two arrays that store the area visited and the time that area was first visited
+	#the time is stored as an integer with second precision.
 	area_state_summary =["start"]
 	t= player_data[2]
-	area_state_times = [math.floor(t[0])]
+	area_state_times = [[int(math.floor(t[0])),"x"]] #the string "x" is to denote an as yet unknown duration 
 
 	for k in range(0,len(t)):
  		elem = area_state[k]
  		if elem!=0 and elem!=area_state_summary[-1]:
  			area_state_summary.append(elem)
- 			area_state_times.append(math.floor(t[k]))
+ 			tk = int(math.floor(t[k]))
+ 			tj = area_state_times[-1][0]
+ 			area_state_times[-1][1]=tk-tj
+ 			area_state_times.append([tk,"x"])
 		k=k+1
 	return area_state_summary,area_state_times
 
+def writeToJson(replay):
+	s = replay.filename.split(".") 
+	filename = s[0]+ ".json"
+	f = open(filename,"w")
+	f.write("hello world")
+	f.close()
 
-replay1= Dota2Replay('replay_data.csv')
+def summaryToJson(replay,t0,N,Step,area_matrix):
+	#write all 10 players summaries to a json file
+	s = replay.filename.split(".") 
+	filename = s[0]+ ".json"
+	f = open(filename,"w")
+	for player in range (1,11):
+		player_data = readPlayerData(replay,player,t0,N,Step)
+		area_state = assignPlayerArea(replay,player_data,area_matrix)
+		summary = areaStateSummary(player_data,area_state)
+		if player == 1:
+			f.write("{\"movement\":[{\"areas\":" + str(summary[0]) + ",")
+			f.write("\"times\":" + str(summary[1]) +"},") 
+		elif (player >1) and (player <10):	
+			f.write("{\"areas\":" + str(summary[0]) + ",")
+			f.write("\"times\":" + str(summary[1]) +"},") 
+		else:
+			f.write("{\"areas\":" + str(summary[0]) + ",")
+			f.write("\"times\":" + str(summary[1]) +"}]}")
+	f.close()
 
-player1data = readPlayerData(replay1,6,20000,10000,10)
+replay1= Dota2Replay('replay_data_real.csv')
+
+player1data = readPlayerData(replay1,2,30000,30000,10)
 #print player1data[1]
 
 area_state = assignPlayerArea(replay1,player1data,area_matrix)
@@ -133,6 +174,14 @@ area_state = assignPlayerArea(replay1,player1data,area_matrix)
 summary = areaStateSummary(player1data,area_state)
 print summary[0]
 print summary[1]
+
+map = MapPlot("minimap_annotated.png")
+map.mapPlayerTrack(player1data)
+
+summaryToJson(replay1,30000,30000,10,area_matrix)
+
+
+
 
 
 

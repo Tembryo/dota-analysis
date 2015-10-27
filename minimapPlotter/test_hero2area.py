@@ -173,7 +173,6 @@ for k in range(0,len(x_pos)):
 print area_state_summary
 
 
-
 #Label boxes on the map to check that they are correct
 
 # xtext_offset = 0.6*grid_size_x
