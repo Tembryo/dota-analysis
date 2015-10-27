@@ -118,17 +118,31 @@ def assignPlayerArea(replay,player_data,area_matrix):
 	return area_state
 
 def areaStateSummary(player_data,area_state):
+	#make two arrays that store the area visited and the time that area was first visited
+	#the time is stored as an integer with second precision.
 	area_state_summary =["start"]
 	t= player_data[2]
-	area_state_times = [math.floor(t[0])]
+	area_state_times = [[int(math.floor(t[0])),"x"]] #the string "x" is to denote an as yet unknown duration 
 
 	for k in range(0,len(t)):
  		elem = area_state[k]
  		if elem!=0 and elem!=area_state_summary[-1]:
  			area_state_summary.append(elem)
- 			area_state_times.append(math.floor(t[k]))
+ 			tk = int(math.floor(t[k]))
+ 			tj = area_state_times[-1][0]
+ 			area_state_times[-1][1]=tk-tj
+ 			area_state_times.append([tk,"x"])
 		k=k+1
 	return area_state_summary,area_state_times
+
+
+
+# def summaryToJson(replay,t0,N,Step,area_matrix):
+# 	#write all 10 players summaries to a json file
+# 	for player in range (1,11):
+# 		data = readPlayerData(replay,player,t0,N,Step)
+# 		area_state = assignPlayerArea(replay,player_data,area_matrix)
+# 		summary = areaStateSummary(player_data,area_state)
 
 
 replay1= Dota2Replay('replay_data_real.csv')
