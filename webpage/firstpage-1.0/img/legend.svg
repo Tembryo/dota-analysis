@@ -21,10 +21,10 @@
   <defs
      id="defs7716">
     <linearGradient
-       id="linearGradient8581"
+       id="LaneGrey"
        osb:paint="solid">
       <stop
-         style="stop-color:#c0c73d;stop-opacity:1;"
+         style="stop-color:#afafaf;stop-opacity:1;"
          offset="0"
          id="stop8583" />
     </linearGradient>
@@ -55,7 +55,7 @@
     </linearGradient>
     <linearGradient
        inkscape:collect="always"
-       xlink:href="#linearGradient8283"
+       xlink:href="#LaneGrey"
        id="linearGradient8281"
        gradientUnits="userSpaceOnUse"
        x1="37.15414"
@@ -63,8 +63,9 @@
        x2="134.85252"
        y2="1042.3949" />
     <linearGradient
-       id="linearGradient8283"
-       inkscape:collect="always">
+       id="Lanes"
+       inkscape:collect="always"
+       osb:paint="gradient">
       <stop
          id="stop8285"
          offset="0"
@@ -279,9 +280,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.24748737"
-     inkscape:cx="1763.1921"
-     inkscape:cy="763.82109"
+     inkscape:zoom="0.12374369"
+     inkscape:cx="1451.1874"
+     inkscape:cy="830.96519"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -302,7 +303,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -319,7 +320,8 @@
        x="-924.78326"
        y="-23.679409" />
     <g
-       id="g4331">
+       id="g10777"
+       transform="translate(533.93046,5.7142858)">
       <g
          transform="translate(194.33039,-1183.5228)"
          id="g8092">
@@ -366,6 +368,10 @@
              y="1449.3525"
              style="font-size:50px">Rune</tspan></text>
       </g>
+    </g>
+    <g
+       id="g10749"
+       transform="translate(1.8188477e-6,0)">
       <g
          transform="translate(-914.82337,-815.02553)"
          id="g8076">
@@ -413,6 +419,10 @@
              x="173.85812"
              y="1057.1943">Lane</tspan></text>
       </g>
+    </g>
+    <g
+       id="g10787"
+       transform="translate(-1184.9106,-8.5714287)">
       <g
          transform="translate(784.71208,-1291.7489)"
          id="g8097">
@@ -464,6 +474,10 @@
              id="tspan8020"
              style="font-size:50px">Damage</tspan></text>
       </g>
+    </g>
+    <g
+       id="g10820"
+       transform="translate(-1.8078125e-4,0)">
       <g
          transform="translate(2491.5665,-1167.5772)"
          id="g8707">
@@ -508,6 +522,10 @@
              y="1313.0054"
              style="font-size:50px">Dire TP</tspan></text>
       </g>
+    </g>
+    <g
+       id="g10810"
+       transform="translate(-1.7140625e-4,0)">
       <g
          transform="translate(1749.7923,-1006.561)"
          id="g8697">
@@ -552,6 +570,10 @@
              y="1146.0791"
              style="font-size:50px">Dire Rotation</tspan></text>
       </g>
+    </g>
+    <g
+       id="g10759"
+       transform="translate(533.93052,11.42857)">
       <g
          transform="translate(-401.30297,-1504.9377)"
          id="g8107">
@@ -639,6 +661,10 @@
           </g>
         </g>
       </g>
+    </g>
+    <g
+       id="g10798"
+       transform="translate(-2.0835937e-4,0)">
       <g
          transform="translate(910.18192,-831.55426)"
          id="g8687">
