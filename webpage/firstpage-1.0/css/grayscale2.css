@@ -259,7 +259,8 @@ a:focus {
 }
 
 .content-section {
-    padding-top: 60px;
+    padding-top: 80px;
+    padding-bottom: 80px;
 }
 
 #prototype {
@@ -267,6 +268,7 @@ a:focus {
     height: 100%;
     background: url(../img/intro-bg.jpg);
     background-size: 100% 100%;
+    margin-bottom: 80px;
 }
 
 #visualisation {
@@ -292,7 +294,7 @@ a:focus {
 
 @media(min-width:768px) {
     .content-section {
-        padding-top: 60px;
+        padding-top: 80px;
     }
 
 }
