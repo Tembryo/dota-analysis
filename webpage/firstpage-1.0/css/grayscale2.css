@@ -283,16 +283,13 @@ a:focus {
     background: black;
     height: 40px;
     width: 100%;
-    background-size: 100% 100%;  
+    background-size: 100% 100%; 
+    padding:-10px; 
 }
 
-#legend {
-    background: url(../img/legend.svg);
+#legend {    
     height: 50px;
     width: 100%;
-    background-size: 100% 100%; 
-    position: absolute;
-    right: 100px;
 }
 
 #hero1 {

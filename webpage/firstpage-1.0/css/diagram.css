@@ -1,14 +1,22 @@
-.svg-container { 
-	display: inline-block;
-	position: relative;
-	width: 100%;
-	padding-bottom: 100%; /*aspect ratio of the box: width/height*/ 
-	vertical-align: middle; 
-	overflow: hidden;
+.diagram-container { 
+    background-color:red;
+    padding-top:480px;
+    position: relative;
 }
+
+.legend-container { 
+    background-color:blue;
+    padding-top:50px;
+    position: relative;
+}
+
 .svg-content { 
-	display: inline-block;
-	position: absolute;
-	top: 0;
-	left: 0;
+    background-color: #d0d0d0;
+    display:inline-block;
+    position: absolute;
+    top:0;
+    left:0;
+    padding-top:10px;
+    padding-bottom:10px;
+    
 }
