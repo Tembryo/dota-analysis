@@ -266,31 +266,117 @@ a:focus {
 #prototype {
     width:100%;
     height: 100%;
-    background: url(../img/intro-bg.jpg);
+    background: black;
     background-size: 100% 100%;
     margin-bottom: 80px;
+    position: relative;
 }
 
 #visualisation {
     background: url(../img/city.jpg);
     width: 100%;
-    height: 440px;
+    height: 480px;
     background-size: 100% 100%;
 }
 
-#buttons {
-    background: url(../img/the-international3.jpg);
-    height: 50px;
+#button-row {
+    background: black;
+    height: 40px;
     width: 100%;
-    background-size: 100% 100%;   
+    background-size: 100% 100%;  
 }
 
 #legend {
-    background: url(../img/the-international3.jpg);
+    background: url(../img/legend.svg);
     height: 50px;
     width: 100%;
-    background-size: 100% 100%;   
+    background-size: 100% 100%; 
+    position: absolute;
+    right: 100px;
 }
+
+#hero1 {
+    background: url(../img/Heros/spirit-breaker.jpg);   
+    background-size: contain;
+    background-repeat: no-repeat;
+    height: 40px;
+    padding: 0 5px 0 5px;
+}
+
+#hero2 {
+    background: url(../img/Heros/queen-of-pain.jpg);   
+    background-size: contain;
+    background-repeat: no-repeat;
+    height: 40px;
+    padding: 0 5px 0 5px;
+}
+
+#hero3 {
+    background: url(../img/Heros/anti-mage.jpg);   
+    background-size: contain;
+    background-repeat: no-repeat;
+    height: 40px;
+    padding: 0 5px 0 5px;
+}
+
+#hero4 {
+    background: url(../img/Heros/dazzle.jpg);   
+    background-size: contain;
+    background-repeat: no-repeat;
+    height: 40px;
+    padding: 0 5px 0 5px;
+}
+
+#hero5 {
+    background: url(../img/Heros/dark-seer.jpg);   
+    background-size: contain;
+    background-repeat: no-repeat;
+    height: 40px;
+    padding: 0 5px 0 5px;
+}
+
+#hero6 {
+    background: url(../img/Heros/undying.jpg);   
+    background-size: contain;
+    background-repeat: no-repeat;
+    height: 40px;
+    padding: 0 5px 0 5px;
+}
+
+#hero7 {
+    background: url(../img/Heros/witch-doctor.jpg);   
+    background-size: contain;
+    background-repeat: no-repeat;
+    height: 40px;
+    padding: 0 5px 0 5px;
+}
+
+#hero8 {
+    background: url(../img/Heros/necrophos.jpg);   
+    background-size: contain;
+    background-repeat: no-repeat;
+    height: 40px;
+    padding: 0 5px 0 5px;
+}
+
+#hero9 {
+    background: url(../img/Heros/tusk.jpg);   
+    background-size: contain;
+    background-repeat: no-repeat;
+    height: 40px;
+    padding: 0 5px 0 5px;
+}
+
+#hero10 {
+    background: url(../img/Heros/alchemist.jpg);   
+    background-size: contain;
+    background-repeat: no-repeat;
+    height: 40px;
+    padding: 0 5px 0 5px;
+}
+
+
+
 
 @media(min-width:768px) {
     .content-section {
