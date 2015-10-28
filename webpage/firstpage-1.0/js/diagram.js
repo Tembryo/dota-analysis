@@ -9,9 +9,16 @@ function updatePlayers(data)
 		.data(data)
 		.attr("visibility", function(d){
 				if(d)
+				{
+					console.log("visible");
+					console.log(this);
 					return "visible";
+				}
 				else
+				{
+					console.log("hidden");
 					return "hidden";
+				}
 			});
 
 }
@@ -28,21 +35,21 @@ function main()
 	d3.xml("img/diagram.svg", "image/svg+xml", function(xml) {
 	    var importedNode = document.importNode(xml.documentElement, true);
 	    d3.select("#viz").node().appendChild(importedNode);
-	    d3.select("svg").attr({
+	    d3.selectAll("svg").attr({
 	    "class": "svg-content",
 	    "width": "100%",
 	    "height": "100%"
 	  });
             updatePlayers(visible_players);    
 
-	    d3.selectAll(".player")
+	    d3.selectAll("[data-id]")
 		.on("click", function(){togglePlayer(this)});
 	});
 
 	d3.xml("img/legend.svg", "image/svg+xml", function(xml) {
 	    var importedNode = document.importNode(xml.documentElement, true);
 	    d3.select("#leg").node().appendChild(importedNode);
-	    d3.select("svg").attr({
+	    d3.selectAll("svg").attr({
 	    "class": "svg-content",
 	    "width": "100%",
 	    "height": "100%"
