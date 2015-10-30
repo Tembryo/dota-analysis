@@ -5,7 +5,7 @@ for(var i = 0; i < 10; ++i)
 
 function updatePlayers(data)
 {
-	d3.select("#viz").selectAll("[player-id]")
+	d3.select("#timeline").selectAll("[player-id]")
 		.data(data)
 		.attr("visibility", function(d){
 				if(d)
@@ -38,13 +38,16 @@ function main()
 	    d3.selectAll("svg").attr({
 	    "class": "svg-content",
 	    "width": "100%",
-	    "height": "100%"
+	    "height": "100%",
+		"id":"timeline"
 	  });
-            updatePlayers(visible_players);    
-
-	    d3.selectAll("[data-id]")
-		.on("click", function(){togglePlayer(this)});
+			svgPanZoom('#timeline', {
+          zoomEnabled: true,
+          controlIconsEnabled: true
+        });
+		updatePlayers(visible_players);    
 	});
+
 
 	d3.xml("img/legend.svg", "image/svg+xml", function(xml) {
 	    var importedNode = document.importNode(xml.documentElement, true);
@@ -56,10 +59,12 @@ function main()
 	  });
 	});
 
-	svgPanZoom('#demo-tiger', {
-          zoomEnabled: true,
-          controlIconsEnabled: true
-        });
+
+	
+
+
+	d3.selectAll("[data-id]")
+		.on("click", function(){togglePlayer(this)});
 }
 
 window.onload= main;
