@@ -55,8 +55,13 @@ function main()
 	    "height": "100%"
 	  });
 	});
+
+	svgPanZoom('#demo-tiger', {
+          zoomEnabled: true,
+          controlIconsEnabled: true
+        });
 }
 
-main();
+window.onload= main;
 
 
