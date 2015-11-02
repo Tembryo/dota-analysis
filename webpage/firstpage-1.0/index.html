@@ -34,6 +34,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
     <script src="js/svg-pan-zoom.js"></script>
 
+
     <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -103,11 +104,12 @@
 
     <!-- Prototype Section -->
     <section id="prototype" class="container-fluid content-section text-center">
-        <div>
-            <h1> Click on a hero </h1>
+    	<div class = "row">
+        	<div class="col-xs-12">
+				<h1> Click on a hero </h1>
+			</div>
         </div>
-        <div id = "button-row" >
-            <div class = "row">
+        <div class = "row" id ="button-row" >
                 <div id="hero1" data-id="0" class ="col-xs-1 col-xs-offset-1" >  </div>
                 <div id="hero2" data-id="1" class ="col-xs-1 col" >  </div>
                 <div id="hero3" data-id="2" class ="col-xs-1 col" >  </div>
@@ -118,45 +120,32 @@
                 <div id="hero8" data-id="7" class ="col-xs-1 col" >  </div>
                 <div id="hero9" data-id="8" class ="col-xs-1 col" >  </div>
                 <div id="hero10" data-id="9" class ="col-xs-1 col" >  </div>
-            </div>
         </div>
-        <div id="visualisation" >
-			<div id="viz" class="diagram-container"></div>
+        <div  class = "row" >
+            <div class ="col-xs-12 col" >
+				<div id="timeline" class="svg-container"></div>
+			</div>
+		</div>
+		<div class="row">
+			<div class ="col-xs-6 col" >
+				<div id="diagram" class="svg-container"></div>
+			</div>
+            <div class ="col-xs-6 col" >
+				<div id="map" class="svg-container"></div>
+			</div>
         </div>     
-        <div id="legend"> 
-           <div id="leg" class="legend-container"></div>
+        <div class="row"> 
+            <div class ="col-xs-12 col" >
+				<div id="legend" class="svg-container"></div>
+			</div>
         </div>
     </section>
 
-    <!-- Prototype Section 
-    <section id="prototype2" class="container-fluid content-section text-center">
-        <div>
-            <h1> Zoom and Drag </h1>
-        </div>
-	<div class="row">
-		<div class="col-m-1">
-		</div>
-		<div class="col-m-1">
-		</div>
-	</div>
-</section>-->
-   <!-- Download Section -->
-    <!--<section id="download" class="content-section text-center">
-        <div class="download-section">
-            <div class="container">
-                <div class="col-lg-8 col-lg-offset-2">
-                    <h2>Download Grayscale</h2>
-                    <p>You can download Grayscale for free on the preview page at Start Bootstrap.</p>
-                    <a href="http://startbootstrap.com/template-overviews/grayscale/" class="btn btn-default btn-lg">Visit Download Page</a>
-                </div>
-            </div>
-        </div>
-    </section> -->
 
-       <section id="about-prototype" class="container content-section text-center">
-        <div class="row">
-            <div class="col-lg-8 col-lg-offset-2">
-
+	<!-- About Prototype Section -->
+	<section id="about-prototype" class="container content-section text-center">
+		<div class="row">
+			<div class="col-lg-8 col-lg-offset-2">
                 <h1> About The Prototype </h1>
 
                 <p> This is an early-stage protoype for an application that will take in replays and automatically generate an overview of the gameplay. The idea is to allow you to review a game quickly and focus on the important aspects without having to watch the whole replay.</p>
@@ -164,8 +153,6 @@
                 <p>To demonstrate our approach we took the first 10 minutes of a (Monkey)Business vs NiP game (Frankfurt majors qualifier WB Finals game 1) and made the visualisation above. By clicking on different heros you can see the path each one took through the game and the fights they were engaged in.
                 </p>
                 <p> The project is still obviously a work in progress - with lots more features planned - so stay tuned for updates and let us know if you have any feedback (contact form below)!</p>
-
-
             </div>
         </div>
     </section>
@@ -217,6 +204,8 @@
 
     <!-- Custom JavaScript -->
     <script src="js/diagram.js" charset="utf-8"></script>
+
+	<script src="js/main-script.js"></script>
 
 </body>
 

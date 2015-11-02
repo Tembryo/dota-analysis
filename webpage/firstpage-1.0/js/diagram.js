@@ -5,18 +5,15 @@ for(var i = 0; i < 10; ++i)
 
 function updatePlayers(data)
 {
-	d3.select("#timeline").selectAll("[player-id]")
+	d3.select("#diagram").selectAll("[player-id]")
 		.data(data)
 		.attr("visibility", function(d){
 				if(d)
 				{
-					console.log("visible");
-					console.log(this);
 					return "visible";
 				}
 				else
 				{
-					console.log("hidden");
 					return "hidden";
 				}
 			});
@@ -30,37 +27,38 @@ function togglePlayer(player)
 	updatePlayers(visible_players);
 }
 
+function loadSVG(file, id, callback)
+{
+	d3.xml(file, "image/svg+xml", function(xml) {
+		    var imported_node = document.importNode(xml.documentElement, true);
+			var svg_id = id + "-svg";
+			imported_node.setAttribute("id", svg_id);
+		    var id_string = "#"+id;
+		    d3.select(id_string).node().appendChild(imported_node);
+		    d3.select("#"+svg_id).attr({
+		    "class": "svg-content",
+		    "width": "100%",
+		    "height": "100%",
+		  });
+			callback();			
+		});
+}
+
 function main()
 {
-	d3.xml("img/diagram.svg", "image/svg+xml", function(xml) {
-	    var importedNode = document.importNode(xml.documentElement, true);
-	    d3.select("#viz").node().appendChild(importedNode);
-	    d3.selectAll("svg").attr({
-	    "class": "svg-content",
-	    "width": "100%",
-	    "height": "100%",
-		"id":"timeline"
-	  });
-			svgPanZoom('#timeline', {
-          zoomEnabled: true,
-          controlIconsEnabled: true
-        });
-		updatePlayers(visible_players);    
-	});
+	loadSVG("img/timeline.svg", "timeline", function(){});
+	loadSVG("img/diagram.svg", "diagram", 
+			function()
+			{
+				svgPanZoom('#diagram-svg', {
+		  			zoomEnabled: true,
+		  			controlIconsEnabled: true
+					});
+				updatePlayers(visible_players);
+			});
+	loadSVG("img/legend.svg", "legend", function(){});
+	loadSVG("img/map.svg", "map", function(){});
 
-
-	d3.xml("img/legend.svg", "image/svg+xml", function(xml) {
-	    var importedNode = document.importNode(xml.documentElement, true);
-	    d3.select("#leg").node().appendChild(importedNode);
-	    d3.selectAll("svg").attr({
-	    "class": "svg-content",
-	    "width": "100%",
-	    "height": "100%"
-	  });
-	});
-
-
-	
 
 
 	d3.selectAll("[data-id]")
