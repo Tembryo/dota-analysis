@@ -269,9 +269,13 @@ a:focus {
 }
 
 
-
 #more-margin {
     margin-top: 20px;
+}
+
+
+#downarrow {
+    margin-top: 50px;
 }
 
 @media(min-width:768px) {
