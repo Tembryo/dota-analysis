@@ -1,0 +1,910 @@
+{
+	"header": {
+		"id": 1864290085,
+		"teams": {
+			"0":{
+				"side":"radiant",
+				"name":"Ninjas in Pyjamas",
+				"short":"NiP"
+			},
+			"1":{
+				"side":"dire",
+				"name":"(monkey) Business",
+				"short":"monkey"
+			}
+		},
+		"players": {
+			"0": {
+				"name":"Handsken"
+			},
+			"1": {
+				"name":"Limmp"
+			},
+			"2": {
+				"name":"Era"
+			},
+			"3": {
+				"name":"Sealkid"
+			},
+			"4": {
+				"name":"jonassomfan"
+			},
+			"5": {
+				"name":"Fly"
+			},
+			"6": {
+				"name":"cr1t"
+			},
+			"7": {
+				"name":"Miracle-"
+			},
+			"8": {
+				"name":"MoonMeander"
+			},
+			"9": {
+				"name":"BigDaddyN0tail"
+			}
+		} ,
+		"draft": {},
+		"length": 600
+	},
+	"entities":{
+		"100": {
+			"name":"Spirit Breaker"
+		},
+		"101": {
+			"name":"Queen of Pain"
+		},
+		"102": {
+			"name":"Anti-Mage"
+		},
+		"103": {
+			"name":"Dazzle"
+		},
+		"104": {
+			"name":"Dark Seer"
+		},
+		"105": {
+			"name":"Undying"
+		},
+		"106": {
+			"name":"Witch Doctor"
+		},
+		"107": {
+			"name":"Necrolyte"
+		},
+		"108": {
+			"name":"Tusk"
+		},
+		"109": {
+			"name":"Alchemist"
+		}
+	},
+	"events":{
+		"10000": {
+			"type": "kill",
+			"time": 54,
+			"team": "dire"
+		},
+		"10001": {
+			"type": "kill",
+			"time": 101,
+			"team": "dire"
+		},
+		"10002": {
+			"type": "kill",
+			"time": 166,
+			"team": "dire"
+		},
+		"10003": {
+			"type": "kill",
+			"time": 172,
+			"team": "dire"
+		},
+		"10004": {
+			"type": "kill",
+			"time": 288,
+			"team": "radiant"
+		},
+		"10005": {
+			"type": "kill",
+			"time": 394,
+			"team": "radiant"
+		},
+		"10006": {
+			"type": "kill",
+			"time": 583,
+			"team": "dire"
+		},
+		"10007": {
+			"type": "kill",
+			"time": 586,
+			"team": "radiant"
+		},
+		"10008": {
+			"type": "kill",
+			"time": 590,
+			"team": "radiant"
+		},
+		"10009": {
+			"type": "fight",
+			"time-start": -50,
+			"time-end": -20,
+			"intensity": "encounter",
+			"location": "bottom-rune",
+			"involved":[101,102,103,105,106,108,109]
+		},
+		"10010": {
+			"type": "fight",
+			"time-start": 20,
+			"time-end": 40,
+			"intensity": "encounter",
+			"location": "radiant-jungle",
+			"involved":[103,105]
+		},
+		"10011": {
+			"type": "fight",
+			"time-start": 45,
+			"time-end": 60,
+			"intensity": "skirmish",
+			"location": "botlane-radiant-before-t1",
+			"involved":[102,105,109]
+		},
+		"10012": {
+			"type": "fight",
+			"time-start": 90,
+			"time-end": 105,
+			"intensity": "skirmish",
+			"location": "botlane-radiant-before-t1",
+			"involved":[102,103,105,109]
+		},
+		"10013": {
+			"type": "fight",
+			"time-start": 160,
+			"time-end": 180,
+			"intensity": "battle",
+			"location": "toplane-dire-t1",
+			"involved":[100,104,105,106,107]
+		},
+		"10014": {
+			"type": "fight",
+			"time-start": 270,
+			"time-end": 300,
+			"intensity": "skirmish",
+			"location": "botlane-radiant-before-t1",
+			"involved":[100,101,102,103,105,108]
+		},
+		"10015": {
+			"type": "fight",
+			"time-start": 360,
+			"time-end": 380,
+			"intensity": "encounter",
+			"location": "dire-jungle",
+			"involved":[100,104,106]
+		},
+		"10016": {
+			"type": "fight",
+			"time-start": 380,
+			"time-end": 400,
+			"intensity": "skirmish",
+			"location": "dire-jungle",
+			"involved":[104,107]
+		},
+		"10017": {
+			"type": "fight",
+			"time-start": 380,
+			"time-end": 400,
+			"intensity": "battle",
+			"location": "dire-jungle",
+			"involved":[100,101,105,106,109]
+		},
+		"10018": {
+			"type": "fight",
+			"time-start": 510,
+			"time-end": 530,
+			"intensity": "encounter",
+			"location": "botlane-radiant-t1",
+			"involved":[102,103,105,108,109]
+		},
+		"10019": {
+			"type": "fight",
+			"time-start": 570,
+			"time-end": 600,
+			"intensity": "battle",
+			"location": "midlane-dire-before-t1",
+			"involved":[100,101,105,106,108,109]
+		},
+		"10020": {
+			"type": "movement",
+			"time-start": -10,
+			"time-end": 10,
+			"location": "bottom-rune",
+			"involved":[105,108,109],
+			"related": "10021"
+		},
+		"10021": {
+			"type": "rune-pickup",
+			"time": 0,
+			"location": "bottom-rune",
+			"rune-type": "bounty",
+			"involved":[109]
+		},
+		"10022": {
+			"type": "movement",
+			"time-start": -30,
+			"time-end": -10,
+			"location": "top-rune",
+			"involved":[100,104]
+		},
+		"10023": {
+			"type": "movement",
+			"time-start": -10,
+			"time-end": 5,
+			"location": "top-rune",
+			"involved":[101],
+			"related": "10024"
+		},
+		"10024": {
+			"type": "rune-pickup",
+			"time": 0,
+			"location": "top-rune",
+			"rune-type": "bounty",
+			"involved":[101]
+		},
+		"10025": {
+			"type": "movement",
+			"time-start": 110,
+			"time-end": 125,
+			"location": "top-rune",
+			"involved":[100],
+			"related": "10026"
+		},
+		"10026": {
+			"type": "rune-pickup",
+			"time": 120,
+			"location": "top-rune",
+			"rune-type": "illusion",
+			"involved":[100]
+		},
+		"10027": {
+			"type": "movement",
+			"time-start": 110,
+			"time-end": 125,
+			"location": "bottom-rune",
+			"involved":[105]
+		},
+		"10028": {
+			"type": "movement",
+			"time-start": 125,
+			"time-end": 135,
+			"location": "bottom-rune",
+			"involved":[109],
+			"related": "10029"
+		},
+		"10029": {
+			"type": "rune-pickup",
+			"time": 130,
+			"location": "top-rune",
+			"rune-type": "bounty",
+			"involved":[109]
+		},
+		"10030": {
+			"type": "movement",
+			"time-start": 230,
+			"time-end": 245,
+			"location": "top-rune",
+			"involved":[101],
+			"related": "10031"
+		},
+		"10031": {
+			"type": "rune-pickup",
+			"time": 240,
+			"location": "top-rune",
+			"rune-type": "double-damage",
+			"involved":[101]
+		},
+		"10032": {
+			"type": "movement",
+			"time-start": 230,
+			"time-end": 245,
+			"location": "bottom-rune",
+			"involved":[103],
+			"related": "10026"
+		},
+		"10033": {
+			"type": "rune-pickup",
+			"time": 240,
+			"location": "bottom-rune",
+			"rune-type": "bounty",
+			"involved":[103]
+		},
+
+		"10034": {
+			"type": "movement",
+			"time-start": 350,
+			"time-end": 365,
+			"location": "top-rune",
+			"involved":[101],
+			"related": "10035"
+		},
+		"10035": {
+			"type": "rune-pickup",
+			"time": 360,
+			"location": "top-rune",
+			"rune-type": "invisibility",
+			"involved":[101]
+		},
+		"10036": {
+			"type": "movement",
+			"time-start": 340,
+			"time-end": 350,
+			"location": "bottom-rune",
+			"involved":[105]
+		},
+		"10037": {
+			"type": "movement",
+			"time-start": 360,
+			"time-end": 375,
+			"location": "bottom-rune",
+			"involved":[109],
+			"related": "10038"
+		},
+		"10038": {
+			"type": "rune-pickup",
+			"time": 370,
+			"location": "bottom-rune",
+			"rune-type": "bounty",
+			"involved":[109]
+		},
+		"10039": {
+			"type": "movement",
+			"time-start": 470,
+			"time-end": 385,
+			"location": "top-rune",
+			"involved":[100,101],
+			"related": "10040"
+		},
+		"10040": {
+			"type": "rune-pickup",
+			"time": 480,
+			"location": "top-rune",
+			"rune-type": "double-damage",
+			"involved":[109]
+		},
+		"10041": {
+			"type": "movement",
+			"time-start": 470,
+			"time-end": 485,
+			"location": "bottom-rune",
+			"involved":[105,109],
+			"related": "10042"
+		},
+		"10042": {
+			"type": "rune-pickup",
+			"time": 480,
+			"location": "bottom-rune",
+			"rune-type": "bounty",
+			"involved":[109]
+		},
+		"10043": {
+			"type": "fountain-visit",
+			"time-start": -90,
+			"time-end": -60,
+			"location": "radiant-base",
+			"involved": [100,101,102,103,104]
+		},
+		"10044": {
+			"type": "fountain-visit",
+			"time-start": -90,
+			"time-end": -60,
+			"location": "dire-base",
+			"involved": [105,106,107,108,109]
+		},
+		"10045": {
+			"type": "fountain-visit",
+			"time-start": 50,
+			"time-end": 55,
+			"location": "radiant-base",
+			"involved": [102]
+		},
+		"10046": {
+			"type": "fountain-visit",
+			"time-start": 110,
+			"time-end": 115,
+			"location": "radiant-base",
+			"involved": [102]
+		},
+		"10047": {
+			"type": "fountain-visit",
+			"time-start": 150,
+			"time-end": 170,
+			"location": "dire-base",
+			"involved": [105]
+		},
+		"10048": {
+			"type": "fountain-visit",
+			"time-start": 180,
+			"time-end": 200,
+			"location": "radiant-base",
+			"involved": [100,104]
+		},
+		"10049": {
+			"type": "fountain-visit",
+			"time-start": 280,
+			"time-end": 300,
+			"location": "dire-base",
+			"involved": [105]
+		},
+		"10050": {
+			"type": "fountain-visit",
+			"time-start": 290,
+			"time-end": 310,
+			"location": "radiant-base",
+			"involved": [100]
+		},
+		"10051": {
+			"type": "fountain-visit",
+			"time-start": 420,
+			"time-end": 440,
+			"location": "radiant-base",
+			"involved": [100,104]
+		},
+		"10052": {
+			"type": "fountain-visit",
+			"time-start": 430,
+			"time-end": 440,
+			"location": "dire-base",
+			"involved": [106]
+		},
+		"10052": {
+			"type": "fountain-visit",
+			"time-start": 445,
+			"time-end": 460,
+			"location": "radiant-base",
+			"involved": [101]
+		},
+		"10053": {
+			"type": "fountain-visit",
+			"time-start": 450,
+			"time-end": 460,
+			"location": "dire-base",
+			"involved": [105,108]
+		},
+
+		"10499": {
+			"type": "pull",
+			"time": 60,
+			"location": "toplane-radant-before-t1",
+			"camp": "dire-hardcamp-lane",
+			"creeps": "radiant",
+			"involved": [100]
+		},
+		"10500": {
+			"type": "jungling",
+			"time-start": 50,
+			"time-end": 65,
+			"location": "dire-jungle",
+			"involved": [106],
+			"related": [10501]
+		},
+		"10501": {
+			"type": "stack",
+			"time": 60,
+			"location": "dire-jungle",
+			"camp": "dire-hardcamp-base",
+			"involved": [106]
+		},
+		"10502": {
+			"type": "jungling",
+			"time-start": 65,
+			"time-end": 100,
+			"location": "dire-jungle",
+			"involved": [106],
+			"related": [10503]
+		},
+		"10503": {
+			"type": "pull",
+			"time": 70,
+			"location": "dire-jungle",
+			"camp": "dire-medium-pull",
+			"creeps": "dire",
+			"involved": [106]
+		},
+		"10504": {
+			"type": "jungling",
+			"time-start": 110,
+			"time-end": 130,
+			"location": "dire-jungle",
+			"involved": [106],
+			"related": [10505]
+		},
+		"10505": {
+			"type": "stack",
+			"time": 120,
+			"location": "dire-jungle",
+			"camp": "dire-hardcamp-base",
+			"involved": [106]
+		},
+		"10506": {
+			"type": "jungling",
+			"time-start": 250,
+			"time-end": 280,
+			"location": "dire-jungle",
+			"involved": [104]
+		},
+		"10507": {
+			"type": "jungling",
+			"time-start": 350,
+			"time-end": 360,
+			"location": "dire-jungle",
+			"involved": [100,104]
+		},
+		"10508": {
+			"type": "jungling",
+			"time-start": 350,
+			"time-end": 380,
+			"location": "radiant-jungle",
+			"involved": [103],
+			"related": [10509]
+		},
+		"10509": {
+			"type": "pull",
+			"time": 370,
+			"location": "radiant-jungle",
+			"camp": "radiant-medium-pull",
+			"creeps": "radiant",
+			"involved": [103]
+		},
+		"10510": {
+			"type": "jungling",
+			"time-start": 400,
+			"time-end": 420,
+			"location": "dire-jungle",
+			"involved": [107,109]
+		},
+		"10511": {
+			"type": "jungling",
+			"time-start": 420,
+			"time-end": 440,
+			"location": "radiant-jungle",
+			"involved": [102,103],
+			"related": [10512]
+		},
+		"10512": {
+			"type": "pull",
+			"time": 430,
+			"location": "radiant-jungle",
+			"camp": "radiant-medium-pull",
+			"creeps": "radiant",
+			"involved": [103]
+		},
+		"10513": {
+			"type": "jungling",
+			"time-start": 500,
+			"time-end": 560,
+			"location": "dire-jungle",
+			"involved": [107]
+		},
+		"10514": {
+			"type": "jungling",
+			"time-start": 540,
+			"time-end": 570,
+			"location": "radiant-jungle",
+			"involved": [109]
+		},
+		"10515": {
+			"type": "jungling",
+			"time-start": 580,
+			"time-end": 600,
+			"location": "dire-jungle",
+			"involved": [104]
+		},
+
+		"12000": {
+			"type": "laning",
+			"time-start": 0,
+			"time-end": 360,
+			"location": "toplane-between-t1s",
+			"involved": [107]
+		},
+		"12001": {
+			"type": "laning",
+			"time-start": 0,
+			"time-end": 180,
+			"location": "toplane-between-t1s",
+			"involved": [104]
+		},
+		"12002": {
+			"type": "laning",
+			"time-start": 210,
+			"time-end": 250,
+			"location": "toplane-between-t1s",
+			"involved": [104]
+		},
+		"12003": {
+			"type": "laning",
+			"time-start": 285,
+			"time-end": 345,
+			"location": "toplane-between-t1s",
+			"involved": [104]
+		},
+		"12004": {
+			"type": "laning",
+			"time-start": 460,
+			"time-end": 600,
+			"location": "toplane-between-t1s",
+			"involved": [104]
+		},
+		"12005": {
+			"type": "laning",
+			"time-start": 50,
+			"time-end": 70,
+			"location": "toplane-between-t1s",
+			"involved": [100]
+		},
+		"12006": {
+			"type": "laning",
+			"time-start": 130,
+			"time-end": 160,
+			"location": "toplane-between-t1s",
+			"involved": [100]
+		},
+		"12007": {
+			"type": "laning",
+			"time-start": 130,
+			"time-end": 160,
+			"location": "toplane-between-t1s",
+			"involved": [100]
+		},
+		"12008": {
+			"type": "laning",
+			"time-start": 210,
+			"time-end": 260,
+			"location": "toplane-between-t1s",
+			"involved": [100]
+		},
+		"12008": {
+			"type": "laning",
+			"time-start": 500,
+			"time-end": 520,
+			"location": "toplane-between-t1s",
+			"involved": [100]
+		},
+		"12009": {
+			"type": "laning",
+			"time-start": 10,
+			"time-end": 230,
+			"location": "midlane-between-t1s",
+			"involved": [101]
+		},
+		"12010": {
+			"type": "laning",
+			"time-start": 245,
+			"time-end": 255,
+			"location": "midlane-between-t1s",
+			"involved": [101]
+		},
+		"12011": {
+			"type": "laning",
+			"time-start": 320,
+			"time-end": 350,
+			"location": "midlane-between-t1s",
+			"involved": [101]
+		},
+		"12012": {
+			"type": "laning",
+			"time-start": 465,
+			"time-end": 475,
+			"location": "midlane-between-t1s",
+			"involved": [101]
+		},
+		"12013": {
+			"type": "laning",
+			"time-start": 530,
+			"time-end": 600,
+			"location": "midlane-between-t1s",
+			"involved": [101]
+		},
+		"12014": {
+			"type": "laning",
+			"time-start": 20,
+			"time-end": 40,
+			"location": "midlane-between-t1s",
+			"involved": [106]
+		},
+		"12015": {
+			"type": "laning",
+			"time-start": 30,
+			"time-end": 120,
+			"location": "midlane-between-t1s",
+			"involved": [109]
+		},
+		"12016": {
+			"type": "laning",
+			"time-start": 140,
+			"time-end": 360,
+			"location": "midlane-between-t1s",
+			"involved": [109]
+		},
+		"12017": {
+			"type": "laning",
+			"time-start": 255,
+			"time-end": 265,
+			"location": "midlane-between-t1s",
+			"involved": [100]
+		},
+		"12018": {
+			"type": "laning",
+			"time-start": 255,
+			"time-end": 265,
+			"location": "midlane-between-t1s",
+			"involved": [100]
+		},
+		"12019": {
+			"type": "laning",
+			"time-start": 310,
+			"time-end": 330,
+			"location": "midlane-between-t1s",
+			"involved": [106]
+		},
+		"12020": {
+			"type": "laning",
+			"time-start": 410,
+			"time-end": 420,
+			"location": "midlane-between-t1s",
+			"involved": [100]
+		},
+		"12021": {
+			"type": "laning",
+			"time-start": 420,
+			"time-end": 480,
+			"location": "midlane-between-t1s",
+			"involved": [109]
+		},
+		"12022": {
+			"type": "laning",
+			"time-start": 470,
+			"time-end": 480,
+			"location": "midlane-between-t1s",
+			"involved": [100]
+		},
+		"12023": {
+			"type": "laning",
+			"time-start": 530,
+			"time-end": 600,
+			"location": "midlane-between-t1s",
+			"involved": [106]
+		},
+		"12023": {
+			"type": "laning",
+			"time-start": 30,
+			"time-end": 50,
+			"location": "botlane-between-t1s",
+			"involved": [102]
+		},
+		"12023": {
+			"type": "laning",
+			"time-start": 60,
+			"time-end": 80,
+			"location": "botlane-between-t1s",
+			"involved": [102]
+		},
+		"12023": {
+			"type": "laning",
+			"time-start": 120,
+			"time-end": 600,
+			"location": "botlane-between-t1s",
+			"involved": [102]
+		},
+		"12023": {
+			"type": "laning",
+			"time-start": 80,
+			"time-end": 220,
+			"location": "botlane-between-t1s",
+			"involved": [103]
+		},
+		"12023": {
+			"type": "laning",
+			"time-start": 250,
+			"time-end": 340,
+			"location": "botlane-between-t1s",
+			"involved": [103]
+		},
+		"12023": {
+			"type": "laning",
+			"time-start": 370,
+			"time-end": 400,
+			"location": "botlane-between-t1s",
+			"involved": [103]
+		},
+		"12023": {
+			"type": "laning",
+			"time-start": 460,
+			"time-end": 590,
+			"location": "botlane-between-t1s",
+			"involved": [103]
+		},
+		"12023": {
+			"type": "laning",
+			"time-start": 30,
+			"time-end": 420,
+			"location": "botlane-between-t1s",
+			"involved": [108]
+		},
+		"12023": {
+			"type": "laning",
+			"time-start": 500,
+			"time-end": 550,
+			"location": "botlane-between-t1s",
+			"involved": [108]
+		},
+		"12023": {
+			"type": "laning",
+			"time-start": 40,
+			"time-end": 90,
+			"location": "botlane-between-t1s",
+			"involved": [105]
+		},
+		"12023": {
+			"type": "laning",
+			"time-start": 220,
+			"time-end": 300,
+			"location": "botlane-between-t1s",
+			"involved": [105]
+		},
+		"12023": {
+			"type": "laning",
+			"time-start": 320,
+			"time-end": 350,
+			"location": "botlane-between-t1s",
+			"involved": [105]
+		},
+		"12023": {
+			"type": "laning",
+			"time-start": 520,
+			"time-end": 550,
+			"location": "botlane-between-t1s",
+			"involved": [105]
+		}
+	},
+	"timeseries":{
+		"gold-advantage":{
+			"format":"samples",
+			"samples":[
+				{"t": -90, 	"v": 0},
+				{"t": -60, 	"v": 0},
+				{"t": -30, 	"v": 0},
+				{"t": 0, 	"v": 0},
+				{"t": 60, 	"v": -1090},
+				{"t": 120, 	"v": -1935},
+				{"t": 180, 	"v": -2468},
+				{"t": 240, 	"v": -2506},
+				{"t": 300, 	"v": -1874},
+				{"t": 360, 	"v": -2247},
+				{"t": 420, 	"v": -2214},
+				{"t": 480, 	"v": -2297},
+				{"t": 540, 	"v": -2532},
+				{"t": 600, 	"v": -2521}
+			]
+		},
+		"exp-advantage":{
+			"format":"samples",
+			"samples":[
+				{"t": -90, 	"v": 0},
+				{"t": -60, 	"v": 0},
+				{"t": -30, 	"v": 0},
+				{"t": 0, 	"v": 0},
+				{"t": 60, 	"v": -140},
+				{"t": 120, 	"v": -584},
+				{"t": 180, 	"v": -1175},
+				{"t": 240, 	"v": -1161},
+				{"t": 300, 	"v": -411},
+				{"t": 360, 	"v": -933},
+				{"t": 420, 	"v": -767},
+				{"t": 480, 	"v": -399},
+				{"t": 540, 	"v": -55},
+				{"t": 600, 	"v": 38}
+			]
+		}
+	}
+}

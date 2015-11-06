@@ -1,0 +1,28 @@
+fight intensity:
+	encounter
+	skirmish
+	battle
+	clash
+
+locations:
+	lanes: botlane midlane toplane
+ 		[lane]-radiant-highground
+		[lane]-radiant-between-t2t3
+		[lane]-radiant-before-t2
+		[lane]-radiant-t2
+		[lane]-radiant-behind-t1
+		[lane]-radiant-t1
+		[lane]-radiant-before-t1
+
+		[lane]-dire-before-t1
+		[lane]-dire-behind-t1
+		[lane]-dire-before-t2
+		[lane]-dire-between-t2t3
+		[lane]-dire-highground
+	
+	bottom-rune
+	top-rune
+	roshan-pit
+
+	dire-jungle
+	radiant-jungle

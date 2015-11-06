@@ -1,0 +1,3 @@
+events:
+	displaz alle unit icons in "involved"
+	unionize "involved" with all "involved" of "related" events
