@@ -4,11 +4,20 @@ pregame_time = 90;
 
 replay_data = {};
 
+function buildDataIndices()
+{
+	replay_data["indices"] = {};
+	
+}
+
+
 // set up internal display state
 gui_state = {
 	"cursor-time": 0,
 
 	"timeline-cursor-width": 30,
+	"active-sub-timelines": 0,	
+	"timelines": [],
 
 	"visible-players": []
 };
@@ -22,6 +31,11 @@ d3_elements = {
 	"timeline-drag": null
 }
 
+timeline_inset_left = 100;
+timeline_height = 200;
+timeline_height_inset_factor = 0.9;
+timeline_separator_width = 5;
+timeline_separator_offset_labels = 5;
 
 /*
 	Init functions
@@ -42,22 +56,20 @@ function initVisualisation(){
 }
 
 function initTimeline(){
-	var inset_left = 100;
-	var inset_left = 100;
-	var timeline_height = 100;
+
 	var game_length = replay_data["header"]["length"];
 	d3_elements["timeline-svg"] = d3.select("#timeline")
 					.append("svg")
 					.attr({ "id": "timeline-svg",
 						"class": "svg-content",
-						"viewBox": "-"+(inset_left+pregame_time)+" 0 "+game_length+" "+timeline_height});
+						"viewBox": "-"+(timeline_inset_left+pregame_time)+" 0 "+game_length+" "+timeline_height});
 
-	var separator_width = 5;
+
 	d3_elements["timeline-svg"].append("svg:rect")
 					.attr({	"id": "timeline-separator",
-						"x": (-pregame_time-separator_width),
+						"x": (-pregame_time-timeline_separator_width),
 						"y": 0,
-						"width": separator_width,
+						"width": timeline_separator_width,
 						"height": timeline_height
 					})
 
@@ -70,13 +82,13 @@ function initTimeline(){
              .on('dragend', function() { d3_elements["timeline-cursor"].style('fill', 'black'); });
 
 
-	var cursor_height = timeline_height*0.8;
+	var cursor_height = timeline_height;//*timeline_height_inset_factor;
 	d3_elements["timeline-svg"]
                 .append('svg:rect')
                 .attr({
 			'id': 'timeline-cursor',
 			'x': 0,//overridden by time
-                	'y': timeline_height*0.1,
+                	'y': 0,//timeline_height* (1-timeline_height_inset_factor)/2,
                 	'width': gui_state["timeline-cursor-width"],
                 	'height': cursor_height
 			})
@@ -84,7 +96,85 @@ function initTimeline(){
 	
 	d3_elements["timeline-cursor"] = d3_elements["timeline-svg"].select("#timeline-cursor");
 
+	gui_state["timelines"] =
+		[
+			{"label": "Time"},
+			{"label": "Kills"},
+			{"label": "Gold"},
+			{"label": "Experience"},
+			{"label": "Fights"},
+		];
+
+	gui_state["active-sub-timelines"] = 5;
+
 	updateTimeline();
+}
+
+function createSubTimeline(sub_timeline, index){
+	var sub_timeline_height = timeline_height * timeline_height_inset_factor / gui_state["active-sub-timelines"];
+	var top_offset = timeline_height * (1-timeline_height_inset_factor)/2 + sub_timeline_height/2;
+	var left_offset = -pregame_time - timeline_separator_width - timeline_separator_offset_labels;
+	//sync with update
+
+	d3.select(this)
+		.attr("transform", "translate(0,"+(top_offset+index*sub_timeline_height)+")")
+		.attr("height", sub_timeline_height)
+		.append("svg:text")
+			.attr({	"x": left_offset,
+				"y": 0,
+				"class": "sub-timeline-label"})
+			.text(sub_timeline["label"]);
+
+	var group = d3.select(this)
+		.append("g");
+
+	var game_length = replay_data["header"]["length"];
+	var axis_scale = d3.scale.linear()
+				.domain([-pregame_time, 0, game_length])
+				.range([-pregame_time, 0, game_length]);
+
+	var minute_ticks = [];
+	for(var i = -60; i <= game_length; i+=60)
+		minute_ticks.push(i);
+
+	switch(sub_timeline["label"])
+	{
+	case "Time":
+		group.attr("id", "sub-timeline-time")
+
+
+
+		var axis = d3.svg.axis()	
+				.scale(axis_scale)
+				.tickValues(minute_ticks)
+				.orient("top")
+				.tickFormat(function(tick){return tick/60;});
+
+		group.call(axis);
+
+		break;
+
+	case "Kills":
+		group.attr("id", "sub-timeline-kills")
+		var axis = d3.svg.axis()	
+				.scale(axis_scale)
+				.tickValues(minute_ticks)
+				.orient("top")
+				.tickFormat("");
+
+		group.call(axis);
+		break;
+
+	case "Gold":
+		break;
+
+	case "Experience":
+		break;
+
+	case "Fights":
+		break;
+	}
+
 }
 
 function initDiagram(){
@@ -119,9 +209,31 @@ function updateDisplay()
 	updateDiagram();
 }
 
-function updateTimeline()
-{
+function updateTimeline(){
 	d3_elements["timeline-cursor"].attr('x', gui_state["cursor-time"]- gui_state["timeline-cursor-width"]/2);
+
+	var sub_timelines = d3_elements["timeline-svg"].selectAll(".sub-timeline").data(gui_state["timelines"], function(timeline){
+					return timeline["label"];
+				});
+	sub_timelines.enter()
+		.append("g")
+		.attr("class", "sub-timeline")
+		.each(createSubTimeline);
+
+	sub_timelines.each(updateSubTimeline);
+
+	sub_timelines.exit()
+		.remove();
+}
+
+function updateSubTimeline(sub_timeline, index){
+	//sync with create
+	var sub_timeline_height = timeline_height * timeline_height_inset_factor / gui_state["active-sub-timelines"];
+	var top_offset = timeline_height * (1-timeline_height_inset_factor)/2 + sub_timeline_height/2;
+	var left_offset = -pregame_time - timeline_separator_width - timeline_separator_offset_labels;
+
+	d3.select(this)
+		.attr("transform", "translate(0,"+(top_offset+index*sub_timeline_height)+")");
 }
 
 function updateDiagram()
@@ -168,6 +280,7 @@ function main()
 {
 	d3.json("data/monkey_vs_nip.json",function(error, data){
 			replay_data = data;
+			buildDataIndices();
 			initVisualisation();
 			}
 		);

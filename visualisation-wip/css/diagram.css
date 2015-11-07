@@ -98,7 +98,7 @@
 
 #timeline {
     background-color:#d0d0d0;
-    padding-top:10vmin;
+    padding-top:15vmin;
 }
 
 #diagram {
@@ -135,4 +135,35 @@
 
 #timeline-separator {
 	fill: black;
+}
+
+.sub-timeline-label {
+	fill: black;
+	font-family: sans-serif;
+	font-size: 20px;
+	text-anchor: end;
+}
+
+#sub-timeline-time text {
+	fill: black;
+	font-family: sans-serif;
+	font-size: 20px;
+}
+
+#sub-timeline-time path {
+	fill: none;
+    	stroke: black;
+}
+
+#sub-timeline-time line {
+    	stroke: black;
+}
+
+#sub-timeline-kills path {
+	fill: none;
+    	stroke: black;
+}
+
+#sub-timeline-kills line {
+    	stroke: black;
 }
