@@ -7,7 +7,19 @@ replay_data = {};
 function buildDataIndices()
 {
 	replay_data["indices"] = {};
-	
+	replay_data["indices"]["kills"] = [];
+	replay_data["indices"]["fights"] = [];
+	for (var event_id in replay_data["events"]) {
+		switch(replay_data["events"][event_id]["type"])
+		{
+		case "kill":
+			replay_data["indices"]["kills"].push(event_id);
+			break;
+		case "fight":
+			replay_data["indices"]["fights"].push(event_id);
+			break;
+		}
+	}
 }
 
 
@@ -36,6 +48,7 @@ timeline_height = 200;
 timeline_height_inset_factor = 0.9;
 timeline_separator_width = 5;
 timeline_separator_offset_labels = 5;
+timeline_kill_radius = 10;
 
 /*
 	Init functions
@@ -118,7 +131,6 @@ function createSubTimeline(sub_timeline, index){
 
 	d3.select(this)
 		.attr("transform", "translate(0,"+(top_offset+index*sub_timeline_height)+")")
-		.attr("height", sub_timeline_height)
 		.append("svg:text")
 			.attr({	"x": left_offset,
 				"y": 0,
@@ -140,9 +152,6 @@ function createSubTimeline(sub_timeline, index){
 	switch(sub_timeline["label"])
 	{
 	case "Time":
-		group.attr("id", "sub-timeline-time")
-
-
 
 		var axis = d3.svg.axis()	
 				.scale(axis_scale)
@@ -150,19 +159,36 @@ function createSubTimeline(sub_timeline, index){
 				.orient("top")
 				.tickFormat(function(tick){return tick/60;});
 
-		group.call(axis);
+		group.append("g")
+			.attr("id", "sub-timeline-time")
+			.call(axis);
+
+		var line_length = timeline_height * timeline_height_inset_factor * (gui_state["active-sub-timelines"]-1)/ gui_state["active-sub-timelines"];
+		var lines= d3.svg.axis()	
+				.scale(axis_scale)
+				.tickValues(minute_ticks)
+				.orient("top")
+            			.tickSize(line_length, line_length)
+            			.tickFormat("");
+		
+		group.append("g")
+			.attr("id", "sub-timeline-time-lines")
+        		.attr("transform", "translate(0," + line_length + ")")
+			.call(lines);
 
 		break;
 
 	case "Kills":
-		group.attr("id", "sub-timeline-kills")
-		var axis = d3.svg.axis()	
-				.scale(axis_scale)
-				.tickValues(minute_ticks)
-				.orient("top")
-				.tickFormat("");
+		d3.select(this).selectAll(".timeline-kill").data(replay_data["indices"]["kills"])
+			.enter()
+			.append("svg:circle")
+			.attr({	"class": function(kill){ return "timeline-kill "+replay_data["events"][kill]["team"]},
+				"r": timeline_kill_radius,
+				"cx": function(kill){return replay_data["events"][kill]["time"];},
+				"cy": function(kill){return -timeline_kill_radius;}
+				});
 
-		group.call(axis);
+
 		break;
 
 	case "Gold":
