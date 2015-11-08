@@ -1,8 +1,19 @@
 /* Declare global variables*/
 
+
+//data organisation
 pregame_time = 90;
 
 replay_data = {};
+
+function loadData(callback_finished)
+{
+	d3.json("data/monkey_vs_nip.json",function(error, data){
+			replay_data = data;
+			buildDataIndices();
+			callback_finished();
+		});
+}
 
 function buildDataIndices()
 {
@@ -19,6 +30,30 @@ function buildDataIndices()
 			replay_data["indices"]["fights"].push(event_id);
 			break;
 		}
+	}
+}
+
+function generateLine(timeseries, xrange, yrange){
+	switch(timeseries["format"])
+	{
+	case "samples":
+		xscale = d3.scale.linear()
+				.domain(xrange)
+				.range(xrange);
+
+		var range = Math.max(	Math.abs(d3.min(timeseries["samples"], function(sample){return sample["v"];})),
+					Math.abs(d3.min(timeseries["samples"], function(sample){return sample["v"];}))
+					);
+		yscale = d3.scale.linear()
+				.domain([-range,range])
+				.range(yrange);
+
+		var lineFunction = d3.svg.line()
+					.x(function(d) {return xscale(d["t"]);})
+					.y(function(d) {return - yscale(d["v"]);})
+					.interpolate('linear');
+
+		return lineFunction(timeseries["samples"]);
 	}
 }
 
@@ -39,16 +74,28 @@ for(var i = 0; i < 10; ++i)
 
 d3_elements = {
 	"timeline-svg": null,	
+	"timeline-svg-foreground": null,	
 	"timeline-cursor": null,
 	"timeline-drag": null
 }
 
-timeline_inset_left = 100;
+colors_reds = ["#FC9494", "#D35858", "#B23232", "#8E1515", "#630000"];
+colors_greens = ["#76CA76", "#46A946", "#288E28", "#117211", "#004F00"];
+colors_blues = ["#7771AF", "#504893", "#372E7C", "#221A63", "#0F0945"];
+colors_yellows = ["#FCE694", "#D3B858", "#B29632", "#8E7415", "#634D00"];
+colors_purples = ["#A573B9", "#83479B", "#6D2D86", "#581971", "#400857"];
+colors_beiges = ["#F8FD99", "#E1E765", "#C0C73D", "#A1A820", "#7B8106"];
+
+timeline_inset_left = 140;
 timeline_height = 200;
 timeline_height_inset_factor = 0.9;
 timeline_separator_width = 5;
 timeline_separator_offset_labels = 5;
 timeline_kill_radius = 10;
+
+color_scale_fights = d3.scale.ordinal()
+			.domain(["encounter", "skirmish", "battle", "clash"])
+			.range([colors_blues[1], colors_blues[2], colors_blues[3], colors_blues[4]]);
 
 /*
 	Init functions
@@ -71,12 +118,18 @@ function initVisualisation(){
 function initTimeline(){
 
 	var game_length = replay_data["header"]["length"];
+
 	d3_elements["timeline-svg"] = d3.select("#timeline")
 					.append("svg")
 					.attr({ "id": "timeline-svg",
 						"class": "svg-content",
 						"viewBox": "-"+(timeline_inset_left+pregame_time)+" 0 "+game_length+" "+timeline_height});
-
+	
+	d3_elements["timeline-svg-foreground"] = d3.select("#timeline")
+					.append("svg")
+					.attr({ "id": "timeline-svg-foreground",
+						"class": "svg-content-overlay",
+						"viewBox": "-"+(timeline_inset_left+pregame_time)+" 0 "+game_length+" "+timeline_height});
 
 	d3_elements["timeline-svg"].append("svg:rect")
 					.attr({	"id": "timeline-separator",
@@ -96,7 +149,7 @@ function initTimeline(){
 
 
 	var cursor_height = timeline_height;//*timeline_height_inset_factor;
-	d3_elements["timeline-svg"]
+	d3_elements["timeline-svg-foreground"]
                 .append('svg:rect')
                 .attr({
 			'id': 'timeline-cursor',
@@ -107,7 +160,7 @@ function initTimeline(){
 			})
                 .call(d3_elements["timeline-drag"]);
 	
-	d3_elements["timeline-cursor"] = d3_elements["timeline-svg"].select("#timeline-cursor");
+	d3_elements["timeline-cursor"] = d3_elements["timeline-svg-foreground"].select("#timeline-cursor");
 
 	gui_state["timelines"] =
 		[
@@ -127,20 +180,34 @@ function createSubTimeline(sub_timeline, index){
 	var sub_timeline_height = timeline_height * timeline_height_inset_factor / gui_state["active-sub-timelines"];
 	var top_offset = timeline_height * (1-timeline_height_inset_factor)/2 + sub_timeline_height/2;
 	var left_offset = -pregame_time - timeline_separator_width - timeline_separator_offset_labels;
+
+	var game_length = replay_data["header"]["length"];
 	//sync with update
 
 	d3.select(this)
-		.attr("transform", "translate(0,"+(top_offset+index*sub_timeline_height)+")")
+		.attr("transform", "translate(0,"+(top_offset+index*sub_timeline_height)+")");
+	if(index %2 == 1)
+	{
+		d3.select(this)
+			.append("svg:rect")
+			.attr({	"x": -timeline_inset_left-pregame_time,
+				"y": -sub_timeline_height/2,
+				"width": timeline_inset_left + pregame_time + game_length,
+				"height": sub_timeline_height,
+				"class": "sub-timeline-alternate-background"
+				});
+	}
+	
+	d3.select(this)		
 		.append("svg:text")
-			.attr({	"x": left_offset,
-				"y": 0,
-				"class": "sub-timeline-label"})
-			.text(sub_timeline["label"]);
+				.attr({	"x": left_offset,
+					"y": 0,
+					"class": "sub-timeline-label"})
+				.text(sub_timeline["label"]);
 
 	var group = d3.select(this)
 		.append("g");
 
-	var game_length = replay_data["header"]["length"];
 	var axis_scale = d3.scale.linear()
 				.domain([-pregame_time, 0, game_length])
 				.range([-pregame_time, 0, game_length]);
@@ -148,6 +215,8 @@ function createSubTimeline(sub_timeline, index){
 	var minute_ticks = [];
 	for(var i = -60; i <= game_length; i+=60)
 		minute_ticks.push(i);
+
+	var time_domain = [-pregame_time, game_length];
 
 	switch(sub_timeline["label"])
 	{
@@ -161,7 +230,10 @@ function createSubTimeline(sub_timeline, index){
 
 		group.append("g")
 			.attr("id", "sub-timeline-time")
+			.attr("transform", "translate(0,"+(sub_timeline_height/2)+")")			
 			.call(axis);
+		group.selectAll("#sub-timeline-time text")
+			.attr("y", -sub_timeline_height/2);3
 
 		var line_length = timeline_height * timeline_height_inset_factor * (gui_state["active-sub-timelines"]-1)/ gui_state["active-sub-timelines"];
 		var lines= d3.svg.axis()	
@@ -173,7 +245,7 @@ function createSubTimeline(sub_timeline, index){
 		
 		group.append("g")
 			.attr("id", "sub-timeline-time-lines")
-        		.attr("transform", "translate(0," + line_length + ")")
+        		.attr("transform", "translate(0," + (sub_timeline_height/2 + line_length) + ")")
 			.call(lines);
 
 		break;
@@ -185,19 +257,64 @@ function createSubTimeline(sub_timeline, index){
 			.attr({	"class": function(kill){ return "timeline-kill "+replay_data["events"][kill]["team"]},
 				"r": timeline_kill_radius,
 				"cx": function(kill){return replay_data["events"][kill]["time"];},
-				"cy": function(kill){return -timeline_kill_radius;}
+				"cy": function(kill){return 0;}
 				});
 
 
 		break;
 
 	case "Gold":
+		var axis = d3.svg.axis()	
+				.scale(axis_scale)
+				.tickFormat("")
+            			.tickSize(0, 0);
+
+		group.append("g")
+			.attr("id", "sub-timeline-gold-axis")
+			.call(axis);
+		
+		var gold_data = replay_data["timeseries"]["gold-advantage"];
+
+		group.append('svg:path')
+			.attr({	"id": "sub-timeline-gold-graph",
+				"d": generateLine(gold_data, time_domain, [-sub_timeline_height/2, sub_timeline_height/2]),
+				"stroke": "black",
+				"stroke-width": 2,
+				"fill": "none"});
 		break;
 
 	case "Experience":
+		var axis = d3.svg.axis()	
+				.scale(axis_scale)
+				.tickFormat("")
+            			.tickSize(0, 0);
+
+		group.append("g")
+			.attr("id", "sub-timeline-exp-axis")
+			.call(axis);
+		
+		var exp_data = replay_data["timeseries"]["exp-advantage"];
+
+		group.append('svg:path')
+			.attr({	"id": "sub-timeline-exp-graph",
+				"d": generateLine(exp_data, time_domain, [-sub_timeline_height/2, sub_timeline_height/2]),
+				"stroke": "black",
+				"stroke-width": 2,
+				"fill": "none"});
 		break;
 
 	case "Fights":
+		d3.select(this).selectAll(".timeline-fight").data(replay_data["indices"]["fights"])
+			.enter()
+			.append("svg:rect")
+			.attr({	"class": function(fight){ return "timeline-kill "+replay_data["events"][fight]["team"]},
+				"x": function(fight){return replay_data["events"][fight]["time-start"];},
+				"y": -sub_timeline_height/2,
+				"width": function(fight){return replay_data["events"][fight]["time-end"] - replay_data["events"][fight]["time-start"];},
+				"height": sub_timeline_height,
+				"fill": function(fight){return color_scale_fights(replay_data["events"][fight]["intensity"]);}
+				});
+
 		break;
 	}
 
@@ -304,12 +421,7 @@ function loadSVG(file, id, callback)
 
 function main()
 {
-	d3.json("data/monkey_vs_nip.json",function(error, data){
-			replay_data = data;
-			buildDataIndices();
-			initVisualisation();
-			}
-		);
+	loadData(initVisualisation);
 }
 
 window.onload = main;
