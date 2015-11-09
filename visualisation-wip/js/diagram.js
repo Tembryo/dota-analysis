@@ -103,15 +103,12 @@ gui_state = {
 	"visible-players": []
 };
 
+map_events = ["fight", "movement", "fountain-visit", "jungling", "laning", "rotation"];
+
 for(var i = 0; i < 10; ++i)
 	gui_state["visible-players"].push(false);
 
-d3_elements = {
-	"timeline-svg": null,	
-	"timeline-svg-foreground": null,	
-	"timeline-cursor": null,
-	"timeline-drag": null
-}
+d3_elements = {} //Filled by creation methods
 
 colors_reds = ["#FC9494", "#D35858", "#B23232", "#8E1515", "#630000"];
 colors_greens = ["#76CA76", "#46A946", "#288E28", "#117211", "#004F00"];
@@ -130,6 +127,37 @@ timeline_kill_radius = 10;
 color_scale_fights = d3.scale.ordinal()
 			.domain(["encounter", "skirmish", "battle", "clash"])
 			.range([colors_blues[1], colors_blues[2], colors_blues[3], colors_blues[4]]);
+
+function getLocationCoordinates(position)
+{
+	switch(position)
+	{
+	case "top-rune":
+		return {"x": 30 , y: 30};
+	case "bottom-rune":
+		return {"x": 70 , y: 70};
+
+	case "toplane-dire-t1":
+		return {"x": 20 , y: 20};
+
+	case "midlane-dire-before-t1":
+		return {"x": 50 , y: 40};
+
+	case "botlane-radiant-t1":
+		return {"x": 90 , y: 90};
+	case "botlane-radiant-before-t1":
+		return {"x": 80 , y: 90};
+
+
+	case "dire-jungle":
+		return {"x": 60 , y: 30};
+	case "radiant-jungle":
+		return {"x": 60 , y: 80};
+	default: 
+		console.log("unknown location", position);
+		return {"x": 50 , y: 50};
+	}
+}
 
 /*
 	Init functions
@@ -358,7 +386,33 @@ function initDiagram(){
 }
 
 function initMap(){
-	loadSVG("img/map.svg", "map", function(){});
+	//loadSVG("img/map.svg", "map", function(){});
+
+	d3_elements["map"] = d3.select("#map");
+
+	d3_elements["map-svg"] = d3.select("#map")
+				.append("svg")
+				.attr({ "id": "map-svg",
+					"class": "svg-content",
+					"viewBox": "0 0 "+100+" "+100});
+
+	d3_elements["map-svg-foreground"] = d3.select("#map")
+					.append("svg")
+					.attr({ "id": "map-svg-foreground",
+						"class": "svg-content-overlay",
+						"viewBox": "0 0 "+100+" "+100
+						});
+;
+
+	d3_elements["map-svg"].append("svg:image")
+				.attr({	"id": "map-background",
+					"xlink:href": "img/minimap.png",
+					"x": "0",
+					"y": "0",
+					"width": "100",
+					"height": "100"
+					});
+	updateMap();
 }
 
 function initLegend(){
@@ -375,6 +429,7 @@ function updateDisplay()
 {
 	updateTimeline();
 	updateDiagram();
+	updateMap();
 }
 
 function updateTimeline(){
@@ -402,6 +457,95 @@ function updateSubTimeline(sub_timeline, index){
 
 	d3.select(this)
 		.attr("transform", "translate(0,"+(top_offset+index*sub_timeline_height)+")");
+}
+
+function updateMap(){
+	var map_events = d3_elements["map-svg"].selectAll(".event")
+				.data(d3.entries(replay_data["events"]).filter(function(d){return filterEventsMap(d.value)}),
+					function(entry){
+						return entry.key;
+						});
+	map_events.enter()
+		.append("g")
+			.attr({	"class": "event"
+				})
+			.each(function(entry){createMapEvent.call(this, entry.value);});
+
+	map_events.each(function(entry){updateMapEvent.call(this, entry.value);});
+
+	map_events.exit()
+		.remove();
+}
+
+function filterEventsMap(event){
+	if(map_events.indexOf(event["type"]) == -1)
+		return false;
+	
+	if(event.hasOwnProperty("time"))
+	{
+		return 	event["time"] >= (gui_state["cursor-time"] - gui_state["timeline-cursor-width"]/2) &&
+			event["time"] <= (gui_state["cursor-time"] + gui_state["timeline-cursor-width"]/2);
+	}
+	else if(event.hasOwnProperty("time-start") && event.hasOwnProperty("time-end"))
+	{
+		return 	event["time-end"] >= (gui_state["cursor-time"] - gui_state["timeline-cursor-width"]/2) &&  
+			event["time-start"] <= (gui_state["cursor-time"] + gui_state["timeline-cursor-width"]/2);
+	}
+	else
+	{
+		console.log("Corrupted event");
+		return false;
+	}
+}
+
+function createMapEvent(event){
+
+	var group = d3.select(this);
+
+	position = getLocationCoordinates(event["location"]);
+	var circle = group.append("svg:circle")
+		.attr({
+			"cx": position.x,
+			"cy": position.y,
+			"r": 7.5,
+			"opacity": 0.7
+			});
+	switch(event["type"])
+	{
+	case "fight":
+		circle.attr({
+			"fill": color_scale_fights(event["intensity"]),
+			});
+		break;
+	case "movement":
+		circle.attr({
+			"fill": color_scale_fights(color_blues[0]),
+			});
+		break;
+	case "fountain-visit":
+		circle.attr({
+			"fill": "white",
+			});
+		break;
+	case "jungling":
+		circle.attr({
+			"fill": color_scale_fights(beiges[3]),
+			});
+		break;
+	case "laning":
+		circle.attr({
+			"fill": "lightgrey",
+			});
+		break;
+	case "rotation":
+		circle.attr({
+			"fill": "red",
+			});
+		break;
+	}
+}
+
+function updateMapEvent(event){
 }
 
 function updateDiagram()

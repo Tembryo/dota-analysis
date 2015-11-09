@@ -50,34 +50,54 @@
 	},
 	"entities":{
 		"100": {
-			"name":"Spirit Breaker"
+			"name":"Spirit Breaker",
+			"team": "radiant",
+			"control": 0
 		},
 		"101": {
-			"name":"Queen of Pain"
+			"name":"Queen of Pain",
+			"team": "radiant",
+			"control": 1
 		},
 		"102": {
-			"name":"Anti-Mage"
+			"name":"Anti-Mage",
+			"team": "radiant",
+			"control": 2
 		},
 		"103": {
-			"name":"Dazzle"
+			"name":"Dazzle",
+			"team": "radiant",
+			"control": 3
 		},
 		"104": {
-			"name":"Dark Seer"
+			"name":"Dark Seer",
+			"team": "radiant",
+			"control": 4
 		},
 		"105": {
-			"name":"Undying"
+			"name":"Undying",
+			"team": "dire",
+			"control": 5
 		},
 		"106": {
-			"name":"Witch Doctor"
+			"name":"Witch Doctor",
+			"team": "dire",
+			"control": 6
 		},
 		"107": {
-			"name":"Necrolyte"
+			"name":"Necrolyte",
+			"team": "dire",
+			"control": 7
 		},
 		"108": {
-			"name":"Tusk"
+			"name":"Tusk",
+			"team": "dire",
+			"control": 8
 		},
 		"109": {
-			"name":"Alchemist"
+			"name":"Alchemist",
+			"team": "dire",
+			"control": 9
 		}
 	},
 	"events":{
