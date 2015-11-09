@@ -33,7 +33,9 @@ function buildDataIndices()
 	}
 }
 
-function generateLine(timeseries, xrange, yrange){
+function generateGraph(id, group, timeseries, xrange, yrange, area_colors){
+	var graph_node = group.append("g")
+				.attr("id", id+"-graph");
 	switch(timeseries["format"])
 	{
 	case "samples":
@@ -48,12 +50,44 @@ function generateLine(timeseries, xrange, yrange){
 				.domain([-range,range])
 				.range(yrange);
 
-		var lineFunction = d3.svg.line()
+		var postive_area = d3.svg.area()
+		    .x(function(d) {return xscale(d["t"]);})
+		    .y0(0)
+		    .y1(function(d) {return - Math.max(0, yscale(d["v"]));});
+
+		var negative_area = d3.svg.area()
+		    .x(function(d) {return xscale(d["t"]);})
+		    .y0(function(d) {return - Math.min(0, yscale(d["v"]));})
+		    .y1(0);
+
+		var line = d3.svg.line()
 					.x(function(d) {return xscale(d["t"]);})
 					.y(function(d) {return - yscale(d["v"]);})
 					.interpolate('linear');
 
-		return lineFunction(timeseries["samples"]);
+		graph_node.append('svg:path')
+			.attr({	"id": id+"-graph-positive-area",
+				"d": postive_area(timeseries["samples"]),
+				"stroke-width": 0,
+				"fill": area_colors[0],
+				"opacity": 0.5});
+
+		graph_node.append('svg:path')
+			.attr({	"id": id+"-graph-negative-area",
+				"d": negative_area(timeseries["samples"]),
+				"stroke-width": 0,
+				"fill": area_colors[1],
+				"opacity": 0.5});
+
+		graph_node.append('svg:path')
+			.attr({	"id": id+"-graph-line",
+				"d": line(timeseries["samples"]),
+				"stroke": "black",
+				"stroke-width": 2,
+				"fill": "none"});
+
+
+		return ;
 	}
 }
 
@@ -275,12 +309,7 @@ function createSubTimeline(sub_timeline, index){
 		
 		var gold_data = replay_data["timeseries"]["gold-advantage"];
 
-		group.append('svg:path')
-			.attr({	"id": "sub-timeline-gold-graph",
-				"d": generateLine(gold_data, time_domain, [-sub_timeline_height/2, sub_timeline_height/2]),
-				"stroke": "black",
-				"stroke-width": 2,
-				"fill": "none"});
+		generateGraph("sub-timeline-gold", group, gold_data, time_domain, [-sub_timeline_height/2, sub_timeline_height/2], [colors_greens[2], colors_reds[2]]);
 		break;
 
 	case "Experience":
@@ -295,12 +324,8 @@ function createSubTimeline(sub_timeline, index){
 		
 		var exp_data = replay_data["timeseries"]["exp-advantage"];
 
-		group.append('svg:path')
-			.attr({	"id": "sub-timeline-exp-graph",
-				"d": generateLine(exp_data, time_domain, [-sub_timeline_height/2, sub_timeline_height/2]),
-				"stroke": "black",
-				"stroke-width": 2,
-				"fill": "none"});
+		generateGraph("sub-timeline-exp", group, exp_data, time_domain, [-sub_timeline_height/2, sub_timeline_height/2], [colors_greens[2], colors_reds[2]]);
+
 		break;
 
 	case "Fights":
