@@ -378,8 +378,8 @@
 		},
 		"10039": {
 			"type": "movement",
-			"time-start": 470,
-			"time-end": 385,
+			"time-start": 480,
+			"time-end": 485,
 			"location": "top-rune",
 			"involved":[100,101],
 			"related": "10040"
@@ -669,13 +669,6 @@
 			"location": "toplane-between-t1s",
 			"involved": [100]
 		},
-		"12007": {
-			"type": "laning",
-			"time-start": 130,
-			"time-end": 160,
-			"location": "toplane-between-t1s",
-			"involved": [100]
-		},
 		"12008": {
 			"type": "laning",
 			"time-start": 210,
@@ -683,7 +676,7 @@
 			"location": "toplane-between-t1s",
 			"involved": [100]
 		},
-		"12008": {
+		"12508": {
 			"type": "laning",
 			"time-start": 500,
 			"time-end": 520,
@@ -747,13 +740,6 @@
 			"involved": [109]
 		},
 		"12017": {
-			"type": "laning",
-			"time-start": 255,
-			"time-end": 265,
-			"location": "midlane-between-t1s",
-			"involved": [100]
-		},
-		"12018": {
 			"type": "laning",
 			"time-start": 255,
 			"time-end": 265,
@@ -886,6 +872,9 @@
 			"location": "botlane-between-t1s",
 			"involved": [105]
 		}
+
+
+
 	},
 	"timeseries":{
 		"gold-advantage":{
