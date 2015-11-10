@@ -46,19 +46,21 @@ for unit in unit_list:
 
 	for i in range(0,len(my_keys)-1):
 		event_id = namebase+counter
-		g.write("\"" + str(event_id) + "\": { \n") 
-	 	g.write("    " + "\"type\": \"rotation\", \n")
 	 	time_end = events[rotation_dict[my_keys[i]]]["time-end"]
 	 	time_start1 = events[rotation_dict[my_keys[i+1]]]["time-start"]
 	 	time_start2 = events[rotation_dict[my_keys[i+1]]]["time-end"]
-	 	g.write("    " + "\"time-start\": " + str(time_end) + ",\n" )
-	 	g.write("    " + "\"time-end\": " + str(min(time_start1,time_start2)) + ",\n" )
-	 	g.write("    " + "\"location-start\": " + "\"" + events[rotation_dict[my_keys[i]]]["location"] + "\",\n" )
-	 	g.write("    " + "\"location-end\": " + "\"" + events[rotation_dict[my_keys[i+1]]]["location"] + "\",\n" )
-	 	g.write("    " + "\"involved\": " + "[" + str(unit) + "], \n")
-		g.write("    " + "\"rotation-type\": \"normal\", \n")
-	 	g.write("}\n") 
-	 	counter = counter+1
+	 	time_start3 = min(time_start1,time_start2)
+	 	if time_end != time_start3:
+	 		g.write("\"" + str(event_id) + "\": { \n") 
+	 		g.write("    " + "\"type\": \"rotation\", \n")
+		 	g.write("    " + "\"time-start\": " + str(time_end) + ",\n" )
+		 	g.write("    " + "\"time-end\": " + str(min(time_start1,time_start2)) + ",\n" )
+		 	g.write("    " + "\"location-start\": " + "\"" + events[rotation_dict[my_keys[i]]]["location"] + "\",\n" )
+		 	g.write("    " + "\"location-end\": " + "\"" + events[rotation_dict[my_keys[i+1]]]["location"] + "\",\n" )
+		 	g.write("    " + "\"involved\": " + "[" + str(unit) + "], \n")
+			g.write("    " + "\"rotation-type\": \"normal\", \n")
+		 	g.write("},\n") 
+		 	counter = counter+1
 	
 f.close()
 g.close()
