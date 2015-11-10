@@ -1,5 +1,5 @@
 /* Declare global variables*/
-
+DEBUG=true;
 
 //data organisation
 pregame_time = 90;
@@ -128,36 +128,52 @@ color_scale_fights = d3.scale.ordinal()
 			.domain(["encounter", "skirmish", "battle", "clash"])
 			.range([colors_blues[1], colors_blues[2], colors_blues[3], colors_blues[4]]);
 
-function getLocationCoordinates(position)
+location_coordinates =
 {
-	switch(position)
-	{
-	case "top-rune":
-		return {"x": 30 , y: 30};
-	case "bottom-rune":
-		return {"x": 70 , y: 70};
-
-	case "toplane-dire-t1":
-		return {"x": 20 , y: 20};
-
-	case "midlane-dire-before-t1":
-		return {"x": 50 , y: 40};
-
-	case "botlane-radiant-t1":
-		return {"x": 90 , y: 90};
-	case "botlane-radiant-before-t1":
-		return {"x": 80 , y: 90};
+	"radiant-base": {"x": 10 , "y": 87},
+	"dire-base": {"x": 90 , "y": 13},
 
 
-	case "dire-jungle":
-		return {"x": 60 , y: 30};
-	case "radiant-jungle":
-		return {"x": 60 , y: 80};
-	default: 
-		console.log("unknown location", position);
-		return {"x": 50 , y: 50};
-	}
-}
+	"top-rune": {"x": 36 , "y": 38},
+	"bottom-rune": {"x": 68 , "y": 63},
+
+	"toplane-between-t1s": {"x": 13 , "y": 30},
+	"toplane-dire-t1": {"x": 18 , "y": 13},
+
+	"midlane-between-t1s": {"x": 48 , "y": 52},
+	"midlane-dire-before-t1": {"x": 51 , "y": 49},
+
+	"botlane-radiant-t1": {"x": 83 , "y": 87},
+	"botlane-radiant-before-t1": {"x": 87 , "y": 81},
+	"botlane-between-t1s": {"x": 88 , "y": 73},
+
+	"dire-jungle": {"x": 38 , "y": 23},
+	"radiant-jungle": {"x": 63 , "y": 77}
+};
+
+icon_size = 5;
+
+icon_images = {
+	"spirit-breaker":"img/hero-icons/Spirit Breaker_icon.png",
+	"queen-of-pain":"img/hero-icons/Queen Of Pain_icon.png",
+	"anti-mage":"img/hero-icons/Antimage_icon.png",
+	"dazzle":"img/hero-icons/Dazzle_icon.png",
+	"dark-seer":"img/hero-icons/Dark Seer_icon.png",
+	"undying":"img/hero-icons/Undying_icon.png",
+	"witch-doctor":"img/hero-icons/Witch_Doctor_icon.png",
+	"necrolyte":"img/hero-icons/Necrolyte_icon.png",
+	"tusk":"img/hero-icons/Tusk_icon.png",
+	"alchemist":"img/hero-icons/Alchemist_icon.png",
+};
+
+event_duration = 5;
+event_maximum_opacity = 0.7;
+
+team_color =
+{
+	"radiant": colors_greens[2],
+	"dire": colors_reds[2]
+};
 
 /*
 	Init functions
@@ -326,7 +342,7 @@ function createSubTimeline(sub_timeline, index){
 		break;
 
 	case "Gold":
-		var axis = d3.svg.axis()	
+		var axis = d3.svg.axis()
 				.scale(axis_scale)
 				.tickFormat("")
             			.tickSize(0, 0);
@@ -396,13 +412,14 @@ function initMap(){
 					"class": "svg-content",
 					"viewBox": "0 0 "+100+" "+100});
 
+
 	d3_elements["map-svg-foreground"] = d3.select("#map")
 					.append("svg")
 					.attr({ "id": "map-svg-foreground",
 						"class": "svg-content-overlay",
 						"viewBox": "0 0 "+100+" "+100
 						});
-;
+
 
 	d3_elements["map-svg"].append("svg:image")
 				.attr({	"id": "map-background",
@@ -412,6 +429,20 @@ function initMap(){
 					"width": "100",
 					"height": "100"
 					});
+
+	if(DEBUG){
+		d3_elements["map-svg"].selectAll("location").data(d3.entries(location_coordinates), function(d){return d.key;})
+			.enter()
+			.append("svg:circle")
+				.attr({
+					"class": "location",
+					"cx": function(d){return d.value["x"];},
+					"cy": function(d){return d.value["y"];},
+					"r": 2,
+					"fill": "white"
+					});
+	}
+
 	updateMap();
 }
 
@@ -502,14 +533,34 @@ function createMapEvent(event){
 
 	var group = d3.select(this);
 
-	position = getLocationCoordinates(event["location"]);
+	position = location_coordinates[event["location"]];
+	group.attr({
+		"transform": "translate("+position.x+","+position.y+")"
+		});
+	
+
 	var circle = group.append("svg:circle")
 		.attr({
-			"cx": position.x,
-			"cy": position.y,
-			"r": 7.5,
-			"opacity": 0.7
+			"cx": 0,
+			"cy": 0,
+			"r": 10,
+			"opacity": computeEventOpacity(event)
 			});
+
+	if(	event.hasOwnProperty("time-start") && event.hasOwnProperty("time-end") &&
+		event["time-start"] <= gui_state["cursor-time"] && event["time-end"] > gui_state["cursor-time"] &&
+		event.hasOwnProperty("involved"))
+	{
+		group.selectAll(".involved-icon").data(event["involved"])
+			.enter()
+			.append("g")
+				.attr({
+					"class": "involved-icon",
+					"transform": function(d, i){return "translate(0,"+i*1.5*icon_size+")";}
+					})
+				.each(function(involved, i){createInvolvedIcon.call(this, involved, i);})
+				
+	}
 	switch(event["type"])
 	{
 	case "fight":
@@ -519,7 +570,7 @@ function createMapEvent(event){
 		break;
 	case "movement":
 		circle.attr({
-			"fill": color_scale_fights(color_blues[0]),
+			"fill": color_scale_fights(colors_blues[0]),
 			});
 		break;
 	case "fountain-visit":
@@ -529,7 +580,7 @@ function createMapEvent(event){
 		break;
 	case "jungling":
 		circle.attr({
-			"fill": color_scale_fights(beiges[3]),
+			"fill": colors_beiges[3],
 			});
 		break;
 	case "laning":
@@ -542,6 +593,59 @@ function createMapEvent(event){
 			"fill": "red",
 			});
 		break;
+	}
+}
+
+function computeEventOpacity(event)
+{
+	var time_distance = 0;
+	if(event.hasOwnProperty("time"))
+	{
+		time_distance = Math.abs(gui_state["cursor-time"] - event["time"]);
+
+	}
+	else if(event.hasOwnProperty("time-start") && event.hasOwnProperty("time-end"))
+	{
+		time_distance = Math.min(
+					Math.abs(Math.min(0, gui_state["cursor-time"] - event["time-start"])),
+					Math.abs(Math.max(0, gui_state["cursor-time"] - event["time-end"]))
+				);
+	}
+	time_distance = Math.max(0, time_distance - event_duration);
+	var normalized_distance = Math.min(1,time_distance/((gui_state["timeline-cursor-width"]-event_duration)/2));
+	return (1-normalized_distance)*event_maximum_opacity;
+}
+
+function createInvolvedIcon(involved_id, index)
+{
+	var group = d3.select(this);
+	var entity = replay_data["entities"][involved_id];
+	group.append("svg:circle")
+		.attr({
+			"cx": 0,
+			"cy": 0,
+			"r": icon_size*0.75,
+			"fill": team_color[entity["team"]]
+			});
+
+	group.append("svg:image")
+		.attr({
+			"xlink:href": icon_images[entity["unit"]],
+			"x": -0.5*icon_size,
+			"y": -0.5*icon_size,
+			"width": icon_size,
+			"height": icon_size,
+			});
+
+	if(entity.hasOwnProperty("control"))
+	{
+		group.append("svg:text")
+			.attr({
+				"x": 0,
+				"y": -0.5*icon_size,
+				"class": "icon-label"
+				})
+			.text(replay_data["header"]["players"][entity["control"]]["name"]);
 	}
 }
 
