@@ -1,0 +1,603 @@
+"14000": { 
+    "type": "rotation", 
+    "time-start": -60,
+    "time-end": -30,
+    "location-start": "radiant-base",
+    "location-end": "top-rune",
+    "involved": [100], 
+    "rotation-type": "normal", 
+}
+"14001": { 
+    "type": "rotation", 
+    "time-start": -10,
+    "time-end": 50,
+    "location-start": "top-rune",
+    "location-end": "toplane-between-t1s",
+    "involved": [100], 
+    "rotation-type": "normal", 
+}
+"14002": { 
+    "type": "rotation", 
+    "time-start": 70,
+    "time-end": 110,
+    "location-start": "toplane-between-t1s",
+    "location-end": "top-rune",
+    "involved": [100], 
+    "rotation-type": "normal", 
+}
+"14003": { 
+    "type": "rotation", 
+    "time-start": 125,
+    "time-end": 130,
+    "location-start": "top-rune",
+    "location-end": "toplane-between-t1s",
+    "involved": [100], 
+    "rotation-type": "normal", 
+}
+"14004": { 
+    "type": "rotation", 
+    "time-start": 160,
+    "time-end": 180,
+    "location-start": "toplane-between-t1s",
+    "location-end": "radiant-base",
+    "involved": [100], 
+    "rotation-type": "normal", 
+}
+"14005": { 
+    "type": "rotation", 
+    "time-start": 200,
+    "time-end": 210,
+    "location-start": "radiant-base",
+    "location-end": "toplane-between-t1s",
+    "involved": [100], 
+    "rotation-type": "normal", 
+}
+"14006": { 
+    "type": "rotation", 
+    "time-start": 260,
+    "time-end": 255,
+    "location-start": "toplane-between-t1s",
+    "location-end": "midlane-between-t1s",
+    "involved": [100], 
+    "rotation-type": "normal", 
+}
+"14007": { 
+    "type": "rotation", 
+    "time-start": 265,
+    "time-end": 290,
+    "location-start": "midlane-between-t1s",
+    "location-end": "radiant-base",
+    "involved": [100], 
+    "rotation-type": "normal", 
+}
+"14008": { 
+    "type": "rotation", 
+    "time-start": 310,
+    "time-end": 350,
+    "location-start": "radiant-base",
+    "location-end": "dire-jungle",
+    "involved": [100], 
+    "rotation-type": "normal", 
+}
+"14009": { 
+    "type": "rotation", 
+    "time-start": 360,
+    "time-end": 410,
+    "location-start": "dire-jungle",
+    "location-end": "midlane-between-t1s",
+    "involved": [100], 
+    "rotation-type": "normal", 
+}
+"14010": { 
+    "type": "rotation", 
+    "time-start": 420,
+    "time-end": 420,
+    "location-start": "midlane-between-t1s",
+    "location-end": "radiant-base",
+    "involved": [100], 
+    "rotation-type": "normal", 
+}
+"14011": { 
+    "type": "rotation", 
+    "time-start": 440,
+    "time-end": 470,
+    "location-start": "radiant-base",
+    "location-end": "midlane-between-t1s",
+    "involved": [100], 
+    "rotation-type": "normal", 
+}
+"14012": { 
+    "type": "rotation", 
+    "time-start": 480,
+    "time-end": 480,
+    "location-start": "midlane-between-t1s",
+    "location-end": "top-rune",
+    "involved": [100], 
+    "rotation-type": "normal", 
+}
+"14013": { 
+    "type": "rotation", 
+    "time-start": 485,
+    "time-end": 500,
+    "location-start": "top-rune",
+    "location-end": "toplane-between-t1s",
+    "involved": [100], 
+    "rotation-type": "normal", 
+}
+"14014": { 
+    "type": "rotation", 
+    "time-start": -60,
+    "time-end": -10,
+    "location-start": "radiant-base",
+    "location-end": "top-rune",
+    "involved": [101], 
+    "rotation-type": "normal", 
+}
+"14015": { 
+    "type": "rotation", 
+    "time-start": 5,
+    "time-end": 10,
+    "location-start": "top-rune",
+    "location-end": "midlane-between-t1s",
+    "involved": [101], 
+    "rotation-type": "normal", 
+}
+"14016": { 
+    "type": "rotation", 
+    "time-start": 230,
+    "time-end": 230,
+    "location-start": "midlane-between-t1s",
+    "location-end": "top-rune",
+    "involved": [101], 
+    "rotation-type": "normal", 
+}
+"14017": { 
+    "type": "rotation", 
+    "time-start": 245,
+    "time-end": 245,
+    "location-start": "top-rune",
+    "location-end": "midlane-between-t1s",
+    "involved": [101], 
+    "rotation-type": "normal", 
+}
+"14018": { 
+    "type": "rotation", 
+    "time-start": 255,
+    "time-end": 320,
+    "location-start": "midlane-between-t1s",
+    "location-end": "midlane-between-t1s",
+    "involved": [101], 
+    "rotation-type": "normal", 
+}
+"14019": { 
+    "type": "rotation", 
+    "time-start": 350,
+    "time-end": 350,
+    "location-start": "midlane-between-t1s",
+    "location-end": "top-rune",
+    "involved": [101], 
+    "rotation-type": "normal", 
+}
+"14020": { 
+    "type": "rotation", 
+    "time-start": 365,
+    "time-end": 445,
+    "location-start": "top-rune",
+    "location-end": "radiant-base",
+    "involved": [101], 
+    "rotation-type": "normal", 
+}
+"14021": { 
+    "type": "rotation", 
+    "time-start": 460,
+    "time-end": 465,
+    "location-start": "radiant-base",
+    "location-end": "midlane-between-t1s",
+    "involved": [101], 
+    "rotation-type": "normal", 
+}
+"14022": { 
+    "type": "rotation", 
+    "time-start": 475,
+    "time-end": 480,
+    "location-start": "midlane-between-t1s",
+    "location-end": "top-rune",
+    "involved": [101], 
+    "rotation-type": "normal", 
+}
+"14023": { 
+    "type": "rotation", 
+    "time-start": 485,
+    "time-end": 530,
+    "location-start": "top-rune",
+    "location-end": "midlane-between-t1s",
+    "involved": [101], 
+    "rotation-type": "normal", 
+}
+"14024": { 
+    "type": "rotation", 
+    "time-start": -60,
+    "time-end": 50,
+    "location-start": "radiant-base",
+    "location-end": "radiant-base",
+    "involved": [102], 
+    "rotation-type": "normal", 
+}
+"14025": { 
+    "type": "rotation", 
+    "time-start": 55,
+    "time-end": 110,
+    "location-start": "radiant-base",
+    "location-end": "radiant-base",
+    "involved": [102], 
+    "rotation-type": "normal", 
+}
+"14026": { 
+    "type": "rotation", 
+    "time-start": 115,
+    "time-end": 420,
+    "location-start": "radiant-base",
+    "location-end": "radiant-jungle",
+    "involved": [102], 
+    "rotation-type": "normal", 
+}
+"14027": { 
+    "type": "rotation", 
+    "time-start": -60,
+    "time-end": 230,
+    "location-start": "radiant-base",
+    "location-end": "bottom-rune",
+    "involved": [103], 
+    "rotation-type": "normal", 
+}
+"14028": { 
+    "type": "rotation", 
+    "time-start": 245,
+    "time-end": 350,
+    "location-start": "bottom-rune",
+    "location-end": "radiant-jungle",
+    "involved": [103], 
+    "rotation-type": "normal", 
+}
+"14029": { 
+    "type": "rotation", 
+    "time-start": 380,
+    "time-end": 420,
+    "location-start": "radiant-jungle",
+    "location-end": "radiant-jungle",
+    "involved": [103], 
+    "rotation-type": "normal", 
+}
+"14030": { 
+    "type": "rotation", 
+    "time-start": -60,
+    "time-end": -30,
+    "location-start": "radiant-base",
+    "location-end": "top-rune",
+    "involved": [104], 
+    "rotation-type": "normal", 
+}
+"14031": { 
+    "type": "rotation", 
+    "time-start": -10,
+    "time-end": 0,
+    "location-start": "top-rune",
+    "location-end": "toplane-between-t1s",
+    "involved": [104], 
+    "rotation-type": "normal", 
+}
+"14032": { 
+    "type": "rotation", 
+    "time-start": 180,
+    "time-end": 180,
+    "location-start": "toplane-between-t1s",
+    "location-end": "radiant-base",
+    "involved": [104], 
+    "rotation-type": "normal", 
+}
+"14033": { 
+    "type": "rotation", 
+    "time-start": 200,
+    "time-end": 210,
+    "location-start": "radiant-base",
+    "location-end": "toplane-between-t1s",
+    "involved": [104], 
+    "rotation-type": "normal", 
+}
+"14034": { 
+    "type": "rotation", 
+    "time-start": 250,
+    "time-end": 250,
+    "location-start": "toplane-between-t1s",
+    "location-end": "dire-jungle",
+    "involved": [104], 
+    "rotation-type": "normal", 
+}
+"14035": { 
+    "type": "rotation", 
+    "time-start": 280,
+    "time-end": 285,
+    "location-start": "dire-jungle",
+    "location-end": "toplane-between-t1s",
+    "involved": [104], 
+    "rotation-type": "normal", 
+}
+"14036": { 
+    "type": "rotation", 
+    "time-start": 345,
+    "time-end": 350,
+    "location-start": "toplane-between-t1s",
+    "location-end": "dire-jungle",
+    "involved": [104], 
+    "rotation-type": "normal", 
+}
+"14037": { 
+    "type": "rotation", 
+    "time-start": 360,
+    "time-end": 420,
+    "location-start": "dire-jungle",
+    "location-end": "radiant-base",
+    "involved": [104], 
+    "rotation-type": "normal", 
+}
+"14038": { 
+    "type": "rotation", 
+    "time-start": 440,
+    "time-end": 460,
+    "location-start": "radiant-base",
+    "location-end": "toplane-between-t1s",
+    "involved": [104], 
+    "rotation-type": "normal", 
+}
+"14039": { 
+    "type": "rotation", 
+    "time-start": 600,
+    "time-end": 580,
+    "location-start": "toplane-between-t1s",
+    "location-end": "dire-jungle",
+    "involved": [104], 
+    "rotation-type": "normal", 
+}
+"14040": { 
+    "type": "rotation", 
+    "time-start": -60,
+    "time-end": -10,
+    "location-start": "dire-base",
+    "location-end": "bottom-rune",
+    "involved": [105], 
+    "rotation-type": "normal", 
+}
+"14041": { 
+    "type": "rotation", 
+    "time-start": 10,
+    "time-end": 110,
+    "location-start": "bottom-rune",
+    "location-end": "bottom-rune",
+    "involved": [105], 
+    "rotation-type": "normal", 
+}
+"14042": { 
+    "type": "rotation", 
+    "time-start": 125,
+    "time-end": 150,
+    "location-start": "bottom-rune",
+    "location-end": "dire-base",
+    "involved": [105], 
+    "rotation-type": "normal", 
+}
+"14043": { 
+    "type": "rotation", 
+    "time-start": 170,
+    "time-end": 280,
+    "location-start": "dire-base",
+    "location-end": "dire-base",
+    "involved": [105], 
+    "rotation-type": "normal", 
+}
+"14044": { 
+    "type": "rotation", 
+    "time-start": 300,
+    "time-end": 340,
+    "location-start": "dire-base",
+    "location-end": "bottom-rune",
+    "involved": [105], 
+    "rotation-type": "normal", 
+}
+"14045": { 
+    "type": "rotation", 
+    "time-start": 350,
+    "time-end": 450,
+    "location-start": "bottom-rune",
+    "location-end": "dire-base",
+    "involved": [105], 
+    "rotation-type": "normal", 
+}
+"14046": { 
+    "type": "rotation", 
+    "time-start": 460,
+    "time-end": 470,
+    "location-start": "dire-base",
+    "location-end": "bottom-rune",
+    "involved": [105], 
+    "rotation-type": "normal", 
+}
+"14047": { 
+    "type": "rotation", 
+    "time-start": 485,
+    "time-end": 520,
+    "location-start": "bottom-rune",
+    "location-end": "botlane-between-t1s",
+    "involved": [105], 
+    "rotation-type": "normal", 
+}
+"14048": { 
+    "type": "rotation", 
+    "time-start": -60,
+    "time-end": 20,
+    "location-start": "dire-base",
+    "location-end": "midlane-between-t1s",
+    "involved": [106], 
+    "rotation-type": "normal", 
+}
+"14049": { 
+    "type": "rotation", 
+    "time-start": 40,
+    "time-end": 50,
+    "location-start": "midlane-between-t1s",
+    "location-end": "dire-jungle",
+    "involved": [106], 
+    "rotation-type": "normal", 
+}
+"14050": { 
+    "type": "rotation", 
+    "time-start": 65,
+    "time-end": 65,
+    "location-start": "dire-jungle",
+    "location-end": "dire-jungle",
+    "involved": [106], 
+    "rotation-type": "normal", 
+}
+"14051": { 
+    "type": "rotation", 
+    "time-start": 100,
+    "time-end": 110,
+    "location-start": "dire-jungle",
+    "location-end": "dire-jungle",
+    "involved": [106], 
+    "rotation-type": "normal", 
+}
+"14052": { 
+    "type": "rotation", 
+    "time-start": 130,
+    "time-end": 310,
+    "location-start": "dire-jungle",
+    "location-end": "midlane-between-t1s",
+    "involved": [106], 
+    "rotation-type": "normal", 
+}
+"14053": { 
+    "type": "rotation", 
+    "time-start": -60,
+    "time-end": 0,
+    "location-start": "dire-base",
+    "location-end": "toplane-between-t1s",
+    "involved": [107], 
+    "rotation-type": "normal", 
+}
+"14054": { 
+    "type": "rotation", 
+    "time-start": 360,
+    "time-end": 400,
+    "location-start": "toplane-between-t1s",
+    "location-end": "dire-jungle",
+    "involved": [107], 
+    "rotation-type": "normal", 
+}
+"14055": { 
+    "type": "rotation", 
+    "time-start": 420,
+    "time-end": 500,
+    "location-start": "dire-jungle",
+    "location-end": "dire-jungle",
+    "involved": [107], 
+    "rotation-type": "normal", 
+}
+"14056": { 
+    "type": "rotation", 
+    "time-start": -60,
+    "time-end": -10,
+    "location-start": "dire-base",
+    "location-end": "bottom-rune",
+    "involved": [108], 
+    "rotation-type": "normal", 
+}
+"14057": { 
+    "type": "rotation", 
+    "time-start": 10,
+    "time-end": 450,
+    "location-start": "bottom-rune",
+    "location-end": "dire-base",
+    "involved": [108], 
+    "rotation-type": "normal", 
+}
+"14058": { 
+    "type": "rotation", 
+    "time-start": -60,
+    "time-end": -10,
+    "location-start": "dire-base",
+    "location-end": "bottom-rune",
+    "involved": [109], 
+    "rotation-type": "normal", 
+}
+"14059": { 
+    "type": "rotation", 
+    "time-start": 10,
+    "time-end": 30,
+    "location-start": "bottom-rune",
+    "location-end": "midlane-between-t1s",
+    "involved": [109], 
+    "rotation-type": "normal", 
+}
+"14060": { 
+    "type": "rotation", 
+    "time-start": 120,
+    "time-end": 125,
+    "location-start": "midlane-between-t1s",
+    "location-end": "bottom-rune",
+    "involved": [109], 
+    "rotation-type": "normal", 
+}
+"14061": { 
+    "type": "rotation", 
+    "time-start": 135,
+    "time-end": 140,
+    "location-start": "bottom-rune",
+    "location-end": "midlane-between-t1s",
+    "involved": [109], 
+    "rotation-type": "normal", 
+}
+"14062": { 
+    "type": "rotation", 
+    "time-start": 360,
+    "time-end": 360,
+    "location-start": "midlane-between-t1s",
+    "location-end": "bottom-rune",
+    "involved": [109], 
+    "rotation-type": "normal", 
+}
+"14063": { 
+    "type": "rotation", 
+    "time-start": 375,
+    "time-end": 400,
+    "location-start": "bottom-rune",
+    "location-end": "dire-jungle",
+    "involved": [109], 
+    "rotation-type": "normal", 
+}
+"14064": { 
+    "type": "rotation", 
+    "time-start": 420,
+    "time-end": 420,
+    "location-start": "dire-jungle",
+    "location-end": "midlane-between-t1s",
+    "involved": [109], 
+    "rotation-type": "normal", 
+}
+"14065": { 
+    "type": "rotation", 
+    "time-start": 480,
+    "time-end": 470,
+    "location-start": "midlane-between-t1s",
+    "location-end": "bottom-rune",
+    "involved": [109], 
+    "rotation-type": "normal", 
+}
+"14066": { 
+    "type": "rotation", 
+    "time-start": 485,
+    "time-end": 540,
+    "location-start": "bottom-rune",
+    "location-end": "radiant-jungle",
+    "involved": [109], 
+    "rotation-type": "normal", 
+}
