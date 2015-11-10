@@ -1,5 +1,5 @@
 /* Declare global variables*/
-DEBUG=true;
+DEBUG=false;
 
 //data organisation
 pregame_time = 90;
@@ -220,24 +220,38 @@ function initTimeline(){
 	d3_elements["timeline-drag"] = d3.behavior.drag()  
              .on('dragstart', function() { d3_elements["timeline-cursor"].style('fill', 'red'); })
              .on('drag', function() { 	
-					gui_state["cursor-time"] = Math.min(Math.max(-pregame_time+gui_state["timeline-cursor-width"]/2, d3.event.x), game_length);
+					gui_state["cursor-time"] = validateTimeCursor(d3.event.x);
 					updateDisplay();
 				})
              .on('dragend', function() { d3_elements["timeline-cursor"].style('fill', 'black'); });
 
 
+
+	var cursor_y_offset = 0;//timeline_height* (1-timeline_height_inset_factor)/2,
 	var cursor_height = timeline_height;//*timeline_height_inset_factor;
+	d3_elements["timeline-svg-foreground"]
+                .append('svg:rect')
+                .attr({
+			'id': 'timeline-draggable-area',
+			'x': -pregame_time,//overridden by time
+                	'y': cursor_y_offset,
+                	'width': game_length + pregame_time,
+                	'height': cursor_height,
+			'opacity': 0
+			})
+                .call(d3_elements["timeline-drag"]);
+
 	d3_elements["timeline-svg-foreground"]
                 .append('svg:rect')
                 .attr({
 			'id': 'timeline-cursor',
 			'x': 0,//overridden by time
-                	'y': 0,//timeline_height* (1-timeline_height_inset_factor)/2,
+                	'y': cursor_y_offset,
                 	'width': gui_state["timeline-cursor-width"],
                 	'height': cursor_height
 			})
                 .call(d3_elements["timeline-drag"]);
-	
+
 	d3_elements["timeline-cursor"] = d3_elements["timeline-svg-foreground"].select("#timeline-cursor");
 
 	gui_state["timelines"] =
@@ -252,6 +266,11 @@ function initTimeline(){
 	gui_state["active-sub-timelines"] = 5;
 
 	updateTimeline();
+}
+
+function validateTimeCursor(time)
+{
+	return Math.min(Math.max(-pregame_time+gui_state["timeline-cursor-width"]/2, time), replay_data["header"]["length"] - gui_state["timeline-cursor-width"]/2);
 }
 
 function createSubTimeline(sub_timeline, index){
@@ -402,8 +421,6 @@ function initDiagram(){
 }
 
 function initMap(){
-	//loadSVG("img/map.svg", "map", function(){});
-
 	d3_elements["map"] = d3.select("#map");
 
 	d3_elements["map-svg"] = d3.select("#map")
@@ -541,6 +558,7 @@ function createMapEvent(event){
 
 	var circle = group.append("svg:circle")
 		.attr({
+			"class": "event-background",
 			"cx": 0,
 			"cy": 0,
 			"r": 10,
@@ -549,9 +567,10 @@ function createMapEvent(event){
 
 	if(	event.hasOwnProperty("time-start") && event.hasOwnProperty("time-end") &&
 		event["time-start"] <= gui_state["cursor-time"] && event["time-end"] > gui_state["cursor-time"] &&
-		event.hasOwnProperty("involved"))
+		event.hasOwnProperty("involved") )
 	{
-		group.selectAll(".involved-icon").data(event["involved"])
+		group.selectAll(".involved-icon")
+			.data(event["involved"], function(involved_id){return involved_id;})
 			.enter()
 			.append("g")
 				.attr({
@@ -606,10 +625,9 @@ function computeEventOpacity(event)
 	}
 	else if(event.hasOwnProperty("time-start") && event.hasOwnProperty("time-end"))
 	{
-		time_distance = Math.min(
-					Math.abs(Math.min(0, gui_state["cursor-time"] - event["time-start"])),
+		time_distance = Math.abs(Math.min(0, gui_state["cursor-time"] - event["time-start"])) +
 					Math.abs(Math.max(0, gui_state["cursor-time"] - event["time-end"]))
-				);
+				;
 	}
 	time_distance = Math.max(0, time_distance - event_duration);
 	var normalized_distance = Math.min(1,time_distance/((gui_state["timeline-cursor-width"]-event_duration)/2));
@@ -650,6 +668,35 @@ function createInvolvedIcon(involved_id, index)
 }
 
 function updateMapEvent(event){
+	var group = d3.select(this);
+
+	if(	event.hasOwnProperty("time-start") && event.hasOwnProperty("time-end") &&
+		event["time-start"] <= gui_state["cursor-time"] && event["time-end"] > gui_state["cursor-time"] &&
+		event.hasOwnProperty("involved") )
+	{
+		var icons = group.selectAll(".involved-icon")
+				.data(event["involved"], function(involved_id){return involved_id;});
+		
+		icons.enter()
+			.append("g")
+			.attr({
+				"class": "involved-icon",
+				"transform": function(d, i){return "translate(0,"+i*1.5*icon_size+")";}
+				})
+			.each(function(involved, i){createInvolvedIcon.call(this, involved, i);});
+
+		icons.exit()
+			.remove();
+				
+	}
+	else
+	{
+		group.selectAll(".involved-icon")
+			.remove();
+	}
+
+	group.select(".event-background")
+		.attr({"opacity": computeEventOpacity(event)});
 }
 
 function updateDiagram()
@@ -665,6 +712,14 @@ function updateDiagram()
 					return "hidden";
 				}
 			});
+	
+	var diagram_scale = d3.scale.linear()
+				.domain([-pregame_time, replay_data["header"]["length"]])
+				.range([160, 808]);
+	var position = diagram_scale(gui_state["cursor-time"]-gui_state["timeline-cursor-width"]/2);
+
+	d3.select("#diagram").selectAll("#time-cursor")
+		.attr("x", position+"mm");
 
 }
 
