@@ -269,13 +269,9 @@ a:focus {
 }
 
 
+
 #more-margin {
     margin-top: 20px;
-}
-
-
-#downarrow {
-    margin-top: 50px;
 }
 
 @media(min-width:768px) {
@@ -361,4 +357,12 @@ img::-moz-selection {
 
 body {
     webkit-tap-highlight-color: rgba(255,255,255,.2);
+}
+
+.info-text
+{
+    text-transform: uppercase;
+    font-family: Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight: 700;
+    letter-spacing: 1px;
 }

@@ -5,7 +5,7 @@
     "location-start": "radiant-base",
     "location-end": "top-rune",
     "involved": [100], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14001": { 
     "type": "rotation", 
@@ -14,7 +14,7 @@
     "location-start": "top-rune",
     "location-end": "toplane-between-t1s",
     "involved": [100], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14002": { 
     "type": "rotation", 
@@ -23,7 +23,7 @@
     "location-start": "toplane-between-t1s",
     "location-end": "top-rune",
     "involved": [100], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14003": { 
     "type": "rotation", 
@@ -32,7 +32,7 @@
     "location-start": "top-rune",
     "location-end": "toplane-between-t1s",
     "involved": [100], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14004": { 
     "type": "rotation", 
@@ -41,7 +41,7 @@
     "location-start": "toplane-between-t1s",
     "location-end": "radiant-base",
     "involved": [100], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14005": { 
     "type": "rotation", 
@@ -50,7 +50,7 @@
     "location-start": "radiant-base",
     "location-end": "toplane-between-t1s",
     "involved": [100], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14006": { 
     "type": "rotation", 
@@ -59,7 +59,7 @@
     "location-start": "toplane-between-t1s",
     "location-end": "midlane-between-t1s",
     "involved": [100], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14007": { 
     "type": "rotation", 
@@ -68,7 +68,7 @@
     "location-start": "midlane-between-t1s",
     "location-end": "radiant-base",
     "involved": [100], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14008": { 
     "type": "rotation", 
@@ -77,7 +77,7 @@
     "location-start": "radiant-base",
     "location-end": "dire-jungle",
     "involved": [100], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14009": { 
     "type": "rotation", 
@@ -86,7 +86,7 @@
     "location-start": "dire-jungle",
     "location-end": "midlane-between-t1s",
     "involved": [100], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14010": { 
     "type": "rotation", 
@@ -95,7 +95,7 @@
     "location-start": "radiant-base",
     "location-end": "midlane-between-t1s",
     "involved": [100], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14011": { 
     "type": "rotation", 
@@ -104,7 +104,7 @@
     "location-start": "top-rune",
     "location-end": "toplane-between-t1s",
     "involved": [100], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14012": { 
     "type": "rotation", 
@@ -113,7 +113,7 @@
     "location-start": "radiant-base",
     "location-end": "top-rune",
     "involved": [101], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14013": { 
     "type": "rotation", 
@@ -122,7 +122,7 @@
     "location-start": "top-rune",
     "location-end": "midlane-between-t1s",
     "involved": [101], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14014": { 
     "type": "rotation", 
@@ -131,7 +131,7 @@
     "location-start": "midlane-between-t1s",
     "location-end": "midlane-between-t1s",
     "involved": [101], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14015": { 
     "type": "rotation", 
@@ -140,7 +140,7 @@
     "location-start": "top-rune",
     "location-end": "radiant-base",
     "involved": [101], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14016": { 
     "type": "rotation", 
@@ -149,7 +149,7 @@
     "location-start": "radiant-base",
     "location-end": "midlane-between-t1s",
     "involved": [101], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14017": { 
     "type": "rotation", 
@@ -158,7 +158,7 @@
     "location-start": "midlane-between-t1s",
     "location-end": "top-rune",
     "involved": [101], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14018": { 
     "type": "rotation", 
@@ -167,7 +167,7 @@
     "location-start": "top-rune",
     "location-end": "midlane-between-t1s",
     "involved": [101], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14019": { 
     "type": "rotation", 
@@ -176,7 +176,7 @@
     "location-start": "radiant-base",
     "location-end": "radiant-base",
     "involved": [102], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14020": { 
     "type": "rotation", 
@@ -185,7 +185,7 @@
     "location-start": "radiant-base",
     "location-end": "radiant-base",
     "involved": [102], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14021": { 
     "type": "rotation", 
@@ -194,7 +194,7 @@
     "location-start": "radiant-base",
     "location-end": "radiant-jungle",
     "involved": [102], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14022": { 
     "type": "rotation", 
@@ -203,7 +203,7 @@
     "location-start": "radiant-base",
     "location-end": "bottom-rune",
     "involved": [103], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14023": { 
     "type": "rotation", 
@@ -212,7 +212,7 @@
     "location-start": "bottom-rune",
     "location-end": "radiant-jungle",
     "involved": [103], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14024": { 
     "type": "rotation", 
@@ -221,7 +221,7 @@
     "location-start": "radiant-jungle",
     "location-end": "radiant-jungle",
     "involved": [103], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14025": { 
     "type": "rotation", 
@@ -230,7 +230,7 @@
     "location-start": "radiant-base",
     "location-end": "top-rune",
     "involved": [104], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14026": { 
     "type": "rotation", 
@@ -239,7 +239,7 @@
     "location-start": "top-rune",
     "location-end": "toplane-between-t1s",
     "involved": [104], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14027": { 
     "type": "rotation", 
@@ -248,7 +248,7 @@
     "location-start": "radiant-base",
     "location-end": "toplane-between-t1s",
     "involved": [104], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14028": { 
     "type": "rotation", 
@@ -257,7 +257,7 @@
     "location-start": "dire-jungle",
     "location-end": "toplane-between-t1s",
     "involved": [104], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14029": { 
     "type": "rotation", 
@@ -266,7 +266,7 @@
     "location-start": "toplane-between-t1s",
     "location-end": "dire-jungle",
     "involved": [104], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14030": { 
     "type": "rotation", 
@@ -275,7 +275,7 @@
     "location-start": "dire-jungle",
     "location-end": "radiant-base",
     "involved": [104], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14031": { 
     "type": "rotation", 
@@ -284,7 +284,7 @@
     "location-start": "radiant-base",
     "location-end": "toplane-between-t1s",
     "involved": [104], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14032": { 
     "type": "rotation", 
@@ -293,7 +293,7 @@
     "location-start": "toplane-between-t1s",
     "location-end": "dire-jungle",
     "involved": [104], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14033": { 
     "type": "rotation", 
@@ -302,7 +302,7 @@
     "location-start": "dire-base",
     "location-end": "bottom-rune",
     "involved": [105], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14034": { 
     "type": "rotation", 
@@ -311,7 +311,7 @@
     "location-start": "bottom-rune",
     "location-end": "bottom-rune",
     "involved": [105], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14035": { 
     "type": "rotation", 
@@ -320,7 +320,7 @@
     "location-start": "bottom-rune",
     "location-end": "dire-base",
     "involved": [105], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14036": { 
     "type": "rotation", 
@@ -329,7 +329,7 @@
     "location-start": "dire-base",
     "location-end": "dire-base",
     "involved": [105], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14037": { 
     "type": "rotation", 
@@ -338,7 +338,7 @@
     "location-start": "dire-base",
     "location-end": "bottom-rune",
     "involved": [105], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14038": { 
     "type": "rotation", 
@@ -347,7 +347,7 @@
     "location-start": "bottom-rune",
     "location-end": "dire-base",
     "involved": [105], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14039": { 
     "type": "rotation", 
@@ -356,7 +356,7 @@
     "location-start": "dire-base",
     "location-end": "bottom-rune",
     "involved": [105], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14040": { 
     "type": "rotation", 
@@ -365,7 +365,7 @@
     "location-start": "bottom-rune",
     "location-end": "botlane-between-t1s",
     "involved": [105], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14041": { 
     "type": "rotation", 
@@ -374,7 +374,7 @@
     "location-start": "dire-base",
     "location-end": "midlane-between-t1s",
     "involved": [106], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14042": { 
     "type": "rotation", 
@@ -383,7 +383,7 @@
     "location-start": "midlane-between-t1s",
     "location-end": "dire-jungle",
     "involved": [106], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14043": { 
     "type": "rotation", 
@@ -392,7 +392,7 @@
     "location-start": "dire-jungle",
     "location-end": "dire-jungle",
     "involved": [106], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14044": { 
     "type": "rotation", 
@@ -401,7 +401,7 @@
     "location-start": "dire-jungle",
     "location-end": "midlane-between-t1s",
     "involved": [106], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14045": { 
     "type": "rotation", 
@@ -410,7 +410,7 @@
     "location-start": "dire-base",
     "location-end": "toplane-between-t1s",
     "involved": [107], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14046": { 
     "type": "rotation", 
@@ -419,7 +419,7 @@
     "location-start": "toplane-between-t1s",
     "location-end": "dire-jungle",
     "involved": [107], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14047": { 
     "type": "rotation", 
@@ -428,7 +428,7 @@
     "location-start": "dire-jungle",
     "location-end": "dire-jungle",
     "involved": [107], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14048": { 
     "type": "rotation", 
@@ -437,7 +437,7 @@
     "location-start": "dire-base",
     "location-end": "bottom-rune",
     "involved": [108], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14049": { 
     "type": "rotation", 
@@ -446,7 +446,7 @@
     "location-start": "bottom-rune",
     "location-end": "dire-base",
     "involved": [108], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14050": { 
     "type": "rotation", 
@@ -455,7 +455,7 @@
     "location-start": "dire-base",
     "location-end": "bottom-rune",
     "involved": [109], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14051": { 
     "type": "rotation", 
@@ -464,7 +464,7 @@
     "location-start": "bottom-rune",
     "location-end": "midlane-between-t1s",
     "involved": [109], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14052": { 
     "type": "rotation", 
@@ -473,7 +473,7 @@
     "location-start": "midlane-between-t1s",
     "location-end": "bottom-rune",
     "involved": [109], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14053": { 
     "type": "rotation", 
@@ -482,7 +482,7 @@
     "location-start": "bottom-rune",
     "location-end": "midlane-between-t1s",
     "involved": [109], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14054": { 
     "type": "rotation", 
@@ -491,7 +491,7 @@
     "location-start": "bottom-rune",
     "location-end": "dire-jungle",
     "involved": [109], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14055": { 
     "type": "rotation", 
@@ -500,7 +500,7 @@
     "location-start": "midlane-between-t1s",
     "location-end": "bottom-rune",
     "involved": [109], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },
 "14056": { 
     "type": "rotation", 
@@ -509,5 +509,5 @@
     "location-start": "bottom-rune",
     "location-end": "radiant-jungle",
     "involved": [109], 
-    "rotation-type": "normal", 
+    "rotation-type": "normal" 
 },

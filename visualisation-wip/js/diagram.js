@@ -221,7 +221,10 @@ function initTimeline(){
 					})
 
 	d3_elements["timeline-drag"] = d3.behavior.drag()  
-             .on('dragstart', function() { d3_elements["timeline-cursor"].style('fill', 'red'); })
+             .on('dragstart', function() { 
+						gui_state["cursor-time"] = validateTimeCursor(d3.mouse(this)[0]);
+						updateDisplay();
+						d3_elements["timeline-cursor"].style('fill', 'red'); })
              .on('drag', function() { 	
 					gui_state["cursor-time"] = validateTimeCursor(d3.event.x);
 					updateDisplay();

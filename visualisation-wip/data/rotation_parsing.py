@@ -58,7 +58,7 @@ for unit in unit_list:
 		 	g.write("    " + "\"location-start\": " + "\"" + events[rotation_dict[my_keys[i]]]["location"] + "\",\n" )
 		 	g.write("    " + "\"location-end\": " + "\"" + events[rotation_dict[my_keys[i+1]]]["location"] + "\",\n" )
 		 	g.write("    " + "\"involved\": " + "[" + str(unit) + "], \n")
-			g.write("    " + "\"rotation-type\": \"normal\", \n")
+			g.write("    " + "\"rotation-type\": \"normal\" \n")
 		 	g.write("},\n") 
 		 	counter = counter+1
 	
