@@ -130,25 +130,25 @@ color_scale_fights = d3.scale.ordinal()
 
 location_coordinates =
 {
-	"radiant-base": {"x": 10 , "y": 87},
-	"dire-base": {"x": 90 , "y": 13},
+	"radiant-base": new Victor(10, 87),
+	"dire-base": new Victor(90, 13),
 
 
-	"top-rune": {"x": 36 , "y": 38},
-	"bottom-rune": {"x": 68 , "y": 63},
+	"top-rune": new Victor(36, 38),
+	"bottom-rune": new Victor(68, 63),
 
-	"toplane-between-t1s": {"x": 13 , "y": 30},
-	"toplane-dire-t1": {"x": 18 , "y": 13},
+	"toplane-between-t1s": new Victor(13, 30),
+	"toplane-dire-t1": new Victor(18, 13),
 
-	"midlane-between-t1s": {"x": 48 , "y": 52},
-	"midlane-dire-before-t1": {"x": 51 , "y": 49},
+	"midlane-between-t1s": new Victor(48, 52),
+	"midlane-dire-before-t1": new Victor(51, 49),
 
-	"botlane-radiant-t1": {"x": 83 , "y": 87},
-	"botlane-radiant-before-t1": {"x": 87 , "y": 81},
-	"botlane-between-t1s": {"x": 88 , "y": 73},
+	"botlane-radiant-t1": new Victor(83, 87),
+	"botlane-radiant-before-t1": new Victor(87, 81),
+	"botlane-between-t1s": new Victor(88, 73),
 
-	"dire-jungle": {"x": 38 , "y": 23},
-	"radiant-jungle": {"x": 63 , "y": 77}
+	"dire-jungle": new Victor(38, 23),
+	"radiant-jungle": new Victor(63, 70)
 };
 
 icon_size = 5;
@@ -168,6 +168,9 @@ icon_images = {
 
 event_duration = 5;
 event_maximum_opacity = 0.7;
+
+rotation_offset = 5;
+rotation_width = 2;
 
 team_color =
 {
@@ -549,21 +552,75 @@ function filterEventsMap(event){
 function createMapEvent(event){
 
 	var group = d3.select(this);
+	//console.log("Creating event ", event);
 
-	position = location_coordinates[event["location"]];
-	group.attr({
-		"transform": "translate("+position.x+","+position.y+")"
-		});
 	
-
-	var circle = group.append("svg:circle")
-		.attr({
-			"class": "event-background",
-			"cx": 0,
-			"cy": 0,
-			"r": 10,
-			"opacity": computeEventOpacity(event)
+	var location;
+	var position;
+	if(event.hasOwnProperty("location"))
+	{	
+		position = location_coordinates[event["location"]];
+		
+		group.attr({
+			"transform": "translate("+position.x+","+position.y+")"
 			});
+		location = group.append("svg:circle")
+			.attr({
+				"class": "event-background",
+				"cx": 0,
+				"cy": 0,
+				"r": 10,
+				"opacity": computeEventOpacity(event)
+				});
+	}
+
+
+	switch(event["type"])
+	{
+	case "fight":
+		location.attr({
+			"fill": color_scale_fights(event["intensity"]),
+			});
+		break;
+	case "movement":
+		location.attr({
+			"fill": color_scale_fights(colors_blues[0]),
+			});
+		break;
+	case "fountain-visit":
+		location.attr({
+			"fill": "white",
+			});
+		break;
+	case "jungling":
+		location.attr({
+			"fill": colors_beiges[3],
+			});
+		break;
+	case "laning":
+		location.attr({
+			"fill": "grey",
+			});
+		break;
+	case "rotation":
+		var coordinates_start = location_coordinates[event["location-start"]].clone();
+		var coordinates_end = location_coordinates[event["location-end"]].clone();
+		var coordinates_center = coordinates_start.clone().add(coordinates_end).multiplyScalar(0.5);
+
+		group.attr({
+			"transform": "translate("+coordinates_center.x+","+coordinates_center.y+")"
+			});
+		location = group.append("svg:path")
+			.attr({
+				"class": "event-background",
+				"d": createRotationPath(event),
+				"fill": team_color[replay_data["entities"][event["involved"][0]]["team"]],
+				"stroke": "black",
+				"stroke-width": (event["rotation-type"] == "teleport")? 1 : 0,
+				"opacity": computeEventOpacity(event)
+				});
+		break;
+	}
 
 	if(	event.hasOwnProperty("time-start") && event.hasOwnProperty("time-end") &&
 		event["time-start"] <= gui_state["cursor-time"] && event["time-end"] > gui_state["cursor-time"] &&
@@ -579,39 +636,6 @@ function createMapEvent(event){
 					})
 				.each(function(involved, i){createInvolvedIcon.call(this, involved, i);})
 				
-	}
-	switch(event["type"])
-	{
-	case "fight":
-		circle.attr({
-			"fill": color_scale_fights(event["intensity"]),
-			});
-		break;
-	case "movement":
-		circle.attr({
-			"fill": color_scale_fights(colors_blues[0]),
-			});
-		break;
-	case "fountain-visit":
-		circle.attr({
-			"fill": "white",
-			});
-		break;
-	case "jungling":
-		circle.attr({
-			"fill": colors_beiges[3],
-			});
-		break;
-	case "laning":
-		circle.attr({
-			"fill": "lightgrey",
-			});
-		break;
-	case "rotation":
-		circle.attr({
-			"fill": "red",
-			});
-		break;
 	}
 }
 
@@ -667,6 +691,28 @@ function createInvolvedIcon(involved_id, index)
 	}
 }
 
+function createRotationPath(event)
+{
+	var coordinates_start = location_coordinates[event["location-start"]].clone();
+	var coordinates_end = location_coordinates[event["location-end"]].clone();
+	var coordinates_center = coordinates_start.clone().add(coordinates_end).multiplyScalar(0.5);
+	coordinates_start.subtract(coordinates_center);
+	coordinates_end.subtract(coordinates_center);
+
+	var direction = coordinates_end.clone().subtract(coordinates_start).normalize();
+	var direction_normal = direction.clone().rotateDeg(90);
+
+	var v1 = coordinates_start.clone()
+			.add(direction.clone().multiplyScalar(rotation_offset))
+			.add(direction_normal.clone().multiplyScalar(rotation_width));
+	var v2 = coordinates_end.clone()
+			.add(direction.clone().multiplyScalar(-rotation_offset));
+	var v3 = coordinates_start.clone()
+			.add(direction.clone().multiplyScalar(rotation_offset))
+			.add(direction_normal.clone().multiplyScalar(-rotation_width));
+	return "M "+v1.x+" "+v1.y+" L "+v2.x+" "+v2.y+" L "+v3.x+" "+v3.y+" z";
+}
+
 function updateMapEvent(event){
 	var group = d3.select(this);
 
@@ -687,7 +733,6 @@ function updateMapEvent(event){
 
 		icons.exit()
 			.remove();
-				
 	}
 	else
 	{
