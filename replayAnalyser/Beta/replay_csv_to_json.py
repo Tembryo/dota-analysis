@@ -78,6 +78,66 @@ f.write("		\"draft\": {},\n")
 f.write("		\"length\": 0,\n")
 # write entities in header
 f.write("		\"entities\":{\n")
+# write entity 100
+f.write("			\"100\": {\n")
+f.write("				\"unit\":\"string\",\n")
+f.write("				\"team\": \"radiant\",\n")
+f.write("				\"control\": 0\n")
+f.write("			},\n")
+# write entity 101
+f.write("			\"101\": {\n")
+f.write("				\"unit\":\"string\",\n")
+f.write("				\"team\": \"radiant\",\n")
+f.write("				\"control\": 1\n")
+f.write("			},\n")
+# write entity 102
+f.write("			\"102\": {\n")
+f.write("				\"unit\":\"string\",\n")
+f.write("				\"team\": \"radiant\",\n")
+f.write("				\"control\": 2\n")
+f.write("			},\n")
+# write entity 103
+f.write("			\"103\": {\n")
+f.write("				\"unit\":\"string\",\n")
+f.write("				\"team\": \"radiant\",\n")
+f.write("				\"control\": 3\n")
+f.write("			},\n")
+# write entity 104
+f.write("			\"104\": {\n")
+f.write("				\"unit\":\"string\",\n")
+f.write("				\"team\": \"radiant\",\n")
+f.write("				\"control\": 4\n")
+f.write("			},\n")
+# write entity 105
+f.write("			\"105\": {\n")
+f.write("				\"unit\":\"string\",\n")
+f.write("				\"team\": \"radiant\",\n")
+f.write("				\"control\": 5\n")
+f.write("			},\n")
+# write entity 106
+f.write("			\"106\": {\n")
+f.write("				\"unit\":\"string\",\n")
+f.write("				\"team\": \"radiant\",\n")
+f.write("				\"control\": 6\n")
+f.write("			},\n")
+# write entity 107
+f.write("			\"107\": {\n")
+f.write("				\"unit\":\"string\",\n")
+f.write("				\"team\": \"radiant\",\n")
+f.write("				\"control\": 7\n")
+f.write("			},\n")
+# write entity 108
+f.write("			\"108\": {\n")
+f.write("				\"unit\":\"string\",\n")
+f.write("				\"team\": \"radiant\",\n")
+f.write("				\"control\": 8\n")
+f.write("			},\n")
+# write entity 109
+f.write("			\"109\": {\n")
+f.write("				\"unit\":\"string\",\n")
+f.write("				\"team\": \"radiant\",\n")
+f.write("				\"control\": 9\n")
+f.write("			}\n")
 #close entities bracket
 f.write("		}\n")
 #close headers bracket
