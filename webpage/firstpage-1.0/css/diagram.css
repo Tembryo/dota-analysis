@@ -151,6 +151,32 @@
 	fill: black;
 }
 
+#timeline-timescale-label{
+	fill: black;
+	font-family: sans-serif;
+	font-size: 20px;
+	text-anchor: end;
+	dominant-baseline:central;
+}
+
+
+.timeline-timescale-tick-label{
+	text-anchor: middle;
+	dominant-baseline:central;
+	fill: black;
+	font-family: sans-serif;
+	font-size: 20px;
+}
+
+
+.timeline-timescale-tick-line{
+	stroke: black;
+	stroke-width: 1px;
+	stroke-dasharray: 10px,10px;
+	opacity: 1;
+}
+
+
 .sub-timeline-label {
 	fill: black;
 	font-family: sans-serif;
@@ -164,30 +190,6 @@
 	opacity: 0.2;
 }
 
-#sub-timeline-time text {
-	dominant-baseline:central;
-	fill: black;
-	font-family: sans-serif;
-	font-size: 20px;
-}
-
-#sub-timeline-time path {
-	fill: none;
-    	stroke: black;
-}
-
-#sub-timeline-time line {
-    	stroke: black;
-}
-
-#sub-timeline-time-lines .tick {
-    stroke: black;
-    opacity: 0.7;
-}
-#sub-timeline-time-lines path {
-      stroke-width: 0;
-	fill: none;
-}
 
 .timeline-kill {
 }
@@ -216,4 +218,43 @@
 	fill: white;
 	font-family: sans-serif;
 	font-size: 3px;
+}
+
+#diagram-separator {
+	fill: black;
+}
+
+#diagram-cursor {
+	fill: black;
+	opacity: 0.2
+}
+
+.diagram-time-tick-label{
+	font-family: sans-serif;
+	font-size: 8px;
+	text-anchor: middle;
+	dominant-baseline:central;
+}
+
+.diagram-time-tick-line{
+    	stroke: black;
+      	stroke-width: 1px;
+	stroke-dasharray: 10px,10px;
+}
+
+.diagram-location-line-label{
+	font-family: sans-serif;
+	font-size: 10px;
+	text-anchor: middle;
+	dominant-baseline:central;
+}
+
+.diagram-location-line{
+    	stroke: black;
+      	stroke-width: 2;
+}
+
+.diagram-event-background
+{
+    	stroke: black;
 }

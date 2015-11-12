@@ -94,13 +94,15 @@ function generateGraph(id, group, timeseries, xrange, yrange, area_colors){
 
 // set up internal display state
 gui_state = {
-	"cursor-time": 65,
+	"cursor-time": 0,
 
 	"timeline-cursor-width": 30,
 	"active-sub-timelines": 0,	
 	"timelines": [],
+	"visible-players": [],
+	"location-lines": [],
 
-	"visible-players": []
+	"selected-event": null
 };
 
 map_events = ["fight", "movement", "fountain-visit", "jungling", "laning", "rotation"];
@@ -117,12 +119,19 @@ colors_yellows = ["#FCE694", "#D3B858", "#B29632", "#8E7415", "#634D00"];
 colors_purples = ["#A573B9", "#83479B", "#6D2D86", "#581971", "#400857"];
 colors_beiges = ["#F8FD99", "#E1E765", "#C0C73D", "#A1A820", "#7B8106"];
 
+/*
+Timeline configuration
+*/
+
 timeline_inset_left = 140;
 timeline_height = 200;
+timeline_timescale_height = 50;
 timeline_height_inset_factor = 0.9;
 timeline_separator_width = 5;
-timeline_separator_offset_labels = 5;
+timeline_separator_offset_labels = 10;
 timeline_kill_radius = 10;
+
+timeline_cursor_snap_interval = 10;
 
 color_scale_fights = d3.scale.ordinal()
 			.domain(["encounter", "skirmish", "battle", "clash"])
@@ -178,6 +187,28 @@ team_color =
 	"dire": colors_reds[2]
 };
 
+
+/*
+Diagram configuration
+*/
+
+diagram_inset_left = 100;
+diagram_inset_right = 10;
+diagram_display_width = 400;
+diagram_display_inset = 20;
+diagram_height = 300;
+
+diagram_separator_width = 2;
+
+diagram_time_displayed = 240;
+
+diagram_inset_top = 15;
+diagram_tick_interval = 60;
+
+diagram_event_height_factor = 0.75;
+
+
+location_to_locationline = {};
 /*
 	Init functions
 Create the D3 elements used for the interface 
@@ -195,6 +226,24 @@ function initVisualisation(){
 	d3.selectAll("[data-id]")
 		.on("click", function(){togglePlayer(this)});
 }
+
+
+function updateVisualisation()
+{
+	updateTimeline();
+	updateDiagram();
+	updateMap();
+}
+
+
+function initLegend(){
+	loadSVG("img/legend.svg", "legend", function(){});
+}
+
+
+/*
+Timeline 
+*/
 
 function initTimeline(){
 
@@ -223,13 +272,15 @@ function initTimeline(){
 	d3_elements["timeline-drag"] = d3.behavior.drag()  
              .on('dragstart', function() { 
 						gui_state["cursor-time"] = validateTimeCursor(d3.mouse(this)[0]);
-						updateDisplay();
+						updateVisualisation();
 						d3_elements["timeline-cursor"].style('fill', 'red'); })
              .on('drag', function() { 	
 					gui_state["cursor-time"] = validateTimeCursor(d3.event.x);
-					updateDisplay();
+					updateVisualisation();
 				})
-             .on('dragend', function() { d3_elements["timeline-cursor"].style('fill', 'black'); });
+             .on('dragend', function() { gui_state["cursor-time"] = Math.round(gui_state["cursor-time"]/timeline_cursor_snap_interval) * timeline_cursor_snap_interval;
+					updateVisualisation();
+					d3_elements["timeline-cursor"].style('fill', 'black'); });
 
 
 
@@ -260,28 +311,77 @@ function initTimeline(){
 
 	d3_elements["timeline-cursor"] = d3_elements["timeline-svg-foreground"].select("#timeline-cursor");
 
+	d3_elements["timeline-timescale"] = d3_elements["timeline-svg"].append("svg:g")
+						.attr({"id": "timeline-timescale",
+							"transform": "translate(0, "+(timeline_height * (1-timeline_height_inset_factor)/2 + timeline_timescale_height/2)+")"});
+
+	var left_offset = -pregame_time - timeline_separator_width - timeline_separator_offset_labels;
+
+	d3_elements["timeline-timescale"]	
+		.append("svg:text")
+				.attr({	"x": left_offset,
+					"y": 0,
+					"id": "timeline-timescale-label"})
+				.text("Time");
+
+	var minute_ticks = [];
+	for(var i = -60; i <= game_length; i+=60)
+		minute_ticks.push(i);
+
+	var ticks = d3_elements["timeline-timescale"].selectAll(".timeline-timescale-tick").data(minute_ticks, function(d){return d;});
+
+	ticks.enter()
+		.append("g")
+		.attr("class", "timeline-time-tick")
+		.attr("transform", function(d){return "translate("+getTimelineTimeScale()(d)+", 0)";})
+		.each(function(time){createTimelineTimeTick.call(this, time);});
+
+
 	gui_state["timelines"] =
 		[
-			{"label": "Time"},
 			{"label": "Kills"},
 			{"label": "Gold"},
 			{"label": "Experience"},
 			{"label": "Fights"},
 		];
 
-	gui_state["active-sub-timelines"] = 5;
+	gui_state["active-sub-timelines"] = 4;
 
 	updateTimeline();
 }
 
+function createTimelineTimeTick(time)
+{
+	var group = d3.select(this);
+
+	group.append("svg:text")
+		.attr({
+			"class": "timeline-timescale-tick-label",
+			"transform": "translate(0, 0)",
+			})
+		.text(formatTime(time));
+
+	var line_length = timeline_height * timeline_height_inset_factor - timeline_timescale_height;
+	
+	group.append("svg:path")
+		.attr({
+			"class": "timeline-timescale-tick-line",
+			"transform": "translate(0, "+(timeline_timescale_height/2)+")",
+
+			"d": "M 0 0 L 0 "+ line_length
+			})
+		.text(i);
+}
+
+
 function validateTimeCursor(time)
 {
-	return Math.min(Math.max(-pregame_time+gui_state["timeline-cursor-width"]/2, time), replay_data["header"]["length"] - gui_state["timeline-cursor-width"]/2);
+	return Math.min(Math.max(-pregame_time+gui_state["timeline-cursor-width"]/2, Math.floor(time)), replay_data["header"]["length"] - gui_state["timeline-cursor-width"]/2);
 }
 
 function createSubTimeline(sub_timeline, index){
-	var sub_timeline_height = timeline_height * timeline_height_inset_factor / gui_state["active-sub-timelines"];
-	var top_offset = timeline_height * (1-timeline_height_inset_factor)/2 + sub_timeline_height/2;
+	var sub_timeline_height = (timeline_height * timeline_height_inset_factor - timeline_timescale_height) / gui_state["active-sub-timelines"];
+	var top_offset = timeline_height * (1-timeline_height_inset_factor)/2 + timeline_timescale_height + sub_timeline_height/2;
 	var left_offset = -pregame_time - timeline_separator_width - timeline_separator_offset_labels;
 
 	var game_length = replay_data["header"]["length"];
@@ -289,7 +389,7 @@ function createSubTimeline(sub_timeline, index){
 
 	d3.select(this)
 		.attr("transform", "translate(0,"+(top_offset+index*sub_timeline_height)+")");
-	if(index %2 == 1)
+	if(index %2 == 0)
 	{
 		d3.select(this)
 			.append("svg:rect")
@@ -311,9 +411,7 @@ function createSubTimeline(sub_timeline, index){
 	var group = d3.select(this)
 		.append("g");
 
-	var axis_scale = d3.scale.linear()
-				.domain([-pregame_time, 0, game_length])
-				.range([-pregame_time, 0, game_length]);
+	var axis_scale = getTimelineTimeScale();
 
 	var minute_ticks = [];
 	for(var i = -60; i <= game_length; i+=60)
@@ -323,35 +421,6 @@ function createSubTimeline(sub_timeline, index){
 
 	switch(sub_timeline["label"])
 	{
-	case "Time":
-
-		var axis = d3.svg.axis()	
-				.scale(axis_scale)
-				.tickValues(minute_ticks)
-				.orient("top")
-				.tickFormat(function(tick){return tick/60;});
-
-		group.append("g")
-			.attr("id", "sub-timeline-time")
-			.attr("transform", "translate(0,"+(sub_timeline_height/2)+")")			
-			.call(axis);
-		group.selectAll("#sub-timeline-time text")
-			.attr("y", -sub_timeline_height/2);3
-
-		var line_length = timeline_height * timeline_height_inset_factor * (gui_state["active-sub-timelines"]-1)/ gui_state["active-sub-timelines"];
-		var lines= d3.svg.axis()	
-				.scale(axis_scale)
-				.tickValues(minute_ticks)
-				.orient("top")
-            			.tickSize(line_length, line_length)
-            			.tickFormat("");
-		
-		group.append("g")
-			.attr("id", "sub-timeline-time-lines")
-        		.attr("transform", "translate(0," + (sub_timeline_height/2 + line_length) + ")")
-			.call(lines);
-
-		break;
 
 	case "Kills":
 		d3.select(this).selectAll(".timeline-kill").data(replay_data["indices"]["kills"])
@@ -359,7 +428,7 @@ function createSubTimeline(sub_timeline, index){
 			.append("svg:circle")
 			.attr({	"class": function(kill){ return "timeline-kill "+replay_data["events"][kill]["team"]},
 				"r": timeline_kill_radius,
-				"cx": function(kill){return replay_data["events"][kill]["time"];},
+				"cx": function(kill){return getTimelineTimeScale()(replay_data["events"][kill]["time"]);},
 				"cy": function(kill){return 0;}
 				});
 
@@ -414,17 +483,44 @@ function createSubTimeline(sub_timeline, index){
 
 }
 
-function initDiagram(){
-	loadSVG("img/diagram.svg", "diagram", 
-			function()
-			{
-				svgPanZoom('#diagram-svg', {
-		  			zoomEnabled: true,
-		  			controlIconsEnabled: true
-					});
-				updateDiagram();
-			});
+function getTimelineTimeScale()
+{
+	return d3.scale.linear()
+				.domain([-pregame_time, 0, replay_data["header"]["length"]])
+				.range([-pregame_time, 0, replay_data["header"]["length"]]);
 }
+
+function updateTimeline(){
+	d3_elements["timeline-cursor"].attr('x', gui_state["cursor-time"]- gui_state["timeline-cursor-width"]/2);
+
+	var sub_timelines = d3_elements["timeline-svg"].selectAll(".sub-timeline").data(gui_state["timelines"], function(timeline){
+					return timeline["label"];
+				});
+	sub_timelines.enter()
+		.append("g")
+		.attr("class", "sub-timeline")
+		.each(createSubTimeline);
+
+	sub_timelines.each(updateSubTimeline);
+
+	sub_timelines.exit()
+		.remove();
+}
+
+function updateSubTimeline(sub_timeline, index){
+	//sync with create
+	var sub_timeline_height = (timeline_height * timeline_height_inset_factor - timeline_timescale_height) / gui_state["active-sub-timelines"];
+	var top_offset = timeline_height * (1-timeline_height_inset_factor)/2 + timeline_timescale_height + sub_timeline_height/2;
+	var left_offset = -pregame_time - timeline_separator_width - timeline_separator_offset_labels;
+
+	d3.select(this)
+		.attr("transform", "translate(0,"+(top_offset+index*sub_timeline_height)+")");
+}
+
+/*
+	Map
+*/
+
 
 function initMap(){
 	d3_elements["map"] = d3.select("#map");
@@ -467,50 +563,6 @@ function initMap(){
 	}
 
 	updateMap();
-}
-
-function initLegend(){
-	loadSVG("img/legend.svg", "legend", function(){});
-}
-
-
-/*
-	Dynamic visualisation:
-Update state of D3 objs to fit current data
-*/
-
-function updateDisplay()
-{
-	updateTimeline();
-	updateDiagram();
-	updateMap();
-}
-
-function updateTimeline(){
-	d3_elements["timeline-cursor"].attr('x', gui_state["cursor-time"]- gui_state["timeline-cursor-width"]/2);
-
-	var sub_timelines = d3_elements["timeline-svg"].selectAll(".sub-timeline").data(gui_state["timelines"], function(timeline){
-					return timeline["label"];
-				});
-	sub_timelines.enter()
-		.append("g")
-		.attr("class", "sub-timeline")
-		.each(createSubTimeline);
-
-	sub_timelines.each(updateSubTimeline);
-
-	sub_timelines.exit()
-		.remove();
-}
-
-function updateSubTimeline(sub_timeline, index){
-	//sync with create
-	var sub_timeline_height = timeline_height * timeline_height_inset_factor / gui_state["active-sub-timelines"];
-	var top_offset = timeline_height * (1-timeline_height_inset_factor)/2 + sub_timeline_height/2;
-	var left_offset = -pregame_time - timeline_separator_width - timeline_separator_offset_labels;
-
-	d3.select(this)
-		.attr("transform", "translate(0,"+(top_offset+index*sub_timeline_height)+")");
 }
 
 function updateMap(){
@@ -747,9 +799,173 @@ function updateMapEvent(event){
 		.attr({"opacity": computeEventOpacity(event)});
 }
 
+
+/*
+	Diagram
+*/
+
+function initDiagram(){
+	/*loadSVG("img/diagram.svg", "diagram", 
+			function()
+			{
+				svgPanZoom('#diagram-svg', {
+		  			zoomEnabled: true,
+		  			controlIconsEnabled: true
+					});
+
+			});*/
+
+	d3_elements["diagram-svg"] = d3.select("#diagram")
+					.append("svg")
+					.attr({ "id": "diagram-svg",
+						"class": "svg-content",
+						"viewBox": "-"+diagram_inset_left+" 0 "+(diagram_display_width+diagram_inset_left+diagram_inset_right)+" "+diagram_height});
+	
+	d3_elements["diagram-svg-foreground"] = d3.select("#diagram")
+					.append("svg")
+					.attr({ "id": "diagram-svg-foreground",
+						"class": "svg-content-overlay",
+						"viewBox": "-"+diagram_inset_left+" 0 "+(diagram_display_width+diagram_inset_left+diagram_inset_right)+" "+diagram_height});
+
+	d3_elements["diagram-svg"].append("svg:rect")
+					.attr({	"id": "diagram-separator",
+						"x": (-diagram_separator_width),
+						"y": 0,
+						"width": diagram_separator_width,
+						"height": diagram_height
+					});
+
+	d3_elements["diagram-svg-foreground"]
+                .append('svg:rect')
+                .attr({
+			'id': 'diagram-cursor',
+			'x': 0,//overridden by time
+                	'y': diagram_inset_top,
+                	'width': gui_state["timeline-cursor-width"] * ((diagram_display_width-2*diagram_display_inset)/diagram_time_displayed),
+                	'height': diagram_height - diagram_inset_top
+			});
+
+	var axis_scale = d3.scale.linear()
+
+				.domain([0, diagram_time_displayed]);
+
+	d3_elements["diagram-timescale"] = d3_elements["diagram-svg"].append("g")
+		.attr("id", "diagram-timescale");
+
+	gui_state["location-lines"] =
+		[
+			{
+				"label": "Top Lane",
+				"layout-nr": 0 
+			},
+			{
+				"label": "Dire Jungle",
+				"layout-nr": 1 
+			},
+			{
+				"label": "Radiant Base",
+				"layout-nr": 2 
+			},
+			{
+				"label": "Middle Lane",
+				"layout-nr": 3 
+			},
+			{
+				"label": "Dire Base",
+				"layout-nr": 4 
+			},
+			{
+				"label": "Radiant Jungle",
+				"layout-nr": 5 
+			},
+			{
+				"label": "Bottom Lane",
+				"layout-nr": 6 
+			}
+		];
+
+	location_to_locationline = {
+
+				"radiant-base": 2,
+				"dire-base": 4,
+
+
+				"top-rune": 1,
+				"bottom-rune": 5,
+
+				"toplane-between-t1s": 0,
+				"toplane-dire-t1": 0,
+
+				"midlane-between-t1s": 3,
+				"midlane-dire-before-t1": 3,
+
+				"botlane-radiant-t1": 6,
+				"botlane-radiant-before-t1": 6,
+				"botlane-between-t1s": 6,
+
+				"dire-jungle": 1,
+				"radiant-jungle": 5
+			};
+
+	gui_state["location-lines-count"] = 7;
+
+	d3_elements["diagram-events"] = d3_elements["diagram-svg"].append("svg:g")
+						.attr({	"id": "diagram-events"
+							});
+	gui_state["diagram-events"] = ["fight", "movement", "fountain-visit", "jungling", "laning"];
+	updateDiagram();
+}
+
 function updateDiagram()
 {
-	var player_layers = d3.select("#diagram").selectAll("[player-id]").data(gui_state["visible-players"]);
+	var time_scale = getDiagramTimeScale();
+
+	var ticks = d3_elements["diagram-timescale"].selectAll(".diagram-time-tick").data(generateTimeTicks(), function(d){return d;});
+
+	ticks.enter()
+		.append("g")
+		.attr("class", "diagram-time-tick")
+		.attr("transform", function(d){return "translate("+time_scale(d)+", 0)";})
+		.each(function(time){createDiagramTimeTick.call(this, time);});
+
+	ticks.attr({
+		"transform": function(d){return "translate("+time_scale(d)+",0)";}
+		});
+
+	ticks.exit().remove();
+
+	d3.select("#diagram-svg-foreground").selectAll("#diagram-cursor")
+		.attr("x", time_scale(gui_state["cursor-time"]-gui_state["timeline-cursor-width"]/2));
+
+
+	var location_lines =d3_elements["diagram-svg"].selectAll(".location-line").data(gui_state["location-lines"], function(location_line){
+					return location_line["label"];
+				});
+	location_lines.enter()
+		.append("g")
+		.attr("class", "location-line")
+		.each(function(location_line){createLocationLine.call(this, location_line);});
+
+	location_lines.each(function(location_line){updateLocationLine.call(this, location_line);});
+
+	location_lines.exit()
+		.remove();
+
+	var events = d3_elements["diagram-events"].selectAll(".diagram-event").data(
+						d3.entries(replay_data["events"]).filter(function(d){return filterEventsDiagram(d.value)})
+						, function(event_entry){return event_entry.key;});
+
+	events.enter()
+		.append("g")
+		.attr("class", "diagram-event")
+		.each(function(event_entry){createDiagramEvent.call(this, event_entry.value);});
+
+	events.each(function(event_entry){updateDiagramEvent.call(this, event_entry.value);});
+
+	events.exit()
+		.remove();
+
+	/*var player_layers = d3.select("#diagram").selectAll("[player-id]").data(gui_state["visible-players"]);
 	player_layers.attr("visibility", function(d){
 				if(d)
 				{
@@ -768,14 +984,248 @@ function updateDiagram()
 
 	d3.select("#diagram").selectAll("#time-cursor")
 		.attr("x", position+"mm");
+*/
 
+}
+
+function generateTimeTicks()
+{
+	var time_scale = getDiagramTimeScale();
+	var tick_min = Math.ceil(time_scale.domain()[0]/diagram_tick_interval);
+	var tick_max = Math.floor(time_scale.domain()[1]/diagram_tick_interval);
+	var result = [];
+	for(var i = tick_min; i <= tick_max; i++)
+	{
+		result.push(i*diagram_tick_interval);
+	}
+
+	return result;
+}
+
+function getDiagramTimeScale()
+{
+	var time_scale = d3.scale.linear()
+
+	if(gui_state["cursor-time"] - diagram_time_displayed/2 < -pregame_time)
+	{
+		time_scale.domain([-pregame_time, diagram_time_displayed-pregame_time]);
+	}
+	else if(gui_state["cursor-time"] + diagram_time_displayed/2 > replay_data["header"]["length"])
+	{
+		time_scale.domain([replay_data["header"]["length"] - diagram_time_displayed, replay_data["header"]["length"]]);
+	}
+	else
+	{
+		time_scale.domain([gui_state["cursor-time"] - diagram_time_displayed/2, gui_state["cursor-time"] + diagram_time_displayed/2]);
+	}
+	time_scale.range([0+diagram_display_inset, diagram_display_width-diagram_display_inset]);
+
+	return time_scale;
+}
+
+function getDiagramTimeToLengthRatio()
+{
+
+	var scale = getDiagramTimeScale();
+	var ratio = (scale.range()[1] - scale.range()[0])/(scale.domain()[1] - scale.domain()[0]);
+	return ratio;
+}
+
+function createDiagramTimeTick(time)
+{
+	var group = d3.select(this);
+
+	group.append("svg:text")
+		.attr({
+			"class": "diagram-time-tick-label",
+			"transform": "translate(0, "+diagram_inset_top/2+")",
+			})
+		.text(formatTime(time));
+
+	var line_length = diagram_height - diagram_inset_top;
+	
+	group.append("svg:path")
+		.attr({
+			"class": "diagram-time-tick-line",
+			"transform": "translate(0, "+diagram_inset_top+")",
+			"d": "M 0 0 L 0 "+ line_length
+			})
+		.text(i);
+}
+
+function createLocationLine(location_line)
+{
+	var group = d3.select(this);
+
+	var location_line_height = (diagram_height - diagram_inset_top)/gui_state["location-lines-count"];
+
+	group.attr({
+		"transform": "translate(0, "+(location_line_height*(location_line["layout-nr"]+0.5) + diagram_inset_top)+")"
+		});
+	group.append("svg:text")
+		.attr({
+			"class": "diagram-location-line-label",
+			"transform": "translate(-"+(diagram_inset_left/2)+", 0)",
+			})
+		.text(location_line["label"]);
+
+	var line_length = diagram_display_width;
+	
+	group.append("svg:path")
+		.attr({
+			"class": "diagram-location-line",
+			"d": "M 0 0 L "+line_length+" 0"
+			})
+		.text(i);
+}
+function updateLocationLine(location_line)
+{
+	var group = d3.select(this);
+}
+
+
+function filterEventsDiagram(event)
+{
+	if(gui_state["diagram-events"].indexOf(event["type"]) == -1)
+		return false;
+	
+	if(event.hasOwnProperty("time"))
+	{
+		return 	event["time"] >= getDiagramTimeScale().domain()[0] &&
+			event["time"] <= getDiagramTimeScale().domain()[1];
+	}
+	else if(event.hasOwnProperty("time-start") && event.hasOwnProperty("time-end"))
+	{
+		return 	event["time-end"] >= getDiagramTimeScale().domain()[0] &&  
+			event["time-start"] <= getDiagramTimeScale().domain()[1];
+	}
+	else
+	{
+		console.log("Corrupted event");
+		return false;
+	}
+}
+
+
+function createDiagramEvent(event)
+{
+	var group = d3.select(this);
+	
+	if(event.hasOwnProperty("time-start") && event.hasOwnProperty("time-end"))
+	{
+
+		group.append("svg:rect")
+			.attr({	"class": "diagram-event-background",
+				"stroke-width": 0
+				})
+			.on("click", function(event_entry)
+					{
+						gui_state["selected-event"] = event_entry.key;
+						updateVisualisation();
+					});
+	}
+
+	switch(event["type"])
+	{
+	case "fight":
+		group.selectAll(".diagram-event-background")
+			.attr({
+			"fill": color_scale_fights(event["intensity"]),
+			});
+		break;
+	case "movement":
+		group.selectAll(".diagram-event-background")
+			.attr({
+			"fill": color_scale_fights(colors_blues[0]),
+			});
+		break;
+	case "fountain-visit":
+		group.selectAll(".diagram-event-background")
+			.attr({
+			"fill": "white",
+			});
+		break;
+	case "jungling":
+		group.selectAll(".diagram-event-background")
+			.attr({
+			"fill": colors_beiges[3],
+			});
+		break;
+	case "laning":
+		group.selectAll(".diagram-event-background")
+			.attr({
+			"fill": "grey",
+			});
+		break;
+	}
+
+
+	updateDiagramEvent.call(this, event);
+}
+
+function updateDiagramEvent(event)
+{
+	var group = d3.select(this);
+	var center_time = 0;
+	
+	if(event.hasOwnProperty("time"))
+	{
+		center_time = event["time"];
+	}
+	else if(event.hasOwnProperty("time-start") && event.hasOwnProperty("time-end"))
+	{
+		center_time = (event["time-start"]+event["time-end"])/2;
+	}
+	else
+	{
+		console.log("Corrupted event");
+	}
+
+
+
+	group.attr("transform", "translate("+getDiagramTimeScale()(center_time)+","+getDiagramY(event["location"])+")");
+
+	var timescale = getDiagramTimeScale();
+	var start = Math.max(timescale.domain()[0], event["time-start"]);
+	var end = Math.min(timescale.domain()[1], event["time-end"]);
+	var location_line_height = (diagram_height - diagram_inset_top)/gui_state["location-lines-count"];
+	var height = location_line_height*diagram_event_height_factor;
+	group.selectAll(".diagram-event-background")
+			.attr({	"class": "diagram-event-background",
+				"x": timescale(start) - timescale((event["time-start"]+event["time-end"])/2),
+				"y": -height/2,
+				"width": timescale(end)-timescale(start),
+				"height": height,
+				"stroke-width": function(event_entry)
+						{
+							return gui_state["selected-event"] == event_entry.key ? 3 :  0;
+						}
+				});
+}
+
+function getDiagramY(location)
+{
+	var location_line_height = (diagram_height - diagram_inset_top)/gui_state["location-lines-count"];
+
+	return (location_to_locationline[location]+0.5)*location_line_height + diagram_inset_top;
+}
+
+function formatTime(time)
+{
+	var prefix = "";
+	if(time < 0)
+	{
+		time = -time;
+		preix= "-";
+	}
+	return Math.trunc(time/60)+":"+(time - 60*Math.trunc(time/60));
 }
 
 function togglePlayer(player)
 {
 	var index = parseInt(player.dataset["id"]);
 	gui_state["visible-players"][index] = !gui_state["visible-players"][index];
-	updateDisplay();
+	updateVisualisation();
 }
 
 function loadSVG(file, id, callback)
@@ -794,12 +1244,9 @@ function loadSVG(file, id, callback)
 }
 
 
-
 function main()
 {
 	loadData(initVisualisation);
 }
 
 window.onload = main;
-
-
