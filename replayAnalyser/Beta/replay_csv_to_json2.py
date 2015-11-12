@@ -73,6 +73,9 @@ f.write("		}\n")
 # write events to json file
 f.write("		\"events\":{\n")
 
+########### for each event write the event to the json file  #########
+
+
 #close events bracket
 f.write("   	 }\n")
 
