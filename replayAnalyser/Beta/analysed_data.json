@@ -1,0 +1,53 @@
+{
+    "header":{ 
+        "id": 0,
+    	"teams": {
+			"0":{ 
+				"side":"radiant",
+				"name":"R", 
+				"short":"R" 
+			},
+			"0":{ 
+				"side":"dire",
+				"name":"D", 
+				"short":"D" 
+			}
+		},
+		"players": {
+			"0": {
+				"name":"string" 
+			},
+			"1": {
+				"name":"string" 
+			},
+			"2": {
+				"name":"string" 
+			},
+			"3": {
+				"name":"string" 
+			},
+			"4": {
+				"name":"string" 
+			},
+			"5": {
+				"name":"string" 
+			},
+			"6": {
+				"name":"string" 
+			},
+			"7": {
+				"name":"string" 
+			},
+			"8": {
+				"name":"string" 
+			},
+			"9": {
+				"name":"string" 
+			}
+		},
+		"draft": {},
+		"length": 0,
+		"entities":{
+		}
+    }
+}
