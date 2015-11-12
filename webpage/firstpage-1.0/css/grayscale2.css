@@ -268,6 +268,16 @@ a:focus {
     height: 100%;
 }
 
+#input-match-id {
+    height: 100%;
+    margin-top:80px;  
+    background: url(../img/intro-bg.jpg);
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    background-size: cover;
+    -o-background-size: cover;
+    background-position: center;
+}
 
 
 #more-margin {
