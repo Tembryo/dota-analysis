@@ -12,16 +12,20 @@ import java.util.Map;
 
 public class OutputGenerator {
 	BufferedWriter writer;
+	BufferedWriter event_writer;
 	List<String> key_order;
 	public OutputGenerator(String filename_out) {
 		try {
 		File file = new File(filename_out);
-
+		File file_events = new File("events_"+filename_out);
 		FileWriter fw;
+		FileWriter fw_events;
 	
 		fw = new FileWriter(file);
+		fw_events = new FileWriter(file_events);
 
 		 writer = new BufferedWriter(fw);
+		 event_writer = new BufferedWriter(fw_events);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -73,12 +77,24 @@ public class OutputGenerator {
 			e.printStackTrace();
 		}
 	}
+	
+	public void writeEvent(String event)
+	{
+		try {
+			event_writer.write(event+"\n");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	public void finish()
 	{
 		try {
 			writer.flush();
 			writer.close();
+			event_writer.flush();
+			event_writer.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

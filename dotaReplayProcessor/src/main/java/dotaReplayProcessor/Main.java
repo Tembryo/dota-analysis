@@ -15,7 +15,7 @@ public class Main {
 		 
 
 			
-		String filename_replay = "../data/1864290085.dem";
+		String filename_replay = "data/1864290085.dem";
 		String filename_out = "replay_data.csv";
 		OutputGenerator output = new OutputGenerator(filename_out);
 		ReplayProcessor processor;

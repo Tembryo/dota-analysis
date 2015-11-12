@@ -4,12 +4,14 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import skadistats.clarity.model.CombatLogEntry;
 import skadistats.clarity.model.Entity;
 import skadistats.clarity.model.FieldPath;
 import skadistats.clarity.processor.entities.Entities;
 import skadistats.clarity.processor.entities.OnEntityCreated;
 import skadistats.clarity.processor.entities.OnEntityUpdated;
 import skadistats.clarity.processor.entities.UsesEntities;
+import skadistats.clarity.processor.gameevents.OnCombatLogEntry;
 import skadistats.clarity.processor.reader.OnTickStart;
 import skadistats.clarity.processor.runner.Context;
 import skadistats.clarity.processor.runner.ControllableRunner;
@@ -133,8 +135,8 @@ public class ReplayProcessor {
                     
             		int cell_x = getEntityProperty(e, "CBodyComponent.m_cellX", null);
             		int cell_y = getEntityProperty(e, "CBodyComponent.m_cellY", null);
-            	    float offsetx = 0;//getEntityProperty(e, "CBodyComponent.m_vecOrigin.x", null);
-            	    float offsety = 0;//getEntityProperty(e, "CBodyComponent.m_vecOrigin.y", null);
+            	    float offsetx = getEntityProperty(e, "CBodyComponent.m_vecX", null);
+            	    float offsety = getEntityProperty(e, "CBodyComponent.m_vecY", null);
             	    int cellbits = 7;//getEntityProperty(e, "CBodyComponent.m_cellbits", null);
             	    
             	    int cellwidth = 1 << cellbits;
@@ -150,7 +152,7 @@ public class ReplayProcessor {
                     
                     data_fields.put(i+"X", (double)pos.x);
                     data_fields.put(i+"Y", (double)pos.y);
-                    data_fields.put(i+"Gold", (double)gold);
+                    //data_fields.put(i+"Gold", (double)gold);
                     //data_fields.put(i+"Alive", (double)alive);
                 }
                 //es.output(entry);
@@ -171,4 +173,114 @@ public class ReplayProcessor {
         return e.getPropertyForFieldPath(fp);
     }
 	
+
+    private String getAttackerNameCompiled(CombatLogEntry cle) {
+        return cle.getAttackerName() + (cle.isAttackerIllusion() ? " (illusion)" : "");
+    }
+
+    private String getTargetNameCompiled(CombatLogEntry cle) {
+        return cle.getTargetName() + (cle.isTargetIllusion() ? " (illusion)" : "");
+    }
+
+    @OnCombatLogEntry
+    public void onCombatLogEntry(Context ctx, CombatLogEntry cle) {
+        Entity grp = ctx.getProcessor(Entities.class).getByDtName("CDOTAGamerulesProxy");
+    	float t = getEntityProperty(grp, "m_pGameRules.m_fGameTime", null);
+    	Double time = (double) t;
+    	
+    	String event = time+ ",";
+    	event += cle.getType().toString()+",";
+        switch (cle.getType()) {
+            case DOTA_COMBATLOG_DAMAGE:
+            	event += getAttackerNameCompiled(cle)+","+
+                    getTargetNameCompiled(cle)+","+
+                    (cle.getInflictorName() != null ? String.format(" with %s", cle.getInflictorName()) : "") +","+
+                    cle.getValue()+","+
+                    (cle.getHealth() != 0 ? String.format(" (%s->%s)", cle.getHealth() + cle.getValue(), cle.getHealth()) : "");
+                break;
+		case DOTA_COMBATLOG_ABILITY:
+            event +=
+                    getAttackerNameCompiled(cle)+","+
+                    (cle.isAbilityToggleOn() || cle.isAbilityToggleOff() ? "toggles" : "casts")+","+
+                    cle.getInflictorName()+","+
+                    cle.getAbilityLevel()+","+
+                    (cle.isAbilityToggleOn() ? " on" : cle.isAbilityToggleOff() ? " off" : "")+","+
+                    (cle.getTargetName() != null ? " on " + getAttackerNameCompiled(cle) : "");
+			break;
+		case DOTA_COMBATLOG_ABILITY_TRIGGER:
+			break;
+		case DOTA_COMBATLOG_BUYBACK:
+			break;
+		case DOTA_COMBATLOG_DEATH:
+            event += getTargetNameCompiled(cle)+","+
+                    getAttackerNameCompiled(cle);
+			break;
+		case DOTA_COMBATLOG_FIRST_BLOOD:
+			break;
+		case DOTA_COMBATLOG_GAME_STATE:
+			event += cle.getValue()+",";
+			break;
+		case DOTA_COMBATLOG_GOLD:
+            event +=
+                    getTargetNameCompiled(cle)+","+
+                    (cle.getValue() < 0 ? "looses" : "receives")+","+
+                    Math.abs(cle.getValue());
+			break;
+		case DOTA_COMBATLOG_HEAL:
+			event +=
+                    getAttackerNameCompiled(cle)+","+
+                    cle.getInflictorName()+","+
+                    getTargetNameCompiled(cle)+","+
+                    cle.getValue()+","+
+                    (cle.getHealth() - cle.getValue())+","+
+                    cle.getHealth();
+			break;
+		case DOTA_COMBATLOG_ITEM:
+			event +=
+                    getAttackerNameCompiled(cle)+","+
+                    cle.getInflictorName();
+			break;
+		case DOTA_COMBATLOG_KILLSTREAK:
+			break;
+		case DOTA_COMBATLOG_LOCATION:
+			break;
+		case DOTA_COMBATLOG_MODIFIER_ADD:
+			event +=
+                    getTargetNameCompiled(cle)+","+
+                    cle.getInflictorName()+","+
+                    getAttackerNameCompiled(cle);
+			break;
+		case DOTA_COMBATLOG_MODIFIER_REFRESH:
+			break;
+		case DOTA_COMBATLOG_MODIFIER_REMOVE:
+			event +=
+                    getTargetNameCompiled(cle)+","+
+                    cle.getInflictorName();
+			break;
+		case DOTA_COMBATLOG_MULTIKILL:
+			break;
+		case DOTA_COMBATLOG_NEUTRAL_CAMP_STACK:
+			break;
+		case DOTA_COMBATLOG_PICKUP_RUNE:
+			break;
+		case DOTA_COMBATLOG_PLAYERSTATS:
+			break;
+		case DOTA_COMBATLOG_PURCHASE:
+			event +=
+                    getTargetNameCompiled(cle)+","+
+                    cle.getValueName();
+			break;
+		case DOTA_COMBATLOG_TEAM_BUILDING_KILL:
+			break;
+		case DOTA_COMBATLOG_XP:
+            event +=
+                    getTargetNameCompiled(cle)+","+
+                    cle.getValue();
+			break;
+		default:
+			break;
+        }
+        
+        output.writeEvent(event);
+    }
 }
