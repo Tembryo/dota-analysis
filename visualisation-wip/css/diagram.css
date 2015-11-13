@@ -258,3 +258,10 @@
 {
     	stroke: black;
 }
+
+.interactive-area
+{
+	stroke: green;
+	fill: green;
+	opacity: 0;
+}
