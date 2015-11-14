@@ -1,265 +1,304 @@
 {
     "header": {
+        "players": {
+            "0": {
+                "name": "a"
+            },
+            "1": {
+                "name": "b"
+            },
+            "2": {
+                "name": "b"
+            },
+            "3": {
+                "name": "a"
+            },
+            "4": {
+                "name": "b"
+            },
+            "5": {
+                "name": "b"
+            },
+            "6": {
+                "name": "a"
+            },
+            "7": {
+                "name": "b"
+            },
+            "8": {
+                "name": "b"
+            },
+            "9": {
+                "name": "b"
+            }
+        },
         "length": 600,
         "draft": {},
-        "id": 0
+        "id": 0,
+        "teams": {
+            "0": {
+                "short": "empty",
+                "side": "radiant",
+                "name": "empty"
+            },
+            "1": {
+                "short": "empty",
+                "side": "dire",
+                "name": "empty"
+            }
+        }
     },
     "events": [
-        {
-            "length": 600,
-            "draft": {},
-            "id": 0
-        },
         {
             "10000": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "838.1502685546875"
+                "time": 838.0
             }
         },
         {
             "10001": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "885.5386962890625"
+                "time": 885.0
             }
         },
         {
             "10002": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "950.1229248046875"
+                "time": 950.0
             }
         },
         {
             "10003": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "955.7882080078125"
+                "time": 955.0
             }
         },
         {
             "10004": {
                 "team": "dire",
                 "type": "kill",
-                "time": "1071.659912109375"
+                "time": 1071.0
             }
         },
         {
             "10005": {
                 "team": "dire",
                 "type": "kill",
-                "time": "1178.033935546875"
+                "time": 1178.0
             }
         },
         {
             "10006": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "1367.0211181640625"
+                "time": 1367.0
             }
         },
         {
             "10007": {
                 "team": "dire",
                 "type": "kill",
-                "time": "1370.1536865234375"
+                "time": 1370.0
             }
         },
         {
             "10008": {
                 "team": "dire",
                 "type": "kill",
-                "time": "1374.2193603515625"
+                "time": 1374.0
             }
         },
         {
             "10009": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "1383.0838623046875"
+                "time": 1383.0
             }
         },
         {
             "10010": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "1641.8873291015625"
+                "time": 1641.0
             }
         },
         {
             "10011": {
                 "team": "dire",
                 "type": "kill",
-                "time": "1726.7999267578125"
+                "time": 1726.0
             }
         },
         {
             "10012": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "1766.5902099609375"
+                "time": 1766.0
             }
         },
         {
             "10013": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "2102.975341796875"
+                "time": 2102.0
             }
         },
         {
             "10014": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "2274.492919921875"
+                "time": 2274.0
             }
         },
         {
             "10015": {
                 "team": "dire",
                 "type": "kill",
-                "time": "2386.741943359375"
+                "time": 2386.0
             }
         },
         {
             "10016": {
                 "team": "dire",
                 "type": "kill",
-                "time": "2462.734130859375"
+                "time": 2462.0
             }
         },
         {
             "10017": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "2608.697998046875"
+                "time": 2608.0
             }
         },
         {
             "10018": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "2800.78564453125"
+                "time": 2800.0
             }
         },
         {
             "10019": {
                 "team": "dire",
                 "type": "kill",
-                "time": "2882.1962890625"
+                "time": 2882.0
             }
         },
         {
             "10020": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "2883.86865234375"
+                "time": 2883.0
             }
         },
         {
             "10021": {
                 "team": "dire",
                 "type": "kill",
-                "time": "2884.80517578125"
+                "time": 2884.0
             }
         },
         {
             "10022": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "2897.58203125"
+                "time": 2897.0
             }
         },
         {
             "10023": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "2965.88134765625"
+                "time": 2965.0
             }
         },
         {
             "10024": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "2971.63427734375"
+                "time": 2971.0
             }
         },
         {
             "10025": {
                 "team": "dire",
                 "type": "kill",
-                "time": "2989.896484375"
+                "time": 2989.0
             }
         },
         {
             "10026": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "2992.37158203125"
+                "time": 2992.0
             }
         },
         {
             "10027": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "2996.38525390625"
+                "time": 2996.0
             }
         },
         {
             "10028": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "3001.87060546875"
+                "time": 3001.0
             }
         },
         {
             "10029": {
                 "team": "dire",
                 "type": "kill",
-                "time": "3012.2392578125"
+                "time": 3012.0
             }
         },
         {
             "10030": {
                 "team": "dire",
                 "type": "kill",
-                "time": "3015.65087890625"
+                "time": 3015.0
             }
         },
         {
             "10031": {
                 "team": "dire",
                 "type": "kill",
-                "time": "3022.07275390625"
+                "time": 3022.0
             }
         },
         {
             "10032": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "3022.6748046875"
+                "time": 3022.0
             }
         },
         {
             "10033": {
                 "team": "dire",
                 "type": "kill",
-                "time": "3028.09326171875"
+                "time": 3028.0
             }
         },
         {
             "10034": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "3033.57861328125"
+                "time": 3033.0
             }
         },
         {
             "10035": {
                 "team": "radiant",
                 "type": "kill",
-                "time": "3037.3916015625"
+                "time": 3037.0
             }
         }
     ]
