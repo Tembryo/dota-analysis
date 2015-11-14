@@ -6,9 +6,9 @@ import json
 input_filename = "replay_data_real.csv"
 output_filename = "analysed_data.json"
 
-
+# open the file we will write too
 f = open(output_filename,"w")
-#open bracket
+# open bracket
 f.write("{\n")
 # write header of json file to output file
 f.write("    \"header\":{ \n")
@@ -29,8 +29,8 @@ f.write("			}\n")
 f.write("		},\n")
 # write players in header
 f.write("		\"players\": {\n")
-#write each player name:
-#player 0
+# write each player name:
+# player 0
 for i in range(0,10):
 	if i <9:
 		f.write("			\"" + str(i) + "\": {\n")
@@ -45,50 +45,52 @@ f.write("		},\n")
 # write draft in header
 f.write("		\"draft\": {},\n")
 # write length in header
-f.write("		\"length\": 0,\n")
+f.write("		\"length\": 0\n")
+# close headers bracket
+f.write("    },\n")
 # write entities in header
-f.write("		\"entities\":{\n")
+f.write("	\"entities\":{\n")
 # write entity 100-104
 for i in range(0,10):
 	if i < 5:
-		f.write("			\"" + str(100+i) + "\": {\n")
-		f.write("				\"unit\":\"string\",\n")
-		f.write("				\"team\": \"radiant\",\n")
-		f.write("				\"control\": " +str(i) + "\n")
-		f.write("			},\n")
+		f.write("		\"" + str(100+i) + "\": {\n")
+		f.write("			\"unit\":\"string\",\n")
+		f.write("			\"team\": \"radiant\",\n")
+		f.write("			\"control\": " +str(i) + "\n")
+		f.write("		},\n")
 	elif (i>=5) and (i<9):
-		f.write("			\"" + str(100+i) + "\": {\n")
-		f.write("				\"unit\":\"string\",\n")
-		f.write("				\"team\": \"dire\",\n")
-		f.write("				\"control\": " +str(i) + "\n")
-		f.write("			},\n")
+		f.write("		\"" + str(100+i) + "\": {\n")
+		f.write("			\"unit\":\"string\",\n")
+		f.write("			\"team\": \"dire\",\n")
+		f.write("			\"control\": " +str(i) + "\n")
+		f.write("		},\n")
 	else:
-		f.write("			\"" + str(100+i) + "\": {\n")
-		f.write("				\"unit\":\"string\",\n")
-		f.write("				\"team\": \"dire\",\n")
-		f.write("				\"control\": " +str(i) + "\n")
-		f.write("			}\n")
-#close entities bracket
-f.write("		}\n")
+		f.write("		\"" + str(100+i) + "\": {\n")
+		f.write("			\"unit\":\"string\",\n")
+		f.write("			\"team\": \"dire\",\n")
+		f.write("			\"control\": " +str(i) + "\n")
+		f.write("		}\n")
+# close entities bracket
+f.write("	},\n")
+
 # write events to json file
-f.write("		\"events\":{\n")
+f.write("	\"events\":{\n")
 
 ########### for each event write the event to the json file  #########
+namespace1 = 10000
+
+# close events bracket
+f.write("   }\n")
 
 
-#close events bracket
-f.write("   	 }\n")
-
-#close headers bracket
-f.write("    }\n")
-#close bracket
+# close bracket
 f.write("}")
 
 
 f.close()
 
 
-#test have not made an error with json file format
+# test have not made an error with json file format
 
 with open(output_filename) as data_file:    
     data = json.load(data_file)
