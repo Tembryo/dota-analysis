@@ -1,14 +1,36 @@
 import csv
 import json
 import math
+from dota2_area_boxes_ver2 import area_matrix, areas
+from area_assignment import Dota2Replay, readPlayerData, assignPlayerArea, areaStateSummary
 
-input_filename = "events_replay_data.csv"
+position_input_filename = "replay_data.csv"
+events_input_filename = "events_replay_data.csv"
 output_filename = "test.json"
 
-f = open(input_filename,'rb')
-reader = csv.reader(f)
+e = open(position_input_filename,'rb')
+position_reader = csv.reader(e)
+
+f = open(events_input_filename,'rb')
+events_reader = csv.reader(f)
 
 g = open(output_filename,'wb')
+
+#extract areas for each hero
+
+replay = Dota2Replay(position_input_filename)
+player_data = readPlayerData(replay,2,30000,30000,10)
+#print player1data[1]
+
+area_state = assignPlayerArea(replay,player_data,area_matrix)
+#print area_state
+
+summary = areaStateSummary(player_data,area_state)
+print summary[0]
+print summary[1]
+
+
+# start of the analysis
 
 data_list =[]
 
@@ -20,10 +42,12 @@ players = {0:{"name":"a"},1:{"name":"b"},2:{"name":"b"},3:{"name":"a"},4:{"name"
 
 header = {"id":0,"draft": {},"length": 600,"teams":teams,"players":players}
 
+# extract the kill events
+
 kills_namespace =10000
 events =[]
 k=0
-for i, row in enumerate(reader):
+for i, row in enumerate(events_reader):
 	# for each row check if a death occurred
 	if row[1]=="DOTA_COMBATLOG_DEATH":
 		# now check if it was a hero that died
@@ -45,6 +69,7 @@ data_to_write = {"header":header,"events":events}
 
 g.write(json.dumps(data_to_write, sort_keys=False,indent=4, separators=(',', ': ')))
 
+e.close()
 f.close()
 g.close()
 
