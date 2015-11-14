@@ -15,11 +15,12 @@ data_list =[]
 heros = {"spirit_breaker":"radiant","queenofpain":"radiant", "antimage":"radiant","dazzle":"radiant","dark_seer":"radiant", \
 "undying":"dire","witch_doctor":"dire","necrolyte":"dire","tusk": "dire", "alchemist":"dire"}
 
-header = []
-header_dict = {"id":0,"draft": {},"length": 600}
-
-
 events =[]
+
+header = {"id":0,"draft": {},"length": 600}
+
+events.append(header)
+
 kills_namespace =10000
 
 k=0
@@ -41,9 +42,9 @@ for i, row in enumerate(reader):
 			events.append(new_event)
 			k=k+1
 
-data_list.append(events)
+data_to_write = {"header":header,"events":events}
 
-g.write(json.dumps(data_list), sort_keys=False,indent=4, separators=(',', ': ')))
+g.write(json.dumps(data_to_write, sort_keys=False,indent=4, separators=(',', ': ')))
 
 f.close()
 g.close()
