@@ -633,19 +633,34 @@ function filterEventsMap(event){
 	
 	if(event.hasOwnProperty("time"))
 	{
-		return 	event["time"] >= (gui_state["cursor-time"] - gui_state["timeline-cursor-width"]/2) &&
-			event["time"] <= (gui_state["cursor-time"] + gui_state["timeline-cursor-width"]/2);
+		if( ! (event["time"] >= (gui_state["cursor-time"] - gui_state["timeline-cursor-width"]/2) &&
+			event["time"] <= (gui_state["cursor-time"] + gui_state["timeline-cursor-width"]/2) ) )
+			return false;
 	}
 	else if(event.hasOwnProperty("time-start") && event.hasOwnProperty("time-end"))
 	{
-		return 	event["time-end"] >= (gui_state["cursor-time"] - gui_state["timeline-cursor-width"]/2) &&  
-			event["time-start"] <= (gui_state["cursor-time"] + gui_state["timeline-cursor-width"]/2);
+		if( ! (event["time-end"] >= (gui_state["cursor-time"] - gui_state["timeline-cursor-width"]/2) &&  
+			event["time-start"] <= (gui_state["cursor-time"] + gui_state["timeline-cursor-width"]/2) ) )
+			return false;
+
 	}
 	else
 	{
 		console.log("Corrupted event");
 		return false;
 	}
+
+	if(event.hasOwnProperty("involved") && replay_data["events"][gui_state["selected-event"]])
+	{			
+		var involved = replay_data["events"][gui_state["selected-event"]]["involved"];
+		for(i in event["involved"])
+		{
+
+			if(involved.indexOf(event["involved"][i]) >= 0)
+				return true;
+		}
+	}
+	return false;
 }
 
 function createMapEvent(event){
@@ -1388,20 +1403,12 @@ function diagramEventOnClick(event_id)
 	var center_time = getEventTime(event);	
 	gui_state["cursor-time"] = center_time;
 
-
-	if(event.hasOwnProperty("involved"))
-	{
-		gui_state["visible-unit-histories"] = event["involved"];
-	}
-	else
-	{
-		gui_state["visible-unit-histories"] = [];
-	}
 	updateVisualisation();
 }
 
 function diagramOnClickPickTime(d){
 	gui_state["cursor-time"] = validateTimeCursor(getDiagramTimeScale().invert(d3.mouse(this)[0]));
+	gui_state["selected-event"] = null;
 	updateVisualisation();
 }
 
