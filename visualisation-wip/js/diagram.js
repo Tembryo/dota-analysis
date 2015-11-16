@@ -351,9 +351,9 @@ function timedUpdate()
 {
 	if(gui_state["autoscroll-enabled"])
 	{
-		gui_state["cursor-time"] += update_interval/1000 * gui_state["autoscroll-factor"];
+		gui_state["cursor-time"] = validateTimeCursor(gui_state["cursor-time"] + (update_interval/1000 * gui_state["autoscroll-factor"]));
 	}
-	updateVisualisation()
+	updateVisualisation();
 
 	setTimeout(timedUpdate, update_interval);
 }
@@ -506,7 +506,7 @@ function createTimelineTimeTick(time)
 
 function validateTimeCursor(time)
 {
-	return Math.min(Math.max(-pregame_time+gui_state["timeline-cursor-width"]/2, Math.floor(time)), replay_data["header"]["length"] - gui_state["timeline-cursor-width"]/2);
+	return Math.min(Math.max(-pregame_time+gui_state["timeline-cursor-width"]/2, time), replay_data["header"]["length"] - gui_state["timeline-cursor-width"]/2);
 }
 
 function createSubTimeline(sub_timeline, index){
@@ -1147,10 +1147,6 @@ function initDiagram(){
 		.on({"click": diagramOnClickScrollRight
 			});
 
-	d3_elements["diagram-interactive-events"] = d3_elements["diagram-interactive-areas"]
-		.append("g")
-		.attr({"id":"diagram-events"});
-
 	updateDiagram();
 }
 
@@ -1161,7 +1157,7 @@ function updateDiagram()
 	
 	var time_scale = getDiagramTimeScale();
 
-	var location_lines =d3_elements["diagram-background-layer"].selectAll(".location-line").data(gui_state["location-lines"], function(location_line){
+	var location_lines =d3_elements["diagram-background-layer"].select("#location-lines").selectAll(".location-line").data(gui_state["location-lines"], function(location_line){
 					return location_line["label"];
 				});
 	location_lines.enter()
@@ -1206,8 +1202,27 @@ function updateDiagram()
 	events.each(function(event_entry){updateDiagramEvent.call(this, event_entry);});
 
 	events.exit()
-		.each(function(event_entry){deleteDiagramEvent.call(this, event_entry);})
+		//.each(function(event_entry){deleteDiagramEvent.call(this, event_entry);})
 		.remove();
+
+	var selected_data = [];
+	if(gui_state["selected-event"])	
+		selected_data.push(gui_state["selected-event"]);
+
+	var selected = d3_elements["diagram-overlay-layer"].selectAll(".selected-event").data(selected_data, function(d){return d;});
+
+	selected.enter()
+		.append("g")
+		.attr("class", "selected-event")
+		.each(function(d){createSelectedEvent.call(this, d);})
+
+	selected
+		.each(function(d){updateSelectedEvent.call(this, d);})
+
+	selected.exit()
+		.each(function(d){removeSelectedEvent.call(this);})
+		.remove();
+
 
 	/*var player_layers = d3.select("#diagram").selectAll("[player-id]").data(gui_state["visible-players"]);
 	player_layers.attr("visibility", function(d){
@@ -1362,11 +1377,6 @@ function createDiagramEvent(entry)
 				"stroke-width": 0
 				})
 			.on("click", function(event_entry){diagramEventOnClick.call(this, entry.key);});
-		
-		/*d3_elements["diagram-interactive-events"].append("svg:rect")
-			.attr({	"id": "id"+entry.key,
-				"class": "interactive-area"
-				})*/
 	}
 
 	switch(event["type"])
@@ -1429,45 +1439,21 @@ function updateDiagramEvent(entry)
 				"height": height,
 				"stroke-width": (gui_state["selected-event"] == entry.key ? 3 : 0)
 				});
-
-	d3_elements["diagram-interactive-events"].selectAll("#id"+entry.key)
-			.attr({	"x": getDiagramTimeScale()(center_time) + timescale(start) - timescale((event["time-start"]+event["time-end"])/2),
-				"y": getDiagramY(event["location"])+-height/2,
-				"width": timescale(end)-timescale(start),
-				"height": height
-				});
-	
-	var highlight_data = [];
-	if(gui_state["selected-event"] == entry.key)	
-		highlight_data.push(1);
-
-	var selected = group.selectAll("#selected").data(highlight_data);
-
-	selected.enter()
-		.append("g")
-		.attr("id", "selected")
-		.each(function(d){createSelectedEvent.call(this);})
-
-	selected
-		.each(function(d){updateSelectedEvent.call(this);})
-
-	selected.exit()
-		.each(function(d){removeSelectedEvent.call(this);})
-		.remove();
 }
 
-function createSelectedEvent()
+function createSelectedEvent(event_id)
 {
 	var group = d3.select(this);
+	var icons = group.append("g").attr("id", "icons");
 
-	var list_involved = replay_data["events"][gui_state["selected-event"]]["involved"];
+	var list_involved = replay_data["events"][event_id]["involved"];
 	if(list_involved)
 	{
 		var left_offset = diagram_icon_size * list_involved.length /2;
 		for(i in list_involved)
 		{
 
-			group.append("svg:image")
+			icons.append("svg:image")
 				.attr({
 					"xlink:href": icon_images[ replay_data["entities"][list_involved[i]]["unit"] ],
 					"x": -left_offset+i*diagram_icon_size,
@@ -1496,8 +1482,14 @@ function getEventTime(event)
 	}
 }
 
-function updateSelectedEvent()
+function updateSelectedEvent(event_id)
 {
+	var event = replay_data["events"][event_id];
+	var group = d3.select(this);
+	var center_time = getEventTime(event);
+	
+	group.select("#icons").attr("transform", "translate("+getDiagramTimeScale()(center_time)+","+getDiagramY(event["location"])+")");
+	
 }
 
 function removeSelectedEvent()
@@ -1506,8 +1498,6 @@ function removeSelectedEvent()
 
 function deleteDiagramEvent(entry)
 {
-	d3_elements["diagram-interactive-events"].select("#id"+entry.key)
-			.remove();
 }
 
 function getDiagramY(location)
