@@ -52,52 +52,199 @@
 		"100": {
 			"unit":"spirit-breaker",
 			"team": "radiant",
-			"control": 0
+			"control": 0,
+			"position":
+				[
+					{
+						"time-start": -90,
+						"time-end": 155,
+						"timeseries":{
+								"format":"samples",
+								"samples":[
+									{"t": -90, 	"v": [-5000,-5000]},
+									{"t": -40, 	"v": [0,0]},
+									{"t": 0, 	"v": [-5000,-2000]},
+									{"t": 60, 	"v": [-5000,3000]},
+									{"t": 90, 	"v": [-5000,3000]},
+									{"t": 120, 	"v": [-3000,2000]},
+									{"t": 130, 	"v": [-5000,3000]},
+									{"t": 150, 	"v": [-5000,3000]}
+								]
+						}
+					}, 
+					{
+						"time-start": 155,
+						"time-end": 600,
+						"timeseries":{
+								"format":"samples",
+								"samples":[
+									{"t": 155, 	"v": [0,0]}
+								]
+							}
+					}
+				]
 		},
 		"101": {
 			"unit":"queen-of-pain",
 			"team": "radiant",
-			"control": 1
+			"control": 1,
+			"position":
+				[
+					{
+						"time-start": -90,
+						"time-end": 600,
+						"timeseries":{
+								"format":"samples",
+								"samples":[
+									{"t": -90, 	"v": [-4000,-4000]}
+								]
+							}
+					}
+				]
 		},
 		"102": {
 			"unit":"anti-mage",
 			"team": "radiant",
-			"control": 2
+			"control": 2,
+			"position":
+				[
+					{
+						"time-start": -90,
+						"time-end": 600,
+						"timeseries":{
+								"format":"samples",
+								"samples":[
+									{"t": -90, 	"v": [-4000,-4000]}
+								]
+							}
+					}
+				]
 		},
 		"103": {
 			"unit":"dazzle",
 			"team": "radiant",
-			"control": 3
+			"control": 3,
+			"position":
+				[
+					{
+						"time-start": -90,
+						"time-end": 600,
+						"timeseries":{
+								"format":"samples",
+								"samples":[
+									{"t": -90, 	"v": [-4000,-4000]}
+								]
+							}
+					}
+				]
 		},
 		"104": {
 			"unit":"dark-seer",
 			"team": "radiant",
-			"control": 4
+			"control": 4,
+			"position":
+				[
+					{
+						"time-start": -90,
+						"time-end": 600,
+						"timeseries":{
+								"format":"samples",
+								"samples":[
+									{"t": -90, 	"v": [-4000,-4000]}
+								]
+							}
+					}
+				]
 		},
 		"105": {
 			"unit":"undying",
 			"team": "dire",
-			"control": 5
+			"control": 5,
+			"position":
+				[
+					{
+						"time-start": -90,
+						"time-end": 600,
+						"timeseries":{
+								"format":"samples",
+								"samples":[
+									{"t": -90, 	"v": [4000,4000]}
+								]
+							}
+					}
+				]
 		},
 		"106": {
 			"unit":"witch-doctor",
 			"team": "dire",
-			"control": 6
+			"control": 6,
+			"position":
+				[
+					{
+						"time-start": -90,
+						"time-end": 600,
+						"timeseries":{
+								"format":"samples",
+								"samples":[
+									{"t": -90, 	"v": [4000,4000]}
+								]
+							}
+					}
+				]
 		},
 		"107": {
 			"unit":"necrolyte",
 			"team": "dire",
-			"control": 7
+			"control": 7,
+			"position":
+				[
+					{
+						"time-start": -90,
+						"time-end": 600,
+						"timeseries":{
+								"format":"samples",
+								"samples":[
+									{"t": -90, 	"v": [4000,4000]}
+								]
+							}
+					}
+				]
 		},
 		"108": {
 			"unit":"tusk",
 			"team": "dire",
-			"control": 8
+			"control": 8,
+			"position":
+				[
+					{
+						"time-start": -90,
+						"time-end": 600,
+						"timeseries":{
+								"format":"samples",
+								"samples":[
+									{"t": -90, 	"v": [4000,4000]}
+								]
+							}
+					}
+				]
 		},
 		"109": {
 			"unit":"alchemist",
 			"team": "dire",
-			"control": 9
+			"control": 9,
+			"position":
+				[
+					{
+						"time-start": -90,
+						"time-end": 600,
+						"timeseries":{
+								"format":"samples",
+								"samples":[
+									{"t": -90, 	"v": [4000,4000]}
+								]
+							}
+					}
+				]
 		}
 	},
 	"events":{
