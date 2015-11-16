@@ -51,7 +51,7 @@ header = {"id":0,"draft": {},"length": 600,"teams":teams,"players":players}
 # extract the kill events
 
 kills_namespace =10000
-events =[]
+events ={}
 k=0
 for i, row in enumerate(events_reader):
 	# for each row check if a death occurred
@@ -67,8 +67,8 @@ for i, row in enumerate(events_reader):
 			side = heros[hero_name]
 			# now form a dictionary to s
 			id_num = kills_namespace+k
-			new_event = {str(id_num):{"type":"kill","time": math.floor(float(row[0])),"team":side}}	
-			events.append(new_event)
+			new_event = {"type":"kill","time": math.floor(float(row[0])),"team":side}
+			events[str(id_num)] = new_event
 			k=k+1
 
 time_samples = [{"t": -90, 	"v": 0},\
