@@ -176,9 +176,9 @@ print summary[0]
 print summary[1]
 
 map = MapPlot("minimap_annotated.png")
-map.mapPlayerTrack(player1data)
+map.mapBoxNum()
 
-summaryToJson(replay1,30000,30000,10,area_matrix)
+#summaryToJson(replay1,30000,30000,10,area_matrix)
 
 
 

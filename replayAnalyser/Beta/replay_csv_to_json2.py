@@ -73,11 +73,10 @@ for i in range(0,10):
 # close entities bracket
 f.write("	},\n")
 
+kill_namespace = 10000
 # write events to json file
 f.write("	\"events\":{\n")
-
 ########### for each event write the event to the json file  #########
-namespace1 = 10000
 
 # close events bracket
 f.write("   }\n")

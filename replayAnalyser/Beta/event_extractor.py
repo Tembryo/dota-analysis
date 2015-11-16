@@ -8,6 +8,8 @@ position_input_filename = "replay_data.csv"
 events_input_filename = "events_replay_data.csv"
 output_filename = "test.json"
 
+#open up the files
+
 e = open(position_input_filename,'rb')
 position_reader = csv.reader(e)
 
@@ -16,19 +18,23 @@ events_reader = csv.reader(f)
 
 g = open(output_filename,'wb')
 
+# count the number of rows
+
+row_count1 = sum(1 for row in position_reader)
+print row_count1
+
 #extract areas for each hero
 
-replay = Dota2Replay(position_input_filename)
-player_data = readPlayerData(replay,2,30000,30000,10)
-#print player1data[1]
+areas_dict = {}
+for i in range(1,2):
+	replay = Dota2Replay(position_input_filename)
+	player_data = readPlayerData(replay,i,100000,row_count1,10)
+	area_state = assignPlayerArea(replay,player_data,area_matrix)
+	summary = areaStateSummary(player_data,area_state)
+	player_summary = {"areas":summary[0],"times":summary[1]}
+	areas_dict[i] = player_summary
 
-area_state = assignPlayerArea(replay,player_data,area_matrix)
-#print area_state
-
-summary = areaStateSummary(player_data,area_state)
-print summary[0]
-print summary[1]
-
+e.close()
 
 # start of the analysis
 
@@ -45,7 +51,7 @@ header = {"id":0,"draft": {},"length": 600,"teams":teams,"players":players}
 # extract the kill events
 
 kills_namespace =10000
-events =[]
+events ={}
 k=0
 for i, row in enumerate(events_reader):
 	# for each row check if a death occurred
@@ -61,15 +67,23 @@ for i, row in enumerate(events_reader):
 			side = heros[hero_name]
 			# now form a dictionary to s
 			id_num = kills_namespace+k
-			new_event = {str(id_num):{"type":"kill","time": math.floor(float(row[0])),"team":side}}	
-			events.append(new_event)
+			new_event = {"type":"kill","time": math.floor(float(row[0])),"team":side}
+			events[str(id_num)] = new_event
 			k=k+1
 
-data_to_write = {"header":header,"events":events}
+time_samples = [{"t": -90, 	"v": 0},\
+    		{"t": -60, 	"v": 0},] 
+
+exp_samples = [
+				{"t": -90, 	"v": 0},\
+				{"t": -60, 	"v": 0},]	
+timeseries = {"gold-advantage":{"format":"samples","samples":time_samples},"exp-advantage":{"format":"samples","samples":exp_samples}}
+
+
+data_to_write = {"header":header,"events":events,"timeseries":timeseries}
 
 g.write(json.dumps(data_to_write, sort_keys=False,indent=4, separators=(',', ': ')))
 
-e.close()
 f.close()
 g.close()
 
