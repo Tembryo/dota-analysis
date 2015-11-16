@@ -71,7 +71,16 @@ for i, row in enumerate(events_reader):
 			events.append(new_event)
 			k=k+1
 
-data_to_write = {"header":header,"events":events}
+time_samples = [{"t": -90, 	"v": 0},\
+    		{"t": -60, 	"v": 0},] 
+
+exp_samples = [
+				{"t": -90, 	"v": 0},\
+				{"t": -60, 	"v": 0},]	
+timeseries = {"gold-advantage":{"format":"samples","samples":time_samples},"exp-advantage":{"format":"samples","samples":exp_samples}}
+
+
+data_to_write = {"header":header,"events":events,"timeseries":timeseries}
 
 g.write(json.dumps(data_to_write, sort_keys=False,indent=4, separators=(',', ': ')))
 

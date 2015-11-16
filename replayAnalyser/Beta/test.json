@@ -301,5 +301,33 @@
                 "time": 3037.0
             }
         }
-    ]
+    ],
+    "timeseries": {
+        "exp-advantage": {
+            "samples": [
+                {
+                    "t": -90,
+                    "v": 0
+                },
+                {
+                    "t": -60,
+                    "v": 0
+                }
+            ],
+            "format": "samples"
+        },
+        "gold-advantage": {
+            "samples": [
+                {
+                    "t": -90,
+                    "v": 0
+                },
+                {
+                    "t": -60,
+                    "v": 0
+                }
+            ],
+            "format": "samples"
+        }
+    }
 }
