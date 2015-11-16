@@ -8,7 +8,9 @@ replay_data = {};
 
 function loadData(callback_finished)
 {
-	d3.json("data/monkey_vs_nip.json",function(error, data){
+d3.json("data/monkey_vs_nip.json"
+	//"data/test.json"	
+		,function(error, data){
 			replay_data = data;
 			buildDataIndices();
 			callback_finished();
@@ -78,6 +80,71 @@ function compareEventsByTime(a, b)
 		return 1;
 }
 
+function getTimeseriesValue(timeseries, current_time)
+{
+	switch(timeseries["format"])
+	{
+	case "samples":
+		var index_below = -1;
+		var max_time_below = 0;
+		var index_above = -1;
+		var min_time_above = 0;
+		var vaue = 0;
+		for(i in timeseries["samples"])
+		{
+			if(timeseries["samples"][i]["t"] <= current_time)
+			{
+				if(index_below < 0)
+				{
+					index_below = i;
+					max_time_below = timeseries["samples"][i]["t"];
+				}
+				else if(timeseries["samples"][i]["t"] > max_time_below)
+				{
+					index_below = i;
+					max_time_below = timeseries["samples"][i]["t"];
+				}
+			}
+			else
+			{
+				if(index_above < 0)
+				{
+					index_above = i;
+					min_time_above = timeseries["samples"][i]["t"];
+				}
+				else if(timeseries["samples"][i]["t"] < max_time_below)
+				{
+					index_above = i;
+					min_time_above = timeseries["samples"][i]["t"];
+				}
+			}
+		}
+
+		if(index_below < 0 && index_above < 0)
+		{
+			console.log("Bad timeseries without samples.");
+			return [];
+		}
+		else if(index_below < 0 && index_above >= 0)
+		{
+			return timeseries["samples"][index_above]["v"];
+		}
+		else if(index_below >= 0 && index_above < 0)
+		{
+			return timeseries["samples"][index_below]["v"];
+		}
+		else{
+			var blend = (current_time - max_time_below) / (min_time_above - max_time_below);
+			var interpolated = timeseries["samples"][index_below]["v"].slice();
+			for(var i in timeseries["samples"][index_above]["v"])
+			{
+				interpolated[i] += blend* (timeseries["samples"][index_above]["v"][i] - timeseries["samples"][index_below]["v"][i]);
+			}
+			return interpolated;
+		}
+	}
+}
+
 function generateGraph(id, group, timeseries, xrange, yrange, area_colors){
 	var graph_node = group.append("g")
 				.attr("id", id+"-graph");
@@ -88,8 +155,8 @@ function generateGraph(id, group, timeseries, xrange, yrange, area_colors){
 				.domain(xrange)
 				.range(xrange);
 
-		var range = Math.max(	Math.abs(d3.min(timeseries["samples"], function(sample){return sample["v"];})),
-					Math.abs(d3.min(timeseries["samples"], function(sample){return sample["v"];}))
+		var range = Math.max(	Math.abs(d3.min(timeseries["samples"], function(sample){return sample["v"][0];})),
+					Math.abs(d3.min(timeseries["samples"], function(sample){return sample["v"][0];}))
 					);
 		yscale = d3.scale.linear()
 				.domain([-range,range])
@@ -98,16 +165,16 @@ function generateGraph(id, group, timeseries, xrange, yrange, area_colors){
 		var postive_area = d3.svg.area()
 		    .x(function(d) {return xscale(d["t"]);})
 		    .y0(0)
-		    .y1(function(d) {return - Math.max(0, yscale(d["v"]));});
+		    .y1(function(d) {return - Math.max(0, yscale(d["v"][0]));});
 
 		var negative_area = d3.svg.area()
 		    .x(function(d) {return xscale(d["t"]);})
-		    .y0(function(d) {return - Math.min(0, yscale(d["v"]));})
+		    .y0(function(d) {return - Math.min(0, yscale(d["v"][0]));})
 		    .y1(0);
 
 		var line = d3.svg.line()
 					.x(function(d) {return xscale(d["t"]);})
-					.y(function(d) {return - yscale(d["v"]);})
+					.y(function(d) {return - yscale(d["v"][0]);})
 					.interpolate('linear');
 
 		graph_node.append('svg:path')
@@ -139,6 +206,8 @@ function generateGraph(id, group, timeseries, xrange, yrange, area_colors){
 
 // set up internal display state
 gui_state = {
+	"autoscroll-enabled": true,
+	"autoscroll-factor": 4,
 	"cursor-time": 0,
 
 	"timeline-cursor-width": 30,
@@ -150,7 +219,7 @@ gui_state = {
 	"selected-event": null
 };
 
-map_events = ["fight", "movement", "fountain-visit", "jungling", "laning", "rotation"];
+map_events = ["fight", "movement", "fountain-visit", "jungling", "laning"/*, "rotation"*/];
 
 d3_elements = {} //Filled by creation methods
 
@@ -166,6 +235,7 @@ Timeline configuration
 */
 
 timeline_inset_left = 140;
+timeline_inset_right = 50;
 timeline_height = 200;
 timeline_timescale_height = 50;
 timeline_height_inset_factor = 0.9;
@@ -261,6 +331,8 @@ Create the D3 elements used for the interface
 	loadSVG("img/timeline.svg", "timeline", function(){});
 }*/
 
+update_interval = 200; // in milliseconds
+
 function initVisualisation(){
 	initTimeline();
 	initDiagram();
@@ -269,8 +341,22 @@ function initVisualisation(){
 
 	d3.selectAll("[data-id]")
 		.on("click", function(){togglePlayer(this)});
+
+	//start autoupdate
+	setTimeout(timedUpdate, update_interval);
 }
 
+
+function timedUpdate()
+{
+	if(gui_state["autoscroll-enabled"])
+	{
+		gui_state["cursor-time"] += update_interval/1000 * gui_state["autoscroll-factor"];
+	}
+	updateVisualisation()
+
+	setTimeout(timedUpdate, update_interval);
+}
 
 function updateVisualisation()
 {
@@ -297,13 +383,13 @@ function initTimeline(){
 					.append("svg")
 					.attr({ "id": "timeline-svg",
 						"class": "svg-content",
-						"viewBox": "-"+(timeline_inset_left+pregame_time)+" 0 "+game_length+" "+timeline_height});
+						"viewBox": "-"+(timeline_inset_left+pregame_time)+" 0 "+(game_length+timeline_inset_right)+" "+timeline_height});
 	
 	d3_elements["timeline-svg-foreground"] = d3.select("#timeline")
 					.append("svg")
 					.attr({ "id": "timeline-svg-foreground",
 						"class": "svg-content-overlay",
-						"viewBox": "-"+(timeline_inset_left+pregame_time)+" 0 "+game_length+" "+timeline_height});
+						"viewBox": "-"+(timeline_inset_left+pregame_time)+" 0 "+(game_length+timeline_inset_right)+" "+timeline_height});
 
 	d3_elements["timeline-svg"].append("svg:rect")
 					.attr({	"id": "timeline-separator",
@@ -488,7 +574,8 @@ function createSubTimeline(sub_timeline, index){
 		group.append("g")
 			.attr("id", "sub-timeline-gold-axis")
 			.call(axis);
-		
+		if(!replay_data.hasOwnProperty("timeseries"))
+			break;
 		var gold_data = replay_data["timeseries"]["gold-advantage"];
 
 		generateGraph("sub-timeline-gold", group, gold_data, time_domain, [-sub_timeline_height/2, sub_timeline_height/2], [colors_greens[2], colors_reds[2]]);
@@ -503,7 +590,8 @@ function createSubTimeline(sub_timeline, index){
 		group.append("g")
 			.attr("id", "sub-timeline-exp-axis")
 			.call(axis);
-		
+		if(!replay_data.hasOwnProperty("timeseries"))
+			break;
 		var exp_data = replay_data["timeseries"]["exp-advantage"];
 
 		generateGraph("sub-timeline-exp", group, exp_data, time_domain, [-sub_timeline_height/2, sub_timeline_height/2], [colors_greens[2], colors_reds[2]]);
@@ -564,7 +652,16 @@ function updateSubTimeline(sub_timeline, index){
 /*
 	Map
 */
-
+function gamePositionToCoordinates(position)
+{
+	var scale_x = d3.scale.linear()
+				.domain([-6000, 6000])
+				.range([0, 100]);
+	var scale_y = d3.scale.linear()
+				.domain([-6000, 6000])
+				.range([100, 0]);
+	return new Victor(scale_x(position[0]), scale_y(position[1]));
+}
 
 function initMap(){
 	d3_elements["map"] = d3.select("#map");
@@ -574,15 +671,6 @@ function initMap(){
 				.attr({ "id": "map-svg",
 					"class": "svg-content",
 					"viewBox": "0 0 "+100+" "+100});
-
-
-	d3_elements["map-svg-foreground"] = d3.select("#map")
-					.append("svg")
-					.attr({ "id": "map-svg-foreground",
-						"class": "svg-content-overlay",
-						"viewBox": "0 0 "+100+" "+100
-						});
-
 
 	d3_elements["map-svg"].append("svg:image")
 				.attr({	"id": "map-background",
@@ -605,12 +693,15 @@ function initMap(){
 					"fill": "white"
 					});
 	}
-
+	d3_elements["map-svg"].append("g")
+		.attr("id", "events");
+	d3_elements["map-svg"].append("g")
+		.attr("id", "units");
 	updateMap();
 }
 
 function updateMap(){
-	var map_events = d3_elements["map-svg"].selectAll(".event")
+	var map_events = d3_elements["map-svg"].select("#events").selectAll(".event")
 				.data(d3.entries(replay_data["events"]).filter(function(d){return filterEventsMap(d.value)}),
 					function(entry){
 						return entry.key;
@@ -624,6 +715,23 @@ function updateMap(){
 	map_events.each(function(entry){updateMapEvent.call(this, entry.value);});
 
 	map_events.exit()
+		.remove();
+
+	var map_units = d3_elements["map-svg"].select("#units").selectAll(".unit")
+				.data(d3.entries(replay_data["entities"]).filter(function(d){return filterUnitsMap(d.value)}),
+					function(entry){
+						return entry.key;
+						});
+	map_units.enter()
+		.append("g")
+			.attr({	"class": "unit"
+				})
+			.each(function(entry){createMapUnit.call(this, entry);});
+
+	map_units.each(function(entry){updateMapUnit.call(this, entry);});
+
+	map_units.exit()
+		.each(function(entry){deleteMapUnit.call(this, entry);})
 		.remove();
 }
 
@@ -650,7 +758,7 @@ function filterEventsMap(event){
 		return false;
 	}
 
-	if(event.hasOwnProperty("involved") && replay_data["events"][gui_state["selected-event"]])
+	/*if(event.hasOwnProperty("involved") && replay_data["events"][gui_state["selected-event"]])
 	{			
 		var involved = replay_data["events"][gui_state["selected-event"]]["involved"];
 		for(i in event["involved"])
@@ -661,6 +769,30 @@ function filterEventsMap(event){
 		}
 	}
 	return false;
+*/
+	return true;
+}
+
+function filterUnitsMap(unit){
+	//TODO: filter unit type
+
+	var current_time = gui_state["cursor-time"];
+	var segment_id = -1;
+	for(i in unit["position"])
+	{
+		if(current_time >= unit["position"][i]["time-start"] && current_time < unit["position"][i]["time-end"])
+		{
+			segment_id = i;
+			break;
+		}
+	}
+
+	//console.log("Filtering "+current_time+" "+unit["control"]+ " "+segment_id);
+
+	if(segment_id == -1)
+		return false;
+	else return true;
+	
 }
 
 function createMapEvent(event){
@@ -735,22 +867,6 @@ function createMapEvent(event){
 				});
 		break;
 	}
-
-	if(	event.hasOwnProperty("time-start") && event.hasOwnProperty("time-end") &&
-		event["time-start"] <= gui_state["cursor-time"] && event["time-end"] > gui_state["cursor-time"] &&
-		event.hasOwnProperty("involved") )
-	{
-		group.selectAll(".involved-icon")
-			.data(event["involved"], function(involved_id){return involved_id;})
-			.enter()
-			.append("g")
-				.attr({
-					"class": "involved-icon",
-					"transform": function(d, i){return "translate(0,"+i*1.5*icon_size+")";}
-					})
-				.each(function(involved, i){createInvolvedIcon.call(this, involved, i);})
-				
-	}
 }
 
 function computeEventOpacity(event)
@@ -772,10 +888,13 @@ function computeEventOpacity(event)
 	return (1-normalized_distance)*event_maximum_opacity;
 }
 
-function createInvolvedIcon(involved_id, index)
+function createMapUnit(entry)
 {
 	var group = d3.select(this);
-	var entity = replay_data["entities"][involved_id];
+
+
+
+	var entity = replay_data["entities"][entry.key];
 	group.append("svg:circle")
 		.attr({
 			"cx": 0,
@@ -793,6 +912,13 @@ function createInvolvedIcon(involved_id, index)
 			"height": icon_size,
 			});
 
+	var position = getEntityPosition(entry.key);
+	var coordinates = gamePositionToCoordinates(position);
+	
+	group.attr({
+		"transform": "translate("+coordinates.x+","+coordinates.y+")"
+		});
+
 	if(entity.hasOwnProperty("control"))
 	{
 		group.append("svg:text")
@@ -803,6 +929,24 @@ function createInvolvedIcon(involved_id, index)
 				})
 			.text(replay_data["header"]["players"][entity["control"]]["name"]);
 	}
+}
+
+function getEntityPosition(entity_id)
+{
+	var entity = replay_data["entities"][entity_id];
+	var current_time = gui_state["cursor-time"];
+	var segment_id = -1;
+	for(i in entity["position"])
+	{
+		if(current_time >= entity["position"][i]["time-start"] && current_time < entity["position"][i]["time-end"])
+		{
+			segment_id = i;
+			break;
+		}
+	}
+	//console.log("getting pos "+entity_id+" "+current_time+" s"+segment_id);
+	var position = getTimeseriesValue(entity["position"][segment_id]["timeseries"], current_time);
+	return position;
 }
 
 function createRotationPath(event)
@@ -830,34 +974,28 @@ function createRotationPath(event)
 function updateMapEvent(event){
 	var group = d3.select(this);
 
-	if(	event.hasOwnProperty("time-start") && event.hasOwnProperty("time-end") &&
-		event["time-start"] <= gui_state["cursor-time"] && event["time-end"] > gui_state["cursor-time"] &&
-		event.hasOwnProperty("involved") )
-	{
-		var icons = group.selectAll(".involved-icon")
-				.data(event["involved"], function(involved_id){return involved_id;});
-		
-		icons.enter()
-			.append("g")
-			.attr({
-				"class": "involved-icon",
-				"transform": function(d, i){return "translate(0,"+i*1.5*icon_size+")";}
-				})
-			.each(function(involved, i){createInvolvedIcon.call(this, involved, i);});
-
-		icons.exit()
-			.remove();
-	}
-	else
-	{
-		group.selectAll(".involved-icon")
-			.remove();
-	}
-
 	group.select(".event-background")
 		.attr({"opacity": computeEventOpacity(event)});
 }
 
+function updateMapUnit(entry)
+{
+
+	//console.log("Updating "+entry.key+" "+gui_state["cursor-time"]);
+	var group = d3.select(this);
+
+	var position = getEntityPosition(entry.key);
+	var coordinates = gamePositionToCoordinates(position);
+	
+	group.attr({
+		"transform": "translate("+coordinates.x+","+coordinates.y+")"
+		});
+}
+
+function deleteMapUnit(entry)
+{
+	//console.log("deleting "+ entry.key);
+}
 
 /*
 	Diagram
@@ -879,22 +1017,29 @@ function initDiagram(){
 					.attr({ "id": "diagram-svg",
 						"class": "svg-content",
 						"viewBox": "-"+diagram_inset_left+" 0 "+(diagram_display_width+diagram_inset_left+diagram_inset_right)+" "+diagram_height});
-	
-	d3_elements["diagram-svg-foreground"] = d3.select("#diagram")
-					.append("svg")
-					.attr({ "id": "diagram-svg-foreground",
-						"class": "svg-content-overlay",
-						"viewBox": "-"+diagram_inset_left+" 0 "+(diagram_display_width+diagram_inset_left+diagram_inset_right)+" "+diagram_height});
 
-	d3_elements["diagram-svg"].append("svg:rect")
+	d3_elements["diagram-background-layer"] = d3_elements["diagram-svg"].append("g").attr("id", "background-layer");
+	d3_elements["diagram-background-layer"].append("svg:rect")
 					.attr({	"id": "diagram-separator",
 						"x": (-diagram_separator_width),
 						"y": 0,
 						"width": diagram_separator_width,
 						"height": diagram_height
 					});
+	d3_elements["diagram-background-layer"].append("g").attr("id", "location-lines");
+	d3_elements["diagram-background-layer"].append("g").attr("id", "time-ticks");
+	d3_elements["diagram-interactive-areas"] = d3_elements["diagram-background-layer"].append("g")
+					.attr("id", "interactive-areas");
 
-	d3_elements["diagram-svg-foreground"]
+	d3_elements["diagram-events-layer"] = d3_elements["diagram-svg"].append("g").attr("id", "events-layer");
+
+	d3_elements["diagram-overlay-layer"] = d3_elements["diagram-svg"].append("g").attr("id", "overlay-layer");
+
+	d3_elements["diagram-svg"].append("g").attr("id", "cursor-layer");
+	
+
+
+	d3_elements["diagram-cursor"] = d3_elements["diagram-svg"].select("#cursor-layer")
                 .append('svg:rect')
                 .attr({
 			'id': 'diagram-cursor',
@@ -904,7 +1049,7 @@ function initDiagram(){
                 	'height': diagram_height - diagram_inset_top
 			});
 
-	d3_elements["diagram-timescale"] = d3_elements["diagram-svg"].append("g")
+	d3_elements["diagram-timescale"] = d3_elements["diagram-background-layer"].append("g")
 		.attr("id", "diagram-timescale");
 
 	gui_state["location-lines"] =
@@ -964,18 +1109,9 @@ function initDiagram(){
 
 	gui_state["location-lines-count"] = 7;
 
-	d3_elements["diagram-events"] = d3_elements["diagram-svg"].append("svg:g")
-						.attr({	"id": "diagram-events"
-							});
 	gui_state["diagram-events"] = ["fight", "movement", "fountain-visit", "jungling", "laning"];
 	
 	var diagram_time_scale = getDiagramTimeScale();
-
-	d3_elements["diagram-interactive-areas"] = d3.select("#diagram")
-					.append("svg")
-					.attr({ "id": "diagram-event-areas",
-						"class": "svg-content-overlay",
-						"viewBox": "-"+diagram_inset_left+" 0 "+(diagram_display_width+diagram_inset_left+diagram_inset_right)+" "+diagram_height});
 
 	d3_elements["diagram-interactive-areas"]
 		.append("svg:rect")
@@ -1021,7 +1157,22 @@ function initDiagram(){
 
 function updateDiagram()
 {
+
+	
 	var time_scale = getDiagramTimeScale();
+
+	var location_lines =d3_elements["diagram-background-layer"].selectAll(".location-line").data(gui_state["location-lines"], function(location_line){
+					return location_line["label"];
+				});
+	location_lines.enter()
+		.append("g")
+		.attr("class", "location-line")
+		.each(function(location_line){createLocationLine.call(this, location_line);});
+
+	location_lines.each(function(location_line){updateLocationLine.call(this, location_line);});
+
+	location_lines.exit()
+		.remove();
 
 	var ticks = d3_elements["diagram-timescale"].selectAll(".diagram-time-tick").data(generateTimeTicks(), function(d){return d;});
 
@@ -1037,24 +1188,13 @@ function updateDiagram()
 
 	ticks.exit().remove();
 
-	d3.select("#diagram-svg-foreground").selectAll("#diagram-cursor")
+	d3_elements["diagram-cursor"]
 		.attr("x", time_scale(gui_state["cursor-time"]-gui_state["timeline-cursor-width"]/2));
 
 
-	var location_lines =d3_elements["diagram-svg"].selectAll(".location-line").data(gui_state["location-lines"], function(location_line){
-					return location_line["label"];
-				});
-	location_lines.enter()
-		.append("g")
-		.attr("class", "location-line")
-		.each(function(location_line){createLocationLine.call(this, location_line);});
 
-	location_lines.each(function(location_line){updateLocationLine.call(this, location_line);});
 
-	location_lines.exit()
-		.remove();
-
-	var events = d3_elements["diagram-events"].selectAll(".diagram-event").data(
+	var events = d3_elements["diagram-events-layer"].selectAll(".diagram-event").data(
 						d3.entries(replay_data["events"]).filter(function(d){return filterEventsDiagram(d.value)})
 						, function(event_entry){return event_entry.key;});
 
@@ -1220,13 +1360,13 @@ function createDiagramEvent(entry)
 		group.append("svg:rect")
 			.attr({	"class": "diagram-event-background",
 				"stroke-width": 0
-				});
+				})
+			.on("click", function(event_entry){diagramEventOnClick.call(this, entry.key);});
 		
-		d3_elements["diagram-interactive-events"].append("svg:rect")
+		/*d3_elements["diagram-interactive-events"].append("svg:rect")
 			.attr({	"id": "id"+entry.key,
 				"class": "interactive-area"
-				})
-			.on("click", function(event_entry){diagramEventOnClick.call(this, d3.select(this).node().getAttribute("id"));});
+				})*/
 	}
 
 	switch(event["type"])
@@ -1383,9 +1523,9 @@ function formatTime(time)
 	if(time < 0)
 	{
 		time = -time;
-		preix= "-";
+		prefix= "-";
 	}
-	return Math.trunc(time/60)+":"+(time - 60*Math.trunc(time/60));
+	return prefix+Math.trunc(time/60)+":"+(time - 60*Math.trunc(time/60));
 }
 
 /*
@@ -1396,7 +1536,7 @@ function formatTime(time)
 
 function diagramEventOnClick(event_id)
 {
-	gui_state["selected-event"] = event_id.substring(2);
+	gui_state["selected-event"] = event_id;
 
 	var centered_time = 0;
 	var event = replay_data["events"][gui_state["selected-event"]];
