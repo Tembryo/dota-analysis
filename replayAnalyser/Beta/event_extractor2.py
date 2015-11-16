@@ -24,6 +24,9 @@ teams = {0:{"side":"radiant","name":"empty","short":"empty"},1:{"side":"dire","n
 players = {0:{"name":"a"},1:{"name":"b"},2:{"name":"b"},3:{"name":"a"},4:{"name":"b"},5:{"name":"b"},6:{"name":"a"},7:{"name":"b"},8:{"name":"b"},9:{"name":"b"}}
 hero_indexes = {"spirit_breaker":0,"queenofpain":1, "antimage":2,"dazzle":3,"dark_seer":4, \
 "undying":5,"witch_doctor":6,"necrolyte":7,"tusk": 8, "alchemist":9}
+hero_id = {"spirit_breaker":100,"queenofpain":101, "antimage":102,"dazzle":103,"dark_seer":104, \
+"undying":105,"witch_doctor":106,"necrolyte":107,"tusk": 108, "alchemist":109}
+
 
 ################################
 # extract data needed for header
@@ -116,6 +119,7 @@ for i, row in enumerate(reader):
 hero_trajectories = {"spirit_breaker":[],"queenofpain":[], "antimage":[],"dazzle":[],"dark_seer":[], \
 "undying":[],"witch_doctor":[],"necrolyte":[],"tusk":[], "alchemist":[]}
 
+entities = {}
 #for each hero
 for key in heros:
 	tmp_list = []
@@ -123,16 +127,11 @@ for key in heros:
 	death_time_list = hero_deaths_appended[key]
 	# for each entry in the list of times in which they died up to the penultimate entry
  	for i in range(0,len(death_time_list)-1):
- 		# find the set of indices of the time vector corresponding to the range last death time < t < next death time
-		indices = [j for j, t in enumerate(t_vec) if (t > death_time_list[i]) and (t <= death_time_list[i+1])]
-		tmp_list.append([v_mat[key][i] for i in indices])
-	hero_trajectories[key] = tmp_list	
-
-########################################
-# put the trajectories into the entities
-########################################
-
-
+ 		# for each time period between deaths make a list of dictionaries that are the samples between those times
+ 		samples_list =[{"t":t,"v":v_mat[key][j]} for j, t in enumerate(t_vec) if (t > death_time_list[i]) and (t <= death_time_list[i+1])]
+		trajectory = {"time-start":samples_list[0]["t"],"time-end":samples_list[-1]["t"],"timeseries":{"format":"samples","samples":samples_list}}	
+		tmp_list.append(trajectory)
+	entities[hero_id[key]] = {"unit":key,"team": heros[key],"control":hero_indexes[key],"position":tmp_list}
 
 ##################################
 # extract gold and exp time series
@@ -150,7 +149,7 @@ timeseries = {"gold-advantage":{"format":"samples","samples":gold_samples},"exp-
 # form the dictionary and write the data to a json file
 #######################################################
 
-data_to_write = {"header":header,"events":events,"timeseries":timeseries}
+data_to_write = {"header":header,"entities":entities,"events":events,"timeseries":timeseries}
 
 g.write(json.dumps(data_to_write, sort_keys=False,indent=4, separators=(',', ': ')))
 
