@@ -8,8 +8,8 @@ replay_data = {};
 
 function loadData(callback_finished)
 {
-d3.json("data/monkey_vs_nip.json"
-	//"data/test.json"	
+d3.json(//"data/monkey_vs_nip.json"
+	"data/test2.json"	
 		,function(error, data){
 			replay_data = data;
 			buildDataIndices();
@@ -203,6 +203,21 @@ function generateGraph(id, group, timeseries, xrange, yrange, area_colors){
 	}
 }
 
+function generateMapLine(timeseries, filter_func){
+	switch(timeseries["format"])
+	{
+	case "samples":
+		var line = d3.svg.line()
+				.x(function(d) {return gamePositionToCoordinates(d["v"]).x;})
+				.y(function(d) {return gamePositionToCoordinates(d["v"]).y;})
+				.interpolate('linear');
+		return line(timeseries["samples"].filter(filter_func));
+	default:
+		console.log("bad timeseries");
+		return "";
+	}
+}
+
 
 // set up internal display state
 gui_state = {
@@ -210,13 +225,15 @@ gui_state = {
 	"autoscroll-factor": 4,
 	"cursor-time": 0,
 
-	"timeline-cursor-width": 30,
+	"timeline-cursor-width": 60,
 	"active-sub-timelines": 0,	
 	"timelines": [],
-	"visible-unit-histories": [],
+
 	"location-lines": [],
 
-	"selected-event": null
+	"selected-event": null,
+	"visible-unit-histories": [],
+	"highlighted-unit": null
 };
 
 map_events = ["fight", "movement", "fountain-visit", "jungling", "laning"/*, "rotation"*/];
@@ -655,10 +672,10 @@ function updateSubTimeline(sub_timeline, index){
 function gamePositionToCoordinates(position)
 {
 	var scale_x = d3.scale.linear()
-				.domain([-6000, 6000])
+				.domain([-8200, 7930.0])
 				.range([0, 100]);
 	var scale_y = d3.scale.linear()
-				.domain([-6000, 6000])
+				.domain([-8400.0, 8080.0])
 				.range([100, 0]);
 	return new Victor(scale_x(position[0]), scale_y(position[1]));
 }
@@ -679,7 +696,8 @@ function initMap(){
 					"y": "0",
 					"width": "100",
 					"height": "100"
-					});
+					})
+				.on("click", mapOnBackgroundClick);
 
 	if(DEBUG){
 		d3_elements["map-svg"].selectAll("location").data(d3.entries(location_coordinates), function(d){return d.key;})
@@ -695,6 +713,8 @@ function initMap(){
 	}
 	d3_elements["map-svg"].append("g")
 		.attr("id", "events");
+	d3_elements["map-svg"].append("g")
+		.attr("id", "paths");
 	d3_elements["map-svg"].append("g")
 		.attr("id", "units");
 	updateMap();
@@ -715,6 +735,19 @@ function updateMap(){
 	map_events.each(function(entry){updateMapEvent.call(this, entry.value);});
 
 	map_events.exit()
+		.remove();
+
+	var unit_paths = d3_elements["map-svg"].select("#paths").selectAll(".path")
+				.data(gui_state["visible-unit-histories"], function(id){return id;});
+	unit_paths.enter()
+		.append("g")
+			.attr({	"class": "path"
+				})
+			.each(function(id){createMapPath.call(this, id);});
+
+	unit_paths.each(function(id){updateMapPath.call(this, id);});
+
+	unit_paths.exit()
 		.remove();
 
 	var map_units = d3_elements["map-svg"].select("#units").selectAll(".unit")
@@ -758,24 +791,22 @@ function filterEventsMap(event){
 		return false;
 	}
 
-	/*if(event.hasOwnProperty("involved") && replay_data["events"][gui_state["selected-event"]])
-	{			
-		var involved = replay_data["events"][gui_state["selected-event"]]["involved"];
-		for(i in event["involved"])
-		{
-
-			if(involved.indexOf(event["involved"][i]) >= 0)
-				return true;
-		}
-	}
-	return false;
-*/
 	return true;
 }
 
 function filterUnitsMap(unit){
 	//TODO: filter unit type
 
+	var segment_id = getUnitPositionSegment(unit);
+
+	if(segment_id == -1)
+		return false;
+	else return true;
+	
+}
+
+function getUnitPositionSegment(unit)
+{
 	var current_time = gui_state["cursor-time"];
 	var segment_id = -1;
 	for(i in unit["position"])
@@ -786,13 +817,7 @@ function filterUnitsMap(unit){
 			break;
 		}
 	}
-
-	//console.log("Filtering "+current_time+" "+unit["control"]+ " "+segment_id);
-
-	if(segment_id == -1)
-		return false;
-	else return true;
-	
+	return segment_id;
 }
 
 function createMapEvent(event){
@@ -901,7 +926,8 @@ function createMapUnit(entry)
 			"cy": 0,
 			"r": icon_size*0.75,
 			"fill": team_color[entity["team"]]
-			});
+			})
+		.on("click", mapOnUnitClick);
 
 	group.append("svg:image")
 		.attr({
@@ -910,6 +936,7 @@ function createMapUnit(entry)
 			"y": -0.5*icon_size,
 			"width": icon_size,
 			"height": icon_size,
+			"pointer-events": "none"
 			});
 
 	var position = getEntityPosition(entry.key);
@@ -935,18 +962,18 @@ function getEntityPosition(entity_id)
 {
 	var entity = replay_data["entities"][entity_id];
 	var current_time = gui_state["cursor-time"];
-	var segment_id = -1;
-	for(i in entity["position"])
-	{
-		if(current_time >= entity["position"][i]["time-start"] && current_time < entity["position"][i]["time-end"])
-		{
-			segment_id = i;
-			break;
-		}
+	var segment_id = getUnitPositionSegment(entity);
+
+	if(segment_id >= 0)
+	{//console.log("getting pos "+entity_id+" "+current_time+" s"+segment_id);
+		var position = getTimeseriesValue(entity["position"][segment_id]["timeseries"], current_time);
+		return position;
 	}
-	//console.log("getting pos "+entity_id+" "+current_time+" s"+segment_id);
-	var position = getTimeseriesValue(entity["position"][segment_id]["timeseries"], current_time);
-	return position;
+	else 
+	{
+		console.log("getting bad position "+entity_id+" "+current_time+" s"+segment_id);
+		return [0,0];
+	}
 }
 
 function createRotationPath(event)
@@ -996,6 +1023,63 @@ function deleteMapUnit(entry)
 {
 	//console.log("deleting "+ entry.key);
 }
+
+function createMapPath(id)
+{
+	var group = d3.select(this);
+	group.append("svg:path")
+		.attr({
+			"id": "position-history-past",
+			"stroke": "black",
+			"stroke-width": 1.5,
+			"opacity": 0.4,
+			"fill": "none"
+			});
+
+	group.append("svg:path")
+		.attr({
+			"id": "position-history-future",
+			"stroke": "black",
+			"stroke-width": 1.5,
+			"opacity": 0.7,
+			"fill": "none"
+			});
+}
+
+function updateMapPath(id)
+{
+	var group = d3.select(this);
+	var unit = replay_data["entities"][id];
+	var segment_id = getUnitPositionSegment(unit);
+	if(segment_id < 0)
+	{
+		group.select("#position-history-past")
+			.attr("d", "");
+		group.select("#position-history-future")
+			.attr("d", "");
+	}
+	else
+	{
+		group.select("#position-history-past")
+			.attr("d", generateMapLine(unit["position"][segment_id]["timeseries"], function(sample)
+					{
+						if(sample["t"] >= gui_state["cursor-time"] - gui_state["timeline-cursor-width"]/2  && sample["t"] < gui_state["cursor-time"])
+							return true;
+						else
+							return false;
+					}));
+
+		group.select("#position-history-future")
+			.attr("d", generateMapLine(unit["position"][segment_id]["timeseries"], function(sample)
+					{
+						if(sample["t"] >= gui_state["cursor-time"] && sample["t"] < gui_state["cursor-time"] + gui_state["timeline-cursor-width"]/2)
+							return true;
+						else
+							return false;
+					}));
+	}
+}
+
 
 /*
 	Diagram
@@ -1522,11 +1606,23 @@ function formatTime(time)
 	UI interactions
 */
 
+function mapOnBackgroundClick()
+{
+	gui_state["visible-unit-histories"] = [];
+	gui_state["highlighted-unit"] = null;
+}
 
+function mapOnUnitClick(entry)
+{
+	gui_state["visible-unit-histories"] = [entry.key];
+	gui_state["highlighted-unit"] = entry.key;
+}
 
 function diagramEventOnClick(event_id)
 {
 	gui_state["selected-event"] = event_id;
+	if(replay_data["events"][gui_state["selected-event"]].hasOwnProperty("involved"))
+		gui_state["visible-unit-histories"] = replay_data["events"][gui_state["selected-event"]]["involved"];
 
 	var centered_time = 0;
 	var event = replay_data["events"][gui_state["selected-event"]];
@@ -1539,6 +1635,7 @@ function diagramEventOnClick(event_id)
 function diagramOnClickPickTime(d){
 	gui_state["cursor-time"] = validateTimeCursor(getDiagramTimeScale().invert(d3.mouse(this)[0]));
 	gui_state["selected-event"] = null;
+	gui_state["visible-unit-histories"] = [];
 	updateVisualisation();
 }
 
