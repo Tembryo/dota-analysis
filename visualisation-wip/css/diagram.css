@@ -226,7 +226,8 @@
 
 #diagram-cursor {
 	fill: black;
-	opacity: 0.2
+	opacity: 0.2;
+	pointer-events: none;
 }
 
 .diagram-time-tick-label{
