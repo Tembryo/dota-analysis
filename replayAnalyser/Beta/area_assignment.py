@@ -163,20 +163,20 @@ def summaryToJson(replay,t0,N,Step,area_matrix):
 			f.write("\"times\":" + str(summary[1]) +"}]}")
 	f.close()
 
-replay1= Dota2Replay('replay_data_real.csv')
+# replay1= Dota2Replay('replay_data_real.csv')
 
-player1data = readPlayerData(replay1,2,30000,30000,10)
-#print player1data[1]
+# player1data = readPlayerData(replay1,2,30000,30000,10)
+# #print player1data[1]
 
-area_state = assignPlayerArea(replay1,player1data,area_matrix)
-#print area_state
+# area_state = assignPlayerArea(replay1,player1data,area_matrix)
+# #print area_state
 
-summary = areaStateSummary(player1data,area_state)
-print summary[0]
-print summary[1]
+# summary = areaStateSummary(player1data,area_state)
+# print summary[0]
+# print summary[1]
 
-map = MapPlot("minimap_annotated_ver2.png")
-map.mapAreaLabel(areas)
+# map = MapPlot("minimap_annotated_ver2.png")
+# map.mapAreaLabel(areas)
 
 #summaryToJson(replay1,30000,30000,10,area_matrix)
 
