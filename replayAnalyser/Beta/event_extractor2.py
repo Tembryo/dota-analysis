@@ -62,12 +62,12 @@ hero_id = {"spirit_breaker":100,"queenofpain":101, "antimage":102,"dazzle":103,"
 ###############################
 
 for i, row in enumerate(events_reader):
-	if row[1] == "DOTA_COMBATLOG_GAME_STATE" and row[2] == "5":
+	if row[1] == "DOTA_COMBATLOG_GAME_STATE" and row[2] == "4":
+		pregame_start_time = math.floor(float(row[0]))
+	elif row[1] == "DOTA_COMBATLOG_GAME_STATE" and row[2] == "5":
 		match_start_time = math.floor(float(row[0]))
 	elif row[1] == "DOTA_COMBATLOG_GAME_STATE" and row[2] == "6":
 		match_end_time  = math.floor(float(row[0]))
-
-print match_start_time
 
 # calculate the length of the match (time between states 5 and 6)
 total_match_time = match_end_time- match_start_time 
@@ -140,9 +140,9 @@ reader = csv.reader(e)
 Step =300  #Step size of 300 gives samples of roughly 5 second intervals
 for i, row in enumerate(reader):
 	if (i>0) and (i % Step==0):
-		tmp_time = float(row[Col_per_player*Num_Players])-match_start_time
+		tmp_time = float(row[Col_per_player*Num_Players])-pregame_start_time
 		if tmp_time > 0:
-			t_vec.append(tmp_time)
+			t_vec.append(tmp_time + pregame_start_time- match_start_time)
 			for key in hero_indexes:
 				v_mat[key].append([float(row[Col_per_player*hero_indexes[key]+1]),float(row[Col_per_player*hero_indexes[key]+2])])
 
@@ -223,7 +223,7 @@ def areaStateSummary(player_data,area_state):
 	return area_state_summary,area_state_times
 
 
-player_data = readPlayerData(replay,5,20000,50000,10)
+player_data = readPlayerData(replay,1,20000,50000,10)
 #print player1data[1]
 
 area_state = assignPlayerArea(replay,player_data,area_matrix)
@@ -238,34 +238,70 @@ print summary
 
 summary_to_events_mapping = {"RS":"radiant-secret","DS":"dire-secret","RJ":"radiant-jungle","DJ":"dire-jungle","T1":"toplane-between-radiant-t2-t3","T2":"toplane-between-radiant-t1-t2","T3":"toplane-between-t1s", \
 "T4":"toplane-between-dire-t1-t2","T5":"toplane-between-dire-t2-t3","M1":"midlane-radiant-between-t2-t3","M2":"midlane-radiant-between-t1-t2",\
-"M3":"midlane-between-t1s","M4":"midlane-dire-between-t1-t2","M5":"midlane-dire-between-t2-t3","RB":"radiant-base","DB":"dire-base",\
+"M3":"midlane-between-t1s","M4":"midlane-dire-between-t1-t2","M5":"midlane-dire-between-t2-t3",\
+"B1":"botlane-radiant-between-t2-t3","B2":"botlane-radiant-between-t1-t2","B3":"botlane-between-t1s","B4":"botlane-dire-between-t1-t2","B5":"botlane-dire-between-t2-t3","RB":"radiant-base","DB":"dire-base",\
 "BR":"bottom-rune","TR":"top-rune","RH":"roshan","RA":"radiant-ancient","DA":"dire-ancient"}
 
 hero_name = "spirit_breaker"
 normal_namespace = 12000
 k=0
 #create events from summary of the areas the player has visited
-for i in range(1,len(summary[0])):
+for i in range(1,len(summary[0])-1): #the first and last elements contain strings so we don't count them
+	location = summary_to_events_mapping[summary[0][i]]
+	time_start = summary[1][i][0]
+	time_end = time_start + summary[1][i][1]
+	involved = hero_id[hero_name]
+	id_num = normal_namespace + k
+	# Lanes
 	if (summary[0][i]=="T1") or (summary[0][i]=="T2") or (summary[0][i]=="T4") or (summary[0][i]=="T4") or (summary[0][i]=="T5"):
 		type = "laning"
-		location = summary_to_events_mapping[summary[0][i]]
-		time_start = summary[1][i][0]
-		time_end = time_start + summary[1][i][1]
-		involved = hero_id[hero_name]
-		id_num = normal_namespace + k
 		new_event = {"type":type,"location":location,"time-start":time_start,"time-end":time_end,"involved":involved}
 		events[id_num] = new_event
 		k=k+1
 	elif (summary[0][i]=="M1") or (summary[0][i]=="M2") or (summary[0][i]=="M3")  or (summary[0][i]=="M4") or (summary[0][i]=="M5"):
 		type = "laning"
-		location = summary_to_events_mapping[summary[0][i]]
-		time_start = summary[1][i][0]
-		time_end = time_start + summary[1][i][1]
-		involved = hero_id[hero_name]
-		id_num = normal_namespace + k
 		new_event = {"type":type,"location":location,"time-start":time_start,"time-end":time_end,"involved":involved}
 		events[id_num] = new_event
 		k=k+1
+	elif (summary[0][i]=="B1") or (summary[0][i]=="B2") or (summary[0][i]=="B3")  or (summary[0][i]=="B4") or (summary[0][i]=="B5"):
+		type = "laning"
+		new_event = {"type":type,"location":location,"time-start":time_start,"time-end":time_end,"involved":involved}
+		events[id_num] = new_event
+		k=k+1
+	elif (summary[0][i]=="RJ"):
+		type = "jungling"
+		# related
+		new_event = {"type":type,"location":location,"time-start":time_start,"time-end":time_end,"involved":involved}
+		events[id_num] = new_event
+		k=k+1
+	#Jungles
+	elif (summary[0][i]=="DJ"):
+		type = "jungling"
+		# related
+		new_event = {"type":type,"location":location,"time-start":time_start,"time-end":time_end,"involved":involved}
+		events[id_num] = new_event
+		k=k+1
+	elif (summary[0][i]=="DJ"):
+		type = "jungling"
+		# related
+		new_event = {"type":type,"location":location,"time-start":time_start,"time-end":time_end,"involved":involved}
+		events[id_num] = new_event
+		k=k+1
+	#Bases
+	elif (summary[0][i]=="RB"):
+		type = "fountain-visit"
+		# related
+		new_event = {"type":type,"location":location,"time-start":time_start,"time-end":time_end,"involved":involved}
+		events[id_num] = new_event
+		k=k+1
+	elif (summary[0][i]=="DB"):
+		type = "fountain-visit"
+		# related
+		new_event = {"type":type,"location":location,"time-start":time_start,"time-end":time_end,"involved":involved}
+		events[id_num] = new_event
+		k=k+1
+
+
 
 
 ######################################################################################################
