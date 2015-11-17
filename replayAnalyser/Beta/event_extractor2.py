@@ -241,6 +241,7 @@ summary_to_events_mapping = {"RS":"radiant-secret","DS":"dire-secret","RJ":"radi
 "M3":"midlane-between-t1s","M4":"midlane-dire-between-t1-t2","M5":"midlane-dire-between-t2-t3","RB":"radiant-base","DB":"dire-base",\
 "BR":"bottom-rune","TR":"top-rune","RH":"roshan","RA":"radiant-ancient","DA":"dire-ancient"}
 
+hero_name = "spirit_breaker"
 normal_namespace = 12000
 k=0
 #create events from summary of the areas the player has visited
@@ -308,8 +309,7 @@ timeseries = {"gold-advantage":{"format":"samples","samples":gold_samples},"exp-
 # form the dictionary and write the data to a json file
 #######################################################
 
-#data_to_write = {"header":header,"entities":entities,"events":events,"timeseries":timeseries}
-data_to_write = {"header":header,"events":events,"timeseries":timeseries}
+data_to_write = {"header":header,"entities":entities,"events":events,"timeseries":timeseries}
 
 g.write(json.dumps(data_to_write, sort_keys=False,indent=4, separators=(',', ': ')))
 
