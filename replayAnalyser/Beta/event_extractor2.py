@@ -312,12 +312,107 @@ for i, row in enumerate(reader):
 # extract gold and exp time series
 ##################################
 
-gold_samples = [{"t": -90, 	"v": [0]},\
-    		{"t": -60, 	"v": [0]}] 
+# make dictionaries to keep the gold and xp for each hero
+hero_gold = {}
+hero_xp = {}
+hero_cumulative_gold ={}
+hero_cumulative_xp = {}
+for key in heros:
+	hero_gold[key] = []	
+	hero_xp[key] = []
+	hero_cumulative_gold[key] = []
+	hero_cumulative_xp[key] =[]
 
-exp_samples = [
-				{"t": -90, 	"v": [0]},\
-				{"t": -60, 	"v": [0]},]	
+f = open(events_input_filename,'rb')
+reader = csv.reader(f)
+
+radiant_gold = []
+dire_gold = []
+radiant_xp = []
+dire_xp = []
+
+gold_difference = []
+xp_difference = []
+
+radiant_gold_total = 0
+dire_gold_total = 0
+radiant_xp_total = 0
+dire_xp_total =0
+
+xp_difference_total = 0
+gold_difference_total = 0
+for i, row in enumerate(reader):
+	# for each row check if some XP was earned
+	if row[1]=="DOTA_COMBATLOG_XP":
+		receiver = row[2] 
+		split_receiver_string = receiver.split("_")
+		hero_name_list =split_receiver_string[3:]
+		s = "_"
+		hero_name = s.join(hero_name_list)
+		xp_amount = int(float(row[3]))
+		timestamp = int(float(row[0]))
+		hero_xp[hero_name].append([xp_amount,timestamp]) 
+		side = heros[hero_name]
+		if side == "radiant":
+			radiant_xp_total = radiant_xp_total + xp_amount
+			radiant_xp.append([radiant_xp_total,timestamp])
+			xp_difference_total = xp_difference_total + xp_amount
+			xp_difference.append([xp_difference_total,timestamp])
+		elif side == "dire":
+			dire_xp_total = dire_xp_total +xp_amount
+			dire_xp.append([dire_xp_total,timestamp])
+			xp_difference_total = xp_difference_total - xp_amount
+			xp_difference.append([xp_difference_total,timestamp])
+		else:
+			print "unknown side - was expecting 'raiant' or 'dire' but got:" + side
+
+	# for each row check if some Gold was recieved or lost
+	elif row[1]=="DOTA_COMBATLOG_GOLD":
+		receiver = row[2] 
+		split_receiver_string = receiver.split("_")
+		hero_name_list =split_receiver_string[3:]
+		s = "_"
+		hero_name = s.join(hero_name_list)
+		gold_amount = int(float(row[4]))
+		timestamp = int(float(row[0]))-match_start_time
+		side = heros[hero_name]
+		if row[3]=="receives":
+			hero_gold[hero_name].append([gold_amount,timestamp])
+			if side == "radiant":
+				gold_difference_total = gold_difference_total + gold_amount
+				gold_difference.append([gold_difference_total,timestamp])
+			elif side =="dire":
+				gold_difference_total = gold_difference_total - gold_amount
+				gold_difference.append([gold_difference_total,timestamp])
+			else:
+				print "unknown side - was expecting 'raiant' or 'dire' but got:" + side
+		elif row[3]=="looses":
+			hero_gold[hero_name].append([-gold_amount,timestamp])
+			if side == "radiant":
+				gold_difference_total = gold_difference_total - gold_amount
+				gold_difference.append([gold_difference_total,timestamp])
+			elif side =="dire":
+				gold_difference_total = gold_difference_total + gold_amount
+				gold_difference.append([gold_difference_total,timestamp])
+			else:
+				print "unknown side - was expecting 'raiant' or 'dire' but got:" + side
+		else:
+			print "unknown gold status - was expecting 'receives or looses' but got:" + row[3]
+
+for key in heros:
+	total = 0
+	for v in hero_xp[key]:
+		total = total + v[0]
+		hero_cumulative_xp[key].append([total,v[1]]) 
+	total = 0
+	for v in hero_gold[key]:
+		total = total + v[0]
+		hero_cumulative_gold[key].append([total,v[1]]) 
+
+gold_samples = [{"t": x[1],"v":[x[0]]} for x in gold_difference]
+
+exp_samples = [{"t": x[1],"v":[x[0]]} for x in xp_difference]
+
 timeseries = {"gold-advantage":{"format":"samples","samples":gold_samples},"exp-advantage":{"format":"samples","samples":exp_samples}}
 
 ########################################################
