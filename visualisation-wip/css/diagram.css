@@ -240,7 +240,7 @@
 .diagram-time-tick-line{
     	stroke: black;
       	stroke-width: 1px;
-	stroke-dasharray: 10px,10px;
+	stroke-dasharray: 5px,5px;
 }
 
 .diagram-location-line-label{

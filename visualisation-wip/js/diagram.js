@@ -8,8 +8,8 @@ replay_data = {};
 
 function loadData(callback_finished)
 {
-d3.json("data/monkey_vs_nip.json"
-	//"data/test2.json"	
+d3.json(//"data/monkey_vs_nip.json"
+	"data/test2.json"	
 		,function(error, data){
 			replay_data = data;
 			buildDataIndices();
@@ -19,6 +19,10 @@ d3.json("data/monkey_vs_nip.json"
 
 function buildDataIndices()
 {
+	for (var event_id in replay_data["events"]) {
+		replay_data["events"][event_id]["id"] = event_id;
+	}
+
 	replay_data["indices"] = {};
 	replay_data["indices"]["kills"] = [];
 	replay_data["indices"]["fights"] = [];
@@ -70,7 +74,7 @@ function buildDataIndices()
 	for (var event_id in replay_data["events"]) {
 		if(!replay_data["events"][event_id].hasOwnProperty("location"))
 			continue;
-		replay_data["indices"]["by-location-line"][location_to_locationline[replay_data["events"][event_id]["location"]]].push(event_id);
+		replay_data["indices"]["by-location-line"][getLocationLine(replay_data["events"][event_id]["location"])].push(event_id);
 	}
 
 	for (var location_line_i in replay_data["indices"]["by-location-line"]) {
@@ -149,7 +153,6 @@ function partitionIntoIntersectingGroups(events)
 
 function processEventGroup(intersecting_group)
 {
-	console.log("processing event group "+intersecting_group.length);
 	var by_location_and_type = {};
 	var n_groupings = 0;
 	for(var intersecting_i in intersecting_group)
@@ -193,24 +196,30 @@ function processEventGroup(intersecting_group)
 				console.log("bad event");
 			}
 		}
+		var generated_id =identifier+time_start+"-"+time_end;
+		var event_ids = [];
+		for(var merged_i in by_location_and_type[identifier])
+		{
+			var event = by_location_and_type[identifier][merged_i];
+			replay_data["events"][event["id"]]["display-id"] = generated_id;
+			event_ids.push(event["id"]);
+		}
 		var diagram_event = 
 		{
-			"id": identifier+time_start+"-"+time_end,
+			"id": generated_id,
 			"time-start": time_start,
 			"time-end": time_end,
 			"involved":Object.keys(involved),
 			"location": by_location_and_type[identifier][0]["location"],
 			"type": by_location_and_type[identifier][0]["type"],
-			"events":by_location_and_type[identifier]
+			"events":event_ids
 		};			
 
 		merged_events.push(diagram_event);
 	}
 	
-	console.log("merged to "+merged_events.length);
 
 	var partitioned = partitionIntoIntersectingGroups(merged_events);
-	console.log("groups "+partitioned.length);
 
 	var result = [];
 	for(var group_i in partitioned)
@@ -398,7 +407,7 @@ gui_state = {
 	"autoscroll-factor": 4,
 	"cursor-time": 0,
 
-	"timeline-cursor-width": 60,
+	"timeline-cursor-width": 30,
 	"active-sub-timelines": 0,	
 	"timelines": [],
 
@@ -428,7 +437,7 @@ gui_state["location-lines"] =
 		"layout-nr": 0 
 	},
 	{
-		"label": "Dire Jungle",
+		"label": "Top Half",
 		"layout-nr": 1 
 	},
 	{
@@ -444,7 +453,7 @@ gui_state["location-lines"] =
 		"layout-nr": 4 
 	},
 	{
-		"label": "Radiant Jungle",
+		"label": "Bottom Half",
 		"layout-nr": 5 
 	},
 	{
@@ -452,6 +461,17 @@ gui_state["location-lines"] =
 		"layout-nr": 6 
 	}
 ];
+
+function getLocationLine(location)
+{
+	if(location_to_locationline.hasOwnProperty(location))
+		return location_to_locationline[location];
+	else
+	{
+		console.log("unknown location for locaitonline - "+location);
+		return 0;
+	}
+}
 
 location_to_locationline = 
 {
@@ -471,6 +491,10 @@ location_to_locationline =
 	"toplane-between-dire-t1-t2": 0,
 	"toplane-between-dire-t2-t3": 0,
 
+	"dire-jungle": 1,
+	"radiant-secret": 1,
+	"radiant-ancient": 1,
+
 	"midlane-dire-before-t1": 3,//legacy
 
 	"midlane-between-t1s": 3,
@@ -478,6 +502,11 @@ location_to_locationline =
 	"midlane-radiant-between-t2-t3": 3,
 	"midlane-dire-between-t1-t2": 3,
 	"midlane-dire-between-t2-t3": 3,
+
+	"radiant-jungle": 5,
+	"dire-secret": 5,
+	"dire-ancient": 5,
+	"roshan": 5,
 
 	"botlane-radiant-t1": 6,//legacy
 	"botlane-radiant-before-t1": 6,//legacy
@@ -488,8 +517,8 @@ location_to_locationline =
 	"botlane-dire-between-t1-t2": 6,
 	"botlane-dire-between-t2-t3": 6,
 
-	"dire-jungle": 1,
-	"radiant-jungle": 5
+
+
 };
 
 
@@ -512,6 +541,17 @@ color_scale_fights = d3.scale.ordinal()
 			.domain(["encounter", "skirmish", "battle", "clash"])
 			.range([colors_blues[1], colors_blues[2], colors_blues[3], colors_blues[4]]);
 
+function getLocationCoordinates(location)
+{
+	if(location_coordinates.hasOwnProperty(location))
+		return location_coordinates[location].clone();
+	else
+	{
+		console.log("unknown location for locatoncoordinates - "+location);
+		return new Victor(0,0);
+	}
+}
+
 location_coordinates =
 {
 	"radiant-base": new Victor(10, 87),
@@ -520,6 +560,12 @@ location_coordinates =
 	"top-rune": new Victor(36, 38),
 	"bottom-rune": new Victor(68, 63),
 
+	"radiant-ancient": new Victor(32, 49),
+	"radiant-secret": new Victor(23, 43),
+
+	"dire-ancient": new Victor(74, 55),
+	"dire-secret": new Victor(73, 48),
+	"roshan": new Victor(74, 62),
 
 	"toplane-dire-t1": new Victor(18, 13),//legacy
 
@@ -1090,7 +1136,7 @@ function createMapEvent(event){
 	var position;
 	if(event.hasOwnProperty("location"))
 	{	
-		position = location_coordinates[event["location"]];
+		position = getLocationCoordinates(event["location"]);
 		
 		group.attr({
 			"transform": "translate("+position.x+","+position.y+")"
@@ -1134,8 +1180,8 @@ function createMapEvent(event){
 			});
 		break;
 	case "rotation":
-		var coordinates_start = location_coordinates[event["location-start"]].clone();
-		var coordinates_end = location_coordinates[event["location-end"]].clone();
+		var coordinates_start = getLocationCoordinates(event["location-start"]);
+		var coordinates_end = getLocationCoordinates(event["location-end"]);
 		var coordinates_center = coordinates_start.clone().add(coordinates_end).multiplyScalar(0.5);
 
 		group.attr({
@@ -1238,8 +1284,8 @@ function getEntityPosition(entity_id)
 
 function createRotationPath(event)
 {
-	var coordinates_start = location_coordinates[event["location-start"]].clone();
-	var coordinates_end = location_coordinates[event["location-end"]].clone();
+	var coordinates_start = getLocationCoordinates(event["location-start"]);
+	var coordinates_end = getLocationCoordinates(event["location-end"]);
 	var coordinates_center = coordinates_start.clone().add(coordinates_end).multiplyScalar(0.5);
 	coordinates_start.subtract(coordinates_center);
 	coordinates_end.subtract(coordinates_center);
@@ -1378,6 +1424,8 @@ function initDiagram(){
 	d3_elements["diagram-events-layer"] = d3_elements["diagram-svg"].append("g").attr("id", "events-layer");
 
 	d3_elements["diagram-overlay-layer"] = d3_elements["diagram-svg"].append("g").attr("id", "overlay-layer");
+	d3_elements["diagram-history-lines"] = d3_elements["diagram-overlay-layer"].append("g").attr("id", "history-lines");
+	d3_elements["diagram-icons"] = d3_elements["diagram-overlay-layer"].append("g").attr("id", "icons");
 
 	d3_elements["diagram-svg"].append("g").attr("id", "cursor-layer");
 	
@@ -1493,14 +1541,13 @@ function updateDiagram()
 	events.each(function(event_entry){updateDiagramEvent.call(this, event_entry);});
 
 	events.exit()
-		//.each(function(event_entry){deleteDiagramEvent.call(this, event_entry);})
 		.remove();
 
 	var selected_data = [];
 	if(gui_state["selected-event"])	
 		selected_data.push(gui_state["selected-event"]);
 
-	var selected = d3_elements["diagram-overlay-layer"].selectAll(".selected-event").data(selected_data, function(d){return d;});
+	var selected = d3_elements["diagram-icons"].selectAll(".selected-event").data(selected_data, function(d){return d;});
 
 	selected.enter()
 		.append("g")
@@ -1511,9 +1558,19 @@ function updateDiagram()
 		.each(function(d){updateSelectedEvent.call(this, d);})
 
 	selected.exit()
-		.each(function(d){removeSelectedEvent.call(this);})
 		.remove();
 
+	var histories = d3_elements["diagram-history-lines"].selectAll(".history-line").data(gui_state["visible-unit-histories"], function(d){return d;});
+	histories.enter()
+		.append("g")
+		.attr("class", "history-line")
+		.each(function(d){createDiagramHistory.call(this, d);})
+
+	histories
+		.each(function(d){updateDiagramHistory.call(this, d);})
+
+	histories.exit()
+		.remove();
 
 	/*var player_layers = d3.select("#diagram").selectAll("[player-id]").data(gui_state["visible-players"]);
 	player_layers.attr("visibility", function(d){
@@ -1750,7 +1807,7 @@ function computeDiagramEventPosition(event_id)
 function createSelectedEvent(event_id)
 {
 	var group = d3.select(this);
-	var icons = group.append("g").attr("id", "icons");
+	var icons = group.append("g").attr("id", "icons-group");
 
 	var list_involved = replay_data["diagram-events"][event_id]["involved"];
 	if(list_involved)
@@ -1794,15 +1851,15 @@ function updateSelectedEvent(event_id)
 	var group = d3.select(this);
 	var center_time = getEventTime(event);
 	var position = computeDiagramEventPosition(event_id);
-	group.select("#icons").attr("transform", "translate("+position[0]+","+position[1]+")");
+	group.select("#icons-group").attr("transform", "translate("+position[0]+","+position[1]+")");
 	
 }
 
-function removeSelectedEvent()
+function createDiagramHistory()
 {
 }
 
-function deleteDiagramEvent(entry)
+function updateDiagramHistory()
 {
 }
 
@@ -1810,10 +1867,7 @@ function getDiagramY(location)
 {
 	var location_line_height = (diagram_height - diagram_inset_top)/gui_state["location-lines-count"];
 
-	if(!location_to_locationline.hasOwnProperty(location))
-		console.log("unknown "+location);
-
-	return (location_to_locationline[location]+0.5)*location_line_height + diagram_inset_top;
+	return (getLocationLine(location)+0.5)*location_line_height + diagram_inset_top;
 }
 
 function formatTime(time)
