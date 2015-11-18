@@ -1,5 +1,5 @@
 /* Declare global variables*/
-DEBUG=true;
+DEBUG=false;
 
 //data organisation
 pregame_time = 90;
@@ -153,32 +153,32 @@ function partitionIntoIntersectingGroups(events)
 
 function processEventGroup(intersecting_group)
 {
-	var by_location_and_type = {};
+	var grouped = {};
 	var n_groupings = 0;
 	for(var intersecting_i in intersecting_group)
 	{
 		var event = intersecting_group[intersecting_i];
-		var identifier = event["type"]+"--"+event["location"];
+		var identifier = event["type"];//+"--"+event["location"];
 
-		if(by_location_and_type.hasOwnProperty(identifier))
+		if(grouped.hasOwnProperty(identifier))
 		{
-			by_location_and_type[identifier].push(intersecting_group[intersecting_i]);
+			grouped[identifier].push(intersecting_group[intersecting_i]);
 		}
 		else
 		{
-			by_location_and_type[identifier] = [intersecting_group[intersecting_i]];
+			grouped[identifier] = [intersecting_group[intersecting_i]];
 			n_groupings++;
 		}
 	}
 	merged_events = []
-	for(var identifier in by_location_and_type)
+	for(var identifier in grouped)
 	{
 		var involved = {};
 		var time_start  = replay_data["header"]["length"];
 		var time_end  = -pregame_time;
-		for(var merged_i in by_location_and_type[identifier])
+		for(var merged_i in grouped[identifier])
 		{
-			var event = by_location_and_type[identifier][merged_i];
+			var event = grouped[identifier][merged_i];
 			for(involved_i in event["involved"])				
 				involved[event["involved"][involved_i]] = 1;
 			if(event.hasOwnProperty("time"))
@@ -198,9 +198,9 @@ function processEventGroup(intersecting_group)
 		}
 		var generated_id =identifier+time_start+"-"+time_end;
 		var event_ids = [];
-		for(var merged_i in by_location_and_type[identifier])
+		for(var merged_i in grouped[identifier])
 		{
-			var event = by_location_and_type[identifier][merged_i];
+			var event = grouped[identifier][merged_i];
 			replay_data["events"][event["id"]]["display-id"] = generated_id;
 			event_ids.push(event["id"]);
 		}
@@ -210,8 +210,8 @@ function processEventGroup(intersecting_group)
 			"time-start": time_start,
 			"time-end": time_end,
 			"involved":Object.keys(involved),
-			"location": by_location_and_type[identifier][0]["location"],
-			"type": by_location_and_type[identifier][0]["type"],
+			"location": grouped[identifier][0]["location"],
+			"type": grouped[identifier][0]["type"],
 			"events":event_ids
 		};			
 
@@ -385,25 +385,22 @@ function generateGraph(id, group, timeseries, xrange, yrange, area_colors){
 	}
 }
 
-function generateMapLine(timeseries, filter_func){
+function getTimeseriesSamples(timeseries, filter_func){
+	var result = [];
 	switch(timeseries["format"])
 	{
 	case "samples":
-		var line = d3.svg.line()
-				.x(function(d) {return gamePositionToCoordinates(d["v"]).x;})
-				.y(function(d) {return gamePositionToCoordinates(d["v"]).y;})
-				.interpolate('linear');
-		return line(timeseries["samples"].filter(filter_func));
+		return timeseries["samples"].filter(filter_func);
 	default:
 		console.log("bad timeseries");
-		return "";
+		return [];
 	}
 }
 
 
 // set up internal display state
 gui_state = {
-	"autoscroll-enabled": false,
+	"autoscroll-enabled": true,
 	"autoscroll-factor": 4,
 	"cursor-time": 0,
 
@@ -977,6 +974,11 @@ function updateSubTimeline(sub_timeline, index){
 */
 function gamePositionToCoordinates(position)
 {
+	if(!position || position.length != 2)
+	{
+		console.log("bad position");
+		console.log(position);
+	}
 	var scale_x = d3.scale.linear()
 				.domain([-8200, 7930.0])
 				.range([0, 100]);
@@ -1080,6 +1082,25 @@ function filterEventsMap(event){
 	
 	if(event.hasOwnProperty("time"))
 	{
+		if( ! (event["time"]-event_duration/2 <= gui_state["cursor-time"]) &&
+			(event["time"]+event_duration/2 > gui_state["cursor-time"]) )
+			return false;
+	}
+	else if(event.hasOwnProperty("time-start") && event.hasOwnProperty("time-end"))
+	{
+		if( ! (event["time-end"] > gui_state["cursor-time"] &&  
+			event["time-start"] <= gui_state["cursor-time"]) )
+			return false;
+
+	}
+	else
+	{
+		console.log("Corrupted event");
+		return false;
+	}
+
+	/*if(event.hasOwnProperty("time"))
+	{
 		if( ! (event["time"] >= (gui_state["cursor-time"] - gui_state["timeline-cursor-width"]/2) &&
 			event["time"] <= (gui_state["cursor-time"] + gui_state["timeline-cursor-width"]/2) ) )
 			return false;
@@ -1095,7 +1116,7 @@ function filterEventsMap(event){
 	{
 		console.log("Corrupted event");
 		return false;
-	}
+	}*/
 
 	return true;
 }
@@ -1136,17 +1157,13 @@ function createMapEvent(event){
 	var position;
 	if(event.hasOwnProperty("location"))
 	{	
-		position = getLocationCoordinates(event["location"]);
-		
-		group.attr({
-			"transform": "translate("+position.x+","+position.y+")"
-			});
+
 		location = group.append("svg:circle")
 			.attr({
 				"class": "event-background",
 				"cx": 0,
 				"cy": 0,
-				"r": 10,
+				"r": 8,
 				"opacity": computeEventOpacity(event)
 				});
 	}
@@ -1202,6 +1219,8 @@ function createMapEvent(event){
 
 function computeEventOpacity(event)
 {
+	return 0.7;
+/*
 	var time_distance = 0;
 	if(event.hasOwnProperty("time"))
 	{
@@ -1216,7 +1235,7 @@ function computeEventOpacity(event)
 	}
 	time_distance = Math.max(0, time_distance - event_duration);
 	var normalized_distance = Math.min(1,time_distance/((gui_state["timeline-cursor-width"]-event_duration)/2));
-	return (1-normalized_distance)*event_maximum_opacity;
+	return (1-normalized_distance)*event_maximum_opacity;*/
 }
 
 function createMapUnit(entry)
@@ -1266,8 +1285,13 @@ function createMapUnit(entry)
 
 function getEntityPosition(entity_id)
 {
+	return getEntityPositionAtTime(entity_id, gui_state["cursor-time"])
+}
+
+function getEntityPositionAtTime(entity_id, time)
+{
 	var entity = replay_data["entities"][entity_id];
-	var current_time = gui_state["cursor-time"];
+	var current_time = time;
 	var segment_id = getUnitPositionSegment(entity);
 
 	if(segment_id >= 0)
@@ -1309,6 +1333,21 @@ function updateMapEvent(event){
 
 	group.select(".event-background")
 		.attr({"opacity": computeEventOpacity(event)});
+
+	//var position = getLocationCoordinates(event["location"]);
+	var position = new Victor(0,0);
+
+	for(var involved_i in event["involved"])
+	{
+		var unit_position = getEntityPosition(event["involved"][involved_i]);
+		position.add(new Victor(unit_position[0], unit_position[1]));
+	}
+	position.multiplyScalar(1/event["involved"].length);
+
+	var coords = gamePositionToCoordinates([position.x, position.y]);
+	group.attr({
+			"transform": "translate("+coords.x+","+coords.y+")"
+			});
 }
 
 function updateMapUnit(entry)
@@ -1366,23 +1405,48 @@ function updateMapPath(id)
 	}
 	else
 	{
-		group.select("#position-history-past")
-			.attr("d", generateMapLine(unit["position"][segment_id]["timeseries"], function(sample)
+		var line_formatter = d3.svg.line()
+				.x(function(d) {return gamePositionToCoordinates(d["v"]).x;})
+				.y(function(d) {return gamePositionToCoordinates(d["v"]).y;})
+				.interpolate('linear');
+
+		var past_end = {
+			"t": gui_state["cursor-time"] - gui_state["timeline-cursor-width"]/2,
+			"v": getEntityPositionAtTime(id, gui_state["cursor-time"] - gui_state["timeline-cursor-width"]/2)};
+		var now = {
+			"t": gui_state["cursor-time"],
+			"v": getEntityPositionAtTime(id, gui_state["cursor-time"])};
+		var future_end = {
+			"t": gui_state["cursor-time"] + gui_state["timeline-cursor-width"]/2,
+			"v": getEntityPositionAtTime(id, gui_state["cursor-time"] + gui_state["timeline-cursor-width"]/2)};
+
+		var past_history = getTimeseriesSamples(unit["position"][segment_id]["timeseries"], 						function(sample)
 					{
-						if(sample["t"] >= gui_state["cursor-time"] - gui_state["timeline-cursor-width"]  && sample["t"] < gui_state["cursor-time"])
+						if(sample["t"] >= gui_state["cursor-time"] - gui_state["timeline-cursor-width"]/2  && sample["t"] < gui_state["cursor-time"])
 							return true;
 						else
 							return false;
-					}));
+					});
+
+		past_history.unshift(past_end);
+		past_history.push(now);
+
+
+		var future_history = getTimeseriesSamples(unit["position"][segment_id]["timeseries"], 						function(sample)
+					{
+						if(sample["t"] >= gui_state["cursor-time"] && sample["t"] < gui_state["cursor-time"] + gui_state["timeline-cursor-width"]/2)
+							return true;
+						else
+							return false;
+					});
+		future_history.unshift(now);
+		future_history.push(future_end);
+
+		group.select("#position-history-past")
+			.attr("d", line_formatter(past_history));
 
 		group.select("#position-history-future")
-			.attr("d", generateMapLine(unit["position"][segment_id]["timeseries"], function(sample)
-					{
-						if(sample["t"] >= gui_state["cursor-time"] && sample["t"] < gui_state["cursor-time"] + gui_state["timeline-cursor-width"])
-							return true;
-						else
-							return false;
-					}));
+			.attr("d", line_formatter(future_history));
 	}
 }
 
