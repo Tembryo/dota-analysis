@@ -350,7 +350,7 @@ for i, row in enumerate(reader):
 		s = "_"
 		hero_name = s.join(hero_name_list)
 		xp_amount = int(float(row[3]))
-		timestamp = int(float(row[0]))
+		timestamp = float(row[0])-match_start_time
 		hero_xp[hero_name].append([xp_amount,timestamp]) 
 		side = heros[hero_name]
 		if side == "radiant":
@@ -367,14 +367,14 @@ for i, row in enumerate(reader):
 			print "unknown side - was expecting 'raiant' or 'dire' but got:" + side
 
 	# for each row check if some Gold was recieved or lost
-	elif row[1]=="DOTA_COMBATLOG_GOLD":
+	elif row[1]=="DOTA_COMBATLOG_GOLD" and (float(row[0])-pregame_start_time > 0):
 		receiver = row[2] 
 		split_receiver_string = receiver.split("_")
 		hero_name_list =split_receiver_string[3:]
 		s = "_"
 		hero_name = s.join(hero_name_list)
 		gold_amount = int(float(row[4]))
-		timestamp = int(float(row[0]))-match_start_time
+		timestamp = float(row[0])-match_start_time
 		side = heros[hero_name]
 		if row[3]=="receives":
 			hero_gold[hero_name].append([gold_amount,timestamp])
