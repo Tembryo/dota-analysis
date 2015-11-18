@@ -51,17 +51,17 @@ function buildDataIndices()
 	for (var event_id in replay_data["events"]) {
 		if(!replay_data["events"][event_id].hasOwnProperty("involved"))
 			continue;
-		for (var involved_id in replay_data["events"][event_id]["involved"])
+		for (var involved_i in replay_data["events"][event_id]["involved"])
 		{
-			if(replay_data["indices"]["by-entity"].hasOwnProperty(involved_id))
+			if(replay_data["indices"]["by-entity"].hasOwnProperty(replay_data["events"][event_id]["involved"][involved_i]))
 			{
-				replay_data["indices"]["by-entity"][involved_id].push(event_id);
+				replay_data["indices"]["by-entity"][replay_data["events"][event_id]["involved"][involved_i]].push(event_id);
 			}
 		}
 	}
 
-	for (var entity_id in replay_data["indices"]["by_entity"]) {
-		replay_data["indices"]["by_entity"][entity_id].sort(compareEventsByTime);
+	for (var entity_id in replay_data["indices"]["by-entity"]) {
+		replay_data["indices"]["by-entity"][entity_id].sort(compareEventsByTime);
 	}
 
 	/* By location line*/
@@ -426,6 +426,8 @@ colors_yellows = ["#FCE694", "#D3B858", "#B29632", "#8E7415", "#634D00"];
 colors_purples = ["#A573B9", "#83479B", "#6D2D86", "#581971", "#400857"];
 colors_beiges = ["#F8FD99", "#E1E765", "#C0C73D", "#A1A820", "#7B8106"];
 
+colors_players = ["#015fff", "#01ff8a", "#a801ff", "#fff501", "#ff6a01", "#fb85c1", "#a1b343", "#1ccae4", "#008122", "#ab6800"];
+
 
 gui_state["location-lines"] =
 [
@@ -596,13 +598,13 @@ location_coordinates =
 icon_size = 5;
 
 icon_images = {
-	"spirit-breaker":"img/hero-icons/Spirit Breaker_icon.png",
-	"queen-of-pain":"img/hero-icons/Queen Of Pain_icon.png",
-	"anti-mage":"img/hero-icons/Antimage_icon.png",
+	"spirit_breaker":"img/hero-icons/Spirit Breaker_icon.png",
+	"queenofpain":"img/hero-icons/Queen Of Pain_icon.png",
+	"antimage":"img/hero-icons/Antimage_icon.png",
 	"dazzle":"img/hero-icons/Dazzle_icon.png",
-	"dark-seer":"img/hero-icons/Dark Seer_icon.png",
+	"dark_seer":"img/hero-icons/Dark Seer_icon.png",
 	"undying":"img/hero-icons/Undying_icon.png",
-	"witch-doctor":"img/hero-icons/Witch_Doctor_icon.png",
+	"witch_doctor":"img/hero-icons/Witch_Doctor_icon.png",
 	"necrolyte":"img/hero-icons/Necrolyte_icon.png",
 	"tusk":"img/hero-icons/Tusk_icon.png",
 	"alchemist":"img/hero-icons/Alchemist_icon.png",
@@ -1408,7 +1410,7 @@ function updateMapPath(id)
 		var line_formatter = d3.svg.line()
 				.x(function(d) {return gamePositionToCoordinates(d["v"]).x;})
 				.y(function(d) {return gamePositionToCoordinates(d["v"]).y;})
-				.interpolate('linear');
+				.interpolate('cardinal');
 
 		var past_end = {
 			"t": gui_state["cursor-time"] - gui_state["timeline-cursor-width"]/2,
@@ -1613,7 +1615,7 @@ function updateDiagram()
 
 	var selected = d3_elements["diagram-icons"].selectAll(".selected-event").data(selected_data, function(d){return d;});
 
-	selected.enter()
+	/*selected.enter()
 		.append("g")
 		.attr("class", "selected-event")
 		.each(function(d){createSelectedEvent.call(this, d);})
@@ -1622,7 +1624,7 @@ function updateDiagram()
 		.each(function(d){updateSelectedEvent.call(this, d);})
 
 	selected.exit()
-		.remove();
+		.remove();*/
 
 	var histories = d3_elements["diagram-history-lines"].selectAll(".history-line").data(gui_state["visible-unit-histories"], function(d){return d;});
 	histories.enter()
@@ -1635,27 +1637,6 @@ function updateDiagram()
 
 	histories.exit()
 		.remove();
-
-	/*var player_layers = d3.select("#diagram").selectAll("[player-id]").data(gui_state["visible-players"]);
-	player_layers.attr("visibility", function(d){
-				if(d)
-				{
-					return "visible";
-				}
-				else
-				{
-					return "hidden";
-				}
-			});
-	
-	var diagram_scale = d3.scale.linear()
-				.domain([-pregame_time, replay_data["header"]["length"]])
-				.range([160, 808]);
-	var position = diagram_scale(gui_state["cursor-time"]-gui_state["timeline-cursor-width"]/2);
-
-	d3.select("#diagram").selectAll("#time-cursor")
-		.attr("x", position+"mm");
-*/
 
 }
 
@@ -1775,6 +1756,11 @@ function filterEventsDiagram(event)
 	}
 }
 
+
+function filterEventIDsDiagram(event_id)
+{
+	return filterEventsDiagram(replay_data["events"][event_id]);
+}
 
 function createDiagramEvent(entry)
 {
@@ -1919,13 +1905,122 @@ function updateSelectedEvent(event_id)
 	
 }
 
-function createDiagramHistory()
+function createDiagramHistory(id)
 {
+	var group = d3.select(this);
+	group.append("svg:path")
+		.attr({
+			"id": "history-line",
+			"stroke": "black",
+			"stroke-width": 4,
+			"opacity": 1,
+			"fill": "none"
+			})
+		.on("click", diagramOnHistoryClick);
+
+	group.append("svg:image")
+		.attr({
+			"id": "icon",
+			"xlink:href": icon_images[ replay_data["entities"][id]["unit"]],
+			"x": -0.5*diagram_icon_size,
+			"y": -0.5*diagram_icon_size,
+			"width": diagram_icon_size,
+			"height": diagram_icon_size,
+			})
+		.on("click", diagramOnHistoryClick);
 }
 
-function updateDiagramHistory()
+function updateDiagramHistory(id)
 {
+	var group = d3.select(this);
+	var unit = replay_data["entities"][id];
+
+	var line_formatter = d3.svg.line()
+			.x(function(d) {return getDiagramTimeScale()(d["t"]);})
+			.y(function(d) {return getDiagramY(d["v"]);})
+			.interpolate('basis');
+
+	var events = replay_data["indices"]["by-entity"][id].filter(filterEventIDsDiagram);
+
+	var samples = [];
+
+	var diagram_timescale = getDiagramTimeScale();
+	for(var event_i in events)
+	{
+		var event = replay_data["events"][events[event_i]];
+		if(event.hasOwnProperty("time"))
+		{
+			samples.push({
+					"t": event["time"],
+					"v": event["location"]});
+		}
+		else if(event.hasOwnProperty("time-start") && event.hasOwnProperty("time-end"))
+		{
+			var sample_left = {
+					"t": event["time-start"],
+					"v": event["location"]};
+			var sample_right = {
+					"t": event["time-end"],
+					"v": event["location"]};
+
+			if(event["time-start"] <= diagram_timescale.domain()[0] &&
+				event["time-end"] > diagram_timescale.domain()[0])
+			{
+				sample_left["t"] = diagram_timescale.domain()[0];
+			}
+			if(event["time-start"] <= diagram_timescale.domain()[1] &&
+				event["time-end"] > diagram_timescale.domain()[1])
+			{
+				sample_left["t"] = diagram_timescale.domain()[1];
+			}
+			samples.push(sample_left);
+			samples.push(sample_right);
+		}
+	}
+	group.select("#history-line")
+		.attr("d", line_formatter(samples));
+
+	if(gui_state["highlighted-unit"] == id)
+	{
+		var player = unit["control"];
+		group.select("#history-line").attr("stroke", colors_players[player]);
+	}
+	else
+	{
+		group.select("#history-line").attr("stroke", "black");
+	}
+	
+	group.select("#icon").attr("transform", "translate("+getDiagramTimeScale()(gui_state["cursor-time"])+","+
+				findYatXbyBisection(getDiagramTimeScale()(gui_state["cursor-time"]), group.select("#history-line").node(), 0.1)+")");
 }
+
+
+function findYatXbyBisection (x, path, error){
+  var length_end = path.getTotalLength()
+    , length_start = 0
+    , point = path.getPointAtLength((length_end + length_start) / 2) // get the middle point
+    , bisection_iterations_max = 50
+    , bisection_iterations = 0
+
+  error = error || 0.01
+
+  while (x < point.x - error || x > point.x + error) {
+    // get the middle point
+    point = path.getPointAtLength((length_end + length_start) / 2)
+
+    if (x < point.x) {
+      length_end = (length_start + length_end)/2
+    } else {
+      length_start = (length_start + length_end)/2
+    }
+
+    // Increase iteration
+    if(bisection_iterations_max < ++ bisection_iterations)
+      break;
+  }
+  return point.y
+}
+
 
 function getDiagramY(location)
 {
@@ -1961,6 +2056,7 @@ function mapOnUnitClick(entry)
 	gui_state["highlighted-unit"] = entry.key;
 }
 
+
 function diagramEventOnClick(event_id)
 {
 	gui_state["selected-event"] = event_id;
@@ -1972,6 +2068,12 @@ function diagramEventOnClick(event_id)
 	var center_time = getEventTime(event);	
 	gui_state["cursor-time"] = center_time;
 
+	updateVisualisation();
+}
+
+function diagramOnHistoryClick(entity_id)
+{
+	gui_state["highlighted-unit"] = entity_id;
 	updateVisualisation();
 }
 
