@@ -117,12 +117,12 @@ for i, row in enumerate(reader):
 
 hero_deaths_appended = {}
 for key in heros:
-	padded_death_list = [0]
+	padded_death_list = [-pregame_start_time]
 	padded_death_list[1:] = hero_deaths[key]
 	padded_death_list.append(match_end_time)
 	hero_deaths_appended[key] = padded_death_list
 
-#extract position data for each time step after the state 4 transistion
+#extract position data at 5 second intervals for each time step after the state 4 transistion
 # with the time shifted so that 0 corresponds to the state 5 transtion and store it in v_mat 
 #e.g., v_mat["spirit_breaker"] = [[150,200],[152,201],..]
 
@@ -137,7 +137,7 @@ Num_Players = 10
 e = open(position_input_filename,'rb')
 reader = csv.reader(e)
 
-Step =300  #Step size of 300 gives samples of roughly 5 second intervals
+Step = 10  #Step size of 300 gives samples of roughly 5 second intervals
 for i, row in enumerate(reader):
 	if (i>0) and (i % Step==0):
 		tmp_time = float(row[Col_per_player*Num_Players])-pregame_start_time
@@ -323,9 +323,6 @@ for key in heros:
 	hero_cumulative_gold[key] = []
 	hero_cumulative_xp[key] =[]
 
-f = open(events_input_filename,'rb')
-reader = csv.reader(f)
-
 radiant_gold = []
 dire_gold = []
 radiant_xp = []
@@ -339,65 +336,58 @@ dire_gold_total = 0
 radiant_xp_total = 0
 dire_xp_total =0
 
+f = open(events_input_filename,'rb')
+reader = csv.reader(f)
+
 xp_difference_total = 0
 gold_difference_total = 0
+
+prior_timestamp = pregame_start_time
+flag =0
 for i, row in enumerate(reader):
-	# for each row check if some XP was earned
-	if row[1]=="DOTA_COMBATLOG_XP":
+	timestamp = float(row[0])-match_start_time
+	if row[1]=="DOTA_COMBATLOG_XP" and (float(row[0])-pregame_start_time > 0):
 		receiver = row[2] 
 		split_receiver_string = receiver.split("_")
 		hero_name_list =split_receiver_string[3:]
 		s = "_"
 		hero_name = s.join(hero_name_list)
 		xp_amount = int(float(row[3]))
-		timestamp = int(float(row[0]))
 		hero_xp[hero_name].append([xp_amount,timestamp]) 
 		side = heros[hero_name]
 		if side == "radiant":
+			#increment radiant xp
 			radiant_xp_total = radiant_xp_total + xp_amount
-			radiant_xp.append([radiant_xp_total,timestamp])
-			xp_difference_total = xp_difference_total + xp_amount
-			xp_difference.append([xp_difference_total,timestamp])
 		elif side == "dire":
-			dire_xp_total = dire_xp_total +xp_amount
-			dire_xp.append([dire_xp_total,timestamp])
-			xp_difference_total = xp_difference_total - xp_amount
-			xp_difference.append([xp_difference_total,timestamp])
-		else:
-			print "unknown side - was expecting 'raiant' or 'dire' but got:" + side
-
+			dire_xp_total = dire_xp_total + xp_amount
 	# for each row check if some Gold was recieved or lost
-	elif row[1]=="DOTA_COMBATLOG_GOLD":
+	elif row[1]=="DOTA_COMBATLOG_GOLD" and (float(row[0])-pregame_start_time > 0):
 		receiver = row[2] 
 		split_receiver_string = receiver.split("_")
 		hero_name_list =split_receiver_string[3:]
 		s = "_"
 		hero_name = s.join(hero_name_list)
 		gold_amount = int(float(row[4]))
-		timestamp = int(float(row[0]))-match_start_time
 		side = heros[hero_name]
 		if row[3]=="receives":
 			hero_gold[hero_name].append([gold_amount,timestamp])
 			if side == "radiant":
-				gold_difference_total = gold_difference_total + gold_amount
-				gold_difference.append([gold_difference_total,timestamp])
-			elif side =="dire":
-				gold_difference_total = gold_difference_total - gold_amount
-				gold_difference.append([gold_difference_total,timestamp])
-			else:
-				print "unknown side - was expecting 'raiant' or 'dire' but got:" + side
+				radiant_gold_total = radiant_gold_total + gold_amount
+			elif side == "dire":
+				dire_gold_total = dire_gold_total + gold_amount
 		elif row[3]=="looses":
 			hero_gold[hero_name].append([-gold_amount,timestamp])
 			if side == "radiant":
-				gold_difference_total = gold_difference_total - gold_amount
-				gold_difference.append([gold_difference_total,timestamp])
-			elif side =="dire":
-				gold_difference_total = gold_difference_total + gold_amount
-				gold_difference.append([gold_difference_total,timestamp])
-			else:
-				print "unknown side - was expecting 'raiant' or 'dire' but got:" + side
+				radiant_gold_total = radiant_gold_total - gold_amount
+			elif side == "dire":
+				dire_gold_total = dire_gold_total - gold_amount
 		else:
 			print "unknown gold status - was expecting 'receives or looses' but got:" + row[3]
+	elif timestamp!=prior_timestamp:
+		#update the xp_difference vector
+		xp_difference.append([radiant_xp_total - dire_xp_total,timestamp])
+		gold_difference.append([radiant_gold_total - dire_gold_total,timestamp])
+		prior_timestamp = timestamp
 
 for key in heros:
 	total = 0
@@ -408,6 +398,7 @@ for key in heros:
 	for v in hero_gold[key]:
 		total = total + v[0]
 		hero_cumulative_gold[key].append([total,v[1]]) 
+
 
 gold_samples = [{"t": x[1],"v":[x[0]]} for x in gold_difference]
 
