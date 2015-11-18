@@ -294,6 +294,8 @@ for key in hero_id:
 f = open(events_input_filename,'rb')
 reader = csv.reader(f)
 
+#idea is to segment fights according to continuity between heros involved in the fights and the (x,y) coordinates in which they are fighting
+# i.e., if they are doing damage to each other and are within spell range 800 they are probably in the same fight
 k=0
 for i, row in enumerate(reader):
 	# for each row check if some damage occured (if a non-hero character dies sometimes you get null in row[2])
@@ -305,7 +307,7 @@ for i, row in enumerate(reader):
 		split_victim_string = re.split("_| ",victim)
 		if (split_attacker_string[2] == "hero") and (split_victim_string[2] == "hero"):
 			#record the time that the damage occured
-			timestamp = float(row[0])
+			timestamp = float(row[0]) - match_start_time
 			# handle case where attacker and victim are illusions
 			if (split_attacker_string[-1]=="(illusion)") and (split_victim_string[-1]=="(illusion)"):
 				attacker_name_list =split_attacker_string[3:-1]
@@ -328,7 +330,7 @@ for i, row in enumerate(reader):
 			#now for the victim_name
 			victim_name = s.join(victim_name_list)
 			victim_side = heros[victim_name]
-			#print attacker_name + " attacked " + victim_name + " at " + str(timestamp)
+			print attacker_name + " attacked " + victim_name + "did " + str(row[5]) + " damage  at " + str(timestamp) 
 
 
 ################################
