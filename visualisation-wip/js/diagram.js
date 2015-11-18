@@ -1,5 +1,5 @@
 /* Declare global variables*/
-DEBUG=false;
+DEBUG=true;
 
 //data organisation
 pregame_time = 90;
@@ -8,8 +8,8 @@ replay_data = {};
 
 function loadData(callback_finished)
 {
-d3.json(//"data/monkey_vs_nip.json"
-	"data/test2.json"	
+d3.json("data/monkey_vs_nip.json"
+	//"data/test2.json"	
 		,function(error, data){
 			replay_data = data;
 			buildDataIndices();
@@ -34,11 +34,13 @@ function buildDataIndices()
 		}
 	}
 
-	replay_data["indices"]["by_entity"] = {};
+	/* By Entity*/
+
+	replay_data["indices"]["by-entity"] = {};
 	for (var entity_id in replay_data["entities"]) {
 		if(replay_data["entities"][entity_id].hasOwnProperty("control"))
 		{
-			replay_data["indices"]["by_entity"][entity_id] = [];
+			replay_data["indices"]["by-entity"][entity_id] = [];
 		}
 	}
 
@@ -47,17 +49,183 @@ function buildDataIndices()
 			continue;
 		for (var involved_id in replay_data["events"][event_id]["involved"])
 		{
-			if(replay_data["indices"]["by_entity"].hasOwnProperty(involved_id))
+			if(replay_data["indices"]["by-entity"].hasOwnProperty(involved_id))
 			{
-				replay_data["indices"]["by_entity"][involved_id].push(event_id);
+				replay_data["indices"]["by-entity"][involved_id].push(event_id);
 			}
 		}
 	}
 
-	replay_data["indices"]["by_entity"] = {};
 	for (var entity_id in replay_data["indices"]["by_entity"]) {
 		replay_data["indices"]["by_entity"][entity_id].sort(compareEventsByTime);
 	}
+
+	/* By location line*/
+
+	replay_data["indices"]["by-location-line"] = {};
+	for (var location_line_i in gui_state["location-lines"]) {
+		replay_data["indices"]["by-location-line"][gui_state["location-lines"][location_line_i]["layout-nr"]] = [];
+	}
+
+	for (var event_id in replay_data["events"]) {
+		if(!replay_data["events"][event_id].hasOwnProperty("location"))
+			continue;
+		replay_data["indices"]["by-location-line"][location_to_locationline[replay_data["events"][event_id]["location"]]].push(event_id);
+	}
+
+	for (var location_line_i in replay_data["indices"]["by-location-line"]) {
+		replay_data["indices"]["by-location-line"][location_line_i].sort(compareEventKeysByTime);
+	}
+
+	//Merge events for diagram
+	replay_data["diagram-events"] = []
+	for (var location_line_i in replay_data["indices"]["by-location-line"]) {
+		replay_data["diagram-events"] = replay_data["diagram-events"].concat(generateDiagramEvents(replay_data["indices"]["by-location-line"][location_line_i]))
+	}
+
+	var a=0;
+}
+
+function generateDiagramEvents(events)
+{
+	var event_data = [];
+	for (var event_i in events) {
+		event_data.push(replay_data["events"][events[event_i]]);
+	}
+	var intersecting_groups = partitionIntoIntersectingGroups(event_data);
+	var result = [];
+
+	for (var group_i in intersecting_groups) {
+		result = result.concat(processEventGroup(intersecting_groups[group_i]));
+	}
+
+	return result;
+}
+
+function partitionIntoIntersectingGroups(events)
+{
+	var result = [];
+
+	events.sort(compareEventsByTime);
+
+	var intersecting_group = [];
+	var end_of_group = -pregame_time;//init so it doesnt block at beginning
+	for (var event_i in events) {
+		var event = events[event_i];
+		var group_finished = false;
+		var event_start = 0;
+		var event_end = 0;
+		if(event.hasOwnProperty("time"))
+		{
+			event_start = event["time"];
+			event_end = event["time"];
+		}
+		else if(event.hasOwnProperty("time-start"))
+		{
+			event_start = event["time-start"];
+			event_end = event["time-end"];
+		}
+		else{
+			console.log("bad event");
+			continue;
+		}
+
+		if(event_start > end_of_group)
+			group_finished = true;
+
+		if(group_finished)
+		{
+			if(intersecting_group.length > 0)
+				result.push(intersecting_group);
+			intersecting_group = [];
+		}
+		intersecting_group.push(events[event_i]);
+		end_of_group = Math.max(end_of_group, event_end);
+	}
+	if(intersecting_group.length > 0)
+		result.push(intersecting_group);
+	return result;
+}
+
+function processEventGroup(intersecting_group)
+{
+	console.log("processing event group "+intersecting_group.length);
+	var by_location_and_type = {};
+	var n_groupings = 0;
+	for(var intersecting_i in intersecting_group)
+	{
+		var event = intersecting_group[intersecting_i];
+		var identifier = event["type"]+"--"+event["location"];
+
+		if(by_location_and_type.hasOwnProperty(identifier))
+		{
+			by_location_and_type[identifier].push(intersecting_group[intersecting_i]);
+		}
+		else
+		{
+			by_location_and_type[identifier] = [intersecting_group[intersecting_i]];
+			n_groupings++;
+		}
+	}
+	merged_events = []
+	for(var identifier in by_location_and_type)
+	{
+		var involved = {};
+		var time_start  = replay_data["header"]["length"];
+		var time_end  = -pregame_time;
+		for(var merged_i in by_location_and_type[identifier])
+		{
+			var event = by_location_and_type[identifier][merged_i];
+			for(involved_i in event["involved"])				
+				involved[event["involved"][involved_i]] = 1;
+			if(event.hasOwnProperty("time"))
+			{
+				time_start = Math.min(time_start, event["time"]);
+				time_end = Math.max(time_end, event["time"]);
+			}
+			else if(event.hasOwnProperty("time-start"))
+			{
+				time_start = Math.min(time_start, event["time-start"]);
+				time_end = Math.max(time_end, event["time-end"]);
+			}
+			else
+			{
+				console.log("bad event");
+			}
+		}
+		var diagram_event = 
+		{
+			"id": identifier+time_start+"-"+time_end,
+			"time-start": time_start,
+			"time-end": time_end,
+			"involved":Object.keys(involved),
+			"location": by_location_and_type[identifier][0]["location"],
+			"type": by_location_and_type[identifier][0]["type"],
+			"events":by_location_and_type[identifier]
+		};			
+
+		merged_events.push(diagram_event);
+	}
+	
+	console.log("merged to "+merged_events.length);
+
+	var partitioned = partitionIntoIntersectingGroups(merged_events);
+	console.log("groups "+partitioned.length);
+
+	var result = [];
+	for(var group_i in partitioned)
+	{
+		for(var event_i in partitioned[group_i])
+		{
+			var final_event = partitioned[group_i][event_i];
+			final_event["group-size"] = partitioned[group_i].length,
+			final_event["group-i"] = parseInt(event_i),
+
+			result.push(final_event);
+		}
+	}
+
+	return result;
 }
 
 function compareEventsByTime(a, b)
@@ -78,6 +246,11 @@ function compareEventsByTime(a, b)
 		return -1;
 	else if(time_a > time_b)
 		return 1;
+}
+
+function compareEventKeysByTime(a, b)
+{
+	return compareEventsByTime(replay_data["events"][a], replay_data["events"][b]);
 }
 
 function getTimeseriesValue(timeseries, current_time)
@@ -221,7 +394,7 @@ function generateMapLine(timeseries, filter_func){
 
 // set up internal display state
 gui_state = {
-	"autoscroll-enabled": true,
+	"autoscroll-enabled": false,
 	"autoscroll-factor": 4,
 	"cursor-time": 0,
 
@@ -238,7 +411,7 @@ gui_state = {
 
 map_events = ["fight", "movement", "fountain-visit", "jungling", "laning"/*, "rotation"*/];
 
-d3_elements = {} //Filled by creation methods
+d3_elements = {}; //Filled by creation methods
 
 colors_reds = ["#FC9494", "#D35858", "#B23232", "#8E1515", "#630000"];
 colors_greens = ["#76CA76", "#46A946", "#288E28", "#117211", "#004F00"];
@@ -247,12 +420,85 @@ colors_yellows = ["#FCE694", "#D3B858", "#B29632", "#8E7415", "#634D00"];
 colors_purples = ["#A573B9", "#83479B", "#6D2D86", "#581971", "#400857"];
 colors_beiges = ["#F8FD99", "#E1E765", "#C0C73D", "#A1A820", "#7B8106"];
 
+
+gui_state["location-lines"] =
+[
+	{
+		"label": "Top Lane",
+		"layout-nr": 0 
+	},
+	{
+		"label": "Dire Jungle",
+		"layout-nr": 1 
+	},
+	{
+		"label": "Radiant Base",
+		"layout-nr": 2 
+	},
+	{
+		"label": "Middle Lane",
+		"layout-nr": 3 
+	},
+	{
+		"label": "Dire Base",
+		"layout-nr": 4 
+	},
+	{
+		"label": "Radiant Jungle",
+		"layout-nr": 5 
+	},
+	{
+		"label": "Bottom Lane",
+		"layout-nr": 6 
+	}
+];
+
+location_to_locationline = 
+{
+
+	"radiant-base": 2,
+	"dire-base": 4,
+
+
+	"top-rune": 1,
+	"bottom-rune": 5,
+
+	"toplane-dire-t1": 0,//legacy
+
+	"toplane-between-t1s": 0,
+	"toplane-between-radiant-t1-t2": 0,
+	"toplane-between-radiant-t2-t3": 0,
+	"toplane-between-dire-t1-t2": 0,
+	"toplane-between-dire-t2-t3": 0,
+
+	"midlane-dire-before-t1": 3,//legacy
+
+	"midlane-between-t1s": 3,
+	"midlane-radiant-between-t1-t2": 3,
+	"midlane-radiant-between-t2-t3": 3,
+	"midlane-dire-between-t1-t2": 3,
+	"midlane-dire-between-t2-t3": 3,
+
+	"botlane-radiant-t1": 6,//legacy
+	"botlane-radiant-before-t1": 6,//legacy
+
+	"botlane-between-t1s": 6,
+	"botlane-radiant-between-t1-t2": 6,
+	"botlane-radiant-between-t2-t3": 6,
+	"botlane-dire-between-t1-t2": 6,
+	"botlane-dire-between-t2-t3": 6,
+
+	"dire-jungle": 1,
+	"radiant-jungle": 5
+};
+
+
 /*
 Timeline configuration
 */
 
 timeline_inset_left = 140;
-timeline_inset_right = 50;
+timeline_inset_right = 10;
 timeline_height = 200;
 timeline_timescale_height = 50;
 timeline_height_inset_factor = 0.9;
@@ -271,22 +517,37 @@ location_coordinates =
 	"radiant-base": new Victor(10, 87),
 	"dire-base": new Victor(90, 13),
 
-
 	"top-rune": new Victor(36, 38),
 	"bottom-rune": new Victor(68, 63),
 
+
+	"toplane-dire-t1": new Victor(18, 13),//legacy
+
 	"toplane-between-t1s": new Victor(13, 30),
-	"toplane-dire-t1": new Victor(18, 13),
+	"toplane-between-radiant-t1-t2": new Victor(13, 48),
+	"toplane-between-radiant-t2-t3": new Victor(13, 65),
+	"toplane-between-dire-t1-t2": new Victor(32, 12),
+	"toplane-between-dire-t2-t3": new Victor(62, 12),
+
+	"midlane-dire-before-t1": new Victor(51, 49),//legacy
 
 	"midlane-between-t1s": new Victor(48, 52),
-	"midlane-dire-before-t1": new Victor(51, 49),
+	"midlane-radiant-between-t1-t2": new Victor(35, 62),
+	"midlane-radiant-between-t2-t3": new Victor(28, 70),
+	"midlane-dire-between-t1-t2": new Victor(59, 42),
+	"midlane-dire-between-t2-t3": new Victor(74, 32),
 
-	"botlane-radiant-t1": new Victor(83, 87),
-	"botlane-radiant-before-t1": new Victor(87, 81),
+	"botlane-radiant-t1": new Victor(83, 87),//legacy
+	"botlane-radiant-before-t1": new Victor(87, 81),//legacy
+
 	"botlane-between-t1s": new Victor(88, 73),
+	"botlane-radiant-between-t1-t2": new Victor(65, 87),
+	"botlane-radiant-between-t2-t3": new Victor(37, 88),
+	"botlane-dire-between-t1-t2": new Victor(90, 55),
+	"botlane-dire-between-t2-t3": new Victor(90, 40),
 
 	"dire-jungle": new Victor(38, 23),
-	"radiant-jungle": new Victor(63, 70)
+	"radiant-jungle": new Victor(60, 78)
 };
 
 icon_size = 5;
@@ -334,12 +595,11 @@ diagram_time_displayed = 240;
 diagram_inset_top = 15;
 diagram_tick_interval = 60;
 
-diagram_event_height_factor = 0.75;
+diagram_event_height_margins = 0.2;
 
 diagram_icon_size = 20;
 
 
-location_to_locationline = {};
 /*
 	Init functions
 Create the D3 elements used for the interface 
@@ -400,13 +660,13 @@ function initTimeline(){
 					.append("svg")
 					.attr({ "id": "timeline-svg",
 						"class": "svg-content",
-						"viewBox": "-"+(timeline_inset_left+pregame_time)+" 0 "+(game_length+timeline_inset_right)+" "+timeline_height});
+						"viewBox": "-"+(timeline_inset_left+pregame_time)+" 0 "+(game_length+pregame_time+timeline_inset_left+timeline_inset_right)+" "+timeline_height});
 	
 	d3_elements["timeline-svg-foreground"] = d3.select("#timeline")
 					.append("svg")
 					.attr({ "id": "timeline-svg-foreground",
 						"class": "svg-content-overlay",
-						"viewBox": "-"+(timeline_inset_left+pregame_time)+" 0 "+(game_length+timeline_inset_right)+" "+timeline_height});
+						"viewBox": "-"+(timeline_inset_left+pregame_time)+" 0 "+(game_length+pregame_time+timeline_inset_left+timeline_inset_right)+" "+timeline_height});
 
 	d3_elements["timeline-svg"].append("svg:rect")
 					.attr({	"id": "timeline-separator",
@@ -1063,7 +1323,7 @@ function updateMapPath(id)
 		group.select("#position-history-past")
 			.attr("d", generateMapLine(unit["position"][segment_id]["timeseries"], function(sample)
 					{
-						if(sample["t"] >= gui_state["cursor-time"] - gui_state["timeline-cursor-width"]/2  && sample["t"] < gui_state["cursor-time"])
+						if(sample["t"] >= gui_state["cursor-time"] - gui_state["timeline-cursor-width"]  && sample["t"] < gui_state["cursor-time"])
 							return true;
 						else
 							return false;
@@ -1072,7 +1332,7 @@ function updateMapPath(id)
 		group.select("#position-history-future")
 			.attr("d", generateMapLine(unit["position"][segment_id]["timeseries"], function(sample)
 					{
-						if(sample["t"] >= gui_state["cursor-time"] && sample["t"] < gui_state["cursor-time"] + gui_state["timeline-cursor-width"]/2)
+						if(sample["t"] >= gui_state["cursor-time"] && sample["t"] < gui_state["cursor-time"] + gui_state["timeline-cursor-width"])
 							return true;
 						else
 							return false;
@@ -1136,60 +1396,7 @@ function initDiagram(){
 	d3_elements["diagram-timescale"] = d3_elements["diagram-background-layer"].append("g")
 		.attr("id", "diagram-timescale");
 
-	gui_state["location-lines"] =
-		[
-			{
-				"label": "Top Lane",
-				"layout-nr": 0 
-			},
-			{
-				"label": "Dire Jungle",
-				"layout-nr": 1 
-			},
-			{
-				"label": "Radiant Base",
-				"layout-nr": 2 
-			},
-			{
-				"label": "Middle Lane",
-				"layout-nr": 3 
-			},
-			{
-				"label": "Dire Base",
-				"layout-nr": 4 
-			},
-			{
-				"label": "Radiant Jungle",
-				"layout-nr": 5 
-			},
-			{
-				"label": "Bottom Lane",
-				"layout-nr": 6 
-			}
-		];
 
-	location_to_locationline = {
-
-				"radiant-base": 2,
-				"dire-base": 4,
-
-
-				"top-rune": 1,
-				"bottom-rune": 5,
-
-				"toplane-between-t1s": 0,
-				"toplane-dire-t1": 0,
-
-				"midlane-between-t1s": 3,
-				"midlane-dire-before-t1": 3,
-
-				"botlane-radiant-t1": 6,
-				"botlane-radiant-before-t1": 6,
-				"botlane-between-t1s": 6,
-
-				"dire-jungle": 1,
-				"radiant-jungle": 5
-			};
 
 	gui_state["location-lines-count"] = 7;
 
@@ -1275,7 +1482,7 @@ function updateDiagram()
 
 
 	var events = d3_elements["diagram-events-layer"].selectAll(".diagram-event").data(
-						d3.entries(replay_data["events"]).filter(function(d){return filterEventsDiagram(d.value)})
+						d3.entries(replay_data["diagram-events"]).filter(function(d){return filterEventsDiagram(d.value)})
 						, function(event_entry){return event_entry.key;});
 
 	events.enter()
@@ -1514,15 +1721,30 @@ function updateDiagramEvent(entry)
 	var start = Math.max(timescale.domain()[0], event["time-start"]);
 	var end = Math.min(timescale.domain()[1], event["time-end"]);
 	var location_line_height = (diagram_height - diagram_inset_top)/gui_state["location-lines-count"];
-	var height = location_line_height*diagram_event_height_factor;
+
+	var height = location_line_height*(1-diagram_event_height_margins)/event["group-size"];
+	var vertical_offset = height*event["group-i"] + (event["group-i"]+1)*location_line_height*(diagram_event_height_margins/(event["group-size"]+1));
 	var background = group.selectAll(".diagram-event-background")
 			.attr({	"class": "diagram-event-background",
 				"x": timescale(start) - timescale((event["time-start"]+event["time-end"])/2),
-				"y": -height/2,
+				"y": -location_line_height/2 + vertical_offset,
 				"width": timescale(end)-timescale(start),
 				"height": height,
 				"stroke-width": (gui_state["selected-event"] == entry.key ? 3 : 0)
 				});
+}
+
+function computeDiagramEventPosition(event_id)
+{
+	var event = replay_data["diagram-events"][event_id];
+	var center_time = getEventTime(event);
+
+	var location_line_height = (diagram_height - diagram_inset_top)/gui_state["location-lines-count"];
+
+	var height = location_line_height*(1-diagram_event_height_margins)/event["group-size"];
+	var vertical_center_offset = height*(event["group-i"]+0.5) + (event["group-i"]+1)*location_line_height*(diagram_event_height_margins/(event["group-size"]+1));
+	
+	return [getDiagramTimeScale()(center_time), getDiagramY(event["location"])-location_line_height/2 +vertical_center_offset];
 }
 
 function createSelectedEvent(event_id)
@@ -1530,7 +1752,7 @@ function createSelectedEvent(event_id)
 	var group = d3.select(this);
 	var icons = group.append("g").attr("id", "icons");
 
-	var list_involved = replay_data["events"][event_id]["involved"];
+	var list_involved = replay_data["diagram-events"][event_id]["involved"];
 	if(list_involved)
 	{
 		var left_offset = diagram_icon_size * list_involved.length /2;
@@ -1568,11 +1790,11 @@ function getEventTime(event)
 
 function updateSelectedEvent(event_id)
 {
-	var event = replay_data["events"][event_id];
+	var event = replay_data["diagram-events"][event_id];
 	var group = d3.select(this);
 	var center_time = getEventTime(event);
-	
-	group.select("#icons").attr("transform", "translate("+getDiagramTimeScale()(center_time)+","+getDiagramY(event["location"])+")");
+	var position = computeDiagramEventPosition(event_id);
+	group.select("#icons").attr("transform", "translate("+position[0]+","+position[1]+")");
 	
 }
 
@@ -1587,6 +1809,9 @@ function deleteDiagramEvent(entry)
 function getDiagramY(location)
 {
 	var location_line_height = (diagram_height - diagram_inset_top)/gui_state["location-lines-count"];
+
+	if(!location_to_locationline.hasOwnProperty(location))
+		console.log("unknown "+location);
 
 	return (location_to_locationline[location]+0.5)*location_line_height + diagram_inset_top;
 }
@@ -1621,11 +1846,11 @@ function mapOnUnitClick(entry)
 function diagramEventOnClick(event_id)
 {
 	gui_state["selected-event"] = event_id;
-	if(replay_data["events"][gui_state["selected-event"]].hasOwnProperty("involved"))
-		gui_state["visible-unit-histories"] = replay_data["events"][gui_state["selected-event"]]["involved"];
+	if(replay_data["diagram-events"][gui_state["selected-event"]].hasOwnProperty("involved"))
+		gui_state["visible-unit-histories"] = replay_data["diagram-events"][gui_state["selected-event"]]["involved"];
 
 	var centered_time = 0;
-	var event = replay_data["events"][gui_state["selected-event"]];
+	var event = replay_data["diagram-events"][gui_state["selected-event"]];
 	var center_time = getEventTime(event);	
 	gui_state["cursor-time"] = center_time;
 
