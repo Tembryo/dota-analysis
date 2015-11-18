@@ -3,6 +3,7 @@ import json
 import math
 from dota2_area_boxes_ver2 import area_matrix, areas
 from area_assignment import MapPlot
+import re
 
 position_input_filename = "replay_data.csv"
 events_input_filename = "events_replay_data.csv"
@@ -42,10 +43,13 @@ g = open(output_filename,'wb')
 row_count = sum(1 for row in position_reader)
 print row_count
 
-
 ###############################
 # set up some initial variables
 ###############################
+
+kills_namespace =10000
+fights_namespace =11000
+normal_namespace = 12000
 
 heros = {"spirit_breaker":"radiant","queenofpain":"radiant", "antimage":"radiant","dazzle":"radiant","dark_seer":"radiant", \
 "undying":"dire","witch_doctor":"dire","necrolyte":"dire","tusk": "dire", "alchemist":"dire"}
@@ -86,7 +90,6 @@ hero_deaths = {"spirit_breaker":[],"queenofpain":[], "antimage":[],"dazzle":[],"
 f = open(events_input_filename,'rb')
 reader = csv.reader(f)
 
-kills_namespace =10000
 events ={}
 k=0
 for i, row in enumerate(reader):
@@ -137,7 +140,7 @@ Num_Players = 10
 e = open(position_input_filename,'rb')
 reader = csv.reader(e)
 
-Step = 10  #Step size of 300 gives samples of roughly 5 second intervals
+Step = 50  #Step size of 300 gives samples of roughly 5 second intervals
 for i, row in enumerate(reader):
 	if (i>0) and (i % Step==0):
 		tmp_time = float(row[Col_per_player*Num_Players])-pregame_start_time
@@ -170,8 +173,6 @@ for key in heros:
 #################################################################
 # extract normal events such as jungling, laning, fountain-visit
 ################################################################
-
-normal_namespace = 12000
 
 summary_to_events_mapping = {"RS":"radiant-secret","DS":"dire-secret","RJ":"radiant-jungle","DJ":"dire-jungle","T1":"toplane-between-radiant-t2-t3","T2":"toplane-between-radiant-t1-t2","T3":"toplane-between-t1s", \
 "T4":"toplane-between-dire-t1-t2","T5":"toplane-between-dire-t2-t3","M1":"midlane-radiant-between-t2-t3","M2":"midlane-radiant-between-t1-t2",\
@@ -293,22 +294,44 @@ for key in hero_id:
 f = open(events_input_filename,'rb')
 reader = csv.reader(f)
 
-fights_namespace =11000
 k=0
 for i, row in enumerate(reader):
 	# for each row check if some damage occured (if a non-hero character dies sometimes you get null in row[2])
 	if row[1]=="DOTA_COMBATLOG_DAMAGE" and row[2]!="null":
-		# now check if the damage was between two heros
+		# now check if the damage was between two heros 
 		attacker = row[2] 
-		split_attacker_string = attacker.split("_")
+		split_attacker_string = re.split("_| ",attacker)
 		victim = row[3] 
-		split_victim_string = victim.split("_")
+		split_victim_string = re.split("_| ",victim)
 		if (split_attacker_string[2] == "hero") and (split_victim_string[2] == "hero"):
 			#record the time that the damage occured
-			time_start = row[0]
+			timestamp = float(row[0])
+			# handle case where attacker and victim are illusions
+			if (split_attacker_string[-1]=="(illusion)") and (split_victim_string[-1]=="(illusion)"):
+				attacker_name_list =split_attacker_string[3:-1]
+				victim_name_list =split_victim_string[3:-1]
+				# handle attacker illusions case
+			elif (split_attacker_string[-1]=="(illusion)"):
+				attacker_name_list =split_attacker_string[3:-1]
+				victim_name_list =split_victim_string[3:]
+				# handle victim illusions case
+			elif (split_victim_string[-1]=="(illusion)"):
+				attacker_name_list =split_attacker_string[3:]
+				victim_name_list =split_victim_string[3:-1]
+			else:
+				attacker_name_list =split_attacker_string[3:]
+				victim_name_list =split_victim_string[3:]
+			#join the names up
+			s = "_"
+			attacker_name = s.join(attacker_name_list)
+			attacker_side = heros[attacker_name]
+			#now for the victim_name
+			victim_name = s.join(victim_name_list)
+			victim_side = heros[victim_name]
+			#print attacker_name + " attacked " + victim_name + " at " + str(timestamp)
 
 
-##################################
+################################
 # extract gold and exp time series
 ##################################
 
