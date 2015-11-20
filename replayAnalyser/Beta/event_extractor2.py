@@ -4,6 +4,7 @@ import math
 from dota2_area_boxes_ver2 import area_matrix, areas
 from area_assignment import MapPlot
 import re
+import numpy as np
 
 position_input_filename = "replay_data.csv"
 events_input_filename = "events_replay_data.csv"
@@ -284,56 +285,18 @@ for key in hero_id:
 			events[id_num] = new_event
 			k=k+1
 
-######################################################################################################
-# extract the fight events
-# fight: one or more heros doing damage to another hero on the opposite team with total damage greater
-# than x percentage of the total hp at the start of the fight (first hero to hero damage)
-#######################################################################################################
-
-
-f = open(events_input_filename,'rb')
-reader = csv.reader(f)
-
-k=0
-for i, row in enumerate(reader):
-	# for each row check if some damage occured (if a non-hero character dies sometimes you get null in row[2])
-	if row[1]=="DOTA_COMBATLOG_DAMAGE" and row[2]!="null":
-		# now check if the damage was between two heros 
-		attacker = row[2] 
-		split_attacker_string = re.split("_| ",attacker)
-		victim = row[3] 
-		split_victim_string = re.split("_| ",victim)
-		if (split_attacker_string[2] == "hero") and (split_victim_string[2] == "hero"):
-			#record the time that the damage occured
-			timestamp = float(row[0])
-			# handle case where attacker and victim are illusions
-			if (split_attacker_string[-1]=="(illusion)") and (split_victim_string[-1]=="(illusion)"):
-				attacker_name_list =split_attacker_string[3:-1]
-				victim_name_list =split_victim_string[3:-1]
-				# handle attacker illusions case
-			elif (split_attacker_string[-1]=="(illusion)"):
-				attacker_name_list =split_attacker_string[3:-1]
-				victim_name_list =split_victim_string[3:]
-				# handle victim illusions case
-			elif (split_victim_string[-1]=="(illusion)"):
-				attacker_name_list =split_attacker_string[3:]
-				victim_name_list =split_victim_string[3:-1]
-			else:
-				attacker_name_list =split_attacker_string[3:]
-				victim_name_list =split_victim_string[3:]
-			#join the names up
-			s = "_"
-			attacker_name = s.join(attacker_name_list)
-			attacker_side = heros[attacker_name]
-			#now for the victim_name
-			victim_name = s.join(victim_name_list)
-			victim_side = heros[victim_name]
-			#print attacker_name + " attacked " + victim_name + " at " + str(timestamp)
-
-
 ################################
 # extract gold and exp time series
 ##################################
+
+###################
+#Hero experience #
+###################
+
+#Hero Level, Total experience required to reach level	
+
+xp_next_level = {1:200,2:300,3:400,4:500,5:600,6:600,7:600,8:1200,9:1000,10:600,11:2200,12:800,13:1400,14:1500,15:1600,16:1700,17:1800,18:1900,19:2000,20:2100,21:2200,22:2300,23:2400,24:2500,25:"-"}
+xp_cumulative = {1:0,2:200,3:500,4:900,5:1400,6:2000,7:2600,8:3200,9:4400,10:5400,11:6000,12:8200,13:9000,14:10400,15:11900,16:13500,17:15200,18:17000,19:18900,20:20900,21:23000,22:25200,23:27500,24:29900,25:32400}
 
 # make dictionaries to keep the gold and xp for each hero
 hero_gold = {}
@@ -424,12 +387,161 @@ for key in heros:
 		total = total + v[0]
 		hero_cumulative_gold[key].append([total,v[1]]) 
 
+hero_level = {}
+for key in heros:
+	hero_level[key] = []
+
+for key in heros:
+	level = 1
+	for v in hero_cumulative_xp[key]:
+		if (v[0] > xp_cumulative[level]):
+			level = level + 1
+			hero_level[key].append([level,v[1]])
 
 gold_samples = [{"t": x[1],"v":[x[0]]} for x in gold_difference]
 
 exp_samples = [{"t": x[1],"v":[x[0]]} for x in xp_difference]
 
 timeseries = {"gold-advantage":{"format":"samples","samples":gold_samples},"exp-advantage":{"format":"samples","samples":exp_samples}}
+
+######################################################################################################
+# extract the fight events
+# fight: one or more heros doing damage to another hero on the opposite team with total damage greater
+# than x percentage of the total hp at the start of the fight (first hero to hero damage)
+#######################################################################################################
+
+hero_hp_per_level = {"dragon_knight":{1:511,2:549,3:606,4:663,5:720,6:777,7:815,8:872,9:929,10:986,11:1043,12:1081,13:1138,14:1195,15:1252,16:1309,17:1347,18:1404,19:1461,20:1518,21:1575,22:1613,23:1670,24:1727,25:1784}}
+
+f = open(events_input_filename,'rb')
+reader = csv.reader(f)
+
+import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+def fightDistMetric(attack1,attack2,radius,w_space1,w_space2,w_time):
+	d = math.sqrt((attack1.v[0]-attack2.v[0])**2)
+	if d < radius:
+		w_space = w_space1
+	else:
+		w_space = w_space2
+
+	dist = w_space*d + w_time*(math.sqrt((attack1.t-attack2.t)**2)) 
+	return dist
+
+class Attack:
+
+	def __init__(self,attacker,side,victim,damage,v,t):
+		self.attacker = attacker
+		self.side = side
+		self.victim = victim
+		self.damage = damage
+		self.v = v
+		self.t = t
+
+class Fight:
+
+	def __init__(self,involved,time_start,time_end,attack_list):
+		self.involed = involved
+		self.time_start
+		self.time_end
+		self.attack_list
+
+#idea is to segment fights according to continuity between heros involved in the fights and the (x,y) coordinates in which they are fighting
+# i.e., if they are doing damage to each other and are within spell range 800 they are probably in the same fight
+k=0
+bin_size = 1
+prior_timestamp = math.floor(pregame_start_time - match_start_time)
+damage_total = 0
+damage_log = []
+attack_list =[]
+for i, row in enumerate(reader):
+	# for each row check if some damage occured (if a non-hero character dies sometimes you get null in row[2])
+	absolute_time  = float(row[0])
+	timestamp = absolute_time-match_start_time
+	if (absolute_time-pregame_start_time > 0) and (absolute_time <= 1000 ):  #only consider data in replay file that occur during actual match
+		# if the row does not record damage and the timestamp is 1 second older than the prior timestamp dump the current damage total to the damage log
+		if (timestamp - prior_timestamp > bin_size):
+			damage_log.append([damage_total,min(timestamp,prior_timestamp+1)])
+			damage_total = 0
+			prior_timestamp = timestamp
+		#if the row records damage
+		if row[1]=="DOTA_COMBATLOG_DAMAGE" and row[2]!="null":
+			# now check if the damage was between two heros 
+			attacker = row[2] 
+			split_attacker_string = re.split("_| ",attacker)
+			victim = row[3] 
+			split_victim_string = re.split("_| ",victim)
+			if (split_attacker_string[2] == "hero") and (split_victim_string[2] == "hero"):
+				# handle case where attacker and victim are illusions
+				if (split_attacker_string[-1]=="(illusion)") and (split_victim_string[-1]=="(illusion)"):
+					attacker_name_list =split_attacker_string[3:-1]
+					victim_name_list =split_victim_string[3:-1]
+					# handle attacker illusions case
+				elif (split_attacker_string[-1]=="(illusion)"):
+					attacker_name_list =split_attacker_string[3:-1]
+					victim_name_list =split_victim_string[3:]
+					# handle victim illusions case
+				elif (split_victim_string[-1]=="(illusion)"):
+					attacker_name_list =split_attacker_string[3:]
+					victim_name_list =split_victim_string[3:-1]
+				else:
+					attacker_name_list =split_attacker_string[3:]
+					victim_name_list =split_victim_string[3:]
+				#join the names up
+				s = "_"
+				attacker_name = s.join(attacker_name_list)
+				attacker_side = heros[attacker_name]
+				#now for the victim_name
+				victim_name = s.join(victim_name_list)
+				victim_side = heros[victim_name]
+				shifted_time = [(t-timestamp)**2 for t in t_vec ]
+				index = np.argmin(shifted_time)
+				damage_total = damage_total + float(row[5])
+
+
+				new_attack = Attack(attacker_name,side,victim_name,float(row[5]),v_mat[attacker_name][index],timestamp)
+				attack_list.append(new_attack)
+
+				#print t_vec[index]
+				#print attacker_name + " at " + str(v_mat[attacker_name][index]) + " attacked " + victim_name + " at " + str(v_mat[victim_name][index])  + " did " + str(row[5]) + " damage  at " + str(timestamp)  
+				# xs = v_mat[attacker_name][index][0]
+				# ys = v_mat[attacker_name][index][1]
+				# zs = math.floor(timestamp)
+				# if float(row[5]) > 50:
+				# 	c = 'r'
+				# 	m = 'o'
+				# else:
+				# 	c = 'b'
+				# 	m = '^'
+				# ax.scatter(xs,ys,zs,c=c,marker=m)
+
+
+
+# ax.set_xlabel('X')
+# ax.set_ylabel('Y')
+# ax.set_zlabel('Time')
+
+# plt.show()
+
+n = len(attack_list)
+threshold = 100
+D = np.zeros(shape=(n,n))
+for i in range(0,n):
+	for j in range(i+1,n):
+		d = fightDistMetric(attack_list[i],attack_list[j],500,0.03,0.3,30)
+		if d < threshold:
+			D[i,j] = 1
+			D[j,i] = 1
+
+# the highly connected nodes correspond to the dark seer ion shell spell!
+print D[0:10,0:10]
+
+d = D.sum(axis=1)
+print d
 
 ########################################################
 # form the dictionary and write the data to a json file
