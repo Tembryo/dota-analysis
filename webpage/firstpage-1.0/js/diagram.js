@@ -681,7 +681,7 @@ function timedUpdate()
 	}
 	updateVisualisation();
 
-	//setTimeout(timedUpdate, update_interval);
+	setTimeout(timedUpdate, update_interval);
 }
 
 function updateVisualisation()
@@ -693,7 +693,7 @@ function updateVisualisation()
 
 
 function initLegend(){
-	loadSVG("img/legend.svg", "legend", function(){});
+	//loadSVG("img/legend.svg", "legend", function(){});
 }
 
 
@@ -1013,6 +1013,12 @@ function initMap(){
 					})
 				.on("click", mapOnBackgroundClick);
 
+	d3_elements["map-svg"].append("svg:text")
+				.attr({	"id": "map-time",
+					"class": "map-time",
+					"transform": "translate(50, 5)"});
+
+
 	if(DEBUG){
 		d3_elements["map-svg"].selectAll("location").data(d3.entries(location_coordinates), function(d){return d.key;})
 			.enter()
@@ -1035,6 +1041,10 @@ function initMap(){
 }
 
 function updateMap(){
+
+	d3_elements["map-svg"].select("#map-time")
+			.text(formatTime(gui_state["cursor-time"]));
+
 	var map_events = d3_elements["map-svg"].select("#events").selectAll(".event")
 				.data(d3.entries(replay_data["events"]).filter(function(d){return filterEventsMap(d.value)}),
 					function(entry){
@@ -1184,7 +1194,7 @@ function createMapEvent(event){
 		break;
 	case "movement":
 		location.attr({
-			"fill": color_scale_fights(colors_blues[0]),
+			"fill": "lightblue"//color_scale_fights(colors_blues[0]),
 			});
 		break;
 	case "fountain-visit":
@@ -1792,7 +1802,7 @@ function createDiagramEvent(entry)
 	case "movement":
 		group.selectAll(".diagram-event-background")
 			.attr({
-			"fill": color_scale_fights(colors_blues[0]),
+			"fill": "lightblue"//color_scale_fights(colors_blues[0]),
 			});
 		break;
 	case "fountain-visit":
@@ -2054,6 +2064,7 @@ function formatTime(time)
 		time = -time;
 		prefix= "-";
 	}
+	time = Math.floor(time);
 	return prefix+Math.trunc(time/60)+":"+(time - 60*Math.trunc(time/60));
 }
 
@@ -2114,6 +2125,11 @@ function diagramOnClickScrollRight(d){
 }
 
 
+function toggleAutoScroll()
+{
+	gui_state["autoscroll-enabled"] = !gui_state["autoscroll-enabled"];
+	d3.select("#toggle-autoscroll").text(gui_state["autoscroll-enabled"]?"Pause":"Play");
+}
 
 function togglePlayer(player)
 {

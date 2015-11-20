@@ -266,3 +266,12 @@
 	fill: green;
 	opacity: 0;
 }
+
+.map-time
+{	
+	fill: white;
+	text-anchor: middle;
+	font-family: sans-serif;
+	font-size: 5px;
+
+}
