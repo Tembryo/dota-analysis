@@ -23,6 +23,8 @@ function buildDataIndices()
 		replay_data["events"][event_id]["id"] = event_id;
 	}
 
+	//sort events
+
 	replay_data["indices"] = {};
 	replay_data["indices"]["kills"] = [];
 	replay_data["indices"]["fights"] = [];
@@ -61,7 +63,7 @@ function buildDataIndices()
 	}
 
 	for (var entity_id in replay_data["indices"]["by-entity"]) {
-		replay_data["indices"]["by-entity"][entity_id].sort(compareEventsByTime);
+		replay_data["indices"]["by-entity"][entity_id].sort(compareEventKeysByTime);
 	}
 
 	/* By location line*/
@@ -255,6 +257,8 @@ function compareEventsByTime(a, b)
 		return -1;
 	else if(time_a > time_b)
 		return 1;
+	else
+		return 0;
 }
 
 function compareEventKeysByTime(a, b)
@@ -400,7 +404,7 @@ function getTimeseriesSamples(timeseries, filter_func){
 
 // set up internal display state
 gui_state = {
-	"autoscroll-enabled": true,
+	"autoscroll-enabled": false,
 	"autoscroll-factor": 4,
 	"cursor-time": 0,
 
@@ -653,7 +657,7 @@ Create the D3 elements used for the interface
 	loadSVG("img/timeline.svg", "timeline", function(){});
 }*/
 
-update_interval = 200; // in milliseconds
+update_interval = 100; // in milliseconds
 
 function initVisualisation(){
 	initTimeline();
@@ -677,7 +681,7 @@ function timedUpdate()
 	}
 	updateVisualisation();
 
-	setTimeout(timedUpdate, update_interval);
+	//setTimeout(timedUpdate, update_interval);
 }
 
 function updateVisualisation()
@@ -1822,7 +1826,14 @@ function updateDiagramEvent(entry)
 	var group = d3.select(this);
 	var center_time = getEventTime(event);
 	
-	group.attr("transform", "translate("+getDiagramTimeScale()(center_time)+","+getDiagramY(event["location"])+")");
+	if(event.hasOwnProperty("location"))
+	{
+		group.attr("transform", "translate("+getDiagramTimeScale()(center_time)+","+getDiagramY(event["location"])+")");
+	}
+	else
+	{
+		group.attr("transform", "translate("+getDiagramTimeScale()(center_time)+","+getDiagramY("midlane-betweeen-t1s")+")");
+	}
 
 	var timescale = getDiagramTimeScale();
 	var start = Math.max(timescale.domain()[0], event["time-start"]);
@@ -1940,14 +1951,18 @@ function updateDiagramHistory(id)
 			.y(function(d) {return getDiagramY(d["v"]);})
 			.interpolate('basis');
 
+
 	var events = replay_data["indices"]["by-entity"][id].filter(filterEventIDsDiagram);
 
 	var samples = [];
-
 	var diagram_timescale = getDiagramTimeScale();
 	for(var event_i in events)
 	{
 		var event = replay_data["events"][events[event_i]];
+		console.log(event);
+		if(gui_state["diagram-events"].indexOf(event["type"]) == -1)
+			continue;
+
 		if(event.hasOwnProperty("time"))
 		{
 			samples.push({
@@ -1972,11 +1987,13 @@ function updateDiagramHistory(id)
 				event["time-end"] > diagram_timescale.domain()[1])
 			{
 				sample_left["t"] = diagram_timescale.domain()[1];
+				console.log("adjusted right");
 			}
 			samples.push(sample_left);
 			samples.push(sample_right);
 		}
 	}
+
 	group.select("#history-line")
 		.attr("d", line_formatter(samples));
 
@@ -2048,12 +2065,14 @@ function mapOnBackgroundClick()
 {
 	gui_state["visible-unit-histories"] = [];
 	gui_state["highlighted-unit"] = null;
+	updateVisualisation();
 }
 
 function mapOnUnitClick(entry)
 {
 	gui_state["visible-unit-histories"] = [entry.key];
 	gui_state["highlighted-unit"] = entry.key;
+	updateVisualisation();
 }
 
 
