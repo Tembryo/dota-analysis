@@ -1,7 +1,7 @@
 api:
   build: api
   ports:
-    - "42100:80"
+    - "42000:42000"
   volumes:
     - ./storage/api:/data
   links:
