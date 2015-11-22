@@ -1,0 +1,54 @@
+{
+    "header": {
+        "players": {
+            "0": {
+                "name": "a"
+            },
+            "1": {
+                "name": "b"
+            },
+            "2": {
+                "name": "b"
+            },
+            "3": {
+                "name": "a"
+            },
+            "4": {
+                "name": "b"
+            },
+            "5": {
+                "name": "b"
+            },
+            "6": {
+                "name": "a"
+            },
+            "7": {
+                "name": "b"
+            },
+            "8": {
+                "name": "b"
+            },
+            "9": {
+                "name": "b"
+            }
+        },
+        "length": 2264.0,
+        "draft": {},
+        "id": 12342,
+        "teams": {
+            "0": {
+                "short": "empty",
+                "side": "radiant",
+                "name": "empty"
+            },
+            "1": {
+                "short": "empty",
+                "side": "dire",
+                "name": "empty"
+            }
+        }
+    },
+    "events": [],
+    "timeseries": [],
+    "entities": []
+}

@@ -5,6 +5,7 @@ from dota2_area_boxes_ver2 import area_matrix, areas
 from area_assignment import MapPlot
 import re
 import numpy as np
+import scipy.sparse 	
 
 position_input_filename = "replay_data.csv"
 events_input_filename = "events_replay_data.csv"
@@ -463,7 +464,7 @@ for i, row in enumerate(reader):
 	# for each row check if some damage occured (if a non-hero character dies sometimes you get null in row[2])
 	absolute_time  = float(row[0])
 	timestamp = absolute_time-match_start_time
-	if (absolute_time-pregame_start_time > 0) and (absolute_time <= 800 ):  #only consider data in replay file that occur during actual match
+	if (absolute_time-pregame_start_time > 0) and (absolute_time <= match_end_time ):  #only consider data in replay file that occur during actual match
 		# if the row does not record damage and the timestamp is 1 second older than the prior timestamp dump the current damage total to the damage log
 		if (timestamp - prior_timestamp > bin_size):
 			damage_log.append([damage_total,min(timestamp,prior_timestamp+1)])
@@ -508,7 +509,7 @@ for i, row in enumerate(reader):
 				attack_list.append(new_attack)
 
 				#print t_vec[index]
-# 				print attacker_name + " at " + str(v_mat[attacker_name][index]) + " attacked " + victim_name + " at " + str(v_mat[victim_name][index])  + " did " + str(row[5]) + " damage  at " + str(timestamp)  
+				#print attacker_name + " at " + str(v_mat[attacker_name][index]) + " attacked " + victim_name + " at " + str(v_mat[victim_name][index])  + " did " + str(row[5]) + " damage  at " + str(timestamp)  
 # 				xs = v_mat[attacker_name][index][0]
 # 				ys = v_mat[attacker_name][index][1]
 # 				zs = math.floor(timestamp)
@@ -528,8 +529,8 @@ for i, row in enumerate(reader):
 
 # plt.show()
 
-fig = plt.figure()
-ax = fig.gca(projection='3d')
+# fig = plt.figure()
+# ax = fig.gca(projection='3d')
 
 n = len(attack_list)
 threshold = 100
@@ -541,21 +542,60 @@ for i in range(0,n):
 			A[i,j] = 1
 			A[j,i] = 1
 			#plot line on figure
-			xs = [attack_list[i].v[0],attack_list[j].v[0]]
-			ys = [attack_list[i].v[1],attack_list[j].v[1]]
-			zs = [attack_list[i].t,attack_list[j].t]
-			ax.plot(xs, ys, zs, label='attacks')
+# 			xs = [attack_list[i].v[0],attack_list[j].v[0]]
+# 			ys = [attack_list[i].v[1],attack_list[j].v[1]]
+# 			zs = [attack_list[i].t,attack_list[j].t]
+# 			ax.plot(xs, ys, zs, label='attacks')
 
-plt.show()
+# plt.show()
 
-d = A.sum(axis=1)
-D = np.diag(d)
-L = A-D
+# d = A.sum(axis=1)
+# D = np.diag(d)
+# L = A-D
 
-print L[0:10,0:10]
-w, v = np.linalg.eig(L)
-w_eps = [ 1 for i in w if abs(i) < 0.001 ]
-print sum(w_eps)
+# print L[0:10,0:10]
+# w, v = np.linalg.eig(L)
+# w_eps = [ 1 for i in w if abs(i) < 0.001 ]
+# print sum(w_eps)
+
+n_components, labels = scipy.sparse.csgraph.connected_components(A, directed=False, return_labels=True)
+print n_components
+print labels
+
+Fight_list = []
+#for each fight make a list of attacks
+for i in range(0,n_components):
+	Fight_list.append([ attack_list[j] for j, x in enumerate(labels) if x ==i ])
+
+damage_threshold = 150
+k=0
+for fight in Fight_list:
+	involved =set([])
+	time_start = match_end_time
+	time_end = pregame_start_time - match_start_time
+	total_damage = 0
+	for attack in fight:
+		id1 = hero_id[attack.attacker]
+		id1_set = set([id1])
+		id2 = hero_id[attack.victim]
+		id2_set = set([id2])
+		involved.update(id1_set)
+		involved.update(id2_set)
+		print attack.attacker, attack.victim 
+		total_damage = total_damage + attack.damage
+		time_start = min(time_start,attack.t)
+		time_end = max(time_end,attack.t)
+	involved = list(involved)
+	if total_damage > damage_threshold:
+		id_num = fights_namespace + k
+		events[id_num] = {"type":"fight","involved":involved,"time-start":time_start,"time-end":time_end,"intensity":"battle"}
+		k=k+1
+
+
+
+	#print involved
+	#print total_damage
+	#print time_start, time_end
 
 
 ########################################################
