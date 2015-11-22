@@ -458,11 +458,12 @@ prior_timestamp = math.floor(pregame_start_time - match_start_time)
 damage_total = 0
 damage_log = []
 attack_list =[]
+
 for i, row in enumerate(reader):
 	# for each row check if some damage occured (if a non-hero character dies sometimes you get null in row[2])
 	absolute_time  = float(row[0])
 	timestamp = absolute_time-match_start_time
-	if (absolute_time-pregame_start_time > 0) and (absolute_time <= 1000 ):  #only consider data in replay file that occur during actual match
+	if (absolute_time-pregame_start_time > 0) and (absolute_time <= 800 ):  #only consider data in replay file that occur during actual match
 		# if the row does not record damage and the timestamp is 1 second older than the prior timestamp dump the current damage total to the damage log
 		if (timestamp - prior_timestamp > bin_size):
 			damage_log.append([damage_total,min(timestamp,prior_timestamp+1)])
@@ -507,17 +508,17 @@ for i, row in enumerate(reader):
 				attack_list.append(new_attack)
 
 				#print t_vec[index]
-				#print attacker_name + " at " + str(v_mat[attacker_name][index]) + " attacked " + victim_name + " at " + str(v_mat[victim_name][index])  + " did " + str(row[5]) + " damage  at " + str(timestamp)  
-				# xs = v_mat[attacker_name][index][0]
-				# ys = v_mat[attacker_name][index][1]
-				# zs = math.floor(timestamp)
-				# if float(row[5]) > 50:
-				# 	c = 'r'
-				# 	m = 'o'
-				# else:
-				# 	c = 'b'
-				# 	m = '^'
-				# ax.scatter(xs,ys,zs,c=c,marker=m)
+# 				print attacker_name + " at " + str(v_mat[attacker_name][index]) + " attacked " + victim_name + " at " + str(v_mat[victim_name][index])  + " did " + str(row[5]) + " damage  at " + str(timestamp)  
+# 				xs = v_mat[attacker_name][index][0]
+# 				ys = v_mat[attacker_name][index][1]
+# 				zs = math.floor(timestamp)
+# 				if float(row[5]) > 50:
+# 					c = 'r'
+# 					m = 'o'
+# 				else:
+# 					c = 'b'
+# 					m = '^'
+# 				ax.scatter(xs,ys,zs,c=c,marker=m)
 
 
 
@@ -527,21 +528,35 @@ for i, row in enumerate(reader):
 
 # plt.show()
 
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+
 n = len(attack_list)
 threshold = 100
-D = np.zeros(shape=(n,n))
+A = np.zeros(shape=(n,n))
 for i in range(0,n):
 	for j in range(i+1,n):
-		d = fightDistMetric(attack_list[i],attack_list[j],500,0.03,0.3,30)
+		d = fightDistMetric(attack_list[i],attack_list[j],500,0.03,0.3,10)
 		if d < threshold:
-			D[i,j] = 1
-			D[j,i] = 1
+			A[i,j] = 1
+			A[j,i] = 1
+			#plot line on figure
+			xs = [attack_list[i].v[0],attack_list[j].v[0]]
+			ys = [attack_list[i].v[1],attack_list[j].v[1]]
+			zs = [attack_list[i].t,attack_list[j].t]
+			ax.plot(xs, ys, zs, label='attacks')
 
-# the highly connected nodes correspond to the dark seer ion shell spell!
-print D[0:10,0:10]
+plt.show()
 
-d = D.sum(axis=1)
-print d
+d = A.sum(axis=1)
+D = np.diag(d)
+L = A-D
+
+print L[0:10,0:10]
+w, v = np.linalg.eig(L)
+w_eps = [ 1 for i in w if abs(i) < 0.001 ]
+print sum(w_eps)
+
 
 ########################################################
 # form the dictionary and write the data to a json file
