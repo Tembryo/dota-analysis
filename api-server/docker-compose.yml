@@ -1,0 +1,14 @@
+api:
+  build: api
+  ports:
+    - "42000:42000"
+  volumes:
+    - ./storage/api:/data
+  links:
+    - database
+database:
+  build: database
+  volumes:
+    - ./storage/db:/data/db
+  ports:
+    - "42200:42200"

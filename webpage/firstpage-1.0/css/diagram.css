@@ -195,11 +195,11 @@
 }
 
 .timeline-kill.radiant{
-	fill: green;
+	fill: red;
 }
 
 .timeline-kill.dire{
-	fill: red;
+	fill: green;
 }
 
 #sub-timeline-gold-axis path {
@@ -226,7 +226,8 @@
 
 #diagram-cursor {
 	fill: black;
-	opacity: 0.2
+	opacity: 0.2;
+	pointer-events: none;
 }
 
 .diagram-time-tick-label{
@@ -239,7 +240,7 @@
 .diagram-time-tick-line{
     	stroke: black;
       	stroke-width: 1px;
-	stroke-dasharray: 10px,10px;
+	stroke-dasharray: 5px,5px;
 }
 
 .diagram-location-line-label{
