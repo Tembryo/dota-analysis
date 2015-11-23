@@ -12,26 +12,44 @@ import java.util.Map;
 
 public class OutputGenerator {
 	BufferedWriter writer;
+	BufferedWriter header_writer;
 	BufferedWriter event_writer;
 	List<String> key_order;
 	public OutputGenerator(String filename_out) {
 		try {
 		File file = new File(filename_out);
 		File file_events = new File("events_"+filename_out);
+		File file_header = new File("header_"+filename_out);
 		FileWriter fw;
 		FileWriter fw_events;
+		FileWriter fw_header;
 	
 		fw = new FileWriter(file);
 		fw_events = new FileWriter(file_events);
+		fw_header = new FileWriter(file_header);
 
 		 writer = new BufferedWriter(fw);
 		 event_writer = new BufferedWriter(fw_events);
+		 header_writer = new BufferedWriter(fw_header);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
+	public void writeGameData(int game_id, String radiant_team, String dire_team, String winner){
+
+		try {
+			header_writer.write("ID, "+game_id+"\n");
+			header_writer.write("TEAM_TAG_RADIANT, "+radiant_team+"\n");
+			header_writer.write("TEAM_TAG_DIRE, "+dire_team+"\n");
+			header_writer.write("WINNER, "+winner+"\n");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	public void init(Map<String, Double> data_fields) {
 		key_order = new LinkedList<String>();
 		
@@ -95,10 +113,25 @@ public class OutputGenerator {
 			writer.close();
 			event_writer.flush();
 			event_writer.close();
+			header_writer.flush();
+			header_writer.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
+	}
+
+	public void writePlayerInfo(int i, String playerName, long steamid, String heroName, int gameTeam) {
+		try {
+			header_writer.write("PLAYER, "+i+", "
+								+playerName+", "
+								+steamid+", "
+								+heroName+", "
+								+gameTeam+"\n");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
