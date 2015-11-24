@@ -1,8 +1,10 @@
 api:
   build: .
   ports:
-    - "42000:42000"
+    - "80:42000"
   volumes:
     - ../storage/api:/data
   external_links:
     - database-container:database
+  environment:
+    VIRTUAL_HOST: tembryo.com/node-host
