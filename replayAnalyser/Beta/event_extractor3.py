@@ -4,6 +4,7 @@ import math
 import re
 import numpy as np
 import scipy.sparse 
+import sys
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from dota2_area_boxes_ver2 import area_matrix, areas
@@ -12,12 +13,13 @@ events = {}
 
 class Match:
 
-	def __init__(self,header_input_filename,position_input_filename,events_input_filename,output_filename):
+	def __init__(self,match_id):
 		# files where the replay data is stored
-		self.header_input_filename = header_input_filename
-		self.position_input_filename = position_input_filename
-		self.events_input_filename = events_input_filename
-		self.output_filename = output_filename
+		self.match_id = match_id
+		self.header_input_filename = "parsedReplays/"+str(match_id)+"/header.csv"
+		self.position_input_filename = "parsedReplays/"+str(match_id)+"/trajectories.csv"
+		self.events_input_filename = "parsedReplays/"+str(match_id)+"/events.csv"
+		self.output_filename = "analysisOutput/"+str(match_id)+".json"
 		# variables that determine how the data is analysed - need to include all parameters
 		self.hero_namespace = 100
 		self.kills_namespace = 10000
@@ -45,22 +47,16 @@ class Match:
 
 
 		for i, row in enumerate(header_reader):
-			if row[0].upper() == "ID":
-				match_id = int(row[1])
 			if row[0].upper() == "TEAM_TAG_RADIANT":
 				if row[1] == " ":
 					teams[0]["name"] = "empty"
-					teams[0]["short"] = "empty"	
 				else:			
 					teams[0]["name"] = row[1]
-					teams[0]["short"] = row[1]
 			if row[0].upper() == "TEAM_TAG_DIRE":
 				if row[1] == " ":
 					teams[1]["name"] = "empty"
-					teams[1]["short"] = "empty"	
 				else:			
 					teams[1]["name"] = row[1]
-					teams[1]["short"] = row[1]
 			if row[0].upper() == "PLAYER":
 				# extract the player's name
 				players[int(row[1])] = {}		
@@ -100,14 +96,13 @@ class Match:
 		f.close()
 
 		# calculate the length of the match (time between states 5 and 6)
-		match.match_id = match_id
-		match.teams = teams
-		match.players = players
-		match.heros = heros
-		match.pregame_start_time = pregame_start_time
-		match.match_start_time = match_start_time
-		match.match_end_time = match_end_time
-		match.total_match_time = match_end_time - match_start_time 
+		self.teams = teams
+		self.players = players
+		self.heros = heros
+		self.pregame_start_time = pregame_start_time
+		self.match_start_time = match_start_time
+		self.match_end_time = match_end_time
+		self.total_match_time = match_end_time - match_start_time 
 
 def headerInfo(match):
 
@@ -141,7 +136,7 @@ def killsInfo(match):
 			split_deceased_string = deceased.split("_")
 			if split_deceased_string[2] == "hero":
 				# look up which side the hero was on
-				hero_name_list =split_deceased_string[3:]
+				hero_name_list = split_deceased_string[3:]
 				s = "_"
 				hero_name = s.join(hero_name_list)
 				side = heros[hero_name]["side"]
@@ -548,10 +543,7 @@ def makeAttackList(match,state):
 				attacker = row[2] 
 				split_attacker_string = re.split("_| ",attacker)
 				victim = row[3] 
-				split_victim_string = re.split("_| ",victim)
-				print split_attacker_string
-				print split_victim_string
-				
+				split_victim_string = re.split("_| ",victim)				
 				if (len(split_attacker_string) >=4) and (len(split_victim_string)>=4):
 					if (split_attacker_string[2] == "hero") and (split_victim_string[2] == "hero"):
 						# handle case where attacker and victim are illusions
@@ -698,7 +690,7 @@ def lookUpLocation(match,area_matrix,v):
 
 	return location
 
-def evaluateFightList(match,attack_list):
+def evaluateFightList(match,attack_list,A):
 
 	alpha = 150
 	kappa = 0.15  # based on 150 + kappa*t = 500 damage for a 2400 second long match
@@ -738,7 +730,6 @@ def evaluateFightList(match,attack_list):
 			position_x.append(attack.v[0])
 			position_y.append(attack.v[1])
 		mean_position = [sum(position_x)/len(position_x),sum(position_y)/len(position_y)]
-		print mean_position
 		involved = list(involved)
 		damage_threshold = alpha + kappa*time_start
 		# fight evaluation
@@ -748,50 +739,41 @@ def evaluateFightList(match,attack_list):
 			events[id_num] = {"type":"fight","involved":involved,"time-start":time_start,"time-end":time_end,"intensity":"battle","location":location}
 			k=k+1
 
-
 ###################################################################################
 
-#ID = 1928989375
-ID = 1929902367
 
-match = Match(str(ID)+"/header.csv",str(ID)+"/trajectories.csv",str(ID)+"/events.csv",str(ID)+"/test2.json")
-match.matchInfo()
+def main():
 
-header = headerInfo(match)
+	match_id = sys.argv[1]
+	match = Match(match_id)
+	match.matchInfo()
+	header = headerInfo(match)
+	hero_deaths = killsInfo(match)
+	state = heroPositions(match)  #[[v_mat],t_vec]
+	entities = heroTrajectories(match,state,hero_deaths)
+	eventsMapping(match,state,area_matrix)
+	timeseries = goldXPInfo(match) #up to this point takes a few seconds
+	attack_list = makeAttackList(match,state)
+	A = formAdjacencyMatrix(attack_list)
+	evaluateFightList(match,attack_list,A)
 
-hero_deaths = killsInfo(match)
+	data_to_write = {"header":header,"entities":entities,"events":events,"timeseries":timeseries}
+	g = open(match.output_filename,'wb')
+	g.write(json.dumps(data_to_write, sort_keys=False,indent=4, separators=(',', ': ')))	
+	g.close()
+	#check for errors in the Json file (optional)
+	with open(match.output_filename) as data_file:    
+		data = json.load(data_file)
 
-state = heroPositions(match)  #[[v_mat],t_vec]
+if __name__ == "__main__":
+    main()
 
-entities = heroTrajectories(match,state,hero_deaths)
 
-eventsMapping(match,state,area_matrix)
+# #graphAttacks(attack_list,1590,1605)
 
-timeseries = goldXPInfo(match) #up to this point takes a few seconds
+# #graphFights(attack_list,A,1590,1605)
 
-attack_list = makeAttackList(match,state)
-
-#graphAttacks(attack_list,1590,1605)
-
-A = formAdjacencyMatrix(attack_list)
-
-#graphFights(attack_list,A,1590,1605)
-
-evaluateFightList(match,attack_list)
-
-#print hero_deaths
 
 ################################################################################################
 
-
-data_to_write = {"header":header,"entities":entities,"events":events,"timeseries":timeseries}
-
-
-g = open(match.output_filename,'wb')
-
-g.write(json.dumps(data_to_write, sort_keys=False,indent=4, separators=(',', ': ')))
-g.close()
-
-with open(match.output_filename) as data_file:    
-    data = json.load(data_file)
 
