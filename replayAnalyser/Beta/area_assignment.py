@@ -175,8 +175,8 @@ def summaryToJson(replay,t0,N,Step,area_matrix):
 # print summary[0]
 # print summary[1]
 
-# map = MapPlot("minimap_annotated_ver2.png")
-# map.mapPlayerTrack(player1data)
+map = MapPlot("minimap_annotated_ver2.png")
+map.mapPlot()
 
 #summaryToJson(replay1,30000,30000,10,area_matrix)
 

@@ -22,7 +22,7 @@ class Match:
 		self.fights_namespace = 12000
 		self.col_per_player = 3
 		self.num_players = 10
-		self.sample_step_size = 50
+		self.sample_step_size = 150
 		self.xmin = -8200
 		self.xmax = 8000.0
 		self.ymin = -8200.0
@@ -40,6 +40,7 @@ class Match:
 		players = {0:{"name":"a"},1:{"name":"b"},2:{"name":"b"},3:{"name":"a"},4:{"name":"b"},5:{"name":"b"},6:{"name":"a"},7:{"name":"b"},8:{"name":"b"},9:{"name":"b"}}
 		heros = {"spirit_breaker":{"side":"radiant","index":0,"hero_id":100},"queenofpain":{"side":"radiant","index":1,"hero_id":101},"antimage":{"side":"radiant","index":2,"hero_id":102},"dazzle":{"side":"radiant","index":3,"hero_id":103},"dark_seer":{"side":"radiant","index":4,"hero_id":104},\
 		"undying":{"side":"dire","index":5,"hero_id":105},"witch_doctor":{"side":"dire","index":6,"hero_id":106},"necrolyte":{"side":"dire","index":7,"hero_id":107},"tusk":{"side":"dire","index":8,"hero_id":108},"alchemist":{"side":"dire","index":9,"hero_id":109}}
+
 
 		for i, row in enumerate(events_reader):
 			if row[1] == "DOTA_COMBATLOG_GAME_STATE" and row[2] == "4":
@@ -316,12 +317,14 @@ def goldXPInfo(match):
 
 	# calculates the differences between radiant and dire xp and gold as well as individual hero xp and gold
 
-	prior_timestamp = match.pregame_start_time
+	bin_size = 2
 	pregame_start_time = match.pregame_start_time
 	match_start_time = match.match_start_time
 	match_end_time = match.match_end_time
 	events_input_filename = match.events_input_filename
 	heros = match.heros
+
+	prior_timestamp = math.floor(pregame_start_time - match_start_time)
 
 	hero_gold = {}
 	hero_xp = {}
@@ -346,7 +349,7 @@ def goldXPInfo(match):
 	reader = csv.reader(f)
 
 	for i, row in enumerate(reader):
-		absolute_time  = float(row[0])
+		absolute_time = float(row[0])
 		timestamp = absolute_time-match_start_time
 		if (absolute_time >= pregame_start_time) and (absolute_time <= match_end_time):
 			if row[1]=="DOTA_COMBATLOG_XP":
@@ -386,7 +389,7 @@ def goldXPInfo(match):
 						dire_gold_total = dire_gold_total - gold_amount
 				else:
 					print "unknown gold status - was expecting 'receives or looses' but got:" + row[3]
-			elif timestamp!=prior_timestamp:
+			elif (timestamp - prior_timestamp > bin_size):
 				#update the xp_difference vector
 				xp_difference.append([radiant_xp_total - dire_xp_total,timestamp])
 				gold_difference.append([radiant_gold_total - dire_gold_total,timestamp])
@@ -420,14 +423,14 @@ class Attack:
 
 def fightDistMetric(attack1,attack2,radius,w_space1,w_space2,w_time):
 
-	d = math.sqrt((attack1.v[0]-attack2.v[0])**2)
+	r = math.sqrt((attack1.v[0]-attack2.v[0])**2+(attack1.v[1]-attack2.v[1])**2)
 
-	if d < radius:
+	if r < radius:
 		w_space = w_space1
 	else:
 		w_space = w_space2
 
-	dist = w_space*d + w_time*(math.sqrt((attack1.t-attack2.t)**2)) 
+	dist = w_space*r + w_time*(math.sqrt((attack1.t-attack2.t)**2)) 
 	return dist
 
 
@@ -490,7 +493,7 @@ def makeAttackList(match,state):
 					#now for the victim_name
 					victim_name = s.join(victim_name_list)
 					victim_side = heros[victim_name]["side"]
-					shifted_time = [(t-timestamp)**2 for t in state[1] ]
+					shifted_time = [(t-timestamp)**2 for t in state[1]]
 					index = np.argmin(shifted_time)
 					damage_total = damage_total + float(row[5])
 
@@ -526,11 +529,11 @@ def graphAttacks(attack_list,time_start,time_end):
 
 def formAdjacencyMatrix(attack_list):
 
-	threshold = 100
-	radius = 500
-	w_space1 = 0.03
+	threshold = 300 # picked by trial and error
+	radius = 1500  #maximum spell range
+	w_space1 = 0.02
 	w_space2 = 0.3
-	w_time = 10
+	w_time = 80
 
 	n = len(attack_list)
 	A = np.zeros(shape=(n,n))
@@ -567,10 +570,59 @@ def graphFights(attack_list,A,time_start,time_end):
 
 ##################################################################################
 
+def lookUpLocation(match,area_matrix,v):
 
-def makeFightList(match,attack_list):
+	xmax = match.xmax
+	xmin = match.xmin
+	ymax = match.ymax
+	ymin = match.ymin
+	num_box = match.num_box
 
-	damage_threshold = 150
+	#takes in player data (x,y,t,g) and returns a list of areas they visit in that data set
+	grid_size_x = (xmax-xmin)/num_box
+	grid_size_y = (ymax-ymin)/num_box
+
+	x = math.floor((v[0]-xmin)/grid_size_x)
+	y = math.floor((v[1]-ymin)/grid_size_y)
+
+	i = num_box-1-int(y)
+	j = int(x)
+	area_state = area_matrix[i][j]
+	print area_state
+
+	area_centres = {"RS":[-4529,1250],"DS":[3696,406],"RJ":[1250,-4150],"DJ":[-606,3781],"T1":[-6765,-2125],"T2":[-6723,466],"T3":[-6639,5173], \
+	"T4":[-2800,6143],"T5":[1292,6059],"M1":[-3643,-3348],"M2":[-2167,-1289],\
+	"M3":[-226,-142],"M4":[1671,1334],"M5":[2895,2642],\
+	"B1":[-2040,6385],"B2":[2346,-6301],"B3":[6354,-4782],"B4":[6481,-986],"B5":[6396,1292],"RB":[-5837,-5457],"DB":[5679,5173],\
+	"BR":[2978,-2504],"TR":[-2293,1376],"RH":[4034,-1956],"RA":[-2673,-58],"DA":[3106,-775]}
+
+	summary_to_events_mapping = {"RS":"radiant-secret","DS":"dire-secret","RJ":"radiant-jungle","DJ":"dire-jungle","T1":"toplane-between-radiant-t2-t3","T2":"toplane-between-radiant-t1-t2","T3":"toplane-between-t1s", \
+		"T4":"toplane-between-dire-t1-t2","T5":"toplane-between-dire-t2-t3","M1":"midlane-radiant-between-t2-t3","M2":"midlane-radiant-between-t1-t2",\
+		"M3":"midlane-between-t1s","M4":"midlane-dire-between-t1-t2","M5":"midlane-dire-between-t2-t3",\
+		"B1":"botlane-radiant-between-t2-t3","B2":"botlane-radiant-between-t1-t2","B3":"botlane-between-t1s","B4":"botlane-dire-between-t1-t2","B5":"botlane-dire-between-t2-t3","RB":"radiant-base","DB":"dire-base",\
+		"BR":"bottom-rune","TR":"top-rune","RH":"roshan","RA":"radiant-ancient","DA":"dire-ancient"}
+
+
+	if area_state == 0:
+		min_dist = 10000
+		for key in area_centres:
+			new_dist = math.sqrt((v[0]-area_centres[key][0])**2+(v[1]-area_centres[key][1])**2)
+			if new_dist < min_dist:
+				min_key = key
+				min_dist = new_dist
+
+		print min_key
+		location = summary_to_events_mapping[min_key]
+	else:
+		location = summary_to_events_mapping[area_state]
+
+	return location
+
+def evaluateFightList(match,attack_list):
+
+	alpha = 150
+	kappa = 0.15  # based on 150 + kappa*t = 500 damage for a 2400 second long match
+	time_threshold = 2
 
 	fight_list = []
 	pregame_start_time = match.pregame_start_time
@@ -579,14 +631,16 @@ def makeFightList(match,attack_list):
 	fights_namespace = match.fights_namespace
 	heros = match.heros
 	k=0
-
+	#find the connected components of the graph
 	n_components, labels = scipy.sparse.csgraph.connected_components(A, directed=False, return_labels=True)
 
-#for each fight make a list of attacks
+	#for each fight make a list of attacks
 	for i in range(0,n_components):
 		fight_list.append([attack_list[j] for j, x in enumerate(labels) if x ==i ])
 
 	for fight in fight_list:
+		position_x = []
+		position_y = []
 		involved =set([])
 		time_start = match_end_time
 		time_end = pregame_start_time - match_start_time
@@ -601,10 +655,18 @@ def makeFightList(match,attack_list):
 			total_damage = total_damage + attack.damage
 			time_start = min(time_start,attack.t)
 			time_end = max(time_end,attack.t)
+			position_x.append(attack.v[0])
+			position_y.append(attack.v[1])
+		mean_position = [sum(position_x)/len(position_x),sum(position_y)/len(position_y)]
+		print mean_position
 		involved = list(involved)
-		if total_damage > damage_threshold:
+		damage_threshold = alpha + kappa*time_start
+		# fight evaluation
+		if (total_damage > damage_threshold + kappa*time_start) and (time_end-time_start > time_threshold):
 			id_num = fights_namespace + k
-			events[id_num] = {"type":"fight","involved":involved,"time-start":time_start,"time-end":time_end,"intensity":"battle"}
+			location = lookUpLocation(match,area_matrix,mean_position)
+			print location
+			events[id_num] = {"type":"fight","involved":involved,"time-start":time_start,"time-end":time_end,"intensity":"battle","location":location}
 			k=k+1
 
 
@@ -627,13 +689,15 @@ timeseries = goldXPInfo(match)
 
 attack_list = makeAttackList(match,state)
 
-#graphAttacks(attack_list,1000,1100)
+#graphAttacks(attack_list,1590,1605)
 
 A = formAdjacencyMatrix(attack_list)
 
-#graphFights(attack_list,A,-20,60)
+#graphFights(attack_list,A,1590,1605)
 
-makeFightList(match,attack_list)
+evaluateFightList(match,attack_list)
+
+#print hero_deaths
 
 
 ################################################################################################
