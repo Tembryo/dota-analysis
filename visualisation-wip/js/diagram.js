@@ -602,16 +602,34 @@ location_coordinates =
 icon_size = 5;
 
 icon_images = {
-	"spirit_breaker":"img/hero-icons/Spirit Breaker_icon.png",
-	"queenofpain":"img/hero-icons/Queen Of Pain_icon.png",
-	"antimage":"img/hero-icons/Antimage_icon.png",
-	"dazzle":"img/hero-icons/Dazzle_icon.png",
-	"dark_seer":"img/hero-icons/Dark Seer_icon.png",
-	"undying":"img/hero-icons/Undying_icon.png",
-	"witch_doctor":"img/hero-icons/Witch_Doctor_icon.png",
-	"necrolyte":"img/hero-icons/Necrolyte_icon.png",
-	"tusk":"img/hero-icons/Tusk_icon.png",
 	"alchemist":"img/hero-icons/Alchemist_icon.png",
+	"ancient_apparition":"img/hero-icons/Ancient_Apparition_icon.png",
+	"antimage":"img/hero-icons/Antimage_icon.png",
+	"axe":"img/hero-icons/Axe_icon.png",
+	"bane":"img/hero-icons/Bane_icon.png",
+	"dark_seer":"img/hero-icons/Dark Seer_icon.png",
+	"dazzle":"img/hero-icons/Dazzle_icon.png",
+	"doom_bringer":"Doom Bringer_icon.png",
+	"ember_spirit":"img/hero-icons/Ember Spirit_icon.png",
+	"furion":"Nature's Prophet_icon.png",
+	"lion":"img/hero-icons/Lion_icon.png"
+	"necrolyte":"img/hero-icons/Necrolyte_icon.png",
+	"nevermore":"Shadow Fiend_icon.png",
+	"ogre_magi":"Ogre Magi_icon.png",
+	"queenofpain":"img/hero-icons/Queen Of Pain_icon.png",
+	"rattletrap":"Rattletrap_icon.png",
+	"shadow_shaman":"Shadow Shaman_icon.png",
+	"silencer":"Silencer_icon.png",
+	"sniper":"Sniper_icon.png",
+	"spectre":"img/hero-icons/Spectre_icon.png", 
+	"spirit_breaker":"img/hero-icons/Spirit Breaker_icon.png",
+	"tiny":"img/hero-icons/Tiny_icon.png",
+	"tusk":"img/hero-icons/Tusk_icon.png",
+	"undying":"img/hero-icons/Undying_icon.png",
+	"visage":"img/hero-icons/Visage_icon.png",
+	"windrunner":"img/hero-icons/Windrunner_icon.png",
+	"witch_doctor":"img/hero-icons/Witch_Doctor_icon.png",
+
 };
 
 event_duration = 5;
