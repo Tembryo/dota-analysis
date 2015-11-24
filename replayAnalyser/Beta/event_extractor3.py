@@ -12,11 +12,14 @@ events = {}
 
 class Match:
 
-	def __init__(self,match_id,position_input_filename,events_input_filename,output_filename):
-		self.match_id = match_id
+	def __init__(self,header_input_filename,position_input_filename,events_input_filename,output_filename):
+		# files where the replay data is stored
+		self.header_input_filename = header_input_filename
 		self.position_input_filename = position_input_filename
 		self.events_input_filename = events_input_filename
 		self.output_filename = output_filename
+		# variables that determine how the data is analysed - need to include all parameters
+		self.hero_namespace = 100
 		self.kills_namespace = 10000
 		self.normal_namespace = 11000
 		self.fights_namespace = 12000
@@ -33,14 +36,58 @@ class Match:
 
 		# extract the match info from the files
 
+		teams = {0:{"side":"radiant","name":"empty","short":"empty"},1:{"side":"dire","name":"empty","short":"empty"}}
+		players = {}
+		heros = {}
+
+		f = open(self.header_input_filename,'rb')
+		header_reader = csv.reader(f)
+
+
+		for i, row in enumerate(header_reader):
+			if row[0].upper() == "ID":
+				match_id = int(row[1])
+			if row[0].upper() == "TEAM_TAG_RADIANT":
+				if row[1] == " ":
+					teams[0]["name"] = "empty"
+					teams[0]["short"] = "empty"	
+				else:			
+					teams[0]["name"] = row[1]
+					teams[0]["short"] = row[1]
+			if row[0].upper() == "TEAM_TAG_DIRE":
+				if row[1] == " ":
+					teams[1]["name"] = "empty"
+					teams[1]["short"] = "empty"	
+				else:			
+					teams[1]["name"] = row[1]
+					teams[1]["short"] = row[1]
+			if row[0].upper() == "PLAYER":
+				# extract the player's name
+				players[int(row[1])] = {}		
+				player_name_string = row[2]
+				player_name_list = player_name_string.split( )
+				s = ""
+				player_name = s.join(player_name_list)
+				players[int(row[1])]["name"] = player_name
+				players[int(row[1])]["steam_id"] = int(row[3])
+				# form the heros dictionary
+				hero_name_string = row[4]
+				hero_name_list = hero_name_string.split("_")
+				hero_name_list = hero_name_list[3:] # remove the unnecessary dota_npc_hero part
+				s = "_"
+				hero_name = s.join(hero_name_list) # join the strings back together
+				heros[hero_name] = {}
+				heros[hero_name]["index"] = int(row[1])
+				heros[hero_name]["hero_id"] = self.hero_namespace + int(row[1])
+				if int(row[5]) == 2:
+					heros[hero_name]["side"] = "radiant"
+				elif int(row[5]) == 3:
+					heros[hero_name]["side"] = "dire"
+
+		f.close()
+
 		f = open(self.events_input_filename,'rb')
 		events_reader = csv.reader(f)
-
-		teams = {0:{"side":"radiant","name":"empty","short":"empty"},1:{"side":"dire","name":"empty","short":"empty"}}
-		players = {0:{"name":"a"},1:{"name":"b"},2:{"name":"b"},3:{"name":"a"},4:{"name":"b"},5:{"name":"b"},6:{"name":"a"},7:{"name":"b"},8:{"name":"b"},9:{"name":"b"}}
-		heros = {"spirit_breaker":{"side":"radiant","index":0,"hero_id":100},"queenofpain":{"side":"radiant","index":1,"hero_id":101},"antimage":{"side":"radiant","index":2,"hero_id":102},"dazzle":{"side":"radiant","index":3,"hero_id":103},"dark_seer":{"side":"radiant","index":4,"hero_id":104},\
-		"undying":{"side":"dire","index":5,"hero_id":105},"witch_doctor":{"side":"dire","index":6,"hero_id":106},"necrolyte":{"side":"dire","index":7,"hero_id":107},"tusk":{"side":"dire","index":8,"hero_id":108},"alchemist":{"side":"dire","index":9,"hero_id":109}}
-
 
 		for i, row in enumerate(events_reader):
 			if row[1] == "DOTA_COMBATLOG_GAME_STATE" and row[2] == "4":
@@ -50,8 +97,10 @@ class Match:
 			elif row[1] == "DOTA_COMBATLOG_GAME_STATE" and row[2] == "6":
 				match_end_time  = math.floor(float(row[0]))
 
-		# calculate the length of the match (time between states 5 and 6)
+		f.close()
 
+		# calculate the length of the match (time between states 5 and 6)
+		match.match_id = match_id
 		match.teams = teams
 		match.players = players
 		match.heros = heros
@@ -113,6 +162,8 @@ def killsInfo(match):
 
 def heroPositions(match):
 
+	#for each hero, sample their [x(t),y(t)] coordinates for each time t between the pregame start time
+	# and the match end time and store in v_mat and t_vec  
 	v_mat = {}
 	t_vec = []
 	heros = match.heros
@@ -122,6 +173,7 @@ def heroPositions(match):
 	sample_step_size = match.sample_step_size
 	match_start_time = match.match_start_time
 	pregame_start_time = match.pregame_start_time
+	match_end_time = match.match_end_time
 
 	for key in heros:
 		v_mat[key] = []
@@ -132,10 +184,10 @@ def heroPositions(match):
 	for i, row in enumerate(reader):
 		if (i % sample_step_size==0) and (i > 0):
 			# if the time stamp is after the state 4 transition
-			tmp_time = float(row[col_per_player*num_players])-pregame_start_time
-			if (tmp_time > 0):
+			absolute_time = float(row[col_per_player*num_players])
+			if (absolute_time >= pregame_start_time) and (absolute_time <= match_end_time):
 				# append that time point to the time vector with the state 5 transition point set to equal zero
-				t_vec.append(tmp_time + pregame_start_time - match_start_time)
+				t_vec.append(absolute_time - match_start_time)
 				# and for each hero extract the [x,y] coordinate for that time point
 				for key in heros:
 					v_mat[key].append([float(row[col_per_player*heros[key]["index"]+1]),float(row[col_per_player*heros[key]["index"]+2])])
@@ -152,29 +204,56 @@ def heroTrajectories(match,state,hero_deaths):
 	pregame_start_time = match.match_start_time
 	match_end_time = match.match_end_time
 	heros = match.heros
-	#make a dictionary where each hero name is associated with a list of trajectories 
-	hero_trajectories ={}
-	for key in heros:
-		hero_trajectories[key] = []
-
-	hero_deaths_appended = {}
-	for key in heros:
-		padded_death_list = [-pregame_start_time]
-		padded_death_list[1:] = hero_deaths[key]
-		padded_death_list.append(match_end_time)
-		hero_deaths_appended[key] = padded_death_list
+	delta = 1000
 
 	#for each hero
 	for key in heros:
 		tmp_list = []
-		# look up the (appended) list of times in which they died
-		death_time_list = hero_deaths_appended[key]
-		# for each entry in the list of times in which they died up to the penultimate entry
-	 	for i in range(0,len(death_time_list)-1):
-	 		# for each time period between deaths make a list of dictionaries that are the samples between those times
-	 		samples_list =[{"t":t,"v":state[0][key][j]} for j, t in enumerate(state[1]) if (t > death_time_list[i]) and (t <= death_time_list[i+1])]
+		# look up the (appended) list of times in which the hero died
+		death_time_list = hero_deaths[key]
+		# print key
+		# print death_time_list
+		# handle case where no death occur
+		if len(death_time_list) == 0:
+			samples_list =[{"t":t,"v":state[0][key][j]} for j, t in enumerate(state[1])]
 			trajectory = {"time-start":samples_list[0]["t"],"time-end":samples_list[-1]["t"],"timeseries":{"format":"samples","samples":samples_list}}	
 			tmp_list.append(trajectory)
+		# handle case where exactly one death occurs
+		elif len(death_time_list) == 1:
+			# handle the first hero death where there is no initial period where the hero is in death limbo
+			samples_list =[{"t":t,"v":state[0][key][j]} for j, t in enumerate(state[1]) if (t <= death_time_list[0])]
+			trajectory = {"time-start":samples_list[0]["t"],"time-end":samples_list[-1]["t"],"timeseries":{"format":"samples","samples":samples_list}}	
+			tmp_list.append(trajectory)
+			
+			# handle the final hero death leading to the end of the match
+			respawn_time = next(t for j, t in enumerate(state[1]) if (t > death_time_list[0]) and ((state[0][key][j][0]-state[0][key][j+1][0])**2+ (state[0][key][j][1]-state[0][key][j+1][1])**2 > delta))
+			samples_list =[{"t":t,"v":state[0][key][j]} for j, t in enumerate(state[1]) if (t >= respawn_time)]
+			trajectory = {"time-start":samples_list[0]["t"],"time-end":samples_list[-1]["t"],"timeseries":{"format":"samples","samples":samples_list}}	
+			tmp_list.append(trajectory)
+		# handle case where more than one death occurs
+		else:
+			# handle the first hero death where there is no initial period where the hero is in death limbo
+			samples_list =[{"t":t,"v":state[0][key][j]} for j, t in enumerate(state[1]) if (t <= death_time_list[0])]
+			trajectory = {"time-start":samples_list[0]["t"],"time-end":samples_list[-1]["t"],"timeseries":{"format":"samples","samples":samples_list}}	
+			tmp_list.append(trajectory)
+			# for each entry in the list of times in which they died up to the penultimate entry
+	 		for i in range(0,len(death_time_list)-1):
+	 			# for each time period between deaths make a list of dictionaries that are the samples between those times		
+				respawn_time = next(t for j, t in enumerate(state[1]) if (t > death_time_list[i]) and ((state[0][key][j][0]-state[0][key][j+1][0])**2+ (state[0][key][j][1]-state[0][key][j+1][1])**2 > delta))
+		 		# print "dies:"
+		 		# print death_time_list[i]
+		 		# print "respawns:"
+		 		# print respawn_time
+		 		# print "next death:"
+		 		# print death_time_list[i+1]
+		 		samples_list =[{"t":t,"v":state[0][key][j]} for j, t in enumerate(state[1]) if (t > respawn_time) and (t <= death_time_list[i+1])]
+				trajectory = {"time-start":samples_list[0]["t"],"time-end":samples_list[-1]["t"],"timeseries":{"format":"samples","samples":samples_list}}	
+				tmp_list.append(trajectory)
+			# handle the final hero death leading to the end of the match
+			samples_list =[{"t":t,"v":state[0][key][j]} for j, t in enumerate(state[1]) if (t >= death_time_list[-1])]
+			trajectory = {"time-start":samples_list[0]["t"],"time-end":samples_list[-1]["t"],"timeseries":{"format":"samples","samples":samples_list}}	
+			tmp_list.append(trajectory)
+
 		entities[heros[key]["hero_id"]] = {"unit":key,"team": heros[key]["side"],"control":heros[key]["index"],"position":tmp_list}
 
 	return entities
@@ -470,36 +549,40 @@ def makeAttackList(match,state):
 				split_attacker_string = re.split("_| ",attacker)
 				victim = row[3] 
 				split_victim_string = re.split("_| ",victim)
-				if (split_attacker_string[2] == "hero") and (split_victim_string[2] == "hero"):
-					# handle case where attacker and victim are illusions
-					if (split_attacker_string[-1]=="(illusion)") and (split_victim_string[-1]=="(illusion)"):
-						attacker_name_list =split_attacker_string[3:-1]
-						victim_name_list =split_victim_string[3:-1]
-						# handle attacker illusions case
-					elif (split_attacker_string[-1]=="(illusion)"):
-						attacker_name_list =split_attacker_string[3:-1]
-						victim_name_list =split_victim_string[3:]
-						# handle victim illusions case
-					elif (split_victim_string[-1]=="(illusion)"):
-						attacker_name_list =split_attacker_string[3:]
-						victim_name_list =split_victim_string[3:-1]
-					else:
-						attacker_name_list =split_attacker_string[3:]
-						victim_name_list =split_victim_string[3:]
-					#join the names up
-					s = "_"
-					attacker_name = s.join(attacker_name_list)
-					attacker_side = heros[attacker_name]["side"]
-					#now for the victim_name
-					victim_name = s.join(victim_name_list)
-					victim_side = heros[victim_name]["side"]
-					shifted_time = [(t-timestamp)**2 for t in state[1]]
-					index = np.argmin(shifted_time)
-					damage_total = damage_total + float(row[5])
+				print split_attacker_string
+				print split_victim_string
+				
+				if (len(split_attacker_string) >=4) and (len(split_victim_string)>=4):
+					if (split_attacker_string[2] == "hero") and (split_victim_string[2] == "hero"):
+						# handle case where attacker and victim are illusions
+						if (split_attacker_string[-1]=="(illusion)") and (split_victim_string[-1]=="(illusion)"):
+							attacker_name_list =split_attacker_string[3:-1]
+							victim_name_list =split_victim_string[3:-1]
+							# handle attacker illusions case
+						elif (split_attacker_string[-1]=="(illusion)"):
+							attacker_name_list =split_attacker_string[3:-1]
+							victim_name_list =split_victim_string[3:]
+							# handle victim illusions case
+						elif (split_victim_string[-1]=="(illusion)"):
+							attacker_name_list =split_attacker_string[3:]
+							victim_name_list =split_victim_string[3:-1]
+						else:
+							attacker_name_list =split_attacker_string[3:]
+							victim_name_list =split_victim_string[3:]
+						#join the names up
+						s = "_"
+						attacker_name = s.join(attacker_name_list)
+						attacker_side = heros[attacker_name]["side"]
+						#now for the victim_name
+						victim_name = s.join(victim_name_list)
+						victim_side = heros[victim_name]["side"]
+						shifted_time = [(t-timestamp)**2 for t in state[1]]
+						index = np.argmin(shifted_time)
+						damage_total = damage_total + float(row[5])
 
-					new_attack = Attack(attacker_name,victim_name,float(row[5]),state[0][attacker_name][index],timestamp)
-					#print attacker_name + " at " + str(state[0][attacker_name][index]) + " attacked " + victim_name + " at " + str(state[0][victim_name][index])  + " did " + str(row[5]) + " damage  at " + str(timestamp)  			
-					attack_list.append(new_attack)
+						new_attack = Attack(attacker_name,victim_name,float(row[5]),state[0][attacker_name][index],timestamp)
+						#print attacker_name + " at " + str(state[0][attacker_name][index]) + " attacked " + victim_name + " at " + str(state[0][victim_name][index])  + " did " + str(row[5]) + " damage  at " + str(timestamp)  			
+						attack_list.append(new_attack)
 
 	return attack_list
 
@@ -588,7 +671,6 @@ def lookUpLocation(match,area_matrix,v):
 	i = num_box-1-int(y)
 	j = int(x)
 	area_state = area_matrix[i][j]
-	print area_state
 
 	area_centres = {"RS":[-4529,1250],"DS":[3696,406],"RJ":[1250,-4150],"DJ":[-606,3781],"T1":[-6765,-2125],"T2":[-6723,466],"T3":[-6639,5173], \
 	"T4":[-2800,6143],"T5":[1292,6059],"M1":[-3643,-3348],"M2":[-2167,-1289],\
@@ -610,8 +692,6 @@ def lookUpLocation(match,area_matrix,v):
 			if new_dist < min_dist:
 				min_key = key
 				min_dist = new_dist
-
-		print min_key
 		location = summary_to_events_mapping[min_key]
 	else:
 		location = summary_to_events_mapping[area_state]
@@ -665,14 +745,16 @@ def evaluateFightList(match,attack_list):
 		if (total_damage > damage_threshold + kappa*time_start) and (time_end-time_start > time_threshold):
 			id_num = fights_namespace + k
 			location = lookUpLocation(match,area_matrix,mean_position)
-			print location
 			events[id_num] = {"type":"fight","involved":involved,"time-start":time_start,"time-end":time_end,"intensity":"battle","location":location}
 			k=k+1
 
 
 ###################################################################################
 
-match = Match(12342,"replay_data.csv","events_replay_data.csv","test3.json")
+#ID = 1928989375
+ID = 1929902367
+
+match = Match(str(ID)+"/header.csv",str(ID)+"/trajectories.csv",str(ID)+"/events.csv",str(ID)+"/test2.json")
 match.matchInfo()
 
 header = headerInfo(match)
@@ -685,7 +767,7 @@ entities = heroTrajectories(match,state,hero_deaths)
 
 eventsMapping(match,state,area_matrix)
 
-timeseries = goldXPInfo(match)
+timeseries = goldXPInfo(match) #up to this point takes a few seconds
 
 attack_list = makeAttackList(match,state)
 
@@ -698,7 +780,6 @@ A = formAdjacencyMatrix(attack_list)
 evaluateFightList(match,attack_list)
 
 #print hero_deaths
-
 
 ################################################################################################
 
