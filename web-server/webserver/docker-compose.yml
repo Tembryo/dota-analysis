@@ -1,9 +1,10 @@
-api:
+webserver:
   build: .
   ports:
     - "80:42000"
   volumes:
-    - ../storage/api:/data
+    - ../storage/webserver:/storage
+    - ../files/webserver:/files:ro
   external_links:
     - database-container:database
   environment:
