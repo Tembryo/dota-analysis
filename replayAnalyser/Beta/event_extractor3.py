@@ -549,36 +549,40 @@ def makeAttackList(match,state):
 				split_attacker_string = re.split("_| ",attacker)
 				victim = row[3] 
 				split_victim_string = re.split("_| ",victim)
-				if (split_attacker_string[2] == "hero") and (split_victim_string[2] == "hero"):
-					# handle case where attacker and victim are illusions
-					if (split_attacker_string[-1]=="(illusion)") and (split_victim_string[-1]=="(illusion)"):
-						attacker_name_list =split_attacker_string[3:-1]
-						victim_name_list =split_victim_string[3:-1]
-						# handle attacker illusions case
-					elif (split_attacker_string[-1]=="(illusion)"):
-						attacker_name_list =split_attacker_string[3:-1]
-						victim_name_list =split_victim_string[3:]
-						# handle victim illusions case
-					elif (split_victim_string[-1]=="(illusion)"):
-						attacker_name_list =split_attacker_string[3:]
-						victim_name_list =split_victim_string[3:-1]
-					else:
-						attacker_name_list =split_attacker_string[3:]
-						victim_name_list =split_victim_string[3:]
-					#join the names up
-					s = "_"
-					attacker_name = s.join(attacker_name_list)
-					attacker_side = heros[attacker_name]["side"]
-					#now for the victim_name
-					victim_name = s.join(victim_name_list)
-					victim_side = heros[victim_name]["side"]
-					shifted_time = [(t-timestamp)**2 for t in state[1]]
-					index = np.argmin(shifted_time)
-					damage_total = damage_total + float(row[5])
+				print split_attacker_string
+				print split_victim_string
+				
+				if (len(split_attacker_string) >=4) and (len(split_victim_string)>=4):
+					if (split_attacker_string[2] == "hero") and (split_victim_string[2] == "hero"):
+						# handle case where attacker and victim are illusions
+						if (split_attacker_string[-1]=="(illusion)") and (split_victim_string[-1]=="(illusion)"):
+							attacker_name_list =split_attacker_string[3:-1]
+							victim_name_list =split_victim_string[3:-1]
+							# handle attacker illusions case
+						elif (split_attacker_string[-1]=="(illusion)"):
+							attacker_name_list =split_attacker_string[3:-1]
+							victim_name_list =split_victim_string[3:]
+							# handle victim illusions case
+						elif (split_victim_string[-1]=="(illusion)"):
+							attacker_name_list =split_attacker_string[3:]
+							victim_name_list =split_victim_string[3:-1]
+						else:
+							attacker_name_list =split_attacker_string[3:]
+							victim_name_list =split_victim_string[3:]
+						#join the names up
+						s = "_"
+						attacker_name = s.join(attacker_name_list)
+						attacker_side = heros[attacker_name]["side"]
+						#now for the victim_name
+						victim_name = s.join(victim_name_list)
+						victim_side = heros[victim_name]["side"]
+						shifted_time = [(t-timestamp)**2 for t in state[1]]
+						index = np.argmin(shifted_time)
+						damage_total = damage_total + float(row[5])
 
-					new_attack = Attack(attacker_name,victim_name,float(row[5]),state[0][attacker_name][index],timestamp)
-					#print attacker_name + " at " + str(state[0][attacker_name][index]) + " attacked " + victim_name + " at " + str(state[0][victim_name][index])  + " did " + str(row[5]) + " damage  at " + str(timestamp)  			
-					attack_list.append(new_attack)
+						new_attack = Attack(attacker_name,victim_name,float(row[5]),state[0][attacker_name][index],timestamp)
+						#print attacker_name + " at " + str(state[0][attacker_name][index]) + " attacked " + victim_name + " at " + str(state[0][victim_name][index])  + " did " + str(row[5]) + " damage  at " + str(timestamp)  			
+						attack_list.append(new_attack)
 
 	return attack_list
 
@@ -747,8 +751,8 @@ def evaluateFightList(match,attack_list):
 
 ###################################################################################
 
-ID = 1928989375
-#ID = 1929902367
+#ID = 1928989375
+ID = 1929902367
 
 match = Match(str(ID)+"/header.csv",str(ID)+"/trajectories.csv",str(ID)+"/events.csv",str(ID)+"/test2.json")
 match.matchInfo()
@@ -765,15 +769,15 @@ eventsMapping(match,state,area_matrix)
 
 timeseries = goldXPInfo(match) #up to this point takes a few seconds
 
-#attack_list = makeAttackList(match,state)
+attack_list = makeAttackList(match,state)
 
 #graphAttacks(attack_list,1590,1605)
 
-#A = formAdjacencyMatrix(attack_list)
+A = formAdjacencyMatrix(attack_list)
 
 #graphFights(attack_list,A,1590,1605)
 
-#evaluateFightList(match,attack_list)
+evaluateFightList(match,attack_list)
 
 #print hero_deaths
 

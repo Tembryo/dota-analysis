@@ -9225,724 +9225,1094 @@
             "location": "dire-secret"
         },
         "12000": {
+            "time-end": 42.956695556640625,
             "involved": [
-                106
+                105,
+                100,
+                109,
+                102
             ],
-            "time-start": 1807,
-            "time-end": 1815,
-            "type": "movement",
-            "location": "dire-ancient"
+            "intensity": "battle",
+            "location": "toplane-between-t1s",
+            "time-start": 35.221710205078125,
+            "type": "fight"
         },
         "12001": {
+            "time-end": 75.08724975585938,
             "involved": [
-                106
+                105,
+                100,
+                109,
+                102
             ],
-            "time-start": 1815,
-            "time-end": 1825,
-            "type": "movement",
-            "location": "dire-secret"
+            "intensity": "battle",
+            "location": "toplane-between-t1s",
+            "time-start": 65.68954467773438,
+            "type": "fight"
         },
         "12002": {
+            "time-end": 110.94515991210938,
             "involved": [
-                106
+                105,
+                100,
+                109,
+                102
             ],
-            "time-start": 1825,
-            "time-end": 1845,
-            "type": "laning",
-            "location": "botlane-dire-between-t1-t2"
+            "intensity": "battle",
+            "location": "toplane-between-t1s",
+            "time-start": 96.74862670898438,
+            "type": "fight"
         },
         "12003": {
+            "time-end": 144.87020874023438,
             "involved": [
-                106
+                105,
+                100,
+                109,
+                102
             ],
-            "time-start": 1845,
-            "time-end": 1870,
-            "type": "laning",
-            "location": "botlane-between-t1s"
+            "intensity": "battle",
+            "location": "toplane-between-t1s",
+            "time-start": 133.20639038085938,
+            "type": "fight"
         },
         "12004": {
+            "time-end": 156.20077514648438,
             "involved": [
-                106
+                104,
+                107,
+                101
             ],
-            "time-start": 1870,
-            "time-end": 1910,
-            "type": "jungling",
-            "location": "radiant-jungle"
+            "intensity": "battle",
+            "location": "bottom-rune",
+            "time-start": 134.93930053710938,
+            "type": "fight"
         },
         "12005": {
+            "time-end": 169.79745483398438,
             "involved": [
-                106
+                100,
+                102,
+                105,
+                108,
+                109
             ],
-            "time-start": 1910,
-            "time-end": 1912,
-            "type": "movement",
-            "location": "dire-ancient"
+            "intensity": "battle",
+            "location": "toplane-between-t1s",
+            "time-start": 155.00106811523438,
+            "type": "fight"
         },
         "12006": {
+            "time-end": 193.19174194335938,
             "involved": [
-                106
+                106,
+                103
             ],
-            "time-start": 1912,
-            "time-end": 1920,
-            "type": "movement",
-            "location": "dire-secret"
+            "intensity": "battle",
+            "location": "midlane-between-t1s",
+            "time-start": 182.19442749023438,
+            "type": "fight"
         },
         "12007": {
+            "time-end": 199.12362670898438,
             "involved": [
-                106
+                104,
+                107
             ],
-            "time-start": 1920,
-            "time-end": 1930,
-            "type": "laning",
-            "location": "midlane-dire-between-t1-t2"
+            "intensity": "battle",
+            "location": "botlane-between-t1s",
+            "time-start": 196.45761108398438,
+            "type": "fight"
         },
         "12008": {
+            "time-end": 262.5747985839844,
             "involved": [
-                106
+                100,
+                102,
+                105,
+                108,
+                109
             ],
-            "time-start": 1930,
-            "time-end": 1932,
-            "type": "laning",
-            "location": "midlane-dire-between-t2-t3"
+            "intensity": "battle",
+            "location": "toplane-between-dire-t1-t2",
+            "time-start": 248.91146850585938,
+            "type": "fight"
         },
         "12009": {
+            "time-end": 259.7088317871094,
             "involved": [
-                106
+                104,
+                107,
+                101
             ],
-            "time-start": 1932,
-            "time-end": 1950,
-            "type": "fountain-visit",
-            "location": "dire-base"
+            "intensity": "battle",
+            "location": "botlane-between-t1s",
+            "time-start": 250.37777709960938,
+            "type": "fight"
         },
         "12010": {
+            "time-end": 328.6920166015625,
             "involved": [
-                106
+                100,
+                102,
+                105,
+                106,
+                108,
+                109
             ],
-            "time-start": 1950,
-            "time-end": 1960,
-            "type": "laning",
-            "location": "botlane-dire-between-t2-t3"
+            "intensity": "battle",
+            "location": "toplane-between-t1s",
+            "time-start": 306.6973571777344,
+            "type": "fight"
         },
         "12011": {
+            "time-end": 367.04931640625,
             "involved": [
-                106
+                104,
+                107,
+                101
             ],
-            "time-start": 1960,
-            "time-end": 1965,
-            "type": "laning",
-            "location": "botlane-dire-between-t1-t2"
+            "intensity": "battle",
+            "location": "botlane-between-t1s",
+            "time-start": 363.4168701171875,
+            "type": "fight"
         },
         "12012": {
+            "time-end": 393.04296875,
             "involved": [
-                106
+                109,
+                102,
+                103
             ],
-            "time-start": 1965,
-            "time-end": 1995,
-            "type": "laning",
-            "location": "botlane-dire-between-t2-t3"
+            "intensity": "battle",
+            "location": "dire-jungle",
+            "time-start": 385.97802734375,
+            "type": "fight"
         },
         "12013": {
+            "time-end": 411.9716796875,
             "involved": [
-                106
+                107,
+                101
             ],
-            "time-start": 1995,
-            "time-end": 2003,
-            "type": "laning",
-            "location": "botlane-dire-between-t1-t2"
+            "intensity": "battle",
+            "location": "botlane-between-t1s",
+            "time-start": 406.839599609375,
+            "type": "fight"
         },
         "12014": {
+            "time-end": 489.8193359375,
             "involved": [
-                106
+                107,
+                103
             ],
-            "time-start": 2003,
-            "time-end": 2018,
-            "type": "laning",
-            "location": "botlane-between-t1s"
+            "intensity": "battle",
+            "location": "bottom-rune",
+            "time-start": 482.687744140625,
+            "type": "fight"
         },
         "12015": {
+            "time-end": 522.3447265625,
             "involved": [
-                106
+                105,
+                109,
+                102
             ],
-            "time-start": 2018,
-            "time-end": 2060,
-            "type": "laning",
-            "location": "botlane-radiant-between-t1-t2"
+            "intensity": "battle",
+            "location": "dire-jungle",
+            "time-start": 514.74658203125,
+            "type": "fight"
         },
         "12016": {
+            "time-end": 537.341064453125,
             "involved": [
-                106
+                105,
+                102,
+                103
             ],
-            "time-start": 2060,
-            "time-end": 2083,
-            "type": "jungling",
-            "location": "radiant-jungle"
+            "intensity": "battle",
+            "location": "toplane-between-t1s",
+            "time-start": 531.875732421875,
+            "type": "fight"
         },
         "12017": {
+            "time-end": 539.207275390625,
             "involved": [
-                106
+                106,
+                100
             ],
-            "time-start": 2083,
-            "time-end": 2085,
-            "type": "movement",
-            "location": "bottom-rune"
+            "intensity": "battle",
+            "location": "midlane-between-t1s",
+            "time-start": 534.275146484375,
+            "type": "fight"
         },
         "12018": {
+            "time-end": 616.05517578125,
             "involved": [
-                106
+                104,
+                107,
+                101
             ],
-            "time-start": 2085,
-            "time-end": 2100,
-            "type": "movement",
-            "location": "dire-ancient"
+            "intensity": "battle",
+            "location": "botlane-between-t1s",
+            "time-start": 601.325439453125,
+            "type": "fight"
         },
         "12019": {
+            "time-end": 669.5087890625,
             "involved": [
-                106
+                104,
+                107,
+                101
             ],
-            "time-start": 2100,
-            "time-end": 2103,
-            "type": "movement",
-            "location": "dire-secret"
+            "intensity": "battle",
+            "location": "botlane-between-t1s",
+            "time-start": 665.509765625,
+            "type": "fight"
         },
         "12020": {
+            "time-end": 711.431884765625,
             "involved": [
-                106
+                105,
+                100,
+                109,
+                102
             ],
-            "time-start": 2103,
-            "time-end": 2113,
-            "type": "movement",
-            "location": "dire-ancient"
+            "intensity": "battle",
+            "location": "toplane-between-t1s",
+            "time-start": 698.43505859375,
+            "type": "fight"
         },
         "12021": {
+            "time-end": 781.148193359375,
             "involved": [
-                106
+                106,
+                107,
+                101
             ],
-            "time-start": 2113,
-            "time-end": 2126,
-            "type": "laning",
-            "location": "botlane-dire-between-t1-t2"
+            "intensity": "battle",
+            "location": "botlane-between-t1s",
+            "time-start": 774.616455078125,
+            "type": "fight"
         },
         "12022": {
+            "time-end": 780.1484375,
             "involved": [
-                106
+                108,
+                103
             ],
-            "time-start": 2126,
-            "time-end": 2143,
-            "type": "laning",
-            "location": "botlane-between-t1s"
+            "intensity": "battle",
+            "location": "toplane-between-dire-t2-t3",
+            "time-start": 777.34912109375,
+            "type": "fight"
         },
         "12023": {
+            "time-end": 820.871826171875,
             "involved": [
-                106
+                100,
+                102,
+                103,
+                104,
+                105,
+                106,
+                107
             ],
-            "time-start": 2143,
-            "time-end": 2151,
-            "type": "laning",
-            "location": "botlane-dire-between-t1-t2"
+            "intensity": "battle",
+            "location": "botlane-radiant-between-t1-t2",
+            "time-start": 806.208740234375,
+            "type": "fight"
         },
         "12024": {
+            "time-end": 841.60009765625,
             "involved": [
-                106
+                105,
+                106,
+                107,
+                101
             ],
-            "time-start": 2151,
-            "time-end": 2156,
-            "type": "movement",
-            "location": "dire-secret"
+            "intensity": "battle",
+            "location": "botlane-between-t1s",
+            "time-start": 834.001953125,
+            "type": "fight"
         },
         "12025": {
+            "time-end": 842.733154296875,
             "involved": [
-                106
+                100,
+                109,
+                102
             ],
-            "time-start": 2156,
-            "time-end": 2161,
-            "type": "laning",
-            "location": "botlane-dire-between-t2-t3"
+            "intensity": "battle",
+            "location": "toplane-between-dire-t1-t2",
+            "time-start": 835.068359375,
+            "type": "fight"
         },
         "12026": {
+            "time-end": 932.444580078125,
             "involved": [
-                106
+                106,
+                109,
+                103
             ],
-            "time-start": 2161,
-            "time-end": 2163,
-            "type": "movement",
-            "location": "dire-secret"
+            "intensity": "battle",
+            "location": "midlane-radiant-between-t1-t2",
+            "time-start": 927.0458984375,
+            "type": "fight"
         },
         "12027": {
+            "time-end": 936.576904296875,
             "involved": [
-                106
+                104,
+                106,
+                109
             ],
-            "time-start": 2163,
-            "time-end": 2178,
-            "type": "movement",
-            "location": "dire-ancient"
+            "intensity": "battle",
+            "location": "botlane-radiant-between-t1-t2",
+            "time-start": 928.51220703125,
+            "type": "fight"
         },
         "12028": {
+            "time-end": 990.23046875,
             "involved": [
-                106
+                100,
+                101,
+                102,
+                103,
+                104,
+                105,
+                106,
+                107,
+                109
             ],
-            "time-start": 2178,
-            "time-end": 2186,
-            "type": "laning",
-            "location": "midlane-dire-between-t2-t3"
+            "intensity": "battle",
+            "location": "dire-jungle",
+            "time-start": 967.0361328125,
+            "type": "fight"
         },
         "12029": {
+            "time-end": 976.567138671875,
             "involved": [
-                106
+                104,
+                105
             ],
-            "time-start": 2186,
-            "time-end": 2198,
-            "type": "jungling",
-            "location": "dire-jungle"
+            "intensity": "battle",
+            "location": "radiant-jungle",
+            "time-start": 974.5009765625,
+            "type": "fight"
         },
         "12030": {
+            "time-end": 1039.68505859375,
             "involved": [
-                106
+                100,
+                105,
+                107,
+                108,
+                109
             ],
-            "time-start": 2198,
-            "time-end": 2213,
-            "type": "laning",
-            "location": "midlane-dire-between-t2-t3"
+            "intensity": "battle",
+            "location": "dire-jungle",
+            "time-start": 1031.42041015625,
+            "type": "fight"
         },
         "12031": {
+            "time-end": 1084.274169921875,
             "involved": [
-                106
+                104,
+                107,
+                109
             ],
-            "time-start": 2213,
-            "time-end": 2223,
-            "type": "movement",
-            "location": "dire-secret"
+            "intensity": "battle",
+            "location": "midlane-radiant-between-t1-t2",
+            "time-start": 1076.542724609375,
+            "type": "fight"
         },
         "12032": {
+            "time-end": 1157.3563232421875,
             "involved": [
-                106
+                100,
+                101,
+                102,
+                103,
+                104,
+                105,
+                106,
+                107,
+                108,
+                109
             ],
-            "time-start": 2223,
-            "time-end": 2233,
-            "type": "movement",
-            "location": "dire-ancient"
+            "intensity": "battle",
+            "location": "midlane-dire-between-t1-t2",
+            "time-start": 1131.0960693359375,
+            "type": "fight"
         },
         "12033": {
+            "time-end": 1167.5538330078125,
             "involved": [
-                106
+                104,
+                107,
+                102,
+                103
             ],
-            "time-start": 2233,
-            "time-end": 2248,
-            "type": "movement",
-            "location": "roshan"
+            "intensity": "battle",
+            "location": "midlane-dire-between-t1-t2",
+            "time-start": 1161.6219482421875,
+            "type": "fight"
         },
         "12034": {
+            "time-end": 1179.0843505859375,
             "involved": [
-                106
+                105,
+                101
             ],
-            "time-start": 2248,
-            "time-end": 2251,
-            "type": "movement",
-            "location": "bottom-rune"
+            "intensity": "battle",
+            "location": "toplane-between-t1s",
+            "time-start": 1175.4185791015625,
+            "type": "fight"
         },
         "12035": {
+            "time-end": 1188.5487060546875,
             "involved": [
-                106
+                104,
+                108,
+                102,
+                103
             ],
-            "time-start": 2251,
-            "time-end": 2258,
-            "type": "movement",
-            "location": "dire-ancient"
+            "intensity": "battle",
+            "location": "dire-jungle",
+            "time-start": 1183.4166259765625,
+            "type": "fight"
         },
         "12036": {
+            "time-end": 1191.6812744140625,
             "involved": [
-                106
+                105,
+                101
             ],
-            "time-start": 2258,
-            "time-end": 2274,
-            "type": "laning",
-            "location": "botlane-dire-between-t1-t2"
+            "intensity": "battle",
+            "location": "toplane-between-dire-t1-t2",
+            "time-start": 1188.9486083984375,
+            "type": "fight"
         },
         "12037": {
+            "time-end": 1243.2686767578125,
             "involved": [
-                106
+                106,
+                103
             ],
-            "time-start": 2274,
-            "time-end": 2284,
-            "type": "movement",
-            "location": "dire-secret"
+            "intensity": "battle",
+            "location": "radiant-jungle",
+            "time-start": 1233.7376708984375,
+            "type": "fight"
         },
         "12038": {
+            "time-end": 1267.8626708984375,
             "involved": [
-                106
+                101,
+                105,
+                107,
+                108,
+                109
             ],
-            "time-start": 2284,
-            "time-end": 2299,
-            "type": "movement",
-            "location": "dire-ancient"
+            "intensity": "battle",
+            "location": "midlane-between-t1s",
+            "time-start": 1256.9320068359375,
+            "type": "fight"
         },
         "12039": {
+            "time-end": 1322.9158935546875,
             "involved": [
-                106
+                100,
+                102,
+                103,
+                104,
+                105,
+                106,
+                107,
+                109
             ],
-            "time-start": 2299,
-            "time-end": 2316,
-            "type": "movement",
-            "location": "roshan"
+            "intensity": "battle",
+            "location": "botlane-between-t1s",
+            "time-start": 1294.1229248046875,
+            "type": "fight"
         },
         "12040": {
+            "time-end": 1351.5089111328125,
             "involved": [
-                106
+                100,
+                101,
+                104,
+                105,
+                106,
+                109
             ],
-            "time-start": 2316,
-            "time-end": 2321,
-            "type": "movement",
-            "location": "dire-secret"
+            "intensity": "battle",
+            "location": "botlane-radiant-between-t1-t2",
+            "time-start": 1327.7813720703125,
+            "type": "fight"
         },
         "12041": {
+            "time-end": 1358.4405517578125,
             "involved": [
-                106
+                108,
+                103
             ],
-            "time-start": 2321,
-            "time-end": 2339,
-            "type": "laning",
-            "location": "midlane-dire-between-t1-t2"
+            "intensity": "battle",
+            "location": "toplane-between-dire-t2-t3",
+            "time-start": 1351.6422119140625,
+            "type": "fight"
         },
         "12042": {
+            "time-end": 1462.6151123046875,
             "involved": [
-                106
+                100,
+                102,
+                103,
+                104,
+                109
             ],
-            "time-start": 2339,
-            "time-end": 2341,
-            "type": "movement",
-            "location": "dire-secret"
+            "intensity": "battle",
+            "location": "dire-ancient",
+            "time-start": 1455.1502685546875,
+            "type": "fight"
         },
         "12043": {
+            "time-end": 1489.2086181640625,
             "involved": [
-                106
+                106,
+                107,
+                101
             ],
-            "time-start": 2341,
-            "time-end": 2346,
-            "type": "movement",
-            "location": "dire-ancient"
+            "intensity": "battle",
+            "location": "botlane-dire-between-t1-t2",
+            "time-start": 1486.8092041015625,
+            "type": "fight"
         },
         "12044": {
+            "time-end": 1517.4017333984375,
             "involved": [
-                106
+                100,
+                102,
+                103,
+                104,
+                105,
+                106,
+                107,
+                108
             ],
-            "time-start": 2346,
-            "time-end": 2354,
-            "type": "movement",
-            "location": "roshan"
+            "intensity": "battle",
+            "location": "botlane-dire-between-t1-t2",
+            "time-start": 1497.8731689453125,
+            "type": "fight"
         },
         "12045": {
+            "time-end": 1563.4571533203125,
             "involved": [
-                106
+                100,
+                102,
+                106,
+                107,
+                109
             ],
-            "time-start": 2354,
-            "time-end": 2359,
-            "type": "movement",
-            "location": "bottom-rune"
+            "intensity": "battle",
+            "location": "radiant-jungle",
+            "time-start": 1556.7254638671875,
+            "type": "fight"
         },
         "12046": {
+            "time-end": 1569.7889404296875,
             "involved": [
-                106
+                104,
+                106,
+                107,
+                109
             ],
-            "time-start": 2359,
-            "time-end": 2361,
-            "type": "movement",
-            "location": "dire-ancient"
+            "intensity": "battle",
+            "location": "toplane-between-t1s",
+            "time-start": 1561.7242431640625,
+            "type": "fight"
         },
         "12047": {
+            "time-end": 1609.5792236328125,
             "involved": [
-                106
+                105,
+                109,
+                101,
+                103
             ],
-            "time-start": 2361,
-            "time-end": 2384,
-            "type": "laning",
-            "location": "midlane-between-t1s"
+            "intensity": "battle",
+            "location": "bottom-rune",
+            "time-start": 1603.8472900390625,
+            "type": "fight"
         },
         "12048": {
+            "time-end": 1618.9102783203125,
             "involved": [
-                106
+                105,
+                101,
+                102,
+                103
             ],
-            "time-start": 2384,
-            "time-end": 2396,
-            "type": "laning",
-            "location": "midlane-radiant-between-t1-t2"
+            "intensity": "battle",
+            "location": "roshan",
+            "time-start": 1612.6451416015625,
+            "type": "fight"
         },
         "12049": {
+            "time-end": 1635.3062744140625,
             "involved": [
-                106
+                106,
+                101
             ],
-            "time-start": 2396,
-            "time-end": 2424,
-            "type": "laning",
-            "location": "midlane-radiant-between-t2-t3"
+            "intensity": "battle",
+            "location": "botlane-between-t1s",
+            "time-start": 1628.9744873046875,
+            "type": "fight"
         },
         "12050": {
+            "time-end": 1665.3656005859375,
             "involved": [
-                106
+                100,
+                102,
+                103,
+                106,
+                107,
+                109
             ],
-            "time-start": 2424,
-            "time-end": 2527,
-            "type": "jungling",
-            "location": "radiant-jungle"
+            "intensity": "battle",
+            "location": "botlane-between-t1s",
+            "time-start": 1653.3685302734375,
+            "type": "fight"
         },
         "12051": {
+            "time-end": 1693.5587158203125,
             "involved": [
-                106
+                100,
+                102,
+                103,
+                104,
+                105,
+                106,
+                107,
+                109
             ],
-            "time-start": 2527,
-            "time-end": 2542,
-            "type": "fountain-visit",
-            "location": "dire-base"
+            "intensity": "battle",
+            "location": "botlane-between-t1s",
+            "time-start": 1672.4305419921875,
+            "type": "fight"
         },
         "12052": {
+            "time-end": 1718.9525146484375,
             "involved": [
-                106
+                108,
+                101,
+                103
             ],
-            "time-start": 2542,
-            "time-end": 2549,
-            "type": "laning",
-            "location": "botlane-dire-between-t2-t3"
+            "intensity": "battle",
+            "location": "botlane-between-t1s",
+            "time-start": 1711.9542236328125,
+            "type": "fight"
         },
         "12053": {
+            "time-end": 1742.4134521484375,
             "involved": [
-                106
+                107,
+                108,
+                101
             ],
-            "time-start": 2549,
-            "time-end": 2552,
-            "type": "movement",
-            "location": "dire-secret"
+            "intensity": "battle",
+            "location": "botlane-dire-between-t1-t2",
+            "time-start": 1722.9515380859375,
+            "type": "fight"
         },
         "12054": {
+            "time-end": 1768.8070068359375,
             "involved": [
-                106
+                101,
+                102,
+                103,
+                105,
+                107,
+                108
             ],
-            "time-start": 2552,
-            "time-end": 2555,
-            "type": "movement",
-            "location": "dire-ancient"
+            "intensity": "battle",
+            "location": "dire-ancient",
+            "time-start": 1753.8773193359375,
+            "type": "fight"
         },
         "12055": {
+            "time-end": 1904.520751953125,
             "involved": [
-                106
+                100,
+                103,
+                104,
+                106,
+                109
             ],
-            "time-start": 2555,
-            "time-end": 2560,
-            "type": "movement",
-            "location": "bottom-rune"
+            "intensity": "battle",
+            "location": "radiant-jungle",
+            "time-start": 1884.653076171875,
+            "type": "fight"
         },
         "12056": {
+            "time-end": 1904.320068359375,
             "involved": [
-                106
+                105,
+                103
             ],
-            "time-start": 2560,
-            "time-end": 2565,
-            "type": "movement",
-            "location": "roshan"
+            "intensity": "battle",
+            "location": "toplane-between-dire-t1-t2",
+            "time-start": 1902.313232421875,
+            "type": "fight"
         },
         "12057": {
+            "time-end": 2004.394287109375,
             "involved": [
-                106
+                100,
+                101,
+                102,
+                103,
+                104,
+                105,
+                106,
+                107,
+                108,
+                109
             ],
-            "time-start": 2565,
-            "time-end": 2567,
-            "type": "movement",
-            "location": "bottom-rune"
+            "intensity": "battle",
+            "location": "botlane-dire-between-t1-t2",
+            "time-start": 1981.516357421875,
+            "type": "fight"
         },
         "12058": {
+            "time-end": 1989.343017578125,
             "involved": [
-                106
+                100,
+                101,
+                102,
+                103,
+                104,
+                105
             ],
-            "time-start": 2567,
-            "time-end": 2587,
-            "type": "jungling",
-            "location": "radiant-jungle"
+            "intensity": "battle",
+            "location": "dire-jungle",
+            "time-start": 1985.463134765625,
+            "type": "fight"
         },
         "12059": {
+            "time-end": 2255.917724609375,
             "involved": [
-                106
+                105,
+                103
             ],
-            "time-start": 2587,
-            "time-end": 2602,
-            "type": "laning",
-            "location": "botlane-between-t1s"
+            "intensity": "battle",
+            "location": "midlane-radiant-between-t1-t2",
+            "time-start": 2248.760009765625,
+            "type": "fight"
         },
         "12060": {
+            "time-end": 2362.547607421875,
             "involved": [
-                106
+                105,
+                106,
+                107,
+                103
             ],
-            "time-start": 2602,
-            "time-end": 2612,
-            "type": "laning",
-            "location": "botlane-radiant-between-t1-t2"
+            "intensity": "battle",
+            "location": "midlane-between-t1s",
+            "time-start": 2357.864990234375,
+            "type": "fight"
         },
         "12061": {
+            "time-end": 2384.020751953125,
             "involved": [
-                106
+                100,
+                101,
+                102,
+                103,
+                104,
+                105,
+                106,
+                107,
+                109
             ],
-            "time-start": 2612,
-            "time-end": 2627,
-            "type": "laning",
-            "location": "botlane-radiant-between-t2-t3"
+            "intensity": "battle",
+            "location": "midlane-between-t1s",
+            "time-start": 2367.297119140625,
+            "type": "fight"
         },
         "12062": {
+            "time-end": 2401.413330078125,
             "involved": [
-                106
+                100,
+                103,
+                105,
+                106,
+                107,
+                108,
+                109
             ],
-            "time-start": 2627,
-            "time-end": 2637,
-            "type": "fountain-visit",
-            "location": "radiant-base"
+            "intensity": "battle",
+            "location": "midlane-radiant-between-t2-t3",
+            "time-start": 2396.061767578125,
+            "type": "fight"
         },
         "12063": {
+            "time-end": 2429.843505859375,
             "involved": [
-                106
+                102,
+                103,
+                104,
+                105,
+                106,
+                107,
+                108,
+                109
             ],
-            "time-start": 2637,
-            "time-end": 2642,
-            "type": "laning",
-            "location": "botlane-radiant-between-t2-t3"
+            "intensity": "battle",
+            "location": "midlane-radiant-between-t2-t3",
+            "time-start": 2411.113037109375,
+            "type": "fight"
         },
         "12064": {
+            "time-end": 2451.985595703125,
             "involved": [
-                106
+                102,
+                103,
+                104,
+                105,
+                106,
+                108,
+                109
             ],
-            "time-start": 2642,
-            "time-end": 2655,
-            "type": "jungling",
-            "location": "radiant-jungle"
+            "intensity": "battle",
+            "location": "midlane-radiant-between-t1-t2",
+            "time-start": 2429.308349609375,
+            "type": "fight"
         },
         "12065": {
+            "time-end": 2522.024169921875,
             "involved": [
-                106
+                104,
+                105,
+                107
             ],
-            "time-start": 2655,
-            "time-end": 2662,
-            "type": "laning",
-            "location": "midlane-radiant-between-t1-t2"
+            "intensity": "battle",
+            "location": "midlane-radiant-between-t1-t2",
+            "time-start": 2504.966064453125,
+            "type": "fight"
         },
         "12066": {
+            "time-end": 2583.500244140625,
             "involved": [
-                106
+                100,
+                101,
+                102,
+                103,
+                104,
+                105,
+                106,
+                107,
+                108,
+                109
             ],
-            "time-start": 2662,
-            "time-end": 2685,
-            "type": "jungling",
-            "location": "radiant-jungle"
+            "intensity": "battle",
+            "location": "radiant-jungle",
+            "time-start": 2546.306884765625,
+            "type": "fight"
         },
         "12067": {
+            "time-end": 2631.396728515625,
             "involved": [
-                106
+                105,
+                106,
+                108,
+                103
             ],
-            "time-start": 2685,
-            "time-end": 2700,
-            "type": "laning",
-            "location": "botlane-radiant-between-t1-t2"
+            "intensity": "battle",
+            "location": "radiant-base",
+            "time-start": 2627.717529296875,
+            "type": "fight"
         },
         "12068": {
+            "time-end": 2674.543701171875,
             "involved": [
-                106
+                105,
+                106,
+                100,
+                108
             ],
-            "time-start": 2700,
-            "time-end": 2723,
-            "type": "laning",
-            "location": "botlane-radiant-between-t2-t3"
+            "intensity": "battle",
+            "location": "radiant-jungle",
+            "time-start": 2663.639892578125,
+            "type": "fight"
         },
         "12069": {
+            "time-end": 2755.887451171875,
             "involved": [
-                106
+                100,
+                101,
+                102,
+                103,
+                104,
+                105,
+                106,
+                107,
+                108,
+                109
             ],
-            "time-start": 2723,
-            "time-end": 2856,
-            "type": "fountain-visit",
-            "location": "radiant-base"
+            "intensity": "battle",
+            "location": "radiant-base",
+            "time-start": 2696.752685546875,
+            "type": "fight"
         },
         "12070": {
+            "time-end": 2833.016845703125,
             "involved": [
-                106
+                100,
+                102,
+                103,
+                105,
+                107
             ],
-            "time-start": 2856,
-            "time-end": 2878,
-            "type": "fountain-visit",
-            "location": "dire-base"
+            "intensity": "battle",
+            "location": "midlane-dire-between-t2-t3",
+            "time-start": 2812.814697265625,
+            "type": "fight"
         },
         "12071": {
+            "time-end": 2925.598876953125,
             "involved": [
-                106
+                100,
+                101,
+                103,
+                105,
+                106,
+                107,
+                109
             ],
-            "time-start": 2878,
-            "time-end": 2953,
-            "type": "jungling",
-            "location": "dire-jungle"
+            "intensity": "battle",
+            "location": "dire-jungle",
+            "time-start": 2912.755126953125,
+            "type": "fight"
         },
         "12072": {
+            "time-end": 2926.736083984375,
             "involved": [
-                106
+                100,
+                101,
+                102,
+                103,
+                104,
+                105
             ],
-            "time-start": 2953,
-            "time-end": 2963,
-            "type": "movement",
-            "location": "radiant-secret"
+            "intensity": "battle",
+            "location": "dire-base",
+            "time-start": 2920.314208984375,
+            "type": "fight"
         },
         "12073": {
+            "time-end": 2954.898681640625,
             "involved": [
-                106
+                100,
+                103,
+                106,
+                107,
+                108
             ],
-            "time-start": 2963,
-            "time-end": 2966,
-            "type": "laning",
-            "location": "toplane-between-radiant-t2-t3"
+            "intensity": "battle",
+            "location": "toplane-between-radiant-t1-t2",
+            "time-start": 2935.164794921875,
+            "type": "fight"
         },
         "12074": {
+            "time-end": 2975.033935546875,
             "involved": [
-                106
+                102,
+                104,
+                105,
+                106,
+                107,
+                108
             ],
-            "time-start": 2966,
-            "time-end": 3066,
-            "type": "fountain-visit",
-            "location": "radiant-base"
+            "intensity": "battle",
+            "location": "radiant-base",
+            "time-start": 2968.946533203125,
+            "type": "fight"
         },
         "12075": {
+            "time-end": 3027.412353515625,
             "involved": [
-                106
+                100,
+                101,
+                102,
+                103,
+                105,
+                106,
+                107,
+                108
             ],
-            "time-start": 3066,
-            "time-end": 3069,
-            "type": "laning",
-            "location": "midlane-radiant-between-t2-t3"
+            "intensity": "battle",
+            "location": "radiant-base",
+            "time-start": 2998.848388671875,
+            "type": "fight"
         },
         "12076": {
+            "time-end": 3008.280517578125,
             "involved": [
-                106
+                100,
+                109,
+                103
             ],
-            "time-start": 3069,
-            "time-end": 3076,
-            "type": "laning",
-            "location": "midlane-radiant-between-t1-t2"
+            "intensity": "battle",
+            "location": "radiant-base",
+            "time-start": 2999.651123046875,
+            "type": "fight"
         },
         "12077": {
+            "time-end": 3053.635009765625,
             "involved": [
-                106
+                100,
+                103,
+                105,
+                106,
+                108
             ],
-            "time-start": 3076,
-            "time-end": 3099,
-            "type": "movement",
-            "location": "radiant-ancient"
+            "intensity": "battle",
+            "location": "radiant-base",
+            "time-start": 3033.232177734375,
+            "type": "fight"
         },
         "12078": {
+            "time-end": 3076.579833984375,
             "involved": [
-                106
+                100,
+                103,
+                104,
+                105,
+                106,
+                108
             ],
-            "time-start": 3099,
-            "time-end": 3111,
-            "type": "movement",
-            "location": "radiant-secret"
+            "intensity": "battle",
+            "location": "radiant-base",
+            "time-start": 3058.116943359375,
+            "type": "fight"
         },
         "12079": {
+            "time-end": 3152.438232421875,
             "involved": [
-                106
+                101,
+                102,
+                103,
+                104,
+                105,
+                107,
+                108,
+                109
             ],
-            "time-start": 3111,
-            "time-end": 3114,
-            "type": "movement",
-            "location": "top-rune"
+            "intensity": "battle",
+            "location": "midlane-radiant-between-t2-t3",
+            "time-start": 3116.114501953125,
+            "type": "fight"
         },
         "12080": {
             "involved": [
