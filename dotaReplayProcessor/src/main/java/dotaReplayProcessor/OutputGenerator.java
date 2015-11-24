@@ -15,11 +15,11 @@ public class OutputGenerator {
 	BufferedWriter header_writer;
 	BufferedWriter event_writer;
 	List<String> key_order;
-	public OutputGenerator(String filename_out) {
+	public OutputGenerator(String directory_out) {
 		try {
-		File file = new File(filename_out);
-		File file_events = new File("events_"+filename_out);
-		File file_header = new File("header_"+filename_out);
+		File file = new File(directory_out+"trajectories.csv");
+		File file_events = new File(directory_out+"events.csv");
+		File file_header = new File(directory_out+"header.csv");
 		FileWriter fw;
 		FileWriter fw_events;
 		FileWriter fw_header;
