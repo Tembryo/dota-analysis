@@ -22,9 +22,23 @@ public class Main {
 		
 		 System.out.println(Paths.get(".").toAbsolutePath().normalize().toString());
 		 
-		String filename_replay = "data/1864290085.dem";
-		String filename_out = "replay_data.csv";
-		OutputGenerator output = new OutputGenerator(filename_out);
+		String filename_replay = args[0];
+		String directory_out = "output/";
+		try {
+			int matchid = Clarity.infoForFile(filename_replay).getGameInfo().getDota().getMatchId();
+			directory_out += matchid+"/";
+			boolean success = (new File(directory_out)).mkdirs();
+			if (!success) {
+			    // Directory creation failed
+				System.out.println("failed to create output dir");
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return;
+		}
+				 
+		OutputGenerator output = new OutputGenerator(directory_out);
 		
         CDemoFileInfo info;
 		try {
@@ -44,7 +58,7 @@ public class Main {
 			e1.printStackTrace();
 		}
         
-		/*ReplayProcessor processor;
+		ReplayProcessor processor;
 		try {
 			processor = new ReplayProcessor(filename_replay, output);
 			processor.process();
@@ -54,7 +68,7 @@ public class Main {
 		}
 
         long tMatch = System.currentTimeMillis() - tStart;
-        System.out.printf("total time taken: {}s", (tMatch) / 1000.0);*/
+        System.out.printf("total time taken: {}s", (tMatch) / 1000.0);
 		
         output.finish();
 	}
