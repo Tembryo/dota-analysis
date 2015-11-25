@@ -642,7 +642,7 @@ icon_images = {
 	"ogre_magi":"img/hero-icons/Ogre Magi_icon.png",
 	"medusa":"img/hero-icons/Medusa_icon.png",
 	"mirana":"img/hero-icons/Mirana_icon.png",
-	"naga_siren":"img/hero-icons/Naga Siren_icon.png"
+	"naga_siren":"img/hero-icons/Naga Siren_icon.png",
 	"night_stalker":"img/hero-icons/Night Stalker_icon.png",
 	"phantom_assassin":"img/hero-icons/Phantom Assassin_icon.png",
 	"phoenix":"img/hero-icons/Phoenix_icon.png",
