@@ -3,5 +3,5 @@ database:
   build: .
   volumes:
     - ../storage/db:/data/db
-  ports:
-    - "42200:42200"
+  expose:
+    - "42200"
