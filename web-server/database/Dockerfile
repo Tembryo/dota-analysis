@@ -12,4 +12,4 @@ WORKDIR /data
 
 EXPOSE 42200
 
-CMD ["mongod", "--port", "42200"]
+CMD ["mongod", "--port", "42200", "--bind_ip", "0.0.0.0"]
