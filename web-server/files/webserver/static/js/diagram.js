@@ -161,6 +161,8 @@ function processEventGroup(intersecting_group)
 	{
 		var event = intersecting_group[intersecting_i];
 		var identifier = event["type"];//+"--"+event["location"];
+        if(event["type"]=="fight")
+            identifier += event["time-start"];
 
 		if(grouped.hasOwnProperty(identifier))
 		{
@@ -1629,7 +1631,7 @@ function updateDiagram()
 
 	var selected = d3_elements["diagram-icons"].selectAll(".selected-event").data(selected_data, function(d){return d;});
 
-	/*selected.enter()
+	selected.enter()
 		.append("g")
 		.attr("class", "selected-event")
 		.each(function(d){createSelectedEvent.call(this, d);})
@@ -1638,7 +1640,7 @@ function updateDiagram()
 		.each(function(d){updateSelectedEvent.call(this, d);})
 
 	selected.exit()
-		.remove();*/
+		.remove();
 
 	var histories = d3_elements["diagram-history-lines"].selectAll(".history-line").data(gui_state["visible-unit-histories"], function(d){return d;});
 	histories.enter()
@@ -2090,8 +2092,8 @@ function mapOnUnitClick(entry)
 function diagramEventOnClick(event_id)
 {
 	gui_state["selected-event"] = event_id;
-	if(replay_data["diagram-events"][gui_state["selected-event"]].hasOwnProperty("involved"))
-		gui_state["visible-unit-histories"] = replay_data["diagram-events"][gui_state["selected-event"]]["involved"];
+	/*if(replay_data["diagram-events"][gui_state["selected-event"]].hasOwnProperty("involved"))
+		gui_state["visible-unit-histories"] = replay_data["diagram-events"][gui_state["selected-event"]]["involved"];*/
 
 	var centered_time = 0;
 	var event = replay_data["diagram-events"][gui_state["selected-event"]];
