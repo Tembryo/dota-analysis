@@ -1,0 +1,39 @@
+<% 
+    title="User";
+    navigation_entries = [
+        {"label": "Parsed Matches", "link": "/matches"},
+        ];
+    layout("base-template")
+-%>
+
+<section id="user-container" class="container content-section text-center">
+	<div class="row">
+		<div class="col-xs-1 col-xs-offset-3">
+            <img src="<%= user["steam_object"]["avatarmedium"] %>"/>
+        </div>
+		<div class="col-xs-5">
+            <h1> <%= user["name"]%> </h1>
+        </div>
+    </div>
+	<div class="row">
+        <div class="col-xs-2 col-xs-offset-3">
+            Email: 
+        </div>
+        <div class="col-xs-3 ">
+            <% if(user["email"] == "unknown") {%>
+                Not yet set.
+            <% } else {%>
+            <%= user["email"] -%>
+            <% }%>
+        </div>
+    </div>
+	<div class="row">
+        <div class="col-xs-2 col-xs-offset-3">
+            Beta status: 
+        </div>
+        <div class="col-xs-3">
+            <%= user["beta_enabled"]%>
+        </div>
+    </div>
+
+</section>

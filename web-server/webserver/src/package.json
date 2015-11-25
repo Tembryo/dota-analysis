@@ -8,14 +8,17 @@
 	"express-session": "^1.7.6",
 	"morgan": "~1.0.0",
 	"body-parser": "^1.7.0",
-	"ejs": "^1.0.0",
+
 	"method-override": "~1.0.0",
 	"cookie-parser": ">= 0.0.0",
+
+	"ejs": "^1.0.0",
+    "ejs-mate": "~2.3.0",
 
 	"passport": ">= 0.0.0",
 	"passport-steam": ">= 0.0.0",
 
-        "mongoose": "~3.6.13"
+    "mongoose": "~3.6.13"
 
     }
 }
