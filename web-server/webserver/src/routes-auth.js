@@ -2,7 +2,7 @@ var	express		= require('express'),
 	passport	= require("passport"),
 	SteamStrategy	= require("passport-steam").Strategy;
 
-var	config		= require("./config_local.js");
+var	config		= require("./config.js");
 
 var User = require('./models/user');
 
@@ -18,7 +18,7 @@ passport.serializeUser(function(user, done) {
 });
 
 passport.deserializeUser(function(obj, done) {
-	User.findOne({"identifier": obj}, "name steam_object identifier", function(err, user){
+	User.findOne({"identifier": obj}, "identifier name", function(err, user){
 			if (err)
 				console.log(err);
 			done(null, user);
@@ -35,7 +35,7 @@ passport.use(
 		{
 			returnURL: "http://"+config.host+"/auth/steam/return",
 			realm: "http://"+config.host+"/",
-			apiKey: '738D637E98D73D27B9802CA833784D7F'
+			apiKey: config.steam_api_key
 		},
 		function(identifier, profile, done) {
 			console.log("Steam verify");
@@ -97,9 +97,9 @@ router.route("/steam/return")
     .get(	
         passport.authenticate("steam", { failureRedirect: "/" }),
 		function(req, res) {
-            console.log(req.user);
+            //console.log(req.user);
 		    console.log("returned from steam");
-		    res.redirect('/');
+		    res.redirect('/user');
         }
 	);
 

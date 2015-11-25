@@ -5,10 +5,11 @@ var express         = require("express"),
     cookieParser    = require("cookie-parser"),
     session         = require("express-session"),
     morgan          = require("morgan"),
+    ejs_mate        = require('ejs-mate'),
     methodOverride  = require("method-override"),
     passport        = require("passport");
 
-var config          = require("./config_local.js"),
+var config          = require("./config.js"),
     database          = require("./database.js");
 
 var website_routes  = require("./routes-website.js"),
@@ -18,10 +19,14 @@ var website_routes  = require("./routes-website.js"),
 
 var session_secret = "mega-secret-wisdota-session";
 
-var app = express();                 // define our app using express
+var app = express();
 
 app.set('client-url',"http://"+config.host);
 app.disable('x-powered-by');
+
+app.engine('ejs', ejs_mate);
+app.set('view engine', 'ejs');
+app.set('views', config.files+"/views");
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -36,7 +41,7 @@ app.use(passport.session());
 app.use("/", website_routes.router);
 app.use("/api", api_routes.router);
 app.use("/auth", auth_routes.router)
-app.use("/static", express.static("/files/static"));
+app.use("/static", express.static(config.files+"/static"));
 
 // START THE SERVER
 // =============================================================================

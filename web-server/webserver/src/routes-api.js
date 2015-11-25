@@ -1,6 +1,6 @@
-var	express			= require('express');
-
-var	config			= require("./config_local.js");
+var	express			= require("express"),
+    fs              = require("fs");
+var	config			= require("./config.js");
 
 // ROUTES FOR OUR API
 // =============================================================================
@@ -45,13 +45,19 @@ router.route('/matches')
     })
     // get all the matches
     .get(function(req, res) {
-        Match.find({}, "id label", function(err, matches) {
+        /*Match.find({}, "id label", function(err, matches) {
             if (err)
                 res.send(err);
 
             res.json(matches);
-        });
-        
+        });*/
+
+        fs.readdir(config.files+"/static/data",
+            function(err, files){
+                if(!err)
+                    console.log(err);
+                res.json(files);
+            })
     });
 
 router.route('/matches/:match_id')
