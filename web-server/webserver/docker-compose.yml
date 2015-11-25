@@ -8,4 +8,4 @@ webserver:
   external_links:
     - database-container:database
   environment:
-    VIRTUAL_HOST: tembryo.com/node-host
+    VIRTUAL_HOST: tembryo.com/dota-node

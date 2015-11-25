@@ -1,6 +1,12 @@
-DOCKERIZED = false;
-
-if(DOCKERIZED)
+DOCKERIZED = true;
+ON_SERVER = true;
+if(DOCKERIZED && ON_SERVER)
+{
+    exports.host            = "tembryo.com/dota-node";
+    exports.database_host   = "database:42200";
+    exports.files           = "/files";
+}
+else if(DOCKERIZED)
 {
     exports.host            = "localhost:80";
     exports.database_host   = "database:42200";
