@@ -609,18 +609,18 @@ icon_images = {
 	"bane":"img/hero-icons/Bane_icon.png",
 	"dark_seer":"img/hero-icons/Dark Seer_icon.png",
 	"dazzle":"img/hero-icons/Dazzle_icon.png",
-	"doom_bringer":"Doom Bringer_icon.png",
+	"doom_bringer":"img/hero-icons/Doom Bringer_icon.png",
 	"ember_spirit":"img/hero-icons/Ember Spirit_icon.png",
-	"furion":"Nature's Prophet_icon.png",
-	"lion":"img/hero-icons/Lion_icon.png"
+	"furion":"img/hero-icons/Nature's Prophet_icon.png",
+	"lion":"img/hero-icons/Lion_icon.png",
 	"necrolyte":"img/hero-icons/Necrolyte_icon.png",
-	"nevermore":"Shadow Fiend_icon.png",
-	"ogre_magi":"Ogre Magi_icon.png",
+	"nevermore":"img/hero-icons/Shadow Fiend_icon.png",
+	"ogre_magi":"img/hero-icons/Ogre Magi_icon.png",
 	"queenofpain":"img/hero-icons/Queen Of Pain_icon.png",
-	"rattletrap":"Rattletrap_icon.png",
-	"shadow_shaman":"Shadow Shaman_icon.png",
-	"silencer":"Silencer_icon.png",
-	"sniper":"Sniper_icon.png",
+	"rattletrap":"img/hero-icons/Rattletrap_icon.png",
+	"shadow_shaman":"img/hero-icons/Shadow Shaman_icon.png",
+	"silencer":"img/hero-icons/Silencer_icon.png",
+	"sniper":"img/hero-icons/Sniper_icon.png",
 	"spectre":"img/hero-icons/Spectre_icon.png", 
 	"spirit_breaker":"img/hero-icons/Spirit Breaker_icon.png",
 	"tiny":"img/hero-icons/Tiny_icon.png",
@@ -628,7 +628,7 @@ icon_images = {
 	"undying":"img/hero-icons/Undying_icon.png",
 	"visage":"img/hero-icons/Visage_icon.png",
 	"windrunner":"img/hero-icons/Windrunner_icon.png",
-	"witch_doctor":"img/hero-icons/Witch_Doctor_icon.png",
+	"witch_doctor":"img/hero-icons/Witch_Doctor_icon.png"
 
 };
 
