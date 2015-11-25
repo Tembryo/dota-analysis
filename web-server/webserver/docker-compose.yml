@@ -1,7 +1,5 @@
 webserver:
   build: .
-  ports:
-    - "80:42000"
   volumes:
     - ../storage/webserver:/storage
     - ../files/webserver:/files:ro
@@ -9,3 +7,4 @@ webserver:
     - database-container:database
   environment:
     VIRTUAL_HOST: tembryo.com/dota-node
+    VIRTUAL_PORT: 42000
