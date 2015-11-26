@@ -1,15 +1,8 @@
-proxy:
-  container_name: fischerq-progxy
-  image: jwilder/nginx-proxy
-  ports:
-    - "80:80"
-  volumes:
-    - "/var/run/docker.sock:/tmp/docker.sock:ro"
 database:
   container_name: database-container
   build: database
   volumes:
-    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/db:/data/db
+    - /usr/local/dota-analysis/web-server/storage/db:/data/db
   expose:
     - "42200"
 webserver:
@@ -17,10 +10,10 @@ webserver:
   expose:
     - "42000"
   volumes:
-    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/webserver:/storage
-    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/files/webserver:/files:ro
+    - /usr/local/dota-analysis/web-server/storage/webserver:/storage
+    - /usr/local/dota-analysis/web-server/files/webserver:/files:ro
   environment:
-    VIRTUAL_HOST: localhost
+    VIRTUAL_HOST: tembryo.com
     VIRTUAL_PORT: 42000
   links:
-    - database
+    - database:DATABASE_IP

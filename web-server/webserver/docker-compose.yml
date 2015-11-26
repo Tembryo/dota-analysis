@@ -6,7 +6,7 @@ webserver:
     - ../storage/webserver:/storage
     - ../files/webserver:/files:ro
   external_links:
-    - database-container:database
+    - database-container:DATABASE_IP
   environment:
-    VIRTUAL_HOST: tembryo.com/dota-node
+    VIRTUAL_HOST: tembryo.com
     VIRTUAL_PORT: 42000
