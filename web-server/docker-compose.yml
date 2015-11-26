@@ -1,14 +1,26 @@
-api:
-  build: api
+proxy:
+  container_name: fischerq-progxy
+  image: jwilder/nginx-proxy
   ports:
-    - "42000:42000"
+    - "80:80"
   volumes:
-    - ./storage/api:/data
-  links:
-    - database
+    - "/var/run/docker.sock:/tmp/docker.sock:ro"
 database:
+  container_name: database-container
   build: database
   volumes:
-    - ./storage/db:/data/db
-  ports:
-    - "42200:42200"
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/db:/data/db
+  expose:
+    - "42200"
+webserver:
+  build: webserver
+  expose:
+    - "42000"
+  volumes:
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/webserver:/storage
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/files/webserver:/files:ro
+  environment:
+    VIRTUAL_HOST: localhost
+    VIRTUAL_PORT: 42000
+  links:
+    - database

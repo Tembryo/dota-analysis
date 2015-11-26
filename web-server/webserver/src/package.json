@@ -10,7 +10,7 @@
 	"body-parser": "^1.7.0",
 
 	"method-override": "^1.0.0",
-	"cookie-parser": "^0.0.0",
+	"cookie-parser": "^1.4.0",
 
 	"ejs": "^2.3.4",
     "ejs-mate": "^2.3.0",
