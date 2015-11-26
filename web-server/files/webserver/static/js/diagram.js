@@ -647,6 +647,7 @@ icon_images = {
 	"naga_siren":           "/static/img/hero-icons/Naga Siren_icon.png",
 	"night_stalker":        "/static/img/hero-icons/Night Stalker_icon.png",
 	"phantom_assassin":     "/static/img/hero-icons/Phantom Assassin_icon.png",
+	"phantom_lancer":       "/static/img/hero-icons/Phantom Lancer_icon.png",
 	"phoenix":              "/static/img/hero-icons/Phoenix_icon.png",
 	"pudge":                "/static/img/hero-icons/Pudge_icon.png",
 	"queenofpain":          "/static/img/hero-icons/Queen Of Pain_icon.png",
