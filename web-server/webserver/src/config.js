@@ -2,8 +2,8 @@ DOCKERIZED = true;
 ON_SERVER = true;
 if(DOCKERIZED && ON_SERVER)
 {
-    exports.host            = "tembryo.com/dota-node";
-    exports.database_host   = "database:42200";
+    exports.host            = "tembryo.com";
+    exports.database_host   = "DATABASE_IP:42200";
     exports.files           = "/files";
 }
 else if(DOCKERIZED)
