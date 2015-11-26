@@ -20,6 +20,11 @@ router.get('/', function(req, res) {
     res.render("pages/index.ejs", data);   
 });
 
+router.get("/dota", function(req, res) {
+    res.redirect('/');  
+});
+
+
 // Page /user
 var User = require('./models/user');
 
