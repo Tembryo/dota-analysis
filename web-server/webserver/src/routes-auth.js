@@ -99,7 +99,7 @@ router.route("/steam/return")
 		function(req, res) {
             //console.log(req.user);
 		    console.log("returned from steam");
-		    res.redirect('/user');
+		    res.redirect('/matches');
         }
 	);
 
