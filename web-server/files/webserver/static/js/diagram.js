@@ -612,7 +612,7 @@ icon_images = {
 	"bane":                 "/static/img/hero-icons/Bane_icon.png",
 	"beastmaster":          "/static/img/hero-icons/Beastmaster_icon.png",
 	"bounty_hunter":        "/static/img/hero-icons/Bounty Hunter_icon.png",
-	"brewmaster":           "/static/img/hero-icons/Brewmaster_Earth_icon.png",
+	"brewmaster":           "/static/img/hero-icons/Brewmaster_icon.png",
 	"bristleback":          "/static/img/hero-icons/Bristleback_icon.png",
 	"centaur":              "/static/img/hero-icons/Centaur Warrunner_icon.png",
 	"chaos_knight":         "/static/img/hero-icons/Chaos Knight_icon.png",
