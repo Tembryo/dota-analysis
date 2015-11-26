@@ -17,22 +17,22 @@
     </div>
 	<div class="row">
         <div class="col-xs-2 col-xs-offset-3">
-            Email: 
+            <p>Email: </p>
         </div>
         <div class="col-xs-3 ">
-            <% if(user["email"] == "unknown") {%>
+            <p><% if(user["email"] == "unknown") {%>
                 Not yet set. (Coming soon)
             <% } else {%>
             <%= user["email"] -%>
-            <% }%>
+            <% }%></p>
         </div>
     </div>
 	<div class="row">
         <div class="col-xs-2 col-xs-offset-3">
-            Beta status: 
+           <p> Beta status: </p>
         </div>
         <div class="col-xs-3">
-            <%= user["beta_enabled"]%> (Coming soon)
+           <p> <%= user["beta_enabled"]%> (Coming soon)</p>
         </div>
     </div>
 
