@@ -1,24 +1,7 @@
-DOCKERIZED = true;
-ON_SERVER = true;
-if(DOCKERIZED && ON_SERVER)
-{
-    exports.host            = "tembryo.com";
-    exports.database_host   = "DATABASE_IP:42200";
-    exports.files           = "/files";
-}
-else if(DOCKERIZED)
-{
-    exports.host            = "localhost:80";
-    exports.database_host   = "database:42200";
-    exports.files           = "/files";
-}
-else
-{
-    exports.host            = "localhost:42000";
-    exports.database_host   = "localhost:42200";
-    exports.files           = "../../files/webserver";
-}
+exports.host            = process.env.VIRTUAL_HOST;
+exports.database_host   = "DATABASE_IP:42200";
+exports.files           = "/files";
 
-exports.port            = 42000;
+exports.port            = process.env.VIRTUAL_PORT;
 exports.steam_api_key   = "738D637E98D73D27B9802CA833784D7F";
 

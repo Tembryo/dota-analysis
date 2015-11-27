@@ -1,11 +1,14 @@
 FROM node:5
 
-# make the src folder available in the docker image
-ADD src/ /src
-WORKDIR /src
+# make the src folder available in the docker image as volume
+VOLUME ["/source"]
+WORKDIR /source
+
 
 # install the dependencies from the package.json file
-RUN npm install
+#ADD src/ /src
+#WORKDIR /src
+#RUN npm install
 
 # expose port of the server
 EXPOSE 42000

@@ -25,6 +25,8 @@ passport.deserializeUser(function(obj, done) {
         });
 });
 
+console.log("Steam return "+"http://"+config.host+"/auth/steam/return");
+console.log("Steam realm "+"http://"+config.host+"/");
 
 // Use the SteamStrategy within Passport.
 //   Strategies in passport require a `validate` function, which accept

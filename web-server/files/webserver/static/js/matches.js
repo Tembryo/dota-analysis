@@ -16,7 +16,10 @@ function updateList()
 		.attr("class", "match")
 		    .append("a")
             .attr("href", function(file){return "/match/"+file;})
-            .text( function(file){return file;})
+            .text( function(file)
+                    {
+                        return file.substring(0, file.lastIndexOf("."));
+                    });
 
 	matches.exit()
 		.remove();
