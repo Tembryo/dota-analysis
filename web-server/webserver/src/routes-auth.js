@@ -25,8 +25,6 @@ passport.deserializeUser(function(obj, done) {
         });
 });
 
-console.log("Steam return "+"http://"+config.host+"/auth/steam/return");
-console.log("Steam realm "+"http://"+config.host+"/");
 
 // Use the SteamStrategy within Passport.
 //   Strategies in passport require a `validate` function, which accept
@@ -36,7 +34,7 @@ passport.use(
 	new SteamStrategy(
 		{
 			returnURL: "http://"+config.host+"/auth/steam/return",
-			realm: "http://"+config.host+"/",
+			realm: config.steam_realm,
 			apiKey: config.steam_api_key
 		},
 		function(identifier, profile, done) {
