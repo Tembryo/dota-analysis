@@ -9,5 +9,14 @@
     font-family: Lora,"Helvetica Neue",Helvetica,Arial,sans-serif;
     color: #ddd;
     background-color: #111;
-    font-size: 15;
+    font-size: 20pt;
+}
+
+.match a
+{
+    text-align: left;
+    font-family: Lora,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    color: #ddd;
+    background-color: #111;
+    font-size: 20pt;
 }

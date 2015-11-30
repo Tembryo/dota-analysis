@@ -1,0 +1,60 @@
+{
+    "match-string": "1929902367.json",
+    "players": {
+        "0": {
+            "steam_id": 76561198038694463,
+            "name": "Party-Milfstyle"
+        },
+        "1": {
+            "steam_id": 76561198038313515,
+            "name": "nerfekint"
+        },
+        "2": {
+            "steam_id": 76561198004452471,
+            "name": "Molz"
+        },
+        "3": {
+            "steam_id": 76561198031533359,
+            "name": "LucifersSheep"
+        },
+        "4": {
+            "steam_id": 76561198052322895,
+            "name": "XXXxmensXXX"
+        },
+        "5": {
+            "steam_id": 76561198107696864,
+            "name": "Mayushii-desu"
+        },
+        "6": {
+            "steam_id": 76561198107262627,
+            "name": "noob"
+        },
+        "7": {
+            "steam_id": 76561198164742691,
+            "name": "Wut"
+        },
+        "8": {
+            "steam_id": 76561198062121409,
+            "name": "(T-1000)Pomsky"
+        },
+        "9": {
+            "steam_id": 76561198070364100,
+            "name": "(T-900)K"
+        }
+    },
+    "length": 2561.0,
+    "draft": {},
+    "id": 1929902367,
+    "teams": {
+        "0": {
+            "short": "empty",
+            "side": "radiant",
+            "name": "empty"
+        },
+        "1": {
+            "short": "empty",
+            "side": "dire",
+            "name": "empty"
+        }
+    }
+}

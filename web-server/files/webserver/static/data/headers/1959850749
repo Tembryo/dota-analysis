@@ -1,0 +1,113 @@
+{
+    "match-string": "1959850749.json",
+    "parameters": {
+        "formAdjacencyMatrix": {
+            "w_space1": 0.02,
+            "w_space2": 0.3,
+            "w_time": 80,
+            "radius": 1500,
+            "distance_threshold": 300
+        },
+        "map": {
+            "xmin": -8200,
+            "num_box": 32,
+            "ymin": -8200,
+            "ymax": 8000,
+            "xmax": 8000
+        },
+        "evaluateFightList": {
+            "alpha": 150,
+            "kappa": 0.15,
+            "time_threshold": 2
+        },
+        "graphAttacks": {
+            "damage_threshold": 50
+        },
+        "namespace": {
+            "normal_namespace": 11000,
+            "kills_namespace": 10000,
+            "fights_namespace": 12000,
+            "hero_namespace": 100
+        },
+        "heroPositions": {
+            "sample_step_size": 150
+        },
+        "general": {
+            "col_per_player": 3,
+            "num_players": 10
+        },
+        "goldXPInfo": {
+            "bin_size": 2
+        },
+        "makeAttackList": {
+            "bin_size": 1
+        },
+        "version": "0.0.01",
+        "heroTrajectories": {
+            "min_timespan": 3,
+            "delta": 1000
+        },
+        "pregame_time_shift": 60,
+        "datetime": {
+            "date": "2015-11-30",
+            "time": "18:49:39.389397"
+        }
+    },
+    "teams": {
+        "0": {
+            "short": "empty",
+            "side": "radiant",
+            "name": "empty"
+        },
+        "1": {
+            "short": "empty",
+            "side": "dire",
+            "name": "empty"
+        }
+    },
+    "players": {
+        "0": {
+            "steam_id": 76561197998568036,
+            "name": "CyReX*"
+        },
+        "1": {
+            "steam_id": 76561198065166447,
+            "name": "CptN"
+        },
+        "2": {
+            "steam_id": 76561198154066073,
+            "name": "N33LZ"
+        },
+        "3": {
+            "steam_id": 76561198219140516,
+            "name": "Ddy-"
+        },
+        "4": {
+            "steam_id": 76561198083801722,
+            "name": "STRONG"
+        },
+        "5": {
+            "steam_id": 76561197974200131,
+            "name": "mastouille"
+        },
+        "6": {
+            "steam_id": 76561198110229368,
+            "name": "ZeN+"
+        },
+        "7": {
+            "steam_id": 76561198071434505,
+            "name": "Takechoux"
+        },
+        "8": {
+            "steam_id": 76561198095844296,
+            "name": "sighs2"
+        },
+        "9": {
+            "steam_id": 76561197968683769,
+            "name": "PernellSubban"
+        }
+    },
+    "length": 2032.0,
+    "draft": {},
+    "id": "1959850749"
+}

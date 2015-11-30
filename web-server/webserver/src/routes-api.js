@@ -56,7 +56,9 @@ router.route('/matches')
                     c++;
                     fs.readFile(config.files+"/static/data/headers/"+file,'utf-8',function(err,json){
                         if (err) throw err;
+                        console.log("load "+file);
                         processed_files.push(JSON.parse(json));
+                        console.log("wrote "+file);
                         if (0===--c) {
                             res.json(processed_files);
                         }

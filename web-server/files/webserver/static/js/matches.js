@@ -3,6 +3,7 @@ match_list = [];
 d3.json("/api/matches"
 		,function(error, data){
 			match_list = data;
+            match_list.sort(function(a,b){return parseInt(a["id"])-parseInt(b["id"]);})
             updateList();
 		});
 
@@ -19,7 +20,7 @@ function updateList()
             .text( function(file)
                     {
                         str = file["id"];
-                        if (file["teams"]["0"]["name"].trim().length != 0 || file["teams"]["1"]["name"].trim().length != 0)
+                        if (!(file["teams"]["0"]["name"].trim()=== "empty" && file["teams"]["1"]["name"].trim()=== "empty"))
                             str += ": "+ file["teams"]["0"]["name"] +" vs. "+file["teams"]["1"]["name"];
                         return str;
                     });

@@ -1,0 +1,60 @@
+{
+    "match-string": "1950077300.json",
+    "players": {
+        "0": {
+            "steam_id": 76561198047544485,
+            "name": "Puppey"
+        },
+        "1": {
+            "steam_id": 76561198047648307,
+            "name": "MISERY"
+        },
+        "2": {
+            "steam_id": 76561198003541947,
+            "name": "EternaLEnVy"
+        },
+        "3": {
+            "steam_id": 76561198046966189,
+            "name": "Secret.w33.haa"
+        },
+        "4": {
+            "steam_id": 76561197967187728,
+            "name": "pieliedie"
+        },
+        "5": {
+            "steam_id": 76561198054420884,
+            "name": "Fly"
+        },
+        "6": {
+            "steam_id": 76561197986172872,
+            "name": "Cr1t-"
+        },
+        "7": {
+            "steam_id": 76561198065514372,
+            "name": "Mamacita"
+        },
+        "8": {
+            "steam_id": 76561197998894475,
+            "name": "Moon"
+        },
+        "9": {
+            "steam_id": 76561197979938082,
+            "name": "N0tail"
+        }
+    },
+    "length": 1926.0,
+    "draft": {},
+    "id": "1950077300",
+    "teams": {
+        "0": {
+            "short": "empty",
+            "side": "radiant",
+            "name": " Secret"
+        },
+        "1": {
+            "short": "empty",
+            "side": "dire",
+            "name": " OG"
+        }
+    }
+}

@@ -1,0 +1,60 @@
+{
+    "match-string": "1931463112.json",
+    "players": {
+        "0": {
+            "steam_id": 76561198170615349,
+            "name": "tryingtowinthisgame"
+        },
+        "1": {
+            "steam_id": 76561198051735084,
+            "name": "RedVex"
+        },
+        "2": {
+            "steam_id": 76561198219489324,
+            "name": "Dispositor"
+        },
+        "3": {
+            "steam_id": 76561198047103181,
+            "name": "PIE"
+        },
+        "4": {
+            "steam_id": 76561198149355905,
+            "name": "Dranzer"
+        },
+        "5": {
+            "steam_id": 76561198111655244,
+            "name": "pubtrainmeta"
+        },
+        "6": {
+            "steam_id": 76561198161653331,
+            "name": "KusanagiMOTOKO"
+        },
+        "7": {
+            "steam_id": 76561198103161777,
+            "name": ".."
+        },
+        "8": {
+            "steam_id": 76561197975321904,
+            "name": "Snoog[+]"
+        },
+        "9": {
+            "steam_id": 76561198140628456,
+            "name": "#1"
+        }
+    },
+    "length": 3089.0,
+    "draft": {},
+    "id": "1931463112",
+    "teams": {
+        "0": {
+            "short": "empty",
+            "side": "radiant",
+            "name": "empty"
+        },
+        "1": {
+            "short": "empty",
+            "side": "dire",
+            "name": "empty"
+        }
+    }
+}

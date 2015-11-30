@@ -1,0 +1,60 @@
+{
+    "match-string": "1929700825.json",
+    "players": {
+        "0": {
+            "steam_id": 76561198087345486,
+            "name": "actionjackson"
+        },
+        "1": {
+            "steam_id": 76561198093237043,
+            "name": "Wampa36"
+        },
+        "2": {
+            "steam_id": 76561198057365010,
+            "name": "TACOBUS"
+        },
+        "3": {
+            "steam_id": 76561198030204751,
+            "name": "M505XL"
+        },
+        "4": {
+            "steam_id": 76561198109438678,
+            "name": "MoMoX"
+        },
+        "5": {
+            "steam_id": 76561198076221399,
+            "name": "Zpook"
+        },
+        "6": {
+            "steam_id": 76561198122484016,
+            "name": "mikey"
+        },
+        "7": {
+            "steam_id": 76561198006399724,
+            "name": "Kranium"
+        },
+        "8": {
+            "steam_id": 76561198110461336,
+            "name": "FINALFANTASYVIII"
+        },
+        "9": {
+            "steam_id": 76561198111626025,
+            "name": "elqueyanojuegacomoantes"
+        }
+    },
+    "length": 3420.0,
+    "draft": {},
+    "id": "1929700825",
+    "teams": {
+        "0": {
+            "short": "empty",
+            "side": "radiant",
+            "name": "empty"
+        },
+        "1": {
+            "short": "empty",
+            "side": "dire",
+            "name": "empty"
+        }
+    }
+}

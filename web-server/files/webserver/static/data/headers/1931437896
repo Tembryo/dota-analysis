@@ -1,0 +1,60 @@
+{
+    "match-string": "1931437896.json",
+    "players": {
+        "0": {
+            "steam_id": 76561198070728214,
+            "name": "\u041e\u0440\u0430\u0410\u043d\u0434\u0435\u0440\u0441\u043e\u043d"
+        },
+        "1": {
+            "steam_id": 76561198058812247,
+            "name": "Blessed"
+        },
+        "2": {
+            "steam_id": 76561198050030973,
+            "name": "Krieg"
+        },
+        "3": {
+            "steam_id": 76561198066930697,
+            "name": "WBH"
+        },
+        "4": {
+            "steam_id": 76561198077218971,
+            "name": "LOKI"
+        },
+        "5": {
+            "steam_id": 76561197991618424,
+            "name": "Reaper"
+        },
+        "6": {
+            "steam_id": 76561197983802063,
+            "name": "TeaPirate"
+        },
+        "7": {
+            "steam_id": 76561198089728518,
+            "name": "EnigmaticIndividual"
+        },
+        "8": {
+            "steam_id": 76561198082979804,
+            "name": "\u0412\u0430\u043b\u0443\u043d"
+        },
+        "9": {
+            "steam_id": 76561198003708487,
+            "name": "\u0418\u043b\u044c\u044f\u041e\u0431\u043b\u043e\u043c\u043e\u0432"
+        }
+    },
+    "length": 2987.0,
+    "draft": {},
+    "id": "1931437896",
+    "teams": {
+        "0": {
+            "short": "empty",
+            "side": "radiant",
+            "name": "empty"
+        },
+        "1": {
+            "short": "empty",
+            "side": "dire",
+            "name": "empty"
+        }
+    }
+}

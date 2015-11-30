@@ -1,0 +1,60 @@
+{
+    "match-string": "1928989375.json",
+    "players": {
+        "0": {
+            "steam_id": 76561198097338311,
+            "name": "\u60a6\u6765\u60a6\u597d"
+        },
+        "1": {
+            "steam_id": 76561198100702729,
+            "name": "\u8981\u76f8\u4fe1\u961f\u53cb\u3002"
+        },
+        "2": {
+            "steam_id": 76561198097176444,
+            "name": "zuicaide"
+        },
+        "3": {
+            "steam_id": 76561198101750313,
+            "name": "YzdyC"
+        },
+        "4": {
+            "steam_id": 76561198100160445,
+            "name": "\u5750\u98de\u673a\u7684\u5927\u718a\u732b"
+        },
+        "5": {
+            "steam_id": 76561198096883815,
+            "name": "Aragakki\u4e36Y"
+        },
+        "6": {
+            "steam_id": 76561198090000272,
+            "name": "Chaos"
+        },
+        "7": {
+            "steam_id": 76561198096781624,
+            "name": "\u8fd9\u6ce2\u6211\u5f88\u5f3a"
+        },
+        "8": {
+            "steam_id": 76561198164301793,
+            "name": "\u5f88\u6025\u5f88\u5173\u952e"
+        },
+        "9": {
+            "steam_id": 76561198114841642,
+            "name": "\u4eae\u8d77\u56db\u5f20tp\u6211\u4e5f\u53d6\u4f60\u4eba\u5934"
+        }
+    },
+    "length": 3172.0,
+    "draft": {},
+    "id": "1928989375",
+    "teams": {
+        "0": {
+            "short": "empty",
+            "side": "radiant",
+            "name": "empty"
+        },
+        "1": {
+            "short": "empty",
+            "side": "dire",
+            "name": "empty"
+        }
+    }
+}
