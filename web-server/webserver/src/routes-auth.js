@@ -1,6 +1,6 @@
 var	express		= require('express'),
 	passport	= require("passport"),
-	SteamStrategy	= require("passport-steam").Strategy;
+    steam_auth = require("./steam-strategy.js");
 
 var	config		= require("./config.js");
 
@@ -30,32 +30,39 @@ passport.deserializeUser(function(obj, done) {
 //   Strategies in passport require a `validate` function, which accept
 //   credentials (in this case, an OpenID identifier and profile), and invoke a
 //   callback with a user object.
+
 passport.use(
-	new SteamStrategy(
+	new steam_auth.Strategy(
 		{
 			returnURL: config.steam_realm+"auth/steam/return",
 			realm: config.steam_realm,
 			apiKey: config.steam_api_key
 		},
-		function(identifier, profile, done) {
+		function(identifier, done) {
 			console.log("Steam verify");
+            var steam_id = identifier.substring(identifier.lastIndexOf("/")+1);
+            console.log("id "+steam_id);
 			User.findOne(
-				{"identifier": identifier},
+				{"identifier": steam_id},
 				"name steam_object identifier",
 				function(err, user){
 					if (err)
 						console.log(err);
                     if(user == null)
 					{
-						console.log("accepting old user");
-                        var user = new User();
-                        user.name = profile["displayName"];
-                        user.identifier = profile["id"];
-                        user.steam_object = profile["_json"];
-                        user.markModified("steam_object");
-                        user.email = "unknown";
-			            user.save();
-						done(null,user);//return new user
+						console.log("accepting new user");  
+                        steam_auth.getProfile(identifier, function(profile)
+                            {
+                                var user = new User();
+                                user.name = profile["displayName"];
+                                user.identifier = profile["id"];
+                                user.steam_object = profile["_json"];
+                                user.markModified("steam_object");
+                                user.email = "unknown";
+			                    user.save();
+						        done(null,user);//return new user
+                            }
+                        );
 					}
 					else
 					{

@@ -45,24 +45,31 @@ router.route('/matches')
     })
     // get all the matches
     .get(function(req, res) {
-        /*Match.find({}, "id label", function(err, matches) {
-            if (err)
-                res.send(err);
-
-            res.json(matches);
-        });*/
-
-        fs.readdir(config.files+"/static/data",
+        fs.readdir(config.files+"/static/data/headers",
             function(err, files){
-                if(!err)
+                if(err)
                     console.log(err);
-                res.json(files);
+                var replay_headers_files = files;
+                var processed_files = [];
+                var c=0;
+                files.forEach(function(file){
+                    c++;
+                    fs.readFile(config.files+"/static/data/headers/"+file,'utf-8',function(err,json){
+                        if (err) throw err;
+                        processed_files.push(JSON.parse(json));
+                        if (0===--c) {
+                            res.json(processed_files);
+                        }
+                    });
+                });
+                if(err)
+                    console.log(err);
+
             })
     });
 
 router.route('/matches/:match_id')
     .get(function(req, res) {
-    console.log("got id"+req.params.match_id);
         Match.findOne({"id": req.params.match_id}, "id label parsing_status parsed", function(err, match) {
             if (err)
                 res.send(err);

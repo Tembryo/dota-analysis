@@ -1,5 +1,5 @@
 {
-    "name": "node-api",
+    "name": "wisdota-webserver",
     "version": "0.0.1",
     "author": "fischerq",
     "main": "server.js",
@@ -16,7 +16,9 @@
     "ejs-mate": "^2.3.0",
 
 	"passport": "^0.3.2",
-	"passport-steam": "^0.1.6",
+	"passport-openid": "^0.4.0",
+	"steam-web": "^0.2.5",
+    "semaphore": "^1.0.3",
 
     "mongoose": "^4.2.8"
 

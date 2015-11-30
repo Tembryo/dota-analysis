@@ -1,0 +1,70 @@
+{
+        "match-string": "monkey_vs_nip.json",
+		"id": 1864290085,
+		"teams": {
+			"0":{
+				"side":"radiant",
+				"name":"Ninjas in Pyjamas",
+				"short":"NiP"
+			},
+			"1":{
+				"side":"dire",
+				"name":"(monkey) Business",
+				"short":"monkey"
+			}
+		},
+		"players": {
+			"0": {
+				"name":"Handsken",
+                "hero":"spirit-breaker",
+                "team": 0
+			},
+			"1": {
+				"name":"Limmp",
+                "hero":"queen-of-pain",
+                "team": 0
+			},
+			"2": {
+				"name":"Era",
+                "hero":"anti-mage",
+                "team": 0
+			},
+			"3": {
+				"name":"Sealkid",
+                "hero":"dazzle",
+                "team": 0
+			},
+			"4": {
+				"name":"jonassomfan",
+                "hero":"spirit-breaker",
+                "team": 0
+			},
+			"5": {
+				"name":"Fly",
+                "hero":"spirit-breaker",
+                "team": 1
+			},
+			"6": {
+				"name":"cr1t",
+                "hero":"spirit-breaker",
+                "team": 1
+			},
+			"7": {
+				"name":"Miracle-",
+                "hero":"spirit-breaker",
+                "team": 1
+			},
+			"8": {
+				"name":"MoonMeander",
+                "hero":"spirit-breaker",
+                "team": 1
+			},
+			"9": {
+				"name":"BigDaddyN0tail",
+                "hero":"spirit-breaker",
+                "team": 1
+			}
+		} ,
+		"draft": {},
+		"length": 600
+}

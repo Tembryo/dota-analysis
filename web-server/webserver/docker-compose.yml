@@ -3,10 +3,12 @@ webserver:
   expose:
     - "42000"
   volumes:
-    - ../storage/webserver:/storage
-    - ../files/webserver:/files:ro
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/webserver/src:/source:ro
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/webserver:/storage
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/files/webserver:/files:ro
   external_links:
     - database-container:DATABASE_IP
   environment:
-    VIRTUAL_HOST: tembryo.com
+    VIRTUAL_HOST: localhost
     VIRTUAL_PORT: 42000
+    DEV_VERSION: true
