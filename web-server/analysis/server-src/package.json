@@ -1,0 +1,11 @@
+{
+    "name": "wisdota-analysis-server",
+    "version": "0.0.1",
+    "author": "fischerq",
+    "main": "analysis-server.js",
+    "dependencies": {
+
+    "mongoose": "^4.2.8"
+    }
+}
+

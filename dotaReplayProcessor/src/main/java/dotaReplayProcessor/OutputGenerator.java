@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -37,13 +38,14 @@ public class OutputGenerator {
 		}
 	}
 
-	public void writeGameData(int game_id, String radiant_team, String dire_team, String winner){
+	public void writeGameData(int game_id, String radiant_team, String dire_team, String winner, long end_time){
 
 		try {
 			header_writer.write("ID, "+game_id+"\n");
 			header_writer.write("TEAM_TAG_RADIANT, "+radiant_team+"\n");
 			header_writer.write("TEAM_TAG_DIRE, "+dire_team+"\n");
 			header_writer.write("WINNER, "+winner+"\n");
+			//header_writer.write("END_TIME, "+new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(end_time)+"\n");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

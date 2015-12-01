@@ -14,13 +14,13 @@ events = {}
 
 class Match:
 
-	def __init__(self,match_id):
+	def __init__(self,match_id, out_file):
 		# files where the replay data is stored
 		self.match_id = match_id
 		self.header_input_filename = "parsedReplays/"+str(match_id)+"/header.csv"
 		self.position_input_filename = "parsedReplays/"+str(match_id)+"/trajectories.csv"
 		self.events_input_filename = "parsedReplays/"+str(match_id)+"/events.csv"
-		self.output_filename = "parsedReplays/"+str(match_id)+"/analysed.json"
+		self.output_filename = out_file
 		# variables that determine how the data is analysed - need to include all parameters
 		self.parameters = {}
 		self.parameters["namespace"] = {}
@@ -803,8 +803,10 @@ def evaluateFightList(match,attack_list,A):
 
 def main():
 	match_id = sys.argv[1]
+	out_file = sys.argv[2]
+    header_file = sys.argv[3]
 	logging.basicConfig(filename="parsedReplays/"+str(match_id)+'/logfile.log',level=logging.DEBUG)
-	match = Match(match_id)
+	match = Match(match_id, out_file)
 	match.matchInfo()
 	header = headerInfo(match)
 	hero_deaths = killsInfo(match)
@@ -820,6 +822,9 @@ def main():
 	g = open(match.output_filename,'wb')
 	g.write(json.dumps(data_to_write, sort_keys=False,indent=4, separators=(',', ': ')))	
 	g.close()
+	h = open(header_file,'wb')
+	h.write(json.dumps(header, sort_keys=False,indent=4, separators=(',', ': ')))	
+	h.close()
 	#check for errors in the Json file (optional)
 	with open(match.output_filename) as data_file:    
 		data = json.load(data_file)

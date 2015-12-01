@@ -1,6 +1,8 @@
 exports.host            = process.env.VIRTUAL_HOST;
 exports.database_host   = "DATABASE_IP:42200";
 exports.files           = "/files";
+exports.storage         = "/storage";
+exports.shared          = "/shared";
 
 exports.port            = process.env.VIRTUAL_PORT;
 if(process.env.DEV_VERSION === "true")

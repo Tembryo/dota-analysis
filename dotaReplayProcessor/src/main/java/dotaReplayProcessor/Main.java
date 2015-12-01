@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Map;
 
+
+
 import com.google.protobuf.Descriptors.FieldDescriptor;
 
 import skadistats.clarity.Clarity;
@@ -20,17 +22,19 @@ public class Main {
 	public static void main(String[] args) {
 		 long tStart = System.currentTimeMillis();
 		
-		 System.out.println(Paths.get(".").toAbsolutePath().normalize().toString());
-		 
+
 		String filename_replay = args[0];
-		String directory_out = "output/";
+		String directory_out = args[1];
+		
+		int matchid= -1;
+		
 		try {
-			int matchid = Clarity.infoForFile(filename_replay).getGameInfo().getDota().getMatchId();
+			matchid = Clarity.infoForFile(filename_replay).getGameInfo().getDota().getMatchId();
 			directory_out += matchid+"/";
 			boolean success = (new File(directory_out)).mkdirs();
 			if (!success) {
 			    // Directory creation failed
-				System.out.println("failed to create output dir");
+				//System.out.println("failed to create output dir");
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -45,7 +49,7 @@ public class Main {
 			info = Clarity.infoForFile(filename_replay);
 			CGameInfo game_info = info.getGameInfo();
 			CDotaGameInfo dota_info = game_info.getDota();
-	        output.writeGameData(dota_info.getMatchId(), dota_info.getRadiantTeamTag(), dota_info.getDireTeamTag(), dota_info.getGameWinner() == 2 ? "radiant":(dota_info.getGameWinner() == 3? "dire":"unknown winner"));
+	        output.writeGameData(dota_info.getMatchId(), dota_info.getRadiantTeamTag(), dota_info.getDireTeamTag(), dota_info.getGameWinner() == 2 ? "radiant":(dota_info.getGameWinner() == 3? "dire":"unknown winner"), dota_info.getEndTime());
 
 	        for(int i = 0; i < dota_info.getPlayerInfoCount(); ++i)
 	        {
@@ -68,9 +72,10 @@ public class Main {
 		}
 
         long tMatch = System.currentTimeMillis() - tStart;
-        System.out.printf("total time taken: %s s", (tMatch) / 1000.0);
+        //System.out.printf("total time taken: %s s", (tMatch) / 1000.0);
 		
         output.finish();
+        System.out.print(matchid);
 	}
 
 }
