@@ -805,7 +805,7 @@ def main():
 	match_id = sys.argv[1]
 	match_directory = sys.argv[2]
 	out_file = sys.argv[3]
-    header_file = sys.argv[4]
+	header_file = sys.argv[4]
 	logging.basicConfig(filename=match_directory+'/logfile.log',level=logging.DEBUG)
 	match = Match(match_id, match_directory, out_file)
 	match.matchInfo()
@@ -824,6 +824,7 @@ def main():
 	g.write(json.dumps(data_to_write, sort_keys=False,indent=4, separators=(',', ': ')))	
 	g.close()
 	h = open(header_file,'wb')
+	header["match-string"]=match_id+".json"
 	h.write(json.dumps(header, sort_keys=False,indent=4, separators=(',', ': ')))	
 	h.close()
 	#check for errors in the Json file (optional)

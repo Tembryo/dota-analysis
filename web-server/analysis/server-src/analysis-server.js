@@ -13,18 +13,19 @@ Match = require("./models/match.js");
 
 function checkJobs()
 {
-    console.log("just checking");
     ReplayFile.find({ "status": "uploaded" }, function (err, docs) {
         for(var file_i in docs)
         {
             var file = docs[file_i];
             file.status = "processing";
+            console.log('processing: ' + file.file); 
             file.save(function(err)
                 {
                     if(err)
                         console.log(err);
                     else
                     {
+
                         processReplay(file);
                     }
                 });
@@ -34,10 +35,11 @@ function checkJobs()
 
 function processReplay(replay_file)
 {
+    console.log('starting extract: ' + replay_file.file); 
     child_process.execFile("java", ["-jar", "/extractor/extractor.jar", config.shared+replay_file.file, config.storage+"/"], function (error, stdout, stderr) 
         {
-            console.log('stdout: ' + stdout);
-            console.log('stderr: ' + stderr);
+            console.log('java stdout: ' + stdout);
+            console.log('java stderr: ' + stderr);
             if (error !== null)
             {
                 console.log('exec error: ' + error);
@@ -83,42 +85,45 @@ function processReplay(replay_file)
                                     }
                                 });
                             }
-                            replay_file.status = "analysed";
-                            replay_file.save(function(err)
+                            else
                             {
-                                if(err)
-                                    console.log(err);
-                                else
+                                replay_file.status = "analysed";
+                                replay_file.save(function(err)
                                 {
-                                    console.log("put file as analysed!");
-                                    var match = new Match({
-                                            "id": match_id,
-                                            "label": "--",
-                                            "replay_file": analysis_file,
-                                            "header_file": header_file});
-                                    match.save(function(err)
+                                    if(err)
+                                        console.log(err);
+                                    else
                                     {
-                                        if(err)
-                                            console.log(err);
-                                        else
+                                        console.log("put file as analysed!");
+                                        var match = new Match({
+                                                "id": match_id,
+                                                "label": "--",
+                                                "replay_file": analysis_file,
+                                                "header_file": header_file});
+                                        match.save(function(err)
                                         {
-                                            console.log("registered match");
-                                            replay_file.status = "registered";
-                                            replay_file.save(function(err)
+                                            if(err)
+                                                console.log(err);
+                                            else
                                             {
-                                                if(err)
-                                                    console.log(err);
-                                                else
+                                                console.log("registered match");
+                                                replay_file.status = "registered";
+                                                replay_file.save(function(err)
                                                 {
-                                                    console.log("fin~");
-                                                }
-                                            });
-                                        }
-                                    });
-                                }
-                            });
-                        }
-                    );
+                                                    if(err)
+                                                        console.log(err);
+                                                    else
+                                                    {
+                                                        console.log("fin~");
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                   
                 }
             });
 

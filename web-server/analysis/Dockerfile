@@ -90,6 +90,11 @@ RUN curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-
   && rm "node-v$NODE_VERSION-linux-x64.tar.gz" SHASUMS256.txt.asc
 
 
+####################     Install python libs.     ####################
+
+RUN apt-get install -y libblas-dev liblapack-dev libatlas-base-dev gfortran
+RUN pip install numpy scipy logging matplotlib    
+
 ####################       Install sources.       ####################
 
 # make the src folder available in the docker image as volume

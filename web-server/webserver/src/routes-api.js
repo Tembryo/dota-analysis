@@ -50,7 +50,7 @@ router.route('/matches')
     })
     // get all the matches
     .get(function(req, res) {
-        fs.readdir(config.files+"/static/data/headers",
+        fs.readdir(config.shared+"/match_headers",
             function(err, files){
                 if(err)
                     console.log(err);
@@ -59,7 +59,7 @@ router.route('/matches')
                 var c=0;
                 files.forEach(function(file){
                     c++;
-                    fs.readFile(config.files+"/static/data/headers/"+file,'utf-8',function(err,json){
+                    fs.readFile(config.shared+"/match_headers/"+file,'utf-8',function(err,json){
                         if (err) throw err;
                         console.log("load "+file);
                         processed_files.push(JSON.parse(json));
@@ -106,7 +106,7 @@ router.route("/upload")
             form.on('progress', function(bytesReceived, bytesExpected)
             {
                 var percent_complete = (bytesReceived / bytesExpected) * 100;
-                console.log(identifier + " complete " + percent_complete.toFixed(2));
+                //console.log(identifier + " complete " + percent_complete.toFixed(2));
             });
 
             form.on('error', function(err)
