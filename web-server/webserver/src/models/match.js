@@ -4,8 +4,7 @@ var MatchSchema   = new mongoose.Schema({
     id: Number,
     label: String,
     replay_file: String,
-    parsing_status: String,
-    parsed: String
+    header_file: String,
 });
 
 module.exports = mongoose.model('Match', MatchSchema);

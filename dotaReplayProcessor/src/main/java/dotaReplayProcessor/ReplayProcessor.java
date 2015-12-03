@@ -57,6 +57,7 @@ public class ReplayProcessor {
             runner.tick();
             output.writeTick(data_fields);
         }
+        runner.halt();
 		//new SimpleRunner(file_source).runWith(this);
 	}
 	

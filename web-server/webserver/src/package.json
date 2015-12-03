@@ -20,6 +20,10 @@
 	"steam-web": "^0.2.5",
     "semaphore": "^1.0.3",
 
+    "shortid": "^2.2.4",
+    "formidable": "^1.0.17",
+    "fs-extra": "^0.26.2",
+
     "mongoose": "^4.2.8"
 
     }
