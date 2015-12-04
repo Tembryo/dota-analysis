@@ -40,7 +40,8 @@ function processReplay(replay_file)
         {
             console.log('java stdout: ' + stdout);
             console.log('java stderr: ' + stderr);
-            if (error !== null)
+            var match_id = parseInt(stdout);
+            if (error !== null || match_id < 0)
             {
                 console.log('exec error: ' + error);
                 replay_file.status = "failed";
@@ -56,6 +57,7 @@ function processReplay(replay_file)
             }
 
             replay_file.status = "extracted";
+            replay_file.match_id = match_id;
             replay_file.save(function(err)
             {
                 if(err)
@@ -63,7 +65,6 @@ function processReplay(replay_file)
                 else
                 {
                     console.log("file fully extracted");
-                    var match_id = parseInt(stdout);
                     var match_dir = config.storage+"/"+match_id;
                     var analysis_file = config.shared+"/matches/"+match_id+".json";
                     var header_file = config.shared+"/match_headers/"+match_id+".json";
@@ -98,8 +99,9 @@ function processReplay(replay_file)
                                         var match = new Match({
                                                 "id": match_id,
                                                 "label": "--",
-                                                "replay_file": analysis_file,
-                                                "header_file": header_file});
+                                                "file": analysis_file,
+                                                "header_file": header_file,
+                                                "original_file": replay_file.file});
                                         match.save(function(err)
                                         {
                                             if(err)

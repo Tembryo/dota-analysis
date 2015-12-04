@@ -29,41 +29,24 @@ router.get('/', function(req, res) {
 var Match = require('./models/match');
 
 router.route('/matches')
-    .post(function(req, res) {
-        
-        var match = new Match();      // create a new instance of the Match model
-	console.log("id: "+req.body.id);
-	console.log("label: "+req.body.label);
-        match.id = req.body.id;  	// fill in request data
-        match.label = req.body.label;
-	    match.parsing_status = "to_download";
-        match.replay_file = "";
-        match.parsed = "";
-
-        // save the match and check for errors
-        match.save(function(err) {
-            if (err)
-                res.send(err);
-
-            res.json({ message: 'Match created!' });
-        })
-    })
     // get all the matches
     .get(function(req, res) {
-        fs.readdir(config.shared+"/match_headers",
-            function(err, files){
+        Match.find({}, "header_file",
+            function(err, matches){
                 if(err)
                     console.log(err);
-                var replay_headers_files = files;
                 var processed_files = [];
                 var c=0;
-                files.forEach(function(file){
+                matches.forEach(function(match){
                     c++;
-                    fs.readFile(config.shared+"/match_headers/"+file,'utf-8',function(err,json){
-                        if (err) throw err;
-                        console.log("load "+file);
-                        processed_files.push(JSON.parse(json));
-                        console.log("wrote "+file);
+                    fs.readFile(match.header_file,'utf-8',function(err,json){
+                        if (err) console.log("failure reading match header "+err);
+                        else
+                        {
+                            console.log("load "+match.header_file);
+                            processed_files.push(JSON.parse(json));
+                            console.log("added header json to list "+match.header_file);
+                        }
                         if (0===--c) {
                             res.json(processed_files);
                         }
@@ -75,12 +58,17 @@ router.route('/matches')
             })
     });
 
-router.route('/matches/:match_id')
+router.route('/match/:match_id')
     .get(function(req, res) {
-        Match.findOne({"id": req.params.match_id}, "id label parsing_status parsed", function(err, match) {
+        Match.findOne({"id": req.params.match_id}, "file", function(err, match) {
             if (err)
                 res.send(err);
-            res.json(match);
+            fs.readFile(match.file, 'utf-8',function(err,json){
+                    if (err)
+                        res.send(err);
+                    console.log("opened "+req.params.match_id);
+                    res.json(JSON.parse(json));
+            })
         });
     });
 
@@ -135,7 +123,10 @@ router.route("/upload")
                         var replay_file = new ReplayFile();
                         replay_file.identifier = identifier; 
                         replay_file.file = new_file;
-                        replay_file.status = "uploaded"; 
+                        replay_file.status = "uploaded";
+                        replay_file.uploader_identifier = req.user.identifier;
+
+                        console.log("user id for upload "+req.user.identifier +" "+replay_file.uploader_identifier);
                         // save the match and check for errors
                         replay_file.save(function(err) {
                             if (err)

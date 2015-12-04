@@ -1,8 +1,8 @@
-filename="/static/data/"+match_file;
+json_address="/api/match/"+match_id;
 
 function main()
 {
-	loadData(filename, initVisualisation);
+	loadData(json_address, initVisualisation);
 }
 
 window.onload = main;

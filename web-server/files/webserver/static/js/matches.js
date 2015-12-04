@@ -16,7 +16,7 @@ function updateList()
 		.append("li")
 		.attr("class", "match")
 		    .append("a")
-            .attr("href", function(file){return "/match/"+file["match-string"];})
+            .attr("href", function(file){return "/match/"+file["id"];})
             .text( function(file)
                     {
                         str = file["id"];
