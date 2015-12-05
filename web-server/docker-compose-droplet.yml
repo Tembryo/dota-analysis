@@ -25,7 +25,7 @@ webserver:
   environment:
     VIRTUAL_HOST: "46.101.120.4"
     VIRTUAL_PORT: "42000"
-    DEV_VERSION: "true"
+    VERSION: "droplet"
   links:
     - database:DATABASE_IP
 analysis:
