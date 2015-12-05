@@ -12,3 +12,5 @@ else
 
 exports.steam_api_key   = "738D637E98D73D27B9802CA833784D7F";
 
+exports.gmail_user = "quirin.fischer@tembryo.com";
+exports.gmail_password = "xxxxxxx";

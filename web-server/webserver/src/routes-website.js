@@ -53,12 +53,16 @@ router.get('/user',
     {
         var data = collectTemplatingData(req);
         addNavigationData(data);
+        if(req.params.code)
+            data["code"] = res.params.code;
+        else
+            data["code"] = "";
 
         User.findOne(
             {
                 "identifier": req.user["identifier"]
             },
-            "identifier name steam_object email beta_enabled",
+            "identifier name steam_object email beta_status",
             function(err, user)
             {
                 if (err)
@@ -94,9 +98,27 @@ router.route("/upload")
     .get(authentication.ensureAuthenticated,
         function(req, res)
         {
+            User.findOne({"identifier": req.user["identifier"]},"identifier name beta_status", function(err, user){
+                if(err)
+                {
+                    console.log("couldnt find user");
+                    console.log(req.user);
+                    console.log(err);
+                }
+                var data = collectTemplatingData(req);
+                addNavigationData(data);
+                data["user"] = user;
+                res.render("pages/upload.ejs", data);
+            });
+        });
+
+router.route("/verify")
+    .get(function(req, res)
+        {
             var data = collectTemplatingData(req);
             addNavigationData(data);
-            res.render("pages/upload.ejs", data);
-        })
+            data["code"] = req.params["code"];
+            res.render("pages/verify.ejs", data);
+        });
 
 exports.router = router;

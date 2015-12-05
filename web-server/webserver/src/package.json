@@ -24,7 +24,10 @@
     "formidable": "^1.0.17",
     "fs-extra": "^0.26.2",
 
-    "mongoose": "^4.2.8"
+    "mongoose": "^4.2.8",
+
+    "nodemailer": "^1.10.0",
+    "sprintf-js": "^1.0.3"
 
     }
 }

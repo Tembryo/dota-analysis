@@ -106,6 +106,7 @@ router.route("/steam/return")
 		function(req, res) {
             //console.log(req.user);
 		    console.log("returned from steam");
+            console.log(req.originalUrl);
 		    res.redirect('/matches');
         }
 	);
@@ -117,6 +118,8 @@ router.route("/steam/return")
 //   login page.
 function ensureAuthenticated(req, res, next) {
   if (req.isAuthenticated()) { return next(); }
+    console.log("ensure");
+    console.log(req.originalUrl);
   res.redirect('/auth/steam')
 }
 

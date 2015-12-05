@@ -139,6 +139,178 @@ router.route("/upload")
             });
 
 
+        })
+
+router.route("/uploads")
+    .get(authentication.ensureAuthenticated,
+        function(req, res)
+        {
+            ReplayFile.find({$and: [{"uploader_identifier": req.user["identifier"]}, {"status": {$ne:"failed"} }] }, "match_id status", function(err, replays){
+                    if(err)
+                    {
+                        res.json([]);
+                        console.log("checking replay status failed, "+err);
+                    }
+                    else{
+                        res.json(replays);
+                    }
+                });
+        });
+
+VerificationAction = require('./models/verification-action');
+User = require('./models/user');
+
+router.route("/verify/:verification_code")
+    .get(authentication.ensureAuthenticated,
+        function(req, res)
+        {
+            var result = {"action": "unknown", "info": "", "result": "failed"};
+            VerificationAction.findOneAndRemove({"code": req.params.verification_code}, "action args", function(err, action)
+                {
+                    if (err)
+                    {
+                        result["action"] = "action_lookup";
+                        result["result"] = "failed";
+                        result["info"] = err;
+                    }
+                    else
+                    {
+                        console.log("execute verified action");
+                        console.log(action);
+                        switch(action.action)
+                        {
+                        case "SET_EMAIL":
+                            result["action"] = "SET_EMAIL";
+                            result["result"] = "failed";
+                            result["info"] = action;
+
+                            User.findOne({ identifier: req.user["identifier"] }, function (err, user){
+                                if (err)
+                                {
+                                    result["action"] = "find_user_to_set_email";
+                                    result["result"] = "failed";
+                                    result["info"] = {
+                                            "err":err,
+                                            "action": action,
+                                            "user": req.user
+                                            };
+                                    res.json(result);
+                                }
+                                else
+                                {
+                                    user.email = action.args["new-address"];
+                                    user.beta_status = "enabled";
+                                    user.save(function(err) {
+                                            if (err)
+                                            {
+                                                result["action"] = "change_user_email";
+                                                result["result"] = "failed";
+                                                result["info"] = {
+                                                        "err":err,
+                                                        "action": action,
+                                                        "user": req.user
+                                                        };
+                                                res.json(result);
+                                            }
+                                            else
+                                            {
+                                                result["action"] = "set_email";
+                                                result["result"] = "success";
+                                                result["info"] = {
+                                                        "action": action,
+                                                        "user": req.user
+                                                        };
+                                                res.json(result);
+                                            }
+                                        });
+                                }
+
+                                });
+                            break;
+                        default: 
+                            result["action"] = "action_execution";
+                            result["result"] = "failed";
+                            result["info"] = action;
+
+                            res.json(result);
+                        }
+                    }
+
+                });
+
+        });
+
+
+
+var nodemailer = require('nodemailer');
+var sprintf = require("sprintf-js").sprintf;
+
+// create reusable transporter object using SMTP transport
+var transporter = nodemailer.createTransport({
+    service: 'Gmail',
+    auth: {
+        user: config.gmail_user,
+        pass: config.gmail_password
+    }
+});
+
+var mail_schema = {
+    from: 'Wisdota <quirin.fischer@wisdota.com>', // sender address
+    to: [], // list of receivers
+    subject: 'Wisdota email verification', // Subject line
+    text: "Hey %(name)s, welcome to Wisdota!\n\n The verficiation code for your email is >> %(code)s <<. Enter the code in the user panel over at www.wisdota.com/user to complete the verification process.\n This unlocks the >> Replay upload << section of the website where you can upload your own replays to get them analysed.\n\n The software is under heavy development and this is just the very first step on our way towards automated game analysis. If you have any feedback, criticism, or features you want to see in the next version, please do let us know!\n\n best wishes\n The Wisdota Team ", // plaintext body
+    
+    html: "<h4>Hey %(name)s, welcome to Wisdota!</h4> <p>The verficiation code for your email is <b>%(code)s</b>. Enter the code in the user panel over at www.wisdota.com/user to complete the verification process.<br/> This unlocks the <b>Replay upload</b> section of the website where you can upload your own replays to get them analysed.</p><p> The software is under heavy development and this is just the very first step on our way towards automated game analysis. If you have any feedback, criticism, or features you want to see in the next version, please do let us know!</p> <p>best wishes<br/> The Wisdota Team</p> " // html body
+};
+
+
+router.route("/settings/email/:email_address")
+    .get(authentication.ensureAuthenticated,
+        function(req, res)
+        {
+            var code = shortid.generate();
+
+            var result = {"action": "action_creation_set_email", "info": "", "result": "failed"};
+            var mail_data = {
+                                "code": code,
+                                "name": req.user["name"]
+                            };
+            var mail = {};
+            mail["from"] = mail_schema["from"];
+            mail["to"] = [req.params.email_address];
+            mail["subject"] = mail_schema["subject"];
+            mail["text"] = sprintf(mail_schema["text"], mail_data);
+            mail["html"] = sprintf(mail_schema["html"], mail_data);
+            transporter.sendMail(mail, function(error, info){
+                if(error){
+                    console.log(error);
+                    res.json(result);
+                }
+                console.log('Confirmation mail sent: ' + info.response);
+                if(!error)
+                {
+                    console.log("setting_email "+req.params.email_address);
+                    action = new VerificationAction();
+                    action.code = code;
+                    action.action = "SET_EMAIL";
+                    action.args = {"new-address": req.params.email_address};
+                    action.markModified("args");
+                    action.save(function(err) {
+                            if(err)
+                            {
+                                result["result"] = "failed";
+                                result["info"] = err;
+                            }
+                            else
+                            {
+                                result["result"] = "success";
+                                result["info"] = {};//action.code;
+                            }
+                            res.json(result);
+                        }
+                    );
+                }
+            });
         });
 
 exports.router = router;

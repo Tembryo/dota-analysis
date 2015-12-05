@@ -344,7 +344,7 @@ function generateGraph(id, group, timeseries, xrange, yrange, area_colors){
 				.range(xrange);
 
 		var range = Math.max(	Math.abs(d3.min(timeseries["samples"], function(sample){return sample["v"][0];})),
-					Math.abs(d3.min(timeseries["samples"], function(sample){return sample["v"][0];}))
+					Math.abs(d3.max(timeseries["samples"], function(sample){return sample["v"][0];}))
 					);
 		yscale = d3.scale.linear()
 				.domain([-range,range])
@@ -670,7 +670,7 @@ icon_images = {
 	"shadow_shaman":        "/static/img/hero-icons/Shadow Shaman_icon.png",
 	"shredder":             "/static/img/hero-icons/Shredder_icon.png",
 	"silencer":             "/static/img/hero-icons/Silencer_icon.png",
-	"skeleton_king":        "/static/img/hero-icons/Skeleton King_icon.png",
+	"skeleton_king":        "/static/img/hero-icons/Wraith_King_icon.png",
 	"skywrath_mage":        "/static/img/hero-icons/Skywrath_Mage_icon.png",
 	"slardar":              "/static/img/hero-icons/Slardar_icon.png",
 	"slark":                "/static/img/hero-icons/Slark_icon.png",
@@ -741,7 +741,7 @@ Create the D3 elements used for the interface
 	loadSVG("img/timeline.svg", "timeline", function(){});
 }*/
 
-update_interval = 100; // in milliseconds
+update_interval = 200; // in milliseconds
 
 function initVisualisation(){
 	initTimeline();
@@ -2080,13 +2080,15 @@ function updateDiagramHistory(id)
 			if(event["time-start"] <= diagram_timescale.domain()[1] &&
 				event["time-end"] > diagram_timescale.domain()[1])
 			{
-				sample_left["t"] = diagram_timescale.domain()[1];
+				sample_right["t"] = diagram_timescale.domain()[1];
 				console.log("adjusted right");
 			}
 			samples.push(sample_left);
 			samples.push(sample_right);
 		}
 	}
+
+    samples.sort(function(a,b){return a["t"] - b["t"];});
 
 	group.select("#history-line")
 		.attr("d", line_formatter(samples));

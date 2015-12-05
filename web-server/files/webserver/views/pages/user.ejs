@@ -8,29 +8,59 @@
 		<div class="col-xs-1 col-xs-offset-3">
             <img src="<%= user["steam_object"]["avatarmedium"] %>"/>
         </div>
-		<div class="col-xs-5">
-            <h1> <%= user["name"]%> </h1>
+		<div class="col-xs-5" >
+            <h1 style="display: inline;line-height:48px;"> <%= user["name"]%> </h1>
         </div>
     </div>
+	<div class="row" style="height:10px"></div>
 	<div class="row">
         <div class="col-xs-2 col-xs-offset-3">
             <p>Email: </p>
         </div>
         <div class="col-xs-3 ">
-            <p><% if(user["email"] == "unknown") {%>
-                Not yet set. (Coming soon)
-            <% } else {%>
-            <%= user["email"] -%>
-            <% }%></p>
+
+                    <% if(user["email"] ==="unknown") {%>
+                   <p> Not set </p>
+                    <% }else{%>
+                    <p><%= user["email"] -%></p>
+                    <% }%>
         </div>
+
+            <form id="email-form">
+                        <input type="text" id="email-address">
+                        <input type="button" id="email-button" value="Set email" disabled>
+                </form>
     </div>
 	<div class="row">
         <div class="col-xs-2 col-xs-offset-3">
            <p> Beta status: </p>
         </div>
         <div class="col-xs-3">
-           <p> <%= user["beta_enabled"]%> (Coming soon)</p>
+           <p> 
+                <%= user["beta_status"]%>
+            </p>
+        </div>
+    </div>
+
+	<div class="row">
+        <div class="col-xs-2 col-xs-offset-3">
+           <p> Verification: </p>
+        </div>
+        <div class="col-xs-3">
+                <form id="verify-form">
+                    <input type="text" id="verify-code" value="<%= code%>">
+                    <input type="button" id="verify-button" value="Activate Code">
+                    <div id="verify-result"></div>
+                </form>
         </div>
     </div>
 
 </section>
+
+<script type="text/javascript">
+    user_id = "<%= user["identifier"] %>";
+</script>
+<script src="/static/js/user.js" charset="utf-8"></script>
+
+
+<link href="/static/css/formatting.css" rel="stylesheet">

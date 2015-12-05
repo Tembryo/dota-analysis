@@ -5,7 +5,7 @@ var UserSchema   = new mongoose.Schema({
     steam_object: mongoose.Schema.Types.Mixed,
     identifier: String,
     email: String,
-    beta_enabled: {type: Boolean, default: false}
+    beta_status: {type: String, default: "disabled"}
 });
 
 module.exports = mongoose.model('User', UserSchema);
