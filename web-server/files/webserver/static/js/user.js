@@ -40,6 +40,7 @@ function emailCompleteHandler(e){
     {
         message_str = "We are afraid, something went wrong.";
     }
+    alert(message_str);
     console.log("email complete");
     console.log(e);
 }
