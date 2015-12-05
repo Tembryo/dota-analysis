@@ -5,6 +5,7 @@ import re
 import numpy as np
 import scipy.sparse 
 import sys
+import logging
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from dota2_area_boxes_ver2 import area_matrix, areas
@@ -33,6 +34,26 @@ class Match:
 		self.ymin = -8200.0
 		self.ymax = 8000.0
 		self.num_box = 32
+		# function specific parameters
+		self.pregame_time_shift = 60
+
+		self.heroTrajectoies_delta = 1000
+
+		self.goldXPinfo_bin_size = 2
+
+		self.makeAttackList_bin_size = 1
+
+		self.graphAttacks_damage_threshold = 50
+
+		self.formAdjacencyMatrix_distance_threshold = 300
+		self.formAdjacencyMatrix_radius = 1500
+		self.formAdjacencyMatrix_w_space1 = 0.02
+		self.formAdjacencyMatrix_w_space2 = 0.3
+		self.formAdjacencyMatrix_w_time = 80
+
+		self.evaluateFightList_alpha = 150
+		self.evaluateFightList_kappa = 0.15
+		self.evaluateFightList_time_threshold = 2
 
 	def matchInfo(self):
 
@@ -85,15 +106,25 @@ class Match:
 		f = open(self.events_input_filename,'rb')
 		events_reader = csv.reader(f)
 
+		pregame_flag = 0
 		for i, row in enumerate(events_reader):
-			if row[1] == "DOTA_COMBATLOG_GAME_STATE" and row[2] == "4":
-				pregame_start_time = math.floor(float(row[0]))
+			if i == 0:
+				first_timestamp = math.floor(float(row[0]))
 			elif row[1] == "DOTA_COMBATLOG_GAME_STATE" and row[2] == "5":
 				match_start_time = math.floor(float(row[0]))
+			elif row[1] == "DOTA_COMBATLOG_GAME_STATE" and row[2] == "4":
+				pregame_start_time = math.floor(float(row[0]))
+				pregame_flag = 1
 			elif row[1] == "DOTA_COMBATLOG_GAME_STATE" and row[2] == "6":
 				match_end_time  = math.floor(float(row[0]))
 
 		f.close()
+		# if there was no GAME_STATE = 4 event set the pregame start time to be 60 seconds before the match start time	
+		# or the earliest time we have available in the file	
+		if pregame_flag != 1:
+			logging.info('No DOTA_COMBATLOG_GAME_STATE == 4 transition in this events file')
+			pregame_start_time = max(match_start_time - self.pregame_time_shift,first_timestamp)
+
 
 		# calculate the length of the match (time between states 5 and 6)
 		self.teams = teams
@@ -176,10 +207,17 @@ def heroPositions(match):
 	e = open(position_input_filename,'rb')
 	reader = csv.reader(e)
 
+
 	for i, row in enumerate(reader):
 		if (i % sample_step_size==0) and (i > 0):
 			# if the time stamp is after the state 4 transition
 			absolute_time = float(row[col_per_player*num_players])
+			# if (absolute_time >= pregame_start_time):
+			# 	print 1
+
+			# if (absolute_time <= match_end_time):
+			# 	print 2
+
 			if (absolute_time >= pregame_start_time) and (absolute_time <= match_end_time):
 				# append that time point to the time vector with the state 5 transition point set to equal zero
 				t_vec.append(absolute_time - match_start_time)
@@ -195,26 +233,28 @@ def heroPositions(match):
 
 def heroTrajectories(match,state,hero_deaths):
 
+	logging.info('In heroTrajectories')
 	entities = {}
 	pregame_start_time = match.match_start_time
 	match_end_time = match.match_end_time
 	heros = match.heros
-	delta = 1000
+	delta = match.heroTrajectoies_delta
 
 	#for each hero
 	for key in heros:
+		logging.info('Hero name is: %s', key)
 		tmp_list = []
 		# look up the (appended) list of times in which the hero died
 		death_time_list = hero_deaths[key]
-		# print key
-		# print death_time_list
 		# handle case where no death occur
 		if len(death_time_list) == 0:
+			logging.info("this hero's death list has length = 0")
 			samples_list =[{"t":t,"v":state[0][key][j]} for j, t in enumerate(state[1])]
 			trajectory = {"time-start":samples_list[0]["t"],"time-end":samples_list[-1]["t"],"timeseries":{"format":"samples","samples":samples_list}}	
 			tmp_list.append(trajectory)
 		# handle case where exactly one death occurs
 		elif len(death_time_list) == 1:
+			logging.info("this hero's death list has length = 1")
 			# handle the first hero death where there is no initial period where the hero is in death limbo
 			samples_list =[{"t":t,"v":state[0][key][j]} for j, t in enumerate(state[1]) if (t <= death_time_list[0])]
 			trajectory = {"time-start":samples_list[0]["t"],"time-end":samples_list[-1]["t"],"timeseries":{"format":"samples","samples":samples_list}}	
@@ -227,7 +267,17 @@ def heroTrajectories(match,state,hero_deaths):
 			tmp_list.append(trajectory)
 		# handle case where more than one death occurs
 		else:
+			logging.info("this hero's death list has length > 1")
 			# handle the first hero death where there is no initial period where the hero is in death limbo
+			# indexes = [j for j, t in enumerate(state[1]) if (t <= death_time_list[0])]
+			# print "indexes:"
+			# print indexes
+			# print "length of v_mat for hero:"
+			# print len(state[0][key])
+			# print state[0][key]
+			# print state[0]
+			# print state[1]
+
 			samples_list =[{"t":t,"v":state[0][key][j]} for j, t in enumerate(state[1]) if (t <= death_time_list[0])]
 			trajectory = {"time-start":samples_list[0]["t"],"time-end":samples_list[-1]["t"],"timeseries":{"format":"samples","samples":samples_list}}	
 			tmp_list.append(trajectory)
@@ -235,16 +285,12 @@ def heroTrajectories(match,state,hero_deaths):
 	 		for i in range(0,len(death_time_list)-1):
 	 			# for each time period between deaths make a list of dictionaries that are the samples between those times		
 				respawn_time = next(t for j, t in enumerate(state[1]) if (t > death_time_list[i]) and ((state[0][key][j][0]-state[0][key][j+1][0])**2+ (state[0][key][j][1]-state[0][key][j+1][1])**2 > delta))
-		 		# print "dies:"
-		 		# print death_time_list[i]
-		 		# print "respawns:"
-		 		# print respawn_time
-		 		# print "next death:"
-		 		# print death_time_list[i+1]
 		 		samples_list =[{"t":t,"v":state[0][key][j]} for j, t in enumerate(state[1]) if (t > respawn_time) and (t <= death_time_list[i+1])]
 				trajectory = {"time-start":samples_list[0]["t"],"time-end":samples_list[-1]["t"],"timeseries":{"format":"samples","samples":samples_list}}	
 				tmp_list.append(trajectory)
 			# handle the final hero death leading to the end of the match
+			print death_time_list[-1]
+			print state[1][-1]	
 			samples_list =[{"t":t,"v":state[0][key][j]} for j, t in enumerate(state[1]) if (t >= death_time_list[-1])]
 			trajectory = {"time-start":samples_list[0]["t"],"time-end":samples_list[-1]["t"],"timeseries":{"format":"samples","samples":samples_list}}	
 			tmp_list.append(trajectory)
@@ -390,8 +436,7 @@ def eventsMapping(match,state,area_matrix):
 def goldXPInfo(match):
 
 	# calculates the differences between radiant and dire xp and gold as well as individual hero xp and gold
-
-	bin_size = 2
+	bin_size = match.goldXPinfo_bin_size
 	pregame_start_time = match.pregame_start_time
 	match_start_time = match.match_start_time
 	match_end_time = match.match_end_time
@@ -509,8 +554,6 @@ def fightDistMetric(attack1,attack2,radius,w_space1,w_space2,w_time):
 
 
 def makeAttackList(match,state):
-	
-	bin_size = 1
 
 	damage_total = 0
 	damage_log = []
@@ -522,6 +565,7 @@ def makeAttackList(match,state):
 	match_start_time = match.match_start_time
 	match_end_time = match.match_end_time
 	prior_timestamp = math.floor(pregame_start_time - match_start_time)
+	bin_size = match.makeAttackList_bin_size
 
 	f = open(events_input_filename,'rb')
 	reader = csv.reader(f)
@@ -580,6 +624,8 @@ def makeAttackList(match,state):
 
 def graphAttacks(attack_list,time_start,time_end):
 
+	damage_threshold = match.graphAttacks_damage_threshold
+
 	fig = plt.figure()
 	ax = fig.add_subplot(111, projection='3d')
 
@@ -588,7 +634,7 @@ def graphAttacks(attack_list,time_start,time_end):
 			xs = attack.v[0]
 			ys = attack.v[1]
 			zs = attack.t
-			if attack.damage > 50:
+			if attack.damage > damage_threshold:
 				c = 'r'
 				m = 'o'
 			else:
@@ -602,13 +648,13 @@ def graphAttacks(attack_list,time_start,time_end):
 
 	plt.show()
 
-def formAdjacencyMatrix(attack_list):
+def formAdjacencyMatrix(match,attack_list):
 
-	threshold = 300 # picked by trial and error
-	radius = 1500  #maximum spell range
-	w_space1 = 0.02
-	w_space2 = 0.3
-	w_time = 80
+	distance_threshold = match.formAdjacencyMatrix_distance_threshold 
+	radius = match.formAdjacencyMatrix_radius
+	w_space1 = match.formAdjacencyMatrix_w_space1
+	w_space2 = match.formAdjacencyMatrix_w_space2
+	w_time = match.formAdjacencyMatrix_w_time
 
 	n = len(attack_list)
 	A = np.zeros(shape=(n,n))
@@ -616,7 +662,7 @@ def formAdjacencyMatrix(attack_list):
 	for i in range(0,n):
 		for j in range(i+1,n):
 			d = fightDistMetric(attack_list[i],attack_list[j],radius,w_space1,w_space2,w_time)
-			if d < threshold:
+			if d < distance_threshold:
 				A[i,j] = 1
 				A[j,i] = 1
 
@@ -692,9 +738,13 @@ def lookUpLocation(match,area_matrix,v):
 
 def evaluateFightList(match,attack_list,A):
 
-	alpha = 150
-	kappa = 0.15  # based on 150 + kappa*t = 500 damage for a 2400 second long match
-	time_threshold = 2
+	#alpha = 150
+	#kappa = 0.15  # based on 150 + kappa*t = 500 damage for a 2400 second long match
+	#time_threshold = 2
+
+	alpha = match.evaluateFightList_alpha
+	kappa = match.evaluateFightList_kappa
+	time_threshold = match.evaluateFightList_time_threshold
 
 	fight_list = []
 	pregame_start_time = match.pregame_start_time
@@ -743,8 +793,8 @@ def evaluateFightList(match,attack_list,A):
 
 
 def main():
-
 	match_id = sys.argv[1]
+	logging.basicConfig(filename="parsedReplays/"+str(match_id)+'/logfile.log',level=logging.DEBUG)
 	match = Match(match_id)
 	match.matchInfo()
 	header = headerInfo(match)
@@ -754,7 +804,7 @@ def main():
 	eventsMapping(match,state,area_matrix)
 	timeseries = goldXPInfo(match) #up to this point takes a few seconds
 	attack_list = makeAttackList(match,state)
-	A = formAdjacencyMatrix(attack_list)
+	A = formAdjacencyMatrix(match,attack_list)
 	evaluateFightList(match,attack_list,A)
 
 	data_to_write = {"header":header,"entities":entities,"events":events,"timeseries":timeseries}

@@ -9,6 +9,7 @@ import logging
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from dota2_area_boxes_ver2 import area_matrix, areas
+import datetime
 
 events = {}
 
@@ -23,34 +24,25 @@ class Match:
 		self.output_filename = out_file
 		# variables that determine how the data is analysed - need to include all parameters
 		self.parameters = {}
+		self.parameters["version"] = "0.0.01"
+		self.parameters["datetime"] = {}
+		self.parameters["datetime"]["date"] = str(datetime.date.today())
+		self.parameters["datetime"]["time"] = str(datetime.datetime.now().time())
 		self.parameters["namespace"] = {}
 		self.parameters["namespace"]["hero_namespace"] = 100
-		#self.hero_namespace = 100
 		self.parameters["namespace"]["kills_namespace"] = 10000
-		#self.kills_namespace = 10000
 		self.parameters["namespace"]["normal_namespace"] = 11000
-		#self.normal_namespace = 11000
 		self.parameters["namespace"]["fights_namespace"] = 12000
-		#self.fights_namespace = 12000
 		self.parameters["general"] = {}
 		self.parameters["general"]["col_per_player"] = 3
-		#self.col_per_player = 3
 		self.parameters["general"]["num_players"] = 10
-		#self.num_players = 10
-		#self.sample_step_size = 150
 		self.parameters["map"] = {}
 		self.parameters["map"]["xmin"] = -8200
-		#self.xmin = -8200
 		self.parameters["map"]["xmax"] = 8000
-		#self.xmax = 8000.0
 		self.parameters["map"]["ymin"] = -8200
-		#self.ymin = -8200.0
 		self.parameters["map"]["ymax"] = 8000
-		#self.ymax = 8000.0
 		self.parameters["map"]["num_box"] = 32
-		#self.num_box = 32
 		self.parameters["pregame_time_shift"] = 60
-		#self.pregame_time_shift = 60
 		# function specific parameters
 
 		self.parameters["heroPositions"] = {}
@@ -58,41 +50,28 @@ class Match:
 
 		self.parameters["heroTrajectories"] = {}
 		self.parameters["heroTrajectories"]["delta"] = 1000
-		#self.heroTrajectoies_delta = 1000
-		self.parameters["heroTrajectories"]["min_timespan"] =3
-		#self.heroTrajectories_min_timespan = 3
+		self.parameters["heroTrajectories"]["min_timespan"] = 3
 
 		self.parameters["goldXPInfo"] = {}
 		self.parameters["goldXPInfo"]["bin_size"] = 2
-		#self.goldXPinfo_bin_size = 2
 
 		self.parameters["makeAttackList"] = {}
 		self.parameters["makeAttackList"]["bin_size"] = 1 
-		#self.makeAttackList_bin_size = 1
 
 		self.parameters["graphAttacks"] = {}
 		self.parameters["graphAttacks"]["damage_threshold"] = 50
-		#self.graphAttacks_damage_threshold = 50
 
 		self.parameters["formAdjacencyMatrix"] = {}
 		self.parameters["formAdjacencyMatrix"]["distance_threshold"] = 300
-		#self.formAdjacencyMatrix_distance_threshold = 300
 		self.parameters["formAdjacencyMatrix"]["radius"] = 1500
-		#self.formAdjacencyMatrix_radius = 1500
 		self.parameters["formAdjacencyMatrix"]["w_space1"] = 0.02
-		self.formAdjacencyMatrix_w_space1 = 0.02
 		self.parameters["formAdjacencyMatrix"]["w_space2"] = 0.3
-		#self.formAdjacencyMatrix_w_space2 = 0.3
 		self.parameters["formAdjacencyMatrix"]["w_time"] = 80
-		#self.formAdjacencyMatrix_w_time = 80
 
 		self.parameters["evaluateFightList"] = {}
 		self.parameters["evaluateFightList"]["alpha"] = 150
-		#self.evaluateFightList_alpha = 150
 		self.parameters["evaluateFightList"]["kappa"] = 0.15
-		#self.evaluateFightList_kappa = 0.15
 		self.parameters["evaluateFightList"]["time_threshold"] = 2
-		#self.evaluateFightList_time_threshold = 2
 
 	def matchInfo(self):
 
@@ -243,7 +222,7 @@ def heroPositions(match):
 		v_mat[key] = []
 
 	e = open(position_input_filename,'rb')
-	reader = csv.reader(e)
+	reader = csv.reader(e)	
 
 
 	for i, row in enumerate(reader):
