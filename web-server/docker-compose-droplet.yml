@@ -1,0 +1,42 @@
+proxy:
+  container_name: droplet-proxy
+  image: jwilder/nginx-proxy
+  ports:
+    - "80:80"
+  volumes:
+    - /var/run/docker.sock:/tmp/docker.sock:ro
+    - /usr/local/dota-analysis/web-server/nginx/vhosts:/etc/nginx/vhost.d:ro
+database:
+  container_name: database-container
+  build: database
+  volumes:
+    - /usr/local/dota-analysis/web-server/storage/db:/data/db
+  expose:
+    - "42200"
+webserver:
+  build: webserver
+  expose:
+    - "42000"
+  volumes:
+    - /usr/local/dota-analysis/web-server/webserver/src:/source:ro
+    - /usr/local/dota-analysis/web-server/storage/webserver:/storage
+    - /usr/local/dota-analysis/web-server/storage/shared:/shared
+    - /usr/local/Wisdota/dota-analysis/web-server/files/webserver:/files:ro
+  environment:
+    VIRTUAL_HOST: "46.101.120.4"
+    VIRTUAL_PORT: "42000"
+    DEV_VERSION: "true"
+  links:
+    - database:DATABASE_IP
+analysis:
+  build: analysis
+  volumes:
+    - /usr/local/dota-analysis/web-server/analysis/server-src:/source:ro
+    - /usr/local/Wisdota/dota-analysis/web-server/analysis/extractor:/extractor:ro
+    - /usr/local/dota-analysis/web-server/analysis/analysis:/analysis:ro
+
+    - /usr/local/dota-analysis/web-server/storage/analysis:/storage
+    - /usr/local/dota-analysis/web-server/storage/shared:/shared
+    - /usr/local/dota-analysis/web-server/files/analysis:/files:ro
+  links:
+    - database:DATABASE_IP
