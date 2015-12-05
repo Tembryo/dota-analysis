@@ -62,12 +62,17 @@ router.route('/match/:match_id')
     .get(function(req, res) {
         Match.findOne({"id": req.params.match_id}, "file", function(err, match) {
             if (err)
+            {
+                console.log("error retrieving match "+req.params.match_id+ " "+err});
                 res.send(err);
-            fs.readFile(match.file, 'utf-8',function(err,json){
+            }
+            else{
+                fs.readFile(match.file, 'utf-8',function(err,json){
                     if (err)
                         res.send(err);
                     console.log("opened "+req.params.match_id);
                     res.json(JSON.parse(json));
+            }
             })
         });
     });
