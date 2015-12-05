@@ -69,13 +69,17 @@ router.route('/match/:match_id')
                 res.send(err);
             }
             else{
-                fs.readFile(match.file, 'utf-8',function(err,json){
-                    if (err)
-                        res.send(err);
-                    console.log("opened "+req.params.match_id);
-                    res.json(JSON.parse(json));
+                fs.readFile(match.file, 'utf-8',function(err,json)
+                    {
+                        if (err)
+                            res.send(err);
+                        else{
+                            console.log("opened "+req.params.match_id);
+                            res.json(JSON.parse(json));
+                        }
+                    }  
+                );
             }
-            })
         });
     });
 
