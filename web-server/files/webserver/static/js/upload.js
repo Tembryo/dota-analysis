@@ -166,6 +166,7 @@ function updateUploadElement(upload)
         .text(function(d){
                 switch(d["status"])
                 {
+                    case "failed": return "Failed";
                     case "uploaded": return "Queued";
                     case "processing": return "Parsing replay";
                     case "extracted": return "Analysing replay";
@@ -175,7 +176,7 @@ function updateUploadElement(upload)
     d3.select(this).select(".match-id")
         .text(function(d){
                 if(parseInt(d["match_id"]) < 0)
-                    return "Unparsed ID";
+                    return d["upload_name"];
                 else
                     return d["match_id"];
             });

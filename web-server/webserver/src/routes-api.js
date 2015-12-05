@@ -124,6 +124,7 @@ router.route("/upload")
                         replay_file.identifier = identifier; 
                         replay_file.file = new_file;
                         replay_file.status = "uploaded";
+                        replay_file.upload_name = file_name;
                         replay_file.uploader_identifier = req.user.identifier;
 
                         console.log("user id for upload "+req.user.identifier +" "+replay_file.uploader_identifier);
@@ -145,7 +146,7 @@ router.route("/uploads")
     .get(authentication.ensureAuthenticated,
         function(req, res)
         {
-            ReplayFile.find({$and: [{"uploader_identifier": req.user["identifier"]}, {"status": {$ne:"failed"} }] }, "match_id status", function(err, replays){
+            ReplayFile.find({"uploader_identifier": req.user["identifier"]}, "match_id status upload_name", function(err, replays){
                     if(err)
                     {
                         res.json([]);
