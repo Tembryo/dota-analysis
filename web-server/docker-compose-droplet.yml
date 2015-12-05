@@ -21,7 +21,7 @@ webserver:
     - /usr/local/dota-analysis/web-server/webserver/src:/source:ro
     - /usr/local/dota-analysis/web-server/storage/webserver:/storage
     - /usr/local/dota-analysis/web-server/storage/shared:/shared
-    - /usr/local/Wisdota/dota-analysis/web-server/files/webserver:/files:ro
+    - /usr/local/dota-analysis/web-server/files/webserver:/files:ro
   environment:
     VIRTUAL_HOST: "46.101.120.4"
     VIRTUAL_PORT: "42000"
@@ -32,7 +32,7 @@ analysis:
   build: analysis
   volumes:
     - /usr/local/dota-analysis/web-server/analysis/server-src:/source:ro
-    - /usr/local/Wisdota/dota-analysis/web-server/analysis/extractor:/extractor:ro
+    - /usr/local/dota-analysis/web-server/analysis/extractor:/extractor:ro
     - /usr/local/dota-analysis/web-server/analysis/analysis:/analysis:ro
 
     - /usr/local/dota-analysis/web-server/storage/analysis:/storage
