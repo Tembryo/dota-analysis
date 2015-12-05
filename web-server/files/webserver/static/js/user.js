@@ -75,7 +75,7 @@ function verifyCompleteHandler(e){
         message_str = "We are afraid, something went wrong.";
     }
     alert(message_str);
-    $("#verify-result").text(e["action"]+" "+JSON.stringify(e["info"])+" "+e["result"]);
+    //$("#verify-result").text(e["action"]+" "+JSON.stringify(e["info"])+" "+e["result"]);
     console.log(e);
 }
 function verifyErrorHandler(e){
