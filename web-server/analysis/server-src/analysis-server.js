@@ -12,7 +12,7 @@ Match = require("./models/match.js");
 checkJobs();
 function checkJobs()
 {
-    console.log("checking jobs");
+    //console.log("checking jobs");
     ReplayFile.find({ "status": "uploaded" }, function (err, docs) {
         for(var file_i in docs)
         {

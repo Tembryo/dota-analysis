@@ -61,9 +61,11 @@ router.route('/matches')
 router.route('/match/:match_id')
     .get(function(req, res) {
         Match.findOne({"id": req.params.match_id}, "file", function(err, match) {
-            if (err)
+            if (err || !match)
             {
-                console.log("error retrieving match "+req.params.match_id+ " "+err});
+                console.log("error retrieving match "+req.params.match_id);
+                console.log(err);
+                console.log(match);
                 res.send(err);
             }
             else{
