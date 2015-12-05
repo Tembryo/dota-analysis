@@ -1,4 +1,4 @@
-var sensitive = require("sensitive_config.js");
+var sensitive = require("./sensitive_config.js");
 exports.host            = process.env.VIRTUAL_HOST;
 exports.database_host   = "DATABASE_IP:42200";
 exports.files           = "/files";
