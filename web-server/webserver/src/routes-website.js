@@ -84,7 +84,6 @@ router.get('/matches',
     }
 );
 router.get('/match/:match_id',
-    authentication.ensureAuthenticated,
     function(req, res)
     {
         var data = collectTemplatingData(req);
