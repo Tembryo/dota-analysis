@@ -184,6 +184,14 @@ router.route("/verify/:verification_code")
                         result["action"] = "action_lookup";
                         result["result"] = "failed";
                         result["info"] = err;
+                        res.json(result);
+                    }
+                    else if (!action)
+                    {
+                        result["action"] = "verification";
+                        result["result"] = "failed";
+                        result["info"] = "invalid code";
+                        res.json(result);
                     }
                     else
                     {
