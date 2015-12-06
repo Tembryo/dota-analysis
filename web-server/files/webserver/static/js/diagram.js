@@ -694,6 +694,7 @@ icon_images = {
 	"weaver":               "/static/img/hero-icons/Weaver_icon.png",
 	"windrunner":           "/static/img/hero-icons/Windrunner_icon.png",
 	"winter_wyvern":        "/static/img/hero-icons/Winter_Wyvern_icon.png",
+    "wisp":                 "/static/img/hero-icons/Wisp_icon.png",
 	"witch_doctor":         "/static/img/hero-icons/Witch_Doctor_icon.png",
 	"zuus":                 "/static/img/hero-icons/Zeus_icon.png"
 };

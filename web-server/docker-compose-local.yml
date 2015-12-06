@@ -25,7 +25,6 @@ webserver:
   environment:
     VIRTUAL_HOST: "localhost"
     VIRTUAL_PORT: "42000"
-    VERSION: "DEV"
   links:
     - database:DATABASE_IP
 analysis:
