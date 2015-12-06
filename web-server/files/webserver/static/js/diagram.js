@@ -408,7 +408,7 @@ function getTimeseriesSamples(timeseries, filter_func){
 gui_state = {
 	"autoscroll-enabled": false,
 	"autoscroll-factor": 4,
-	"cursor-time": 0,
+	"cursor-time": -pregame_time+15,
 
 	"timeline-cursor-width": 30,
 	"active-sub-timelines": 0,	
