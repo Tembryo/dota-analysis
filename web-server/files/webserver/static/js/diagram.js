@@ -644,7 +644,7 @@ icon_images = {
     "juggernaut":           "/static/img/hero-icons/Juggernaut_icon.png",
 	"keeper_of_the_light":  "/static/img/hero-icons/Keeper of the Light_icon.png",
     "kunkka":               "/static/img/hero-icons/Kunkka_icon.png",
-    "legion_commander":     "/static/img/hero-icons/Legion Comander_icon.png",
+    "legion_commander":     "/static/img/hero-icons/Legion Commander_icon.png",
 	"leshrac":              "/static/img/hero-icons/Leshrac_icon.png",
  	"lich":                 "/static/img/hero-icons/Lich_icon.png",
 	"life_stealer":         "/static/img/hero-icons/Life Stealer_icon.png",
