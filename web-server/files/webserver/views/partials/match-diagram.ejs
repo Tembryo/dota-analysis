@@ -1,15 +1,28 @@
 <div class = "row" id ="button-row" >
     <div class ="col-xs-4 col info-text" >
+<p> 
         Drag the timeline
+</p> 
     </div>
     <div class ="col-xs-4 col info-text" >
+<p> 
         Click on heroes on the map
+</p> 
     </div>
-    <div class ="col-xs-4 col info-text" >
+    <div class ="col-xs-1 col info-text" >
         <a href="#prototype" class="btn btn-default btn-lg" onclick="toggleAutoScroll();" id ="toggle-autoscroll">
             Play
         </a>
     </div>
+   <div class ="col-xs-3 col info-text" >
+<p> Tweet this match:
+<% tweet_text = "Check out this match: " %>
+<a href="https://twitter.com/share" style="vertical-align: text-bottom" class="twitter-share-button"{count} data-text="<%=tweet_text%>" data-size="large" data-hashtags="wisdota,dota2">Tweet</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+</p>
+    </div>
+
+
 </div>
 <div  class = "row" >
     <div class ="col-xs-12 col" >
