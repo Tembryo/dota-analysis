@@ -1333,6 +1333,8 @@ function createMapEvent(event){
 				});
 		break;
 	}
+
+    updateMapEvent.call(this,event);
 }
 
 function computeEventOpacity(event)
@@ -1382,13 +1384,6 @@ function createMapUnit(entry)
 			"pointer-events": "none"
 			});
 
-	var position = getEntityPosition(entry.key);
-	var coordinates = gamePositionToCoordinates(position);
-	
-	group.attr({
-		"transform": "translate("+coordinates.x+","+coordinates.y+")"
-		});
-
 	if(entity.hasOwnProperty("control"))
 	{
 		group.append("svg:text")
@@ -1399,6 +1394,8 @@ function createMapUnit(entry)
 				})
 			.text(replay_data["header"]["players"][entity["control"]]["name"]);
 	}
+
+    updateMapUnit.call(this,entry);
 }
 
 function getEntityPosition(entity_id)
@@ -1420,7 +1417,7 @@ function getEntityPositionAtTime(entity_id, time)
 	else 
 	{
 		console.log("getting bad position "+entity_id+" "+current_time+" s"+segment_id);
-		return [0,0];
+		return null;
 	}
 }
 
@@ -1454,15 +1451,24 @@ function updateMapEvent(event){
 
 	//var position = getLocationCoordinates(event["location"]);
 	var position = new Victor(0,0);
-
+    var units_available = 0;
 	for(var involved_i in event["involved"])
 	{
 		var unit_position = getEntityPosition(event["involved"][involved_i]);
-		position.add(new Victor(unit_position[0], unit_position[1]));
+        if(unit_position)
+    	{
+        	position.add(new Victor(unit_position[0], unit_position[1]));
+            units_available += 1;
+        }
 	}
 	position.multiplyScalar(1/event["involved"].length);
 
-	var coords = gamePositionToCoordinates([position.x, position.y]);
+	var coords;
+    if(units_available >0)
+        coords = gamePositionToCoordinates([position.x, position.y]);
+    else
+        coords = new Victor(5,5);
+
 	group.attr({
 			"transform": "translate("+coords.x+","+coords.y+")"
 			});
@@ -1475,8 +1481,12 @@ function updateMapUnit(entry)
 	var group = d3.select(this);
 
 	var position = getEntityPosition(entry.key);
-	var coordinates = gamePositionToCoordinates(position);
-	
+	var coordinates;
+    if(position)
+        coordinates = gamePositionToCoordinates(position);
+    else
+        coordinates = new Victor(5,5);
+
 	group.attr({
 		"transform": "translate("+coordinates.x+","+coordinates.y+")"
 		});
