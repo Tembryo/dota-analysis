@@ -643,6 +643,7 @@ icon_images = {
 	"lina":                 "/static/img/hero-icons/Lina_icon.png",
 	"lion":                 "/static/img/hero-icons/Lion_icon.png",
 	"lone_druid":           "/static/img/hero-icons/Lone Druid_icon.png",
+	"lycan":                "/static/img/hero-icons/Lycanthrope_icon.png",
 	"magnataur":            "/static/img/hero-icons/Magnataur_icon.png",  
 	"necrolyte":            "/static/img/hero-icons/Necrolyte_icon.png",
 	"nevermore":            "/static/img/hero-icons/Shadow Fiend_icon.png",
