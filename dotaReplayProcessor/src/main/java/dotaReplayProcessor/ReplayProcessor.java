@@ -42,8 +42,11 @@ public class ReplayProcessor {
     	{
     		data_fields.put(i+"X", 0.0);
         	data_fields.put(i+"Y", 0.0);
-        	data_fields.put(i+"Gold", 0.0);
-    		//data_fields.put(i+"Alive", 1.0); //start as dead
+        	data_fields.put(i+"HP", 0.0);
+        	data_fields.put(i+"MaxHP", 0.0);
+          	data_fields.put(i+"Mana", 0.0);
+          	data_fields.put(i+"MaxMana", 0.0);
+    		data_fields.put(i+"Alive", 1.0); //start as dead
     	}
 		this.output = output;
 		this.output.init(data_fields);
@@ -152,8 +155,11 @@ public class ReplayProcessor {
                     
                     data_fields.put(i+"X", (double)pos.x);
                     data_fields.put(i+"Y", (double)pos.y);
-                    //data_fields.put(i+"Gold", (double)gold);
-                    //data_fields.put(i+"Alive", (double)alive);
+                	data_fields.put(i+"HP", ((Integer)getEntityProperty(e, "m_iHealth", null)).doubleValue());
+                	data_fields.put(i+"MaxHP", ((Integer)getEntityProperty(e, "m_iMaxHealth", null)).doubleValue());
+                  	data_fields.put(i+"Mana", ((Float)getEntityProperty(e, "m_flMana", null)).doubleValue());
+                  	data_fields.put(i+"MaxMana", ((Float)getEntityProperty(e, "m_flMaxMana", null)).doubleValue());
+            		data_fields.put(i+"Alive", ((Integer)getEntityProperty(e, "m_lifeState", null)).doubleValue());
                 }
                 //es.output(entry);
 

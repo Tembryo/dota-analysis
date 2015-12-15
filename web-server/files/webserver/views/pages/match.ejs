@@ -2,17 +2,8 @@
     layout("base-template") -%>
 
 <section id="match" class="container-fluid content-section text-center">
-	<div class="row">
-		<div class="col-xs-6 col-xs-offset-3">
-            <h1> Match <%=match_id%> </h1>
-        </div>
-    </div>
+
     <% include ../partials/match-diagram.ejs -%>
 </section>
 
-
-<script type="text/javascript">
-match_id = "<%=match_id%>";
-</script>
-<script src="/static/js/match.js" charset="utf-8"></script>
 

@@ -610,14 +610,17 @@ icon_images = {
 	"antimage":             "/static/img/hero-icons/Antimage_icon.png",
 	"axe":                  "/static/img/hero-icons/Axe_icon.png",
 	"bane":                 "/static/img/hero-icons/Bane_icon.png",
+	"batrider":             "/static/img/hero-icons/Batrider_icon.png",
 	"beastmaster":          "/static/img/hero-icons/Beastmaster_icon.png",
+	"bloodseeker":          "/static/img/hero-icons/Bloodseeker_icon.png",
 	"bounty_hunter":        "/static/img/hero-icons/Bounty Hunter_icon.png",
 	"brewmaster":           "/static/img/hero-icons/Brewmaster_icon.png",
 	"bristleback":          "/static/img/hero-icons/Bristleback_icon.png",
 	"broodmother":          "/static/img/hero-icons/Broodmother_icon.png",
 	"centaur":              "/static/img/hero-icons/Centaur Warrunner_icon.png",
 	"chaos_knight":         "/static/img/hero-icons/Chaos Knight_icon.png",
-	"clinkz":               "/static/img/hero-icons/Clinkz_icon.png",
+    "chen":                 "/static/img/hero-icons/Chen_icon.png",
+    "clinkz":               "/static/img/hero-icons/Clinkz_icon.png",
 	"crystal_maiden":       "/static/img/hero-icons/Crystal Maiden_icon.png",
 	"dark_seer":            "/static/img/hero-icons/Dark Seer_icon.png",
 	"dazzle":               "/static/img/hero-icons/Dazzle_icon.png",
@@ -627,36 +630,43 @@ icon_images = {
 	"dragon_knight":        "/static/img/hero-icons/Dragon Knight_icon.png",
 	"drow_ranger":          "/static/img/hero-icons/Drow Ranger_icon.png",
 	"earthshaker":          "/static/img/hero-icons/Earthshaker_icon.png",
+    "elder_titan":          "/static/img/hero-icons/Elder Titan_icon.png",
+    "eart_spirit":          "/static/img/hero-icons/Earth Spirit_icon.png",
 	"ember_spirit":         "/static/img/hero-icons/Enchantress_icon.png",
 	"enchantress":          "/static/img/hero-icons/Ember Spirit_icon.png",
 	"enigma":               "/static/img/hero-icons/Enigma_icon.png",
 	"furion":               "/static/img/hero-icons/Nature's Prophet_icon.png",
 	"faceless_void":        "/static/img/hero-icons/Faceless Void_icon.png",
 	"gyrocopter":           "/static/img/hero-icons/Gyrocopter_icon.png", 
-	"invoker":              "/static/img/hero-icons/Invoker_icon.png",
 	"huskar":               "/static/img/hero-icons/Huskar_icon.png",
-	"juggernaut":           "/static/img/hero-icons/Juggernaut_icon.png",
+	"invoker":              "/static/img/hero-icons/Invoker_icon.png",
+    "jakiro":               "/static/img/hero-icons/Jakiro_icon.png",
+    "juggernaut":           "/static/img/hero-icons/Juggernaut_icon.png",
 	"keeper_of_the_light":  "/static/img/hero-icons/Keeper of the Light_icon.png",
+    "kunkka":               "/static/img/hero-icons/Kunkka_icon.png",
+    "legion_commander":     "/static/img/hero-icons/Legion Commander_icon.png",
 	"leshrac":              "/static/img/hero-icons/Leshrac_icon.png",
  	"lich":                 "/static/img/hero-icons/Lich_icon.png",
 	"life_stealer":         "/static/img/hero-icons/Life Stealer_icon.png",
 	"lina":                 "/static/img/hero-icons/Lina_icon.png",
 	"lion":                 "/static/img/hero-icons/Lion_icon.png",
 	"lone_druid":           "/static/img/hero-icons/Lone Druid_icon.png",
-	"lycan":                "/static/img/hero-icons/Lycanthrope_icon.png",
-	"magnataur":            "/static/img/hero-icons/Magnataur_icon.png",  
+    "luna":                 "/static/img/hero-icons/Luna_icon.png",
+    "lycan":                "/static/img/hero-icons/Lycanthrope_icon.png",
+	"magnataur":            "/static/img/hero-icons/Magnataur_icon.png",
+	"medusa":               "/static/img/hero-icons/Medusa_icon.png",
+	"meepo":                "/static/img/hero-icons/Meepo_icon.png",
+	"mirana":               "/static/img/hero-icons/Mirana_icon.png",
+    "morphling":            "/static/img/hero-icons/Morphling_icon.png",
+    "naga_siren":           "/static/img/hero-icons/Naga Siren_icon.png",
 	"necrolyte":            "/static/img/hero-icons/Necrolyte_icon.png",
 	"nevermore":            "/static/img/hero-icons/Shadow Fiend_icon.png",
 	"night_stalker":        "/static/img/hero-icons/Night Stalker_icon.png",
 	"nyx_assassin":         "/static/img/hero-icons/Nyx Assassin_icon.png",
+    "obsidian_destroyer":   "/static/img/hero-icons/Obsidian Destroyer_icon.png",
 	"ogre_magi":            "/static/img/hero-icons/Ogre Magi_icon.png",
 	"omniknight":           "/static/img/hero-icons/Omniknight_icon.png",
 	"oracle":               "/static/img/hero-icons/Oracle_icon.png",
-	"medusa":               "/static/img/hero-icons/Medusa_icon.png",
-	"meepo":                "/static/img/hero-icons/Meepo_icon.png",
-	"mirana":               "/static/img/hero-icons/Mirana_icon.png",
-	"naga_siren":           "/static/img/hero-icons/Naga Siren_icon.png",
-	"night_stalker":        "/static/img/hero-icons/Night Stalker_icon.png",
 	"phantom_assassin":     "/static/img/hero-icons/Phantom Assassin_icon.png",
 	"phantom_lancer":       "/static/img/hero-icons/Phantom Lancer_icon.png",
 	"phoenix":              "/static/img/hero-icons/Phoenix_icon.png",
@@ -689,6 +699,7 @@ icon_images = {
 	"tinker":               "/static/img/hero-icons/Tinker_icon.png",
 	"tiny":                 "/static/img/hero-icons/Tiny_icon.png",
 	"treant":               "/static/img/hero-icons/Treant_icon.png",
+    "troll_warlord":        "/static/img/hero-icons/Troll Warlord_icon.png",
 	"tusk":                 "/static/img/hero-icons/Tusk_icon.png",
 	"undying":              "/static/img/hero-icons/Undying_icon.png",
 	"vengefulspirit":       "/static/img/hero-icons/Vengeful Spirit_icon.png",
@@ -1322,6 +1333,8 @@ function createMapEvent(event){
 				});
 		break;
 	}
+
+    updateMapEvent.call(this,event);
 }
 
 function computeEventOpacity(event)
@@ -1371,13 +1384,6 @@ function createMapUnit(entry)
 			"pointer-events": "none"
 			});
 
-	var position = getEntityPosition(entry.key);
-	var coordinates = gamePositionToCoordinates(position);
-	
-	group.attr({
-		"transform": "translate("+coordinates.x+","+coordinates.y+")"
-		});
-
 	if(entity.hasOwnProperty("control"))
 	{
 		group.append("svg:text")
@@ -1388,6 +1394,8 @@ function createMapUnit(entry)
 				})
 			.text(replay_data["header"]["players"][entity["control"]]["name"]);
 	}
+
+    updateMapUnit.call(this,entry);
 }
 
 function getEntityPosition(entity_id)
@@ -1409,7 +1417,7 @@ function getEntityPositionAtTime(entity_id, time)
 	else 
 	{
 		console.log("getting bad position "+entity_id+" "+current_time+" s"+segment_id);
-		return [0,0];
+		return null;
 	}
 }
 
@@ -1443,15 +1451,24 @@ function updateMapEvent(event){
 
 	//var position = getLocationCoordinates(event["location"]);
 	var position = new Victor(0,0);
-
+    var units_available = 0;
 	for(var involved_i in event["involved"])
 	{
 		var unit_position = getEntityPosition(event["involved"][involved_i]);
-		position.add(new Victor(unit_position[0], unit_position[1]));
+        if(unit_position)
+    	{
+        	position.add(new Victor(unit_position[0], unit_position[1]));
+            units_available += 1;
+        }
 	}
 	position.multiplyScalar(1/event["involved"].length);
 
-	var coords = gamePositionToCoordinates([position.x, position.y]);
+	var coords;
+    if(units_available >0)
+        coords = gamePositionToCoordinates([position.x, position.y]);
+    else
+        coords = new Victor(5,5);
+
 	group.attr({
 			"transform": "translate("+coords.x+","+coords.y+")"
 			});
@@ -1464,8 +1481,12 @@ function updateMapUnit(entry)
 	var group = d3.select(this);
 
 	var position = getEntityPosition(entry.key);
-	var coordinates = gamePositionToCoordinates(position);
-	
+	var coordinates;
+    if(position)
+        coordinates = gamePositionToCoordinates(position);
+    else
+        coordinates = new Victor(5,5);
+
 	group.attr({
 		"transform": "translate("+coordinates.x+","+coordinates.y+")"
 		});
