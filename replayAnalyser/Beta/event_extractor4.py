@@ -24,7 +24,7 @@ class Match:
 		self.output_filename = out_file
 		# variables that determine how the data is analysed - need to include all parameters
 		self.parameters = {}
-		self.parameters["version"] = "0.0.02"
+		self.parameters["version"] = "0.0.03"
 		self.parameters["datetime"] = {}
 		self.parameters["datetime"]["date"] = str(datetime.date.today())
 		self.parameters["datetime"]["time"] = str(datetime.datetime.now().time())
@@ -111,6 +111,7 @@ class Match:
 				hero_name_list = hero_name_list[3:] # remove the unnecessary dota_npc_hero part
 				s = "_"
 				hero_name = s.join(hero_name_list) # join the strings back together
+				players[int(row[1])]["hero"] = hero_name
 				heros[hero_name] = {}
 				heros[hero_name]["index"] = int(row[1])
 				heros[hero_name]["hero_id"] = self.parameters["namespace"]["hero_namespace"] + int(row[1])
