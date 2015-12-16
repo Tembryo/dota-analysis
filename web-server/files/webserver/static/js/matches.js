@@ -125,28 +125,35 @@ function updateList()
 {
 	//load data from json 
 	var my_json = match_list;
+	my_json = json;
 	var num_keys = Object.keys(my_json).length;
 	for (var i = 0; i < num_keys; i++){
 	    if (i % 2 == 0){
-	    	var column_choice = "#match-list-1";
+	      var column_choice = "#match-list-1";
 	    }
 	    else{
-	    	var column_choice = "#match-list-2";
-	    }
+	      var column_choice = "#match-list-2";
+	    };
 	    //make make header with team 1 vs team 2 and the date 
 	    var team_0 = my_json[i]["teams"]["0"]["name"];
 	    if (team_0 === "empty"){
-	    	team_0 = "Radiant";
+	      team_0 = "Radiant";
 	    };
 	    var team_1 = my_json[i]["teams"]["1"]["name"];
 	    if (team_1 === "empty"){
-	    	team_1 = "Dire";
+	      team_1 = "Dire";
 	    };
-	    var date = my_json[i]["parameters"]["datetime"]["date"]
+	    // handle old versions where the datetime is not in the header file
+	    if (my_json[i]["parameters"]["datetime"]["date"] == null){
+	        var date = "";
+	    }
+	    else{
+	       var date = my_json[i]["parameters"]["datetime"]["date"]
+	    };
 		var text = "<h2>" + team_0 + "  vs  " + team_1 + " - " + date + " </h2>";
 		$(column_choice).prepend("<div class = match-summary id = div" + i + "> </div>");
 		$("#div" + i ).append(text);
-	    $("#div" + i ).css("height","180px");
+	    $("#div" + i ).css("height","205px");
 	    $("h2").css("margin-bottom","10px");
 	    $("h2").css("margin-top","5px");
 	    //make sub heading with the label of the match
@@ -155,35 +162,41 @@ function updateList()
 	    $("h3").css("margin-bottom","15px");
 	    // style the div so that it changes colour when we hover over it
 	    $("#div" + i ).hover(function(){
-	    	$(this).css("background-color","#666");
-	    	$(this).css("cursor","hand");
-	    	$(this).css("cursor","pointer");
+	    $(this).css("background-color","#666");
+	    $(this).css("cursor","hand");
+	    $(this).css("cursor","pointer");
 	    }, function(){
-	    	$(this).css("background-color","#444");
+	   		$(this).css("background-color","#444");
 	    });
 	    // make a div to put first 5 hero images in
 	    $("#div" + i ).append("<div id = my_div" + i + "a > </div>");
 	    $("#my_div" + i + "a" ).css("margin-bottom","7px");
-	    for (j=0; j < 5; j++){
-	    	var player_hero = my_json[i]["players"][j]["hero"]; 
-	    	var hero_image_location = icon_images[player_hero];
-	    	var player_name = my_json[i]["players"][j]["name"];
-	    	$("#my_div" + i + "a" ).append("<div class = imgWrap id =  player_div_a" + j + " > <img src =" + hero_image_location + " id = player_icon_" + j + " > <p class = imgDescription> " + player_name + "</p> </div>");
-	    };
-	     // make a div to put next 5 hero images in
-	    $("#div" + i ).append("<div id = my_div" + i + "b > </div>");
-	    for (j=5; j < 10; j++){
-	    	var player_hero = my_json[i]["players"][j]["hero"]; 
-	    	var hero_image_location = icon_images[player_hero];
-	    	var player_name = my_json[i]["players"][j]["name"];
-	    	$("#my_div" + i + "b" ).append("<div class = imgWrap id = player_div_b" + j + " > <img src =" + hero_image_location + " id = player_icon_" + j + " > <p class = imgDescription> " + player_name + "</p>  </div>");
+	    // handle old versions where the players heros are not in the header file
+	    if (my_json[i]["players"][0]["hero"] == null){
+	    	console.log("old version where player heros are not in the header");
+	    }
+	    else {
+	    	for (j=0; j < 5; j++){
+		        var player_hero = my_json[i]["players"][j]["hero"]; 
+		        var hero_image_location = icon_images[player_hero];
+		        var player_name = my_json[i]["players"][j]["name"];
+		        $("#my_div" + i + "a" ).append("<div class = imgWrap id =  player_div_a" + j + " > <img class = hero_img src =" + hero_image_location + " id = player_icon_" + j + " > <p class = imgDescription> " + player_name + "</p> </div>");
+	       	};
+	       // make a div to put next 5 hero images in
+	      	$("#div" + i ).append("<div id = my_div" + i + "b > </div>");
+	      	for (j=5; j < 10; j++){
+	        	var player_hero = my_json[i]["players"][j]["hero"]; 
+	        	var hero_image_location = icon_images[player_hero];
+	        	var player_name = my_json[i]["players"][j]["name"];
+	        	$("#my_div" + i + "b" ).append("<div class = imgWrap id = player_div_b" + j + " > <img class = hero_img src =" + hero_image_location + " id = player_icon_" + j + " > <p class = imgDescription> " + player_name + "</p>  </div>");
+	     	};
 	    };
 	    // make the div containing the match summary a clickable link
 	    var my_link = "<a href = http://www.wisdota.com/match/" + my_json[i]["id"] + "> </a>";
 	    $("#div" + i ).append(my_link);
 	    $("#div" + i).click(function(){
-	   		window.location = $(this).find("a:first").attr("href");
-	    	return false;
-    	});
-    }
+	      window.location = $(this).find("a:first").attr("href");
+	      return false;
+	    });
+	}; 
 }
