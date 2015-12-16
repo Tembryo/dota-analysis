@@ -143,7 +143,7 @@ function updateList()
 	      team_1 = "Dire";
 	    };
 	    // handle old versions where the datetime is not in the header file
-	    if (my_json[i]["parameters"]["datetime"]["date"] == null){
+	    if (my_json[i]["parameters"]["datetime"] == null){
 	        var date = "";
 	    }
 	    else{
