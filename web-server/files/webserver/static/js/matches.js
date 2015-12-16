@@ -125,7 +125,6 @@ function updateList()
 {
 	//load data from json 
 	var my_json = match_list;
-	my_json = json;
 	var num_keys = Object.keys(my_json).length;
 	for (var i = 0; i < num_keys; i++){
 	    if (i % 2 == 0){
