@@ -1,6 +1,6 @@
 // analysis - server.js
 var child_process   = require("child_process"),
-    async           = require("async";
+    async           = require("async");
 
 var config          = require("./config.js"),
     database          = require("./database.js");
@@ -11,7 +11,7 @@ checkJobs();
 
 function checkJobs()
 {
-    //console.log("checking jobs");
+    console.log("checking jobs");
     locals = {};
     async.waterfall(
         [
@@ -20,7 +20,7 @@ function checkJobs()
             {
                 locals.client = client;
                 locals.done = done_client;
-
+                console.log("got client");
                 locals.client.query(
                     "SELECT rf.id FROM ReplayFiles rf, ProcessingStatuses ps WHERE rf.processing_status=ps.id AND ps.label = $1;",
                     ["uploaded"],
@@ -36,6 +36,7 @@ function checkJobs()
         {
             if (err)
                 console.log(err);
+            console.log("schedule next");
             setTimeout(checkJobs, check_interval);
         }
     );

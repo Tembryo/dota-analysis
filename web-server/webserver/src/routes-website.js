@@ -1,5 +1,5 @@
 var express = require('express'),
-    waterfall = require('async-waterfall');
+    async = require('async');
 
 var authentication = require("./routes-auth.js"),
     config = require("./config.js"),
@@ -60,7 +60,7 @@ router.get('/user',
 
         locals = {};
         locals.user = {};
-        waterfall(
+        async.waterfall(
             [
                 database.connect,
                 function(client, done, callback)

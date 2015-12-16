@@ -1,10 +1,11 @@
 var	express		= require('express'),
 	passport	= require("passport"),
-    steam_auth = require("./steam-strategy.js");
+    async = require('async');
 
-var	config		= require("./config.js");
 
-var database = require('./database.js');
+var	config		= require("./config.js"),
+    steam_auth = require("./steam-strategy.js"),
+    database = require('./database.js');
 
 // Passport session setup.
 //   To support persistent login sessions, Passport needs to be able to
@@ -19,7 +20,7 @@ passport.serializeUser(function(user, done) {
 
 passport.deserializeUser(function(obj, done) {
     locals = {};
-    waterfall(
+    async.waterfall(
         [
             database.connect,
             function(client, client_done, callback)
@@ -28,7 +29,7 @@ passport.deserializeUser(function(obj, done) {
                 locals.done = client_done;
 
                 locals.client.query("SELECT u.id, u.name, json_agg(SELECT us.id FROM UserStatuses us WHERE us.user_id=u.id) as statuses FROM Users u WHERE u.id = $1;",[obj],callback);
-            }
+            },
             function(results, callback)
             {
                 var user = results.rows[0];
@@ -65,7 +66,7 @@ passport.use(
             console.log("id "+steam_id);
 
             locals = {};
-            waterfall(
+            async.waterfall(
                 [
                     database.connect,
                     function(client, done_client, callback)

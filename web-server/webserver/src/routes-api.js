@@ -61,7 +61,7 @@ router.route('/matches')
                                         console.log("added header json to list "+match.header_file);
                                         callback_file(null);
                                     }
-                                }
+                                });
                             },
                             callback);
                     }
@@ -102,7 +102,7 @@ router.route('/match/:match_id')
                     {
                         callback(null, JSON.parse(json));
                     }
-                ]
+                ],
                 function(err, results)
                 {
                     if(err)
