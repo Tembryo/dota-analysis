@@ -62,3 +62,50 @@ input:disabled{
     background-color: #333;
     font-size: 18pt;
 }
+
+/* formatting for the match list page */
+
+.imgWrap {
+  position: relative;
+  display: inline;
+  text-align: center;
+}
+
+.imgDescription {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(29, 106, 154, 0.72);
+  color: #fff;
+  font-size: 16px;
+
+
+  visibility: hidden;
+  opacity: 0;
+
+  /*remove comment if you want a gradual transition between states
+  -webkit-transition: visibility opacity 0.2s;
+  */
+}
+
+.imgWrap:hover .imgDescription {
+  visibility: visible;
+  opacity: 1;
+}
+
+.match-summary {
+    background: #444;
+    border-radius: 5px;
+    padding-top: 5px;
+    padding-left: 5px;
+    text-align: center;
+    margin-top: 20px;
+    height: 150px;
+}
+
+.hero_img {
+    height: 48px;
+    width: 84px;
+}
