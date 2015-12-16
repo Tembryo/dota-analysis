@@ -184,5 +184,6 @@ function updateList()
 	    $("#div" + i).click(function(){
 	   		window.location = $(this).find("a:first").attr("href");
 	    	return false;
-    });
+    	});
+    }
 }
