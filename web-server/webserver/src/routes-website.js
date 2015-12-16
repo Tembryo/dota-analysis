@@ -1,7 +1,9 @@
-var express = require('express');
+var express = require('express'),
+    waterfall = require('async-waterfall');
 
 var authentication = require("./routes-auth.js"),
-    config = require("./config.js");
+    config = require("./config.js"),
+    database = require("./database.js");
 
 var router = express.Router();
 
@@ -45,8 +47,6 @@ router.get("/dota", function(req, res)
 
 
 // Page /user
-var User = require('./models/user');
-
 router.get('/user',
     authentication.ensureAuthenticated,
     function(req, res)
@@ -58,16 +58,33 @@ router.get('/user',
         else
             data["code"] = "";
 
-        User.findOne(
-            {
-                "identifier": req.user["identifier"]
-            },
-            "identifier name steam_object email beta_status",
-            function(err, user)
+        locals = {};
+        locals.user = {};
+        waterfall(
+            [
+                database.connect,
+                function(client, done, callback)
+                {
+                    locals.client = client;
+                    locals.done = done;
+
+                    locals.client.query("SELECT id, name, steam_object, email, FROM Users WHERE id = $1;",[req.user["id"]],callback);
+                },
+                function(results, callback)
+                {
+                    console.log("selected user, got: ", results);
+                    locals.user = results.rows[0];
+                    //TODO add statuses
+                    locals.client.end();
+                    locals.done();
+                    callback(null, "success");
+                }
+            ],
+            function(err, result)
             {
                 if (err)
                     console.log(err);
-                data["user"] = user;
+                data["user"] = locals.user;
                 res.render("pages/user.ejs", data);
             }
         );
@@ -97,27 +114,10 @@ router.route("/upload")
     .get(authentication.ensureAuthenticated,
         function(req, res)
         {
-            User.findOne({"identifier": req.user["identifier"]},"identifier name beta_status", function(err, user){
-                if(err)
-                {
-                    console.log("couldnt find user");
-                    console.log(req.user);
-                    console.log(err);
-                }
-                var data = collectTemplatingData(req);
-                addNavigationData(data);
-                data["user"] = user;
-                res.render("pages/upload.ejs", data);
-            });
-        });
-
-router.route("/verify")
-    .get(function(req, res)
-        {
             var data = collectTemplatingData(req);
             addNavigationData(data);
-            data["code"] = req.params["code"];
-            res.render("pages/verify.ejs", data);
+            data["user"] = req.user;
+            res.render("pages/upload.ejs", data);
         });
 
 exports.router = router;

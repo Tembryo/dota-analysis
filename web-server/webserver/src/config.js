@@ -1,7 +1,9 @@
 var sensitive = require("./sensitive_config.js");
 var host = process.env.VIRTUAL_HOST.split(",")[0];
 exports.host            = host;
-exports.database_host   = "DATABASE_IP:42200";
+exports.database_host   = "POSTGRES_IP";
+exports.database_auth   = "wisdota:"+sensitive.database_pw;
+
 exports.files           = "/files";
 exports.storage         = "/storage";
 exports.shared          = "/shared";

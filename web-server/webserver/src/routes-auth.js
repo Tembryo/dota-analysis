@@ -4,7 +4,7 @@ var	express		= require('express'),
 
 var	config		= require("./config.js");
 
-var User = require('./models/user');
+var database = require('./database.js');
 
 // Passport session setup.
 //   To support persistent login sessions, Passport needs to be able to
@@ -14,15 +14,36 @@ var User = require('./models/user');
 //   have a database of user records, the complete Steam profile is serialized
 //   and deserialized.
 passport.serializeUser(function(user, done) {
-  done(null, user.identifier);
+  done(null, user.id);
 });
 
 passport.deserializeUser(function(obj, done) {
-	User.findOne({"identifier": obj}, "identifier name", function(err, user){
-			if (err)
-				console.log(err);
-			done(null, user);
-        });
+    locals = {};
+    waterfall(
+        [
+            database.connect,
+            function(client, client_done, callback)
+            {
+                locals.client = client;
+                locals.done = client_done;
+
+                locals.client.query("SELECT u.id, u.name, json_agg(SELECT us.id FROM UserStatuses us WHERE us.user_id=u.id) as statuses FROM Users u WHERE u.id = $1;",[obj],callback);
+            }
+            function(results, callback)
+            {
+                var user = results.rows[0];
+                locals.client.end();
+                locals.done();
+                callback(null, user);
+            }
+        ],
+        function(err, result)
+        {
+            if (err)
+                console.log(err);
+			done(null, result);
+        }
+    );
 });
 
 
@@ -42,35 +63,56 @@ passport.use(
 			console.log("Steam verify");
             var steam_id = identifier.substring(identifier.lastIndexOf("/")+1);
             console.log("id "+steam_id);
-			User.findOne(
-				{"identifier": steam_id},
-				"name steam_object identifier",
-				function(err, user){
-					if (err)
-						console.log(err);
-                    if(user == null)
-					{
-						console.log("accepting new user");  
-                        steam_auth.getProfile(identifier, function(profile)
-                            {
-                                var user = new User();
-                                user.name = profile["displayName"];
+
+            locals = {};
+            waterfall(
+                [
+                    database.connect,
+                    function(client, done_client, callback)
+                    {
+                        locals.client = client;
+                        locals.done = done_client;
+
+                        locals.client.query("SELECT id, name FROM Users WHERE steam_identifier = $1;",[steam_id],callback);
+                    },
+                    function(results, callback)
+                    {
+                        if(results.rowCount == 0)
+                        {
+    						console.log("accepting new user");
+
+/*
+                         user.name = profile["displayName"];
                                 user.identifier = profile["id"];
                                 user.steam_object = profile["_json"];
-                                user.markModified("steam_object");
                                 user.email = "unknown";
-			                    user.save();
-						        done(null,user);//return new user
-                            }
-                        );
-					}
-					else
-					{
-						console.log("accepting old user");
-						done(null, user);
-					}
-		        }
-			);
+*/
+                            locals.client.query("INSERT INTO Users(name, steam_identifier, steam_object, email) VALUES ($1, $2, $3, $4) RETURNING id, name;",[profile["displayName"], profile["id"], profile["_json"], "unknown"],callback);
+                        }
+                        else
+                        {
+    						console.log("accepting old user");  
+                            var user = results.rows[0];
+                            callback("found_old", user);
+                        }
+                    },
+                    function(results, callback)
+                    {
+                        console.log("inserted, got ", results);
+                        var user = results.rows[0];
+                        callback(null, user);
+                    }
+                ],
+                function(err, user)
+                {
+                    locals.client.end();
+                    locals.done();
+
+                    if (!(err === "found_old") && err)
+                        console.log(err);
+                    done(null, user); 
+                }
+            );
     	}
 	)
 );

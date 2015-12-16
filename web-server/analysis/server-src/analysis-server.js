@@ -1,137 +1,156 @@
 // analysis - server.js
-var child_process = require("child_process");
+var child_process   = require("child_process"),
+    async           = require("async";
 
 var config          = require("./config.js"),
     database          = require("./database.js");
 
 var check_interval = 5000;
 
-ReplayFile = require("./models/replay-file.js");
-Match = require("./models/match.js");
-
 checkJobs();
+
 function checkJobs()
 {
     //console.log("checking jobs");
-    ReplayFile.find({ "status": "uploaded" }, function (err, docs) {
-        for(var file_i in docs)
-        {
-            var file = docs[file_i];
-            file.status = "processing";
-            console.log('processing: ' + file.file); 
-            file.save(function(err)
-                {
-                    if(err)
-                        console.log(err);
-                    else
-                    {
+    locals = {};
+    async.waterfall(
+        [
+            database.connect,
+            function(client, done_client, callback)
+            {
+                locals.client = client;
+                locals.done = done_client;
 
-                        processReplay(file);
-                    }
-                });
+                locals.client.query(
+                    "SELECT rf.id FROM ReplayFiles rf, ProcessingStatuses ps WHERE rf.processing_status=ps.id AND ps.label = $1;",
+                    ["uploaded"],
+                    callback);
+            },
+            function(results, callback)
+            {
+                console.log("queried replay files");
+                async.each(results.rows, processReplay, callback);
+            }
+        ],
+        function(err)
+        {
+            if (err)
+                console.log(err);
+            setTimeout(checkJobs, check_interval);
         }
-        setTimeout(checkJobs, check_interval);
-    });
+    );
 }
 
-function processReplay(replay_file)
+function processReplay(replay_row, callback_replay)
 {
-    console.log('starting extract: ' + replay_file.file); 
-    child_process.execFile("java", ["-jar", "/extractor/extractor.jar", config.shared+replay_file.file, config.storage+"/"], function (error, stdout, stderr) 
-        {
-            console.log('java stdout: ' + stdout);
-            console.log('java stderr: ' + stderr);
-            if (error !== null || stderr.length > 0 || match_id < 0)
+    locals = {};
+    locals.replayfile_id = replay_row.id;
+    async.waterfall(
+        [
+            database.connect,
+            function(client, done_client, callback)
             {
-                console.log('exec error: ' + error);
-                replay_file.status = "failed";
-                replay_file.save(function(err)
+                locals.client = client;
+                locals.done = done_client;
+
+                locals.client.query(
+                    "UPDATE ReplayFiles rf SET processing_status=(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$2) WHERE rf.id=$1 RETURNING rf.file;",
+                    [locals.replayfile_id, "processing"],
+                    callback);
+            },
+            function(results, callback)
+            {
+                console.log('starting extract: ' + results);
+                if(results.rowCount != 1)
                 {
-                    if(err)
-                        console.log(err);
-                    else
+                    callback("Setting replayfile as processing failed", results);
+                }
+                else
+                {
+                    child_process.execFile(
+                        "java", 
+                        ["-jar", "/extractor/extractor.jar", config.shared+results.rows[0].file, config.storage+"/"],
+                        callback);
+                }
+            },
+            function (stdout, stderr, callback) 
+            {
+                console.log('java stdout: ' + stdout);
+                console.log('java stderr: ' + stderr);
+                locals.match_id = parseInt(stdout);
+                if (stderr.length > 0 || locals.match_id < 0)
+                {
+                    callback('exec error: bad matchid'+stdout);
+                }
+                else
+                {
+                    locals.client.query(
+                        "UPDATE ReplayFiles rf SET match_id=$2, processing_status=(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$3) WHERE rf.id=$1;",
+                        [locals.replayfile_id, locals.match_id, "extracted"],
+                        callback);
+                }
+            },
+            function(results, callback)
+            {
+                if(results.rowCount != 1)
+                {
+                    callback("Failed when updating replayfile after extraction", results);
+                    return;
+                }
+                var match_dir = config.storage+"/"+match_id;
+                var analysis_file = config.shared+"/matches/"+match_id+".json";
+                var header_file = config.shared+"/match_headers/"+match_id+".json";
+                child_process.execFile(
+                    "python",
+                    ["/analysis/analysis.py", locals.match_id, match_dir, analysis_file, header_file],
+                    callback);
+            },
+            function (stdout, stderr, callback) 
+            {
+                console.log('pystdout: ' + stdout);
+                console.log('pystderr: ' + stderr);
+
+                locals.client.query(
+                    "UPDATE ReplayFiles rf SET processing_status=(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$2) WHERE rf.id=$1;",
+                    [locals.replayfile_id, "analysed"],
+                    callback);
+            },
+            function(results, callback)
+            {
+                if(results.rowCount != 1)
+                {
+                    callback("Failed when updating replayfile after analysis", results);
+                }
+                locals.client.query(
+                    "INSERT INTO Matches(id, label, file, header_file, replayfile_id) VALUES ($1, $2, $3, $4, $5);",
+                    [locals.match_id, "", analysis_file, header_file, locals.replayfile_id],
+                    callback);
+            },
+            function(results, callback)
+            {
+                locals.client.query(
+                    "UPDATE ReplayFiles rf SET processing_status=(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$2) WHERE rf.id=$1;",
+                    [locals.replayfile_id, "registered"],
+                    callback);
+            }
+        ],
+        function(err, results)
+        {
+            if(err)
+            {
+                locals.client.query(
+                    "UPDATE ReplayFiles rf SET processing_status=(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$2) WHERE rf.id=$1;",
+                    [locals.replayfile_id, "failed"],
+                    function()
                     {
-                        console.log("put file as failed!");
-                    }
-                });
+                        console.log("put replayfile as failed", locals.replayfile_id);
+                    });
             }
             else
             {
-                var match_id = parseInt(stdout);
-                replay_file.status = "extracted";
-                replay_file.match_id = match_id;
-                replay_file.save(function(err)
-                {
-                    if(err)
-                        console.log(err);
-                    else
-                    {
-                        console.log("file fully extracted");
-                        var match_dir = config.storage+"/"+match_id;
-                        var analysis_file = config.shared+"/matches/"+match_id+".json";
-                        var header_file = config.shared+"/match_headers/"+match_id+".json";
-                        child_process.execFile("python", ["/analysis/analysis.py", match_id, match_dir, analysis_file, header_file], function (error, stdout, stderr) 
-                            {
-                                console.log('pystdout: ' + stdout);
-                                console.log('pystderr: ' + stderr);
-                                if (error !== null)
-                                {
-                                    console.log('pyexec error: ' + error);
-                                    replay_file.status = "failed";
-                                    replay_file.save(function(err)
-                                    {
-                                        if(err)
-                                            console.log(err);
-                                        else
-                                        {
-                                            console.log("put file as failed!");
-                                        }
-                                    });
-                                }
-                                else
-                                {
-                                    replay_file.status = "analysed";
-                                    replay_file.save(function(err)
-                                    {
-                                        if(err)
-                                            console.log(err);
-                                        else
-                                        {
-                                            console.log("put file as analysed!");
-                                            var match = new Match({
-                                                    "id": match_id,
-                                                    "label": "--",
-                                                    "file": analysis_file,
-                                                    "header_file": header_file,
-                                                    "original_file": replay_file.file});
-                                            match.save(function(err)
-                                            {
-                                                if(err)
-                                                    console.log(err);
-                                                else
-                                                {
-                                                    console.log("registered match");
-                                                    replay_file.status = "registered";
-                                                    replay_file.save(function(err)
-                                                    {
-                                                        if(err)
-                                                            console.log(err);
-                                                        else
-                                                        {
-                                                            console.log("fin~");
-                                                        }
-                                                    });
-                                                }
-                                            });
-                                        }
-                                    });
-                                }
-                            });
-                    }
-                });
+                console.log("fin~", locals.replayfile_id);
             }
-
+            callback_replay(null);
         }
     );
-
 }

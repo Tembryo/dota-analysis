@@ -6,6 +6,17 @@ proxy:
   volumes:
     - /var/run/docker.sock:/tmp/docker.sock:ro
     - /usr/local/dota-analysis/web-server/nginx/vhosts:/etc/nginx/vhost.d:ro
+postgres:
+  container_name: postgres-container
+  image: postgres
+  expose:
+    - "5432"
+  environment:
+    POSTGRES_USER: "wisdota"
+    POSTGRES_PASSWORD: "xxx"
+    PGDATA: "/postgres/data"
+  volumes:
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/postgres:/postgres
 database:
   container_name: database-container
   build: database

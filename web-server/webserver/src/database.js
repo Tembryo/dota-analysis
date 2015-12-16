@@ -1,6 +1,5 @@
-var mongoose    = require("mongoose");
+var pg          = require("pg");
 
 var config      = require("./config.js");
 
-mongoose.connect("mongodb://"+config.database_host+"/wisdota"); // connect to our database
-
+exports.connect = pg.connect.bind(pg,"postgres://"+config.database_auth+"@"+config.database_host+"/wisdota"); // connect to our database
