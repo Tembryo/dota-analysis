@@ -1,0 +1,42 @@
+proxy:
+  container_name: richard-proxy
+  image: jwilder/nginx-proxy
+  ports:
+    - "80:80"
+  volumes:
+    - /var/run/docker.sock:/tmp/docker.sock:ro
+    - /home/Users/richardmason/Documents/GitHub/Tembryo/dota-analysis/web-server/nginx/vhosts:/etc/nginx/vhost.d:ro
+database:
+  container_name: database-container
+  build: database
+  volumes:
+    - /home/Users/richardmason/Documents/GitHub/Tembryo/dota-analysis/web-server/storage/db:/data/db
+  expose:
+    - "42200"
+webserver:
+  build: webserver
+  expose:
+    - "42000"
+  volumes:
+    - /home/Users/richardmason/Documents/GitHub/Tembryo/dota-analysis/web-server/webserver/src:/source:ro
+    - /home/Users/richardmason/Documents/GitHub/Tembryo/dota-analysis/web-server/storage/webserver:/storage
+    - /home/Users/richardmason/Documents/GitHub/Tembryo/web-server/storage/shared:/shared
+    - /home/Users/richardmason/Documents/GitHub/Tembryo/web-server/files/webserver:/files:ro
+  environment:
+    VIRTUAL_HOST: "localhost"
+    VIRTUAL_PORT: "42000"
+    DEV_VERSION: "true"
+  links:
+    - database:DATABASE_IP
+analysis:
+  build: analysis
+  volumes:
+    - /home/Users/richardmason/Documents/GitHub/Tembryo/dota-analysis/web-server/analysis/server-src:/source:ro
+    - /home/Users/richardmason/Documents/GitHub/Tembryo/dota-analysis/web-server/analysis/extractor:/extractor:ro
+    - /home/Users/richardmason/Documents/GitHub/Tembryo/dota-analysis/web-server/analysis/analysis:/analysis:ro
+
+    - /home/Users/richardmason/Documents/GitHub/Tembryo/dota-analysis/web-server/storage/analysis:/storage
+    - /home/Users/richardmason/Documents/GitHub/Tembryo/dota-analysis/web-server/storage/shared:/shared
+    - /home/Users/richardmason/Documents/GitHub/Tembryo/dota-analysis/web-server/files/analysis:/files:ro
+  links:
+    - database:DATABASE_IP
