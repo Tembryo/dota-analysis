@@ -1,0 +1,3230 @@
+["12041": {
+            "time-end": 1556.3238525390625,
+            "involved": [
+                100,
+                101,
+                102,
+                103,
+                106,
+                108,
+                109
+            ],
+            "intensity": "battle",
+            "location": "botlane-dire-between-t1-t2",
+            "attack-sequence": [
+                {
+                    "health_delta": "",
+                    "attack_method": "sniper_assassinate",
+                    "damage": 363.0,
+                    "attacker": 100,
+                    "t": 1545.9263916015625,
+                    "victim": 106,
+                    "v": [
+                        5191.25,
+                        -2682.75
+                    ]
+                },
+                {
+                    "health_delta": " (1584->1522)",
+                    "attack_method": "melee",
+                    "damage": 62.0,
+                    "attacker": 108,
+                    "t": 1547.9259033203125,
+                    "victim": 102,
+                    "v": [
+                        6443.28125,
+                        -1996.5625
+                    ]
+                },
+                {
+                    "health_delta": " (1349->1242)",
+                    "attack_method": "melee",
+                    "damage": 107.0,
+                    "attacker": 102,
+                    "t": 1548.5257568359375,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (1493->1362)",
+                    "attack_method": "undying_decay",
+                    "damage": 131.0,
+                    "attacker": 108,
+                    "t": 1548.8590087890625,
+                    "victim": 102,
+                    "v": [
+                        6443.28125,
+                        -1996.5625
+                    ]
+                },
+                {
+                    "health_delta": " (1375->1271)",
+                    "attack_method": "melee",
+                    "damage": 104.0,
+                    "attacker": 109,
+                    "t": 1549.1256103515625,
+                    "victim": 102,
+                    "v": [
+                        5944.21875,
+                        -1985.65625
+                    ]
+                },
+                {
+                    "health_delta": " (786->750)",
+                    "attack_method": "sniper_shrapnel",
+                    "damage": 36.0,
+                    "attacker": 100,
+                    "t": 1549.1922607421875,
+                    "victim": 109,
+                    "v": [
+                        5492.5,
+                        -2675.5625
+                    ]
+                },
+                {
+                    "health_delta": " (1325->1218)",
+                    "attack_method": "melee",
+                    "damage": 107.0,
+                    "attacker": 102,
+                    "t": 1549.3255615234375,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (1292->1229)",
+                    "attack_method": "melee",
+                    "damage": 63.0,
+                    "attacker": 108,
+                    "t": 1549.3922119140625,
+                    "victim": 102,
+                    "v": [
+                        6443.28125,
+                        -1996.5625
+                    ]
+                },
+                {
+                    "health_delta": " (1229->1127)",
+                    "attack_method": "melee",
+                    "damage": 102.0,
+                    "attacker": 109,
+                    "t": 1549.3922119140625,
+                    "victim": 102,
+                    "v": [
+                        5944.21875,
+                        -1985.65625
+                    ]
+                },
+                {
+                    "health_delta": " (750->698)",
+                    "attack_method": "bristleback_quill_spray",
+                    "damage": 52.0,
+                    "attacker": 101,
+                    "t": 1549.8587646484375,
+                    "victim": 109,
+                    "v": [
+                        5938.5625,
+                        -2460.8125
+                    ]
+                },
+                {
+                    "health_delta": " (1248->1143)",
+                    "attack_method": "melee",
+                    "damage": 105.0,
+                    "attacker": 102,
+                    "t": 1550.0587158203125,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (1149->1048)",
+                    "attack_method": "melee",
+                    "damage": 101.0,
+                    "attacker": 109,
+                    "t": 1550.1253662109375,
+                    "victim": 102,
+                    "v": [
+                        5944.21875,
+                        -1985.65625
+                    ]
+                },
+                {
+                    "health_delta": " (698->662)",
+                    "attack_method": "sniper_shrapnel",
+                    "damage": 36.0,
+                    "attacker": 100,
+                    "t": 1550.2586669921875,
+                    "victim": 109,
+                    "v": [
+                        5492.5,
+                        -2675.5625
+                    ]
+                },
+                {
+                    "health_delta": " (1149->1015)",
+                    "attack_method": "melee",
+                    "damage": 134.0,
+                    "attacker": 102,
+                    "t": 1550.8585205078125,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (1077->891)",
+                    "attack_method": "melee",
+                    "damage": 186.0,
+                    "attacker": 109,
+                    "t": 1551.1917724609375,
+                    "victim": 102,
+                    "v": [
+                        5944.21875,
+                        -1985.65625
+                    ]
+                },
+                {
+                    "health_delta": " (664->454)",
+                    "attack_method": "puck_illusory_orb",
+                    "damage": 210.0,
+                    "attacker": 103,
+                    "t": 1551.1917724609375,
+                    "victim": 109,
+                    "v": [
+                        4911.84375,
+                        -2732.46875
+                    ]
+                },
+                {
+                    "health_delta": " (454->418)",
+                    "attack_method": "sniper_shrapnel",
+                    "damage": 36.0,
+                    "attacker": 100,
+                    "t": 1551.2584228515625,
+                    "victim": 109,
+                    "v": [
+                        5492.5,
+                        -2675.5625
+                    ]
+                },
+                {
+                    "health_delta": " (1020->756)",
+                    "attack_method": "melee",
+                    "damage": 264.0,
+                    "attacker": 102,
+                    "t": 1551.5916748046875,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (419->209)",
+                    "attack_method": "puck_waning_rift",
+                    "damage": 210.0,
+                    "attacker": 103,
+                    "t": 1551.9915771484375,
+                    "victim": 109,
+                    "v": [
+                        6018.46875,
+                        -1987.28125
+                    ]
+                },
+                {
+                    "health_delta": " (896->794)",
+                    "attack_method": "melee",
+                    "damage": 102.0,
+                    "attacker": 109,
+                    "t": 1552.1248779296875,
+                    "victim": 102,
+                    "v": [
+                        5944.21875,
+                        -1985.65625
+                    ]
+                },
+                {
+                    "health_delta": " (210->174)",
+                    "attack_method": "sniper_shrapnel",
+                    "damage": 36.0,
+                    "attacker": 100,
+                    "t": 1552.2581787109375,
+                    "victim": 109,
+                    "v": [
+                        5492.5,
+                        -2675.5625
+                    ]
+                },
+                {
+                    "health_delta": " (789->725)",
+                    "attack_method": "melee",
+                    "damage": 64.0,
+                    "attacker": 108,
+                    "t": 1552.2581787109375,
+                    "victim": 102,
+                    "v": [
+                        6443.28125,
+                        -1996.5625
+                    ]
+                },
+                {
+                    "health_delta": " (761->644)",
+                    "attack_method": "melee",
+                    "damage": 117.0,
+                    "attacker": 102,
+                    "t": 1552.3248291015625,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (174->62)",
+                    "attack_method": "puck_dream_coil",
+                    "damage": 112.0,
+                    "attacker": 103,
+                    "t": 1552.5914306640625,
+                    "victim": 109,
+                    "v": [
+                        6018.46875,
+                        -1987.28125
+                    ]
+                },
+                {
+                    "health_delta": " (647->624)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1552.7247314453125,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (836->813)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1552.9246826171875,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": "",
+                    "attack_method": "bristleback_quill_spray",
+                    "damage": 75.0,
+                    "attacker": 101,
+                    "t": 1553.0579833984375,
+                    "victim": 109,
+                    "v": [
+                        6064.3125,
+                        -2104.75
+                    ]
+                },
+                {
+                    "health_delta": " (813->754)",
+                    "attack_method": "bristleback_quill_spray",
+                    "damage": 59.0,
+                    "attacker": 101,
+                    "t": 1553.0579833984375,
+                    "victim": 108,
+                    "v": [
+                        6064.3125,
+                        -2104.75
+                    ]
+                },
+                {
+                    "health_delta": " (754->731)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1553.1246337890625,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (732->679)",
+                    "attack_method": "item_bfury",
+                    "damage": 53.0,
+                    "attacker": 102,
+                    "t": 1553.2579345703125,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (680->657)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1553.3245849609375,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (657->634)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1553.5245361328125,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (713->651)",
+                    "attack_method": "melee",
+                    "damage": 62.0,
+                    "attacker": 108,
+                    "t": 1553.6578369140625,
+                    "victim": 102,
+                    "v": [
+                        6443.28125,
+                        -1996.5625
+                    ]
+                },
+                {
+                    "health_delta": " (636->613)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1553.7244873046875,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (615->592)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1553.9244384765625,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (593->570)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1554.1243896484375,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (571->548)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1554.3243408203125,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (549->526)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1554.5242919921875,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (528->505)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1554.7242431640625,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (505->375)",
+                    "attack_method": "melee",
+                    "damage": 130.0,
+                    "attacker": 101,
+                    "t": 1554.7908935546875,
+                    "victim": 108,
+                    "v": [
+                        6299.53125,
+                        -2006.78125
+                    ]
+                },
+                {
+                    "health_delta": " (376->353)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1554.9241943359375,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (352->279)",
+                    "attack_method": "melee",
+                    "damage": 73.0,
+                    "attacker": 103,
+                    "t": 1554.9908447265625,
+                    "victim": 108,
+                    "v": [
+                        6097.59375,
+                        -1978.40625
+                    ]
+                },
+                {
+                    "health_delta": " (281->258)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1555.1241455078125,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (260->237)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1555.3240966796875,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (238->215)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1555.5240478515625,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (216->193)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1555.7239990234375,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (1825->1694)",
+                    "attack_method": "undying_decay",
+                    "damage": 131.0,
+                    "attacker": 108,
+                    "t": 1555.7906494140625,
+                    "victim": 101,
+                    "v": [
+                        6474.4375,
+                        -1867.96875
+                    ]
+                },
+                {
+                    "health_delta": " (985->863)",
+                    "attack_method": "undying_decay",
+                    "damage": 122.0,
+                    "attacker": 108,
+                    "t": 1555.7906494140625,
+                    "victim": 103,
+                    "v": [
+                        6474.4375,
+                        -1867.96875
+                    ]
+                },
+                {
+                    "health_delta": " (346->323)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1555.9239501953125,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": " (323->270)",
+                    "attack_method": "melee",
+                    "damage": 53.0,
+                    "attacker": 103,
+                    "t": 1555.9239501953125,
+                    "victim": 108,
+                    "v": [
+                        6097.59375,
+                        -1978.40625
+                    ]
+                },
+                {
+                    "health_delta": " (272->75)",
+                    "attack_method": "melee",
+                    "damage": 197.0,
+                    "attacker": 101,
+                    "t": 1556.1239013671875,
+                    "victim": 108,
+                    "v": [
+                        6299.53125,
+                        -2006.78125
+                    ]
+                },
+                {
+                    "health_delta": " (74->51)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1556.1239013671875,
+                    "victim": 108,
+                    "v": [
+                        6396.40625,
+                        -1879.78125
+                    ]
+                },
+                {
+                    "health_delta": "",
+                    "attack_method": "bristleback_quill_spray",
+                    "damage": 95.0,
+                    "attacker": 101,
+                    "t": 1556.3238525390625,
+                    "victim": 108,
+                    "v": [
+                        6299.53125,
+                        -2006.78125
+                    ]
+                }
+            ],
+            "time-start": 1545.9263916015625,
+            "type": "fight"
+        },
+        "12042": {
+            "time-end": 1686.0921630859375,
+            "involved": [
+                100,
+                101,
+                102,
+                103,
+                104,
+                106,
+                107,
+                108,
+                109
+            ],
+            "intensity": "battle",
+            "location": "dire-jungle",
+            "attack-sequence": [
+                {
+                    "health_delta": " (1289->1286)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1648.8345947265625,
+                    "victim": 104,
+                    "v": [
+                        -900.09375,
+                        2820.09375
+                    ]
+                },
+                {
+                    "health_delta": " (1286->1283)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1649.0345458984375,
+                    "victim": 104,
+                    "v": [
+                        -900.09375,
+                        2820.09375
+                    ]
+                },
+                {
+                    "health_delta": " (1282->1279)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1649.2344970703125,
+                    "victim": 104,
+                    "v": [
+                        -1488.0625,
+                        3202.0625
+                    ]
+                },
+                {
+                    "health_delta": " (1278->1275)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1649.4344482421875,
+                    "victim": 104,
+                    "v": [
+                        -1488.0625,
+                        3202.0625
+                    ]
+                },
+                {
+                    "health_delta": " (1275->1272)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1649.6343994140625,
+                    "victim": 104,
+                    "v": [
+                        -1488.0625,
+                        3202.0625
+                    ]
+                },
+                {
+                    "health_delta": " (1271->1268)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1649.8343505859375,
+                    "victim": 104,
+                    "v": [
+                        -1488.0625,
+                        3202.0625
+                    ]
+                },
+                {
+                    "health_delta": " (1268->1265)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1650.0343017578125,
+                    "victim": 104,
+                    "v": [
+                        -1488.0625,
+                        3202.0625
+                    ]
+                },
+                {
+                    "health_delta": " (1265->1262)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1650.2342529296875,
+                    "victim": 104,
+                    "v": [
+                        -1488.0625,
+                        3202.0625
+                    ]
+                },
+                {
+                    "health_delta": " (1261->1258)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1650.4342041015625,
+                    "victim": 104,
+                    "v": [
+                        -1488.0625,
+                        3202.0625
+                    ]
+                },
+                {
+                    "health_delta": " (1258->1255)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1650.6341552734375,
+                    "victim": 104,
+                    "v": [
+                        -1488.0625,
+                        3202.0625
+                    ]
+                },
+                {
+                    "health_delta": " (1254->1251)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1650.8341064453125,
+                    "victim": 104,
+                    "v": [
+                        -1488.0625,
+                        3202.0625
+                    ]
+                },
+                {
+                    "health_delta": " (1100->785)",
+                    "attack_method": "undying_decay",
+                    "damage": 315.0,
+                    "attacker": 108,
+                    "t": 1653.6334228515625,
+                    "victim": 103,
+                    "v": [
+                        -1849.15625,
+                        3307.90625
+                    ]
+                },
+                {
+                    "health_delta": " (2236->2230)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 6.0,
+                    "attacker": 106,
+                    "t": 1654.0333251953125,
+                    "victim": 101,
+                    "v": [
+                        -2048.46875,
+                        3323.34375
+                    ]
+                },
+                {
+                    "health_delta": " (2235->2229)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 6.0,
+                    "attacker": 106,
+                    "t": 1654.2332763671875,
+                    "victim": 101,
+                    "v": [
+                        -1151.28125,
+                        2943.46875
+                    ]
+                },
+                {
+                    "health_delta": " (2235->2229)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 6.0,
+                    "attacker": 106,
+                    "t": 1654.4332275390625,
+                    "victim": 101,
+                    "v": [
+                        -1151.28125,
+                        2943.46875
+                    ]
+                },
+                {
+                    "health_delta": " (2236->2230)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 6.0,
+                    "attacker": 106,
+                    "t": 1654.6331787109375,
+                    "victim": 101,
+                    "v": [
+                        -1151.28125,
+                        2943.46875
+                    ]
+                },
+                {
+                    "health_delta": " (2235->2229)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 6.0,
+                    "attacker": 106,
+                    "t": 1654.8331298828125,
+                    "victim": 101,
+                    "v": [
+                        -1151.28125,
+                        2943.46875
+                    ]
+                },
+                {
+                    "health_delta": " (2235->2229)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 6.0,
+                    "attacker": 106,
+                    "t": 1655.0330810546875,
+                    "victim": 101,
+                    "v": [
+                        -1151.28125,
+                        2943.46875
+                    ]
+                },
+                {
+                    "health_delta": " (2236->2230)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 6.0,
+                    "attacker": 106,
+                    "t": 1655.2330322265625,
+                    "victim": 101,
+                    "v": [
+                        -1151.28125,
+                        2943.46875
+                    ]
+                },
+                {
+                    "health_delta": " (788->579)",
+                    "attack_method": "melee",
+                    "damage": 209.0,
+                    "attacker": 108,
+                    "t": 1655.2996826171875,
+                    "victim": 103,
+                    "v": [
+                        -1767.3125,
+                        3611.0
+                    ]
+                },
+                {
+                    "health_delta": " (2235->2229)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 6.0,
+                    "attacker": 106,
+                    "t": 1655.4329833984375,
+                    "victim": 101,
+                    "v": [
+                        -1151.28125,
+                        2943.46875
+                    ]
+                },
+                {
+                    "health_delta": " (914->912)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1656.6326904296875,
+                    "victim": 100,
+                    "v": [
+                        -403.09375,
+                        2727.25
+                    ]
+                },
+                {
+                    "health_delta": " (911->909)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1656.8326416015625,
+                    "victim": 100,
+                    "v": [
+                        -403.09375,
+                        2727.25
+                    ]
+                },
+                {
+                    "health_delta": " (908->906)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1657.0325927734375,
+                    "victim": 100,
+                    "v": [
+                        -403.09375,
+                        2727.25
+                    ]
+                },
+                {
+                    "health_delta": " (906->904)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1657.2325439453125,
+                    "victim": 100,
+                    "v": [
+                        -403.09375,
+                        2727.25
+                    ]
+                },
+                {
+                    "health_delta": " (903->901)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1657.4324951171875,
+                    "victim": 100,
+                    "v": [
+                        -403.09375,
+                        2727.25
+                    ]
+                },
+                {
+                    "health_delta": " (900->898)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1657.6324462890625,
+                    "victim": 100,
+                    "v": [
+                        -403.09375,
+                        2727.25
+                    ]
+                },
+                {
+                    "health_delta": " (898->896)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1657.8323974609375,
+                    "victim": 100,
+                    "v": [
+                        -403.09375,
+                        2727.25
+                    ]
+                },
+                {
+                    "health_delta": " (896->894)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1658.0323486328125,
+                    "victim": 100,
+                    "v": [
+                        -403.09375,
+                        2727.25
+                    ]
+                },
+                {
+                    "health_delta": " (893->891)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1658.2322998046875,
+                    "victim": 100,
+                    "v": [
+                        -403.09375,
+                        2727.25
+                    ]
+                },
+                {
+                    "health_delta": " (890->888)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1658.4322509765625,
+                    "victim": 100,
+                    "v": [
+                        -403.09375,
+                        2727.25
+                    ]
+                },
+                {
+                    "health_delta": " (888->886)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1658.6322021484375,
+                    "victim": 100,
+                    "v": [
+                        -403.09375,
+                        2727.25
+                    ]
+                },
+                {
+                    "health_delta": " (885->883)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1658.8321533203125,
+                    "victim": 100,
+                    "v": [
+                        -403.09375,
+                        2727.25
+                    ]
+                },
+                {
+                    "health_delta": " (882->880)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1659.0321044921875,
+                    "victim": 100,
+                    "v": [
+                        -403.09375,
+                        2727.25
+                    ]
+                },
+                {
+                    "health_delta": " (881->879)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1659.2320556640625,
+                    "victim": 100,
+                    "v": [
+                        324.5625,
+                        3191.34375
+                    ]
+                },
+                {
+                    "health_delta": " (878->876)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1659.4320068359375,
+                    "victim": 100,
+                    "v": [
+                        324.5625,
+                        3191.34375
+                    ]
+                },
+                {
+                    "health_delta": " (875->873)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1659.6319580078125,
+                    "victim": 100,
+                    "v": [
+                        324.5625,
+                        3191.34375
+                    ]
+                },
+                {
+                    "health_delta": " (873->871)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1659.8319091796875,
+                    "victim": 100,
+                    "v": [
+                        324.5625,
+                        3191.34375
+                    ]
+                },
+                {
+                    "health_delta": " (1005->920)",
+                    "attack_method": "melee",
+                    "damage": 85.0,
+                    "attacker": 100,
+                    "t": 1659.8319091796875,
+                    "victim": 106,
+                    "v": [
+                        -219.0,
+                        2695.625
+                    ]
+                },
+                {
+                    "health_delta": " (870->868)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1660.0318603515625,
+                    "victim": 100,
+                    "v": [
+                        324.5625,
+                        3191.34375
+                    ]
+                },
+                {
+                    "health_delta": " (867->865)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1660.2318115234375,
+                    "victim": 100,
+                    "v": [
+                        324.5625,
+                        3191.34375
+                    ]
+                },
+                {
+                    "health_delta": " (864->862)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1660.4317626953125,
+                    "victim": 100,
+                    "v": [
+                        324.5625,
+                        3191.34375
+                    ]
+                },
+                {
+                    "health_delta": " (863->861)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1660.6317138671875,
+                    "victim": 100,
+                    "v": [
+                        324.5625,
+                        3191.34375
+                    ]
+                },
+                {
+                    "health_delta": " (921->885)",
+                    "attack_method": "sniper_shrapnel",
+                    "damage": 36.0,
+                    "attacker": 100,
+                    "t": 1660.6983642578125,
+                    "victim": 106,
+                    "v": [
+                        -219.0,
+                        2695.625
+                    ]
+                },
+                {
+                    "health_delta": " (1081->1045)",
+                    "attack_method": "sniper_shrapnel",
+                    "damage": 36.0,
+                    "attacker": 100,
+                    "t": 1660.6983642578125,
+                    "victim": 109,
+                    "v": [
+                        -219.0,
+                        2695.625
+                    ]
+                },
+                {
+                    "health_delta": " (860->858)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1660.8316650390625,
+                    "victim": 100,
+                    "v": [
+                        324.5625,
+                        3191.34375
+                    ]
+                },
+                {
+                    "health_delta": " (884->800)",
+                    "attack_method": "melee",
+                    "damage": 84.0,
+                    "attacker": 100,
+                    "t": 1660.8316650390625,
+                    "victim": 106,
+                    "v": [
+                        -219.0,
+                        2695.625
+                    ]
+                },
+                {
+                    "health_delta": " (857->855)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1661.0316162109375,
+                    "victim": 100,
+                    "v": [
+                        324.5625,
+                        3191.34375
+                    ]
+                },
+                {
+                    "health_delta": " (855->853)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1661.2315673828125,
+                    "victim": 100,
+                    "v": [
+                        324.5625,
+                        3191.34375
+                    ]
+                },
+                {
+                    "health_delta": " (852->850)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1661.4315185546875,
+                    "victim": 100,
+                    "v": [
+                        324.5625,
+                        3191.34375
+                    ]
+                },
+                {
+                    "health_delta": " (1272->1269)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1661.4981689453125,
+                    "victim": 104,
+                    "v": [
+                        324.5625,
+                        3191.34375
+                    ]
+                },
+                {
+                    "health_delta": " (849->847)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1661.6314697265625,
+                    "victim": 100,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (802->715)",
+                    "attack_method": "melee",
+                    "damage": 87.0,
+                    "attacker": 100,
+                    "t": 1661.6981201171875,
+                    "victim": 106,
+                    "v": [
+                        -228.25,
+                        2521.78125
+                    ]
+                },
+                {
+                    "health_delta": " (1269->1266)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1661.6981201171875,
+                    "victim": 104,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (715->679)",
+                    "attack_method": "sniper_shrapnel",
+                    "damage": 36.0,
+                    "attacker": 100,
+                    "t": 1661.7647705078125,
+                    "victim": 106,
+                    "v": [
+                        -228.25,
+                        2521.78125
+                    ]
+                },
+                {
+                    "health_delta": " (848->846)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1661.8314208984375,
+                    "victim": 100,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (1046->1010)",
+                    "attack_method": "sniper_shrapnel",
+                    "damage": 36.0,
+                    "attacker": 100,
+                    "t": 1661.8980712890625,
+                    "victim": 109,
+                    "v": [
+                        -228.25,
+                        2521.78125
+                    ]
+                },
+                {
+                    "health_delta": " (1265->1262)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1661.8980712890625,
+                    "victim": 104,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (846->546)",
+                    "attack_method": "item_dagon",
+                    "damage": 300.0,
+                    "attacker": 106,
+                    "t": 1661.9647216796875,
+                    "victim": 100,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (545->421)",
+                    "attack_method": "melee",
+                    "damage": 124.0,
+                    "attacker": 107,
+                    "t": 1662.0313720703125,
+                    "victim": 100,
+                    "v": [
+                        -325.3125,
+                        2755.1875
+                    ]
+                },
+                {
+                    "health_delta": " (420->418)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1662.0313720703125,
+                    "victim": 100,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (1262->1259)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1662.0980224609375,
+                    "victim": 104,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (418->416)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1662.2313232421875,
+                    "victim": 100,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (1259->1256)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1662.2979736328125,
+                    "victim": 104,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (415->413)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1662.4312744140625,
+                    "victim": 100,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (1255->1252)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1662.4979248046875,
+                    "victim": 104,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (413->411)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1662.6312255859375,
+                    "victim": 100,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (1252->1249)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1662.6978759765625,
+                    "victim": 104,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (680->644)",
+                    "attack_method": "sniper_shrapnel",
+                    "damage": 36.0,
+                    "attacker": 100,
+                    "t": 1662.7645263671875,
+                    "victim": 106,
+                    "v": [
+                        -228.25,
+                        2521.78125
+                    ]
+                },
+                {
+                    "health_delta": " (410->285)",
+                    "attack_method": "melee",
+                    "damage": 125.0,
+                    "attacker": 107,
+                    "t": 1662.8311767578125,
+                    "victim": 100,
+                    "v": [
+                        -325.3125,
+                        2755.1875
+                    ]
+                },
+                {
+                    "health_delta": " (285->283)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1662.8311767578125,
+                    "victim": 100,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (1248->1245)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1662.8978271484375,
+                    "victim": 104,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (1012->976)",
+                    "attack_method": "sniper_shrapnel",
+                    "damage": 36.0,
+                    "attacker": 100,
+                    "t": 1662.8978271484375,
+                    "victim": 109,
+                    "v": [
+                        -228.25,
+                        2521.78125
+                    ]
+                },
+                {
+                    "health_delta": " (282->280)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1663.0311279296875,
+                    "victim": 100,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (1244->1241)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1663.0977783203125,
+                    "victim": 104,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (280->201)",
+                    "attack_method": "melee",
+                    "damage": 79.0,
+                    "attacker": 106,
+                    "t": 1663.0977783203125,
+                    "victim": 100,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (201->199)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1663.2310791015625,
+                    "victim": 100,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (1241->1238)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1663.2977294921875,
+                    "victim": 104,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (198->196)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1663.4310302734375,
+                    "victim": 100,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (1237->1234)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1663.4976806640625,
+                    "victim": 104,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (1234->1122)",
+                    "attack_method": "weaver_shukuchi",
+                    "damage": 112.0,
+                    "attacker": 109,
+                    "t": 1663.5643310546875,
+                    "victim": 104,
+                    "v": [
+                        560.34375,
+                        3167.125
+                    ]
+                },
+                {
+                    "health_delta": " (195->193)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1663.6309814453125,
+                    "victim": 100,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (1122->1119)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1663.6976318359375,
+                    "victim": 104,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (646->610)",
+                    "attack_method": "sniper_shrapnel",
+                    "damage": 36.0,
+                    "attacker": 100,
+                    "t": 1663.7642822265625,
+                    "victim": 106,
+                    "v": [
+                        -228.25,
+                        2521.78125
+                    ]
+                },
+                {
+                    "health_delta": " (193->191)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1663.8309326171875,
+                    "victim": 100,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (609->112)",
+                    "attack_method": "melee",
+                    "damage": 497.0,
+                    "attacker": 104,
+                    "t": 1663.8975830078125,
+                    "victim": 106,
+                    "v": [
+                        -156.46875,
+                        2943.25
+                    ]
+                },
+                {
+                    "health_delta": " (1118->1115)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1663.8975830078125,
+                    "victim": 104,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (978->942)",
+                    "attack_method": "sniper_shrapnel",
+                    "damage": 36.0,
+                    "attacker": 100,
+                    "t": 1663.8975830078125,
+                    "victim": 109,
+                    "v": [
+                        -228.25,
+                        2521.78125
+                    ]
+                },
+                {
+                    "health_delta": " (190->188)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 2.0,
+                    "attacker": 106,
+                    "t": 1664.0308837890625,
+                    "victim": 100,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (1114->1111)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1664.0975341796875,
+                    "victim": 104,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": "",
+                    "attack_method": "necrolyte_reapers_scythe",
+                    "damage": 188.0,
+                    "attacker": 106,
+                    "t": 1664.1641845703125,
+                    "victim": 100,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (1111->1108)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1664.2974853515625,
+                    "victim": 104,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (1108->1105)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1664.4974365234375,
+                    "victim": 104,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": "",
+                    "attack_method": "tusk_ice_shards",
+                    "damage": 210.0,
+                    "attacker": 104,
+                    "t": 1664.4974365234375,
+                    "victim": 106,
+                    "v": [
+                        166.56248474121094,
+                        2735.125
+                    ]
+                },
+                {
+                    "health_delta": " (1138->1135)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1664.6973876953125,
+                    "victim": 104,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (1134->1131)",
+                    "attack_method": "necrolyte_heartstopper_aura",
+                    "damage": 3.0,
+                    "attacker": 106,
+                    "t": 1664.8973388671875,
+                    "victim": 104,
+                    "v": [
+                        314.875,
+                        2951.4375
+                    ]
+                },
+                {
+                    "health_delta": " (870->739)",
+                    "attack_method": "melee",
+                    "damage": 131.0,
+                    "attacker": 107,
+                    "t": 1665.8970947265625,
+                    "victim": 104,
+                    "v": [
+                        45.9375,
+                        2540.90625
+                    ]
+                },
+                {
+                    "health_delta": " (834->782)",
+                    "attack_method": "bristleback_quill_spray",
+                    "damage": 52.0,
+                    "attacker": 101,
+                    "t": 1667.1634521484375,
+                    "victim": 107,
+                    "v": [
+                        220.53125,
+                        3217.84375
+                    ]
+                },
+                {
+                    "health_delta": " (783->763)",
+                    "attack_method": "sniper_shrapnel",
+                    "damage": 20.0,
+                    "attacker": 100,
+                    "t": 1667.4300537109375,
+                    "victim": 107,
+                    "v": [
+                        -232.125,
+                        2372.40625
+                    ]
+                },
+                {
+                    "health_delta": " (766->645)",
+                    "attack_method": "puck_illusory_orb",
+                    "damage": 121.0,
+                    "attacker": 103,
+                    "t": 1667.9632568359375,
+                    "victim": 107,
+                    "v": [
+                        -707.15625,
+                        2961.53125
+                    ]
+                },
+                {
+                    "health_delta": " (648->561)",
+                    "attack_method": "tusk_snowball",
+                    "damage": 87.0,
+                    "attacker": 104,
+                    "t": 1668.3631591796875,
+                    "victim": 107,
+                    "v": [
+                        175.21875,
+                        2800.25
+                    ]
+                },
+                {
+                    "health_delta": " (561->389)",
+                    "attack_method": "melee",
+                    "damage": 172.0,
+                    "attacker": 101,
+                    "t": 1668.4298095703125,
+                    "victim": 107,
+                    "v": [
+                        220.53125,
+                        3217.84375
+                    ]
+                },
+                {
+                    "health_delta": " (388->267)",
+                    "attack_method": "puck_waning_rift",
+                    "damage": 121.0,
+                    "attacker": 103,
+                    "t": 1668.4298095703125,
+                    "victim": 107,
+                    "v": [
+                        -707.15625,
+                        2961.53125
+                    ]
+                },
+                {
+                    "health_delta": " (266->246)",
+                    "attack_method": "sniper_shrapnel",
+                    "damage": 20.0,
+                    "attacker": 100,
+                    "t": 1668.4964599609375,
+                    "victim": 107,
+                    "v": [
+                        -232.125,
+                        2372.40625
+                    ]
+                },
+                {
+                    "health_delta": " (1273->1253)",
+                    "attack_method": "melee",
+                    "damage": 20.0,
+                    "attacker": 103,
+                    "t": 1668.4964599609375,
+                    "victim": 108,
+                    "v": [
+                        -707.15625,
+                        2961.53125
+                    ]
+                },
+                {
+                    "health_delta": " (249->149)",
+                    "attack_method": "melee",
+                    "damage": 100.0,
+                    "attacker": 104,
+                    "t": 1668.7630615234375,
+                    "victim": 107,
+                    "v": [
+                        175.21875,
+                        2800.25
+                    ]
+                },
+                {
+                    "health_delta": " (150->81)",
+                    "attack_method": "melee",
+                    "damage": 69.0,
+                    "attacker": 103,
+                    "t": 1669.0963134765625,
+                    "victim": 107,
+                    "v": [
+                        184.03125,
+                        2751.5
+                    ]
+                },
+                {
+                    "health_delta": "",
+                    "attack_method": "melee",
+                    "damage": 169.0,
+                    "attacker": 101,
+                    "t": 1669.6961669921875,
+                    "victim": 107,
+                    "v": [
+                        230.81248474121094,
+                        3021.8125
+                    ]
+                },
+                {
+                    "health_delta": " (867->853)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 14.0,
+                    "attacker": 109,
+                    "t": 1669.8294677734375,
+                    "victim": 103,
+                    "v": [
+                        536.5625,
+                        2388.53125
+                    ]
+                },
+                {
+                    "health_delta": " (2049->2036)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 13.0,
+                    "attacker": 109,
+                    "t": 1670.0294189453125,
+                    "victim": 101,
+                    "v": [
+                        536.5625,
+                        2388.53125
+                    ]
+                },
+                {
+                    "health_delta": " (1515->1505)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 10.0,
+                    "attacker": 109,
+                    "t": 1670.1627197265625,
+                    "victim": 102,
+                    "v": [
+                        536.5625,
+                        2388.53125
+                    ]
+                },
+                {
+                    "health_delta": " (747->735)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 12.0,
+                    "attacker": 109,
+                    "t": 1670.2960205078125,
+                    "victim": 104,
+                    "v": [
+                        536.5625,
+                        2388.53125
+                    ]
+                },
+                {
+                    "health_delta": " (846->832)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 14.0,
+                    "attacker": 109,
+                    "t": 1670.8292236328125,
+                    "victim": 103,
+                    "v": [
+                        536.5625,
+                        2388.53125
+                    ]
+                },
+                {
+                    "health_delta": " (954->842)",
+                    "attack_method": "puck_dream_coil",
+                    "damage": 112.0,
+                    "attacker": 103,
+                    "t": 1670.8958740234375,
+                    "victim": 109,
+                    "v": [
+                        184.03125,
+                        2751.5
+                    ]
+                },
+                {
+                    "health_delta": " (2035->2022)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 13.0,
+                    "attacker": 109,
+                    "t": 1671.0291748046875,
+                    "victim": 101,
+                    "v": [
+                        536.5625,
+                        2388.53125
+                    ]
+                },
+                {
+                    "health_delta": " (1507->1497)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 10.0,
+                    "attacker": 109,
+                    "t": 1671.1624755859375,
+                    "victim": 102,
+                    "v": [
+                        536.5625,
+                        2388.53125
+                    ]
+                },
+                {
+                    "health_delta": " (859->846)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 13.0,
+                    "attacker": 109,
+                    "t": 1671.2957763671875,
+                    "victim": 104,
+                    "v": [
+                        536.5625,
+                        2388.53125
+                    ]
+                },
+                {
+                    "health_delta": " (839->824)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 15.0,
+                    "attacker": 109,
+                    "t": 1671.8289794921875,
+                    "victim": 103,
+                    "v": [
+                        758.28125,
+                        2378.1875
+                    ]
+                },
+                {
+                    "health_delta": " (2030->2016)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 14.0,
+                    "attacker": 109,
+                    "t": 1672.0289306640625,
+                    "victim": 101,
+                    "v": [
+                        758.28125,
+                        2378.1875
+                    ]
+                },
+                {
+                    "health_delta": " (1504->1494)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 10.0,
+                    "attacker": 109,
+                    "t": 1672.0955810546875,
+                    "victim": 102,
+                    "v": [
+                        758.28125,
+                        2378.1875
+                    ]
+                },
+                {
+                    "health_delta": " (849->835)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 14.0,
+                    "attacker": 109,
+                    "t": 1672.2288818359375,
+                    "victim": 104,
+                    "v": [
+                        758.28125,
+                        2378.1875
+                    ]
+                },
+                {
+                    "health_delta": " (1274->1252)",
+                    "attack_method": "melee",
+                    "damage": 22.0,
+                    "attacker": 103,
+                    "t": 1672.2955322265625,
+                    "victim": 108,
+                    "v": [
+                        393.875,
+                        2345.28125
+                    ]
+                },
+                {
+                    "health_delta": " (817->801)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 16.0,
+                    "attacker": 109,
+                    "t": 1672.7620849609375,
+                    "victim": 103,
+                    "v": [
+                        758.28125,
+                        2378.1875
+                    ]
+                },
+                {
+                    "health_delta": " (2015->2000)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 15.0,
+                    "attacker": 109,
+                    "t": 1672.9620361328125,
+                    "victim": 101,
+                    "v": [
+                        758.28125,
+                        2378.1875
+                    ]
+                },
+                {
+                    "health_delta": " (1503->1492)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 11.0,
+                    "attacker": 109,
+                    "t": 1673.0286865234375,
+                    "victim": 102,
+                    "v": [
+                        758.28125,
+                        2378.1875
+                    ]
+                },
+                {
+                    "health_delta": " (804->692)",
+                    "attack_method": "weaver_shukuchi",
+                    "damage": 112.0,
+                    "attacker": 109,
+                    "t": 1673.0953369140625,
+                    "victim": 103,
+                    "v": [
+                        758.28125,
+                        2378.1875
+                    ]
+                },
+                {
+                    "health_delta": " (823->809)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 14.0,
+                    "attacker": 109,
+                    "t": 1673.1619873046875,
+                    "victim": 104,
+                    "v": [
+                        758.28125,
+                        2378.1875
+                    ]
+                },
+                {
+                    "health_delta": " (1492->1380)",
+                    "attack_method": "weaver_shukuchi",
+                    "damage": 112.0,
+                    "attacker": 109,
+                    "t": 1673.1619873046875,
+                    "victim": 102,
+                    "v": [
+                        758.28125,
+                        2378.1875
+                    ]
+                },
+                {
+                    "health_delta": " (2005->1915)",
+                    "attack_method": "weaver_shukuchi",
+                    "damage": 90.0,
+                    "attacker": 109,
+                    "t": 1673.4952392578125,
+                    "victim": 101,
+                    "v": [
+                        758.28125,
+                        2378.1875
+                    ]
+                },
+                {
+                    "health_delta": " (695->678)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 17.0,
+                    "attacker": 109,
+                    "t": 1673.6951904296875,
+                    "victim": 103,
+                    "v": [
+                        758.28125,
+                        2378.1875
+                    ]
+                },
+                {
+                    "health_delta": " (1909->1900)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 9.0,
+                    "attacker": 109,
+                    "t": 1673.8951416015625,
+                    "victim": 101,
+                    "v": [
+                        758.28125,
+                        2378.1875
+                    ]
+                },
+                {
+                    "health_delta": " (1376->1364)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 12.0,
+                    "attacker": 109,
+                    "t": 1674.0284423828125,
+                    "victim": 102,
+                    "v": [
+                        758.28125,
+                        2378.1875
+                    ]
+                },
+                {
+                    "health_delta": " (799->784)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 15.0,
+                    "attacker": 109,
+                    "t": 1674.1617431640625,
+                    "victim": 104,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (847->735)",
+                    "attack_method": "puck_dream_coil",
+                    "damage": 112.0,
+                    "attacker": 103,
+                    "t": 1674.6282958984375,
+                    "victim": 109,
+                    "v": [
+                        630.75,
+                        2311.1875
+                    ]
+                },
+                {
+                    "health_delta": " (670->649)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 21.0,
+                    "attacker": 109,
+                    "t": 1674.6282958984375,
+                    "victim": 103,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (1271->1251)",
+                    "attack_method": "melee",
+                    "damage": 20.0,
+                    "attacker": 103,
+                    "t": 1674.6949462890625,
+                    "victim": 108,
+                    "v": [
+                        630.75,
+                        2311.1875
+                    ]
+                },
+                {
+                    "health_delta": " (1898->1886)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 12.0,
+                    "attacker": 109,
+                    "t": 1674.8282470703125,
+                    "victim": 101,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (1374->1360)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 14.0,
+                    "attacker": 109,
+                    "t": 1674.9615478515625,
+                    "victim": 102,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (1251->1198)",
+                    "attack_method": "bristleback_quill_spray",
+                    "damage": 53.0,
+                    "attacker": 101,
+                    "t": 1674.9615478515625,
+                    "victim": 108,
+                    "v": [
+                        591.90625,
+                        2269.3125
+                    ]
+                },
+                {
+                    "health_delta": " (770->754)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 16.0,
+                    "attacker": 109,
+                    "t": 1675.0948486328125,
+                    "victim": 104,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (637->615)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 22.0,
+                    "attacker": 109,
+                    "t": 1675.6280517578125,
+                    "victim": 103,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (741->625)",
+                    "attack_method": "weaver_shukuchi",
+                    "damage": 116.0,
+                    "attacker": 109,
+                    "t": 1675.7613525390625,
+                    "victim": 104,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (1883->1870)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 13.0,
+                    "attacker": 109,
+                    "t": 1675.8280029296875,
+                    "victim": 101,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (1344->1331)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 13.0,
+                    "attacker": 109,
+                    "t": 1675.8946533203125,
+                    "victim": 102,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (387->369)",
+                    "attack_method": "undying_soul_rip",
+                    "damage": 18.0,
+                    "attacker": 108,
+                    "t": 1675.9613037109375,
+                    "victim": 103,
+                    "v": [
+                        813.125,
+                        2661.0
+                    ]
+                },
+                {
+                    "health_delta": " (738->720)",
+                    "attack_method": "undying_soul_rip",
+                    "damage": 18.0,
+                    "attacker": 108,
+                    "t": 1675.9613037109375,
+                    "victim": 109,
+                    "v": [
+                        813.125,
+                        2661.0
+                    ]
+                },
+                {
+                    "health_delta": " (1332->1314)",
+                    "attack_method": "undying_soul_rip",
+                    "damage": 18.0,
+                    "attacker": 108,
+                    "t": 1675.9613037109375,
+                    "victim": 102,
+                    "v": [
+                        813.125,
+                        2661.0
+                    ]
+                },
+                {
+                    "health_delta": " (625->607)",
+                    "attack_method": "undying_soul_rip",
+                    "damage": 18.0,
+                    "attacker": 108,
+                    "t": 1675.9613037109375,
+                    "victim": 104,
+                    "v": [
+                        813.125,
+                        2661.0
+                    ]
+                },
+                {
+                    "health_delta": " (597->442)",
+                    "attack_method": "undying_soul_rip",
+                    "damage": 155.0,
+                    "attacker": 108,
+                    "t": 1675.9613037109375,
+                    "victim": 103,
+                    "v": [
+                        813.125,
+                        2661.0
+                    ]
+                },
+                {
+                    "health_delta": " (607->590)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 17.0,
+                    "attacker": 109,
+                    "t": 1676.0279541015625,
+                    "victim": 104,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (489->467)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 22.0,
+                    "attacker": 109,
+                    "t": 1676.5611572265625,
+                    "victim": 103,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (1849->1827)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 22.0,
+                    "attacker": 109,
+                    "t": 1676.7611083984375,
+                    "victim": 101,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (1310->1296)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 14.0,
+                    "attacker": 109,
+                    "t": 1676.8277587890625,
+                    "victim": 102,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (545->527)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 18.0,
+                    "attacker": 109,
+                    "t": 1676.9610595703125,
+                    "victim": 104,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (410->385)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 25.0,
+                    "attacker": 109,
+                    "t": 1677.4942626953125,
+                    "victim": 103,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (1218->1070)",
+                    "attack_method": "melee",
+                    "damage": 148.0,
+                    "attacker": 101,
+                    "t": 1677.6942138671875,
+                    "victim": 108,
+                    "v": [
+                        622.0625,
+                        2382.875
+                    ]
+                },
+                {
+                    "health_delta": " (1817->1801)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 16.0,
+                    "attacker": 109,
+                    "t": 1677.6942138671875,
+                    "victim": 101,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (529->269)",
+                    "attack_method": "melee",
+                    "damage": 260.0,
+                    "attacker": 109,
+                    "t": 1677.7608642578125,
+                    "victim": 104,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (1292->1279)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 13.0,
+                    "attacker": 109,
+                    "t": 1677.8275146484375,
+                    "victim": 102,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (270->251)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 19.0,
+                    "attacker": 109,
+                    "t": 1677.9608154296875,
+                    "victim": 104,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (1788->1681)",
+                    "attack_method": "melee",
+                    "damage": 107.0,
+                    "attacker": 108,
+                    "t": 1677.9608154296875,
+                    "victim": 101,
+                    "v": [
+                        680.09375,
+                        2387.46875
+                    ]
+                },
+                {
+                    "health_delta": " (250->99)",
+                    "attack_method": "melee",
+                    "damage": 151.0,
+                    "attacker": 109,
+                    "t": 1678.1607666015625,
+                    "victim": 104,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (1076->991)",
+                    "attack_method": "bristleback_quill_spray",
+                    "damage": 85.0,
+                    "attacker": 101,
+                    "t": 1678.6273193359375,
+                    "victim": 108,
+                    "v": [
+                        622.0625,
+                        2382.875
+                    ]
+                },
+                {
+                    "health_delta": " (1642->1625)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 17.0,
+                    "attacker": 109,
+                    "t": 1678.6273193359375,
+                    "victim": 101,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (1288->1275)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 13.0,
+                    "attacker": 109,
+                    "t": 1678.7606201171875,
+                    "victim": 102,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (84->64)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 20.0,
+                    "attacker": 109,
+                    "t": 1678.8939208984375,
+                    "victim": 104,
+                    "v": [
+                        133.46875,
+                        2810.28125
+                    ]
+                },
+                {
+                    "health_delta": " (994->809)",
+                    "attack_method": "melee",
+                    "damage": 185.0,
+                    "attacker": 101,
+                    "t": 1678.9605712890625,
+                    "victim": 108,
+                    "v": [
+                        622.0625,
+                        2382.875
+                    ]
+                },
+                {
+                    "health_delta": " (1553->1422)",
+                    "attack_method": "undying_decay",
+                    "damage": 131.0,
+                    "attacker": 108,
+                    "t": 1679.1605224609375,
+                    "victim": 101,
+                    "v": [
+                        655.40625,
+                        2327.625
+                    ]
+                },
+                {
+                    "health_delta": " (1406->1388)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 18.0,
+                    "attacker": 109,
+                    "t": 1679.6270751953125,
+                    "victim": 101,
+                    "v": [
+                        239.9375,
+                        3005.8125
+                    ]
+                },
+                {
+                    "health_delta": " (1369->1238)",
+                    "attack_method": "melee",
+                    "damage": 131.0,
+                    "attacker": 108,
+                    "t": 1679.6937255859375,
+                    "victim": 101,
+                    "v": [
+                        655.40625,
+                        2327.625
+                    ]
+                },
+                {
+                    "health_delta": "",
+                    "attack_method": "melee",
+                    "damage": 156.0,
+                    "attacker": 109,
+                    "t": 1679.6937255859375,
+                    "victim": 104,
+                    "v": [
+                        239.9375,
+                        3005.8125
+                    ]
+                },
+                {
+                    "health_delta": " (1287->1273)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 14.0,
+                    "attacker": 109,
+                    "t": 1679.6937255859375,
+                    "victim": 102,
+                    "v": [
+                        239.9375,
+                        3005.8125
+                    ]
+                },
+                {
+                    "health_delta": " (933->758)",
+                    "attack_method": "melee",
+                    "damage": 175.0,
+                    "attacker": 101,
+                    "t": 1680.1602783203125,
+                    "victim": 108,
+                    "v": [
+                        622.0625,
+                        2382.875
+                    ]
+                },
+                {
+                    "health_delta": " (403->375)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 28.0,
+                    "attacker": 109,
+                    "t": 1680.3602294921875,
+                    "victim": 103,
+                    "v": [
+                        239.9375,
+                        3005.8125
+                    ]
+                },
+                {
+                    "health_delta": " (1201->1182)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 19.0,
+                    "attacker": 109,
+                    "t": 1680.5601806640625,
+                    "victim": 101,
+                    "v": [
+                        239.9375,
+                        3005.8125
+                    ]
+                },
+                {
+                    "health_delta": " (1335->1320)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 15.0,
+                    "attacker": 109,
+                    "t": 1680.6268310546875,
+                    "victim": 102,
+                    "v": [
+                        239.9375,
+                        3005.8125
+                    ]
+                },
+                {
+                    "health_delta": " (762->552)",
+                    "attack_method": "puck_illusory_orb",
+                    "damage": 210.0,
+                    "attacker": 103,
+                    "t": 1680.6268310546875,
+                    "victim": 108,
+                    "v": [
+                        305.875,
+                        2292.46875
+                    ]
+                },
+                {
+                    "health_delta": " (1337->1216)",
+                    "attack_method": "melee",
+                    "damage": 121.0,
+                    "attacker": 109,
+                    "t": 1680.8267822265625,
+                    "victim": 102,
+                    "v": [
+                        239.9375,
+                        3005.8125
+                    ]
+                },
+                {
+                    "health_delta": " (1159->1016)",
+                    "attack_method": "melee",
+                    "damage": 143.0,
+                    "attacker": 108,
+                    "t": 1681.0933837890625,
+                    "victim": 101,
+                    "v": [
+                        655.40625,
+                        2327.625
+                    ]
+                },
+                {
+                    "health_delta": " (306->277)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 29.0,
+                    "attacker": 109,
+                    "t": 1681.2933349609375,
+                    "victim": 103,
+                    "v": [
+                        239.9375,
+                        3005.8125
+                    ]
+                },
+                {
+                    "health_delta": " (558->359)",
+                    "attack_method": "melee",
+                    "damage": 199.0,
+                    "attacker": 101,
+                    "t": 1681.4266357421875,
+                    "victim": 108,
+                    "v": [
+                        622.0625,
+                        2382.875
+                    ]
+                },
+                {
+                    "health_delta": " (976->957)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 19.0,
+                    "attacker": 109,
+                    "t": 1681.4932861328125,
+                    "victim": 101,
+                    "v": [
+                        239.9375,
+                        3005.8125
+                    ]
+                },
+                {
+                    "health_delta": " (359->235)",
+                    "attack_method": "bristleback_quill_spray",
+                    "damage": 124.0,
+                    "attacker": 101,
+                    "t": 1681.4932861328125,
+                    "victim": 108,
+                    "v": [
+                        622.0625,
+                        2382.875
+                    ]
+                },
+                {
+                    "health_delta": " (235->209)",
+                    "attack_method": "melee",
+                    "damage": 26.0,
+                    "attacker": 103,
+                    "t": 1681.5599365234375,
+                    "victim": 108,
+                    "v": [
+                        305.875,
+                        2292.46875
+                    ]
+                },
+                {
+                    "health_delta": " (1236->1221)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 15.0,
+                    "attacker": 109,
+                    "t": 1681.6265869140625,
+                    "victim": 102,
+                    "v": [
+                        239.9375,
+                        3005.8125
+                    ]
+                },
+                {
+                    "health_delta": " (210->57)",
+                    "attack_method": "bristleback_quill_spray",
+                    "damage": 153.0,
+                    "attacker": 101,
+                    "t": 1681.8265380859375,
+                    "victim": 108,
+                    "v": [
+                        622.0625,
+                        2382.875
+                    ]
+                },
+                {
+                    "health_delta": " (1257->1039)",
+                    "attack_method": "melee",
+                    "damage": 218.0,
+                    "attacker": 109,
+                    "t": 1682.2264404296875,
+                    "victim": 102,
+                    "v": [
+                        239.9375,
+                        3005.8125
+                    ]
+                },
+                {
+                    "health_delta": " (234->207)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 27.0,
+                    "attacker": 109,
+                    "t": 1682.2264404296875,
+                    "victim": 103,
+                    "v": [
+                        239.9375,
+                        3005.8125
+                    ]
+                },
+                {
+                    "health_delta": " (1056->927)",
+                    "attack_method": "melee",
+                    "damage": 129.0,
+                    "attacker": 109,
+                    "t": 1682.4263916015625,
+                    "victim": 102,
+                    "v": [
+                        239.9375,
+                        3005.8125
+                    ]
+                },
+                {
+                    "health_delta": " (938->918)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 20.0,
+                    "attacker": 109,
+                    "t": 1682.4263916015625,
+                    "victim": 101,
+                    "v": [
+                        239.9375,
+                        3005.8125
+                    ]
+                },
+                {
+                    "health_delta": " (944->928)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 16.0,
+                    "attacker": 109,
+                    "t": 1682.5596923828125,
+                    "victim": 102,
+                    "v": [
+                        239.9375,
+                        3005.8125
+                    ]
+                },
+                {
+                    "health_delta": " (273->72)",
+                    "attack_method": "melee",
+                    "damage": 201.0,
+                    "attacker": 101,
+                    "t": 1682.6263427734375,
+                    "victim": 108,
+                    "v": [
+                        622.0625,
+                        2382.875
+                    ]
+                },
+                {
+                    "health_delta": " (213->184)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 29.0,
+                    "attacker": 109,
+                    "t": 1683.2261962890625,
+                    "victim": 103,
+                    "v": [
+                        239.9375,
+                        3005.8125
+                    ]
+                },
+                {
+                    "health_delta": " (830->811)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 19.0,
+                    "attacker": 109,
+                    "t": 1683.4261474609375,
+                    "victim": 101,
+                    "v": [
+                        239.9375,
+                        3005.8125
+                    ]
+                },
+                {
+                    "health_delta": " (951->817)",
+                    "attack_method": "melee",
+                    "damage": 134.0,
+                    "attacker": 109,
+                    "t": 1683.4927978515625,
+                    "victim": 102,
+                    "v": [
+                        239.9375,
+                        3005.8125
+                    ]
+                },
+                {
+                    "health_delta": " (816->799)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 17.0,
+                    "attacker": 109,
+                    "t": 1683.4927978515625,
+                    "victim": 102,
+                    "v": [
+                        239.9375,
+                        3005.8125
+                    ]
+                },
+                {
+                    "health_delta": " (83->57)",
+                    "attack_method": "melee",
+                    "damage": 26.0,
+                    "attacker": 103,
+                    "t": 1684.0260009765625,
+                    "victim": 108,
+                    "v": [
+                        1372.09375,
+                        2432.21875
+                    ]
+                },
+                {
+                    "health_delta": " (190->158)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 32.0,
+                    "attacker": 109,
+                    "t": 1684.1593017578125,
+                    "victim": 103,
+                    "v": [
+                        378.46875,
+                        3136.34375
+                    ]
+                },
+                {
+                    "health_delta": " (818->798)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 20.0,
+                    "attacker": 109,
+                    "t": 1684.3592529296875,
+                    "victim": 101,
+                    "v": [
+                        378.46875,
+                        3136.34375
+                    ]
+                },
+                {
+                    "health_delta": " (886->868)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 18.0,
+                    "attacker": 109,
+                    "t": 1684.4259033203125,
+                    "victim": 102,
+                    "v": [
+                        378.46875,
+                        3136.34375
+                    ]
+                },
+                {
+                    "health_delta": " (59->11)",
+                    "attack_method": "melee",
+                    "damage": 48.0,
+                    "attacker": 103,
+                    "t": 1684.4925537109375,
+                    "victim": 108,
+                    "v": [
+                        1375.5625,
+                        2426.78125
+                    ]
+                },
+                {
+                    "health_delta": " (761->738)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1684.6925048828125,
+                    "victim": 109,
+                    "v": [
+                        427.03125,
+                        3228.65625
+                    ]
+                },
+                {
+                    "health_delta": "",
+                    "attack_method": "puck_waning_rift",
+                    "damage": 210.0,
+                    "attacker": 103,
+                    "t": 1684.8258056640625,
+                    "victim": 108,
+                    "v": [
+                        1375.5625,
+                        2426.78125
+                    ]
+                },
+                {
+                    "health_delta": " (738->715)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1684.8924560546875,
+                    "victim": 109,
+                    "v": [
+                        427.03125,
+                        3228.65625
+                    ]
+                },
+                {
+                    "health_delta": " (715->692)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1685.0924072265625,
+                    "victim": 109,
+                    "v": [
+                        427.03125,
+                        3228.65625
+                    ]
+                },
+                {
+                    "health_delta": " (167->134)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 33.0,
+                    "attacker": 109,
+                    "t": 1685.0924072265625,
+                    "victim": 103,
+                    "v": [
+                        378.46875,
+                        3136.34375
+                    ]
+                },
+                {
+                    "health_delta": " (806->783)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 23.0,
+                    "attacker": 109,
+                    "t": 1685.2923583984375,
+                    "victim": 101,
+                    "v": [
+                        378.46875,
+                        3136.34375
+                    ]
+                },
+                {
+                    "health_delta": " (692->669)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1685.2923583984375,
+                    "victim": 109,
+                    "v": [
+                        427.03125,
+                        3228.65625
+                    ]
+                },
+                {
+                    "health_delta": " (965->946)",
+                    "attack_method": "weaver_the_swarm",
+                    "damage": 19.0,
+                    "attacker": 109,
+                    "t": 1685.4256591796875,
+                    "victim": 102,
+                    "v": [
+                        378.46875,
+                        3136.34375
+                    ]
+                },
+                {
+                    "health_delta": " (669->646)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1685.4923095703125,
+                    "victim": 109,
+                    "v": [
+                        427.03125,
+                        3228.65625
+                    ]
+                },
+                {
+                    "health_delta": " (647->624)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1685.6922607421875,
+                    "victim": 109,
+                    "v": [
+                        427.03125,
+                        3228.65625
+                    ]
+                },
+                {
+                    "health_delta": " (623->600)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1685.8922119140625,
+                    "victim": 109,
+                    "v": [
+                        427.03125,
+                        3228.65625
+                    ]
+                },
+                {
+                    "health_delta": " (600->577)",
+                    "attack_method": "juggernaut_blade_fury",
+                    "damage": 23.0,
+                    "attacker": 102,
+                    "t": 1686.0921630859375,
+                    "victim": 109,
+                    "v": [
+                        427.03125,
+                        3228.65625
+                    ]
+                }
+            ],
+            "time-start": 1648.8345947265625,
+            "type": "fight"
+        }]
