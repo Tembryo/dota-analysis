@@ -44,7 +44,7 @@ router.route('/matches')
                         locals.client = client;
                         locals.done = done_client;
 
-                        locals.client.query("SELECT header_file FROM Matches;",[],callback);
+                        locals.client.query("SELECT header_file, label FROM Matches;",[],callback);
                     },
                     function(results, callback)
                     {
@@ -57,7 +57,10 @@ router.route('/matches')
                                     else
                                     {
                                         console.log("load "+row.header_file);
-                                        locals.header_files.push(JSON.parse(json));
+                                        var header = JSON.parse(json);
+                                        if(row.label)
+                                            header["label"] = row.label;
+                                        locals.header_files.push(header);
                                         console.log("added header json to list "+row.header_file);
                                         callback_file(null);
                                     }
@@ -215,7 +218,6 @@ router.route("/uploads")
                     if(err)
                     {
                         console.log(err);
-                        console.log("success " + identifier + "!");
                     }
                     res.json(results);
                 }

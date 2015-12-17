@@ -43,6 +43,8 @@ passport.deserializeUser(
                 },
                 function(results, callback)
                 {
+                    if(results.rowCount <1)
+                        callback("Couldn't find user");
                     locals.user = results.rows[0];
                     locals.client.query(
                         "SELECT json_agg(ust.label) as statuses FROM UserStatuses us, UserStatusTypes ust WHERE us.user_id=$1 AND us.statustype_id=ust.id;",

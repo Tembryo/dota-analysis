@@ -15,13 +15,12 @@ events = {}
 
 class Match:
 
-	def __init__(self,match_id, out_file):
+	def __init__(self,match_id, match_directory):
 		# files where the replay data is stored
 		self.match_id = match_id
-		self.header_input_filename = "parsedReplays/"+str(match_id)+"/header.csv"
-		self.position_input_filename = "parsedReplays/"+str(match_id)+"/trajectories.csv"
-		self.events_input_filename = "parsedReplays/"+str(match_id)+"/events.csv"
-		self.output_filename = out_file
+		self.header_input_filename = match_directory+"/header.csv"
+		self.position_input_filename = match_directory+"/trajectories.csv"
+		self.events_input_filename = match_directory+"/events.csv"
 		# variables that determine how the data is analysed - need to include all parameters
 		self.parameters = {}
 		self.parameters["version"] = "0.0.03"
@@ -846,10 +845,11 @@ def my_fights(match,hero_name,hero_death_fights,fight_dict):
 
 def main():
 	match_id = sys.argv[1]
-	out_file = sys.argv[2]
-	header_file = sys.argv[3]
-	logging.basicConfig(filename="parsedReplays/"+str(match_id)+'/logfile.log',level=logging.DEBUG)
-	match = Match(match_id, out_file)
+	match_directory = sys.argv[2]
+	analysis_file = sys.argv[3]
+	header_file = sys.argv[4]
+	logging.basicConfig(filename=match_directory+'/logfile.log',level=logging.DEBUG)
+	match = Match(match_id, match_directory)
 	match.matchInfo()
 	header = headerInfo(match)
 	hero_deaths = killsInfo(match)
@@ -863,14 +863,14 @@ def main():
 	hero_death_fights = my_deaths(match,hero_deaths,fight_dict)
 	#my_fights(match,"tusk",hero_death_fights,fight_dict)
 	data_to_write = {"header":header,"entities":entities,"events":events,"timeseries":timeseries}
-	g = open(match.output_filename,'wb')
+	g = open(analysis_file,'wb')
 	g.write(json.dumps(data_to_write, sort_keys=False,indent=4, separators=(',', ': ')))	
 	g.close()
 	h = open(header_file,'wb')
 	h.write(json.dumps(header, sort_keys=False,indent=4, separators=(',', ': ')))	
 	h.close()
 	#check for errors in the Json file (optional)
-	with open(match.output_filename) as data_file:    
+	with open(analysis_file) as data_file:    
 		data = json.load(data_file)
 
 if __name__ == "__main__":

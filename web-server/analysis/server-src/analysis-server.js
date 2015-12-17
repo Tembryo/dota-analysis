@@ -131,16 +131,21 @@ function processReplay(replay_row, callback_replay)
                     [locals.replayfile_id, "failed"],
                     function()
                     {
-                        console.log("put replayfile as failed", locals.replayfile_id);
+                        console.log("put replayfile as failed", locals.replayfile_id, err);
+                        locals.client.end();
+                        locals.done();
+                        callback_replay(null);
                     });
             }
             else
             {
                 console.log("fin~", locals.replayfile_id);
+                locals.client.end();
+                locals.done();
+                callback_replay(null);
             }
-            locals.client.end();
-            locals.done();
-            callback_replay(null);
+ 
+
         }
     );
 }
