@@ -139,7 +139,6 @@ passport.use(
                 ],
                 function(err, user)
                 {
-                    locals.client.end();
                     locals.done();
 
                     if (!(err === "found_old") && err)

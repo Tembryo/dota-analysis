@@ -11,7 +11,7 @@ checkJobs();
 
 function checkJobs()
 {
-    locals = {};
+    var locals = {};
     async.waterfall(
         [
             database.connect,
@@ -33,7 +33,6 @@ function checkJobs()
         {
             if (err)
                 console.log(err);
-            locals.client.end();
             locals.done();
             setTimeout(checkJobs, check_interval);
         }
@@ -155,7 +154,6 @@ function processReplay(replay_row, callback_replay)
                     function()
                     {
                         console.log("put replayfile as failed", locals.replayfile_id, err);
-                        locals.client.end();
                         locals.done();
                         callback_replay(null);
                     });
@@ -163,12 +161,9 @@ function processReplay(replay_row, callback_replay)
             else
             {
                 console.log("fin~", locals.replayfile_id);
-                locals.client.end();
                 locals.done();
                 callback_replay(null);
             }
- 
-
         }
     );
 }

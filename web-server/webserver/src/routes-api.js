@@ -108,7 +108,6 @@ router.route('/match/:match_id')
                 ],
                 function(err, result)
                 {
-                    locals.client.end();
                     locals.done();
 
                     if(err)
@@ -177,7 +176,6 @@ router.route("/upload")
                     ],
                     function(err, results)
                     {
-                        locals.client.end();
                         locals.done();
                         if(err)
                         {
@@ -213,7 +211,6 @@ router.route("/uploads")
                 ],
                 function(err, results)
                 {
-                    locals.client.end();
                     locals.done();
                     if(err)
                     {
@@ -292,7 +289,6 @@ router.route("/verify/:verification_code")
                 ],
                 function(err, result)
                 {
-                    locals.client.end();
                     locals.done();
                     if(err)
                     {
@@ -373,7 +369,6 @@ router.route("/settings/email/:email_address")
                 ],
                 function(err, results)
                 {
-                    locals.client.end();
                     locals.done();
                     if(err)
                     {

@@ -94,13 +94,11 @@ router.get('/user',
             ],
             function(err, result)
             {
-                locals.client.end();
                 locals.done();
                 if (err)
                     console.log(err);
                 else
                 {
-                    locals.client.end();
                     locals.done();
                     data["user"] = locals.user;
                     res.render("pages/user.ejs", data);
