@@ -26,7 +26,7 @@ function checkJobs()
             },
             function(results, callback)
             {
-                async.each(results.rows, processReplay, callback);
+                async.eachSeries(results.rows, processReplay, callback);
             }
         ],
         function(err)
