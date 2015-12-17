@@ -84,8 +84,31 @@ function processReplay(replay_row, callback_replay)
                 else
                 {
                     locals.client.query(
+                        "SELECT id FROM Matches WHERE id=$1;",
+                        [locals.match_id],
+                        callback);
+                }
+            },
+            function(results, callback)
+            {
+                if(results.rowCount != 0)
+                {
+                    locals.client.query(
                         "UPDATE ReplayFiles rf SET match_id=$2, processing_status=(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$3) WHERE rf.id=$1;",
-                        [locals.replayfile_id, locals.match_id, "analysing"],
+                        [locals.replayfile_id, locals.match_id, "registered"],
+                        function(err, results)
+                        {
+                            if(err) callback(err,results);
+                            else callback("Duplicate replay", results);
+                        }
+                    );
+                    
+                    return;
+                }
+                else{
+                    locals.client.query(
+                                        "UPDATE ReplayFiles rf SET match_id=$2, processing_status=(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$3) WHERE rf.id=$1;",
+                                        [locals.replayfile_id, locals.match_id, "analysing"],
                         callback);
                 }
             },

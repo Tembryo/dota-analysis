@@ -16,14 +16,7 @@ postgres:
     POSTGRES_PASSWORD: "xxx"
     PGDATA: "/postgres/data"
   volumes:
-    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/postgres:/postgres
-database:
-  container_name: database-container
-  build: database
-  volumes:
-    - /usr/local/dota-analysis/web-server/storage/db:/data/db
-  expose:
-    - "42200"
+    - /usr/local/dota-analysis/web-server/storage/postgres:/postgres
 webserver:
   build: webserver
   expose:
@@ -38,7 +31,7 @@ webserver:
     VIRTUAL_PORT: "42000"
     VERSION: "droplet"
   links:
-    - database:DATABASE_IP
+    - postgres:POSTGRES_IP
 analysis:
   build: analysis
   volumes:
@@ -50,4 +43,4 @@ analysis:
     - /usr/local/dota-analysis/web-server/storage/shared:/shared
     - /usr/local/dota-analysis/web-server/files/analysis:/files:ro
   links:
-    - database:DATABASE_IP
+    - postgres:POSTGRES_IP
