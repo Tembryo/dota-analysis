@@ -39,7 +39,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(function(req, res, next) {
-    console.log("Webserver callled for "+req.originalUrl);
+    //console.log("Webserver callled for "+req.originalUrl);
     next();
 });
 

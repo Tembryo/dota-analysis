@@ -16,7 +16,7 @@ var	config		= require("./config.js"),
 //   have a database of user records, the complete Steam profile is serialized
 //   and deserialized.
 passport.serializeUser(function(user, done) {
-    console.log("serializing", user);
+    //console.log("serializing", user);
     done(null, user.id);
 });
 
@@ -27,7 +27,7 @@ passport.deserializeUser(
         var locals = {};
         locals.user_id = obj;
 
-        console.log("deserializing", obj);
+        //console.log("deserializing", obj);
 
         async.waterfall(
             [
@@ -195,7 +195,7 @@ function ensureAuthenticated(req, res, next) {
     console.log("ensure");
     if (req.isAuthenticated())
     {
-        console.log("Auth ok");
+        //console.log("Auth ok");
         return next();
     }
     else
