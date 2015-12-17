@@ -1,7 +1,8 @@
 var	express		= require('express'),
 	passport	= require("passport"),
-    async = require('async');
-
+    async       = require('async'),
+    clone       = require('clone');
+var shortid         = require('shortid');
 
 var	config		= require("./config.js"),
     steam_auth = require("./steam-strategy.js"),
@@ -15,37 +16,60 @@ var	config		= require("./config.js"),
 //   have a database of user records, the complete Steam profile is serialized
 //   and deserialized.
 passport.serializeUser(function(user, done) {
-  done(null, user.id);
+    console.log("serializing", user);
+    done(null, user.id);
 });
 
-passport.deserializeUser(function(obj, done) {
-    locals = {};
-    async.waterfall(
-        [
-            database.connect,
-            function(client, client_done, callback)
-            {
-                locals.client = client;
-                locals.done = client_done;
+passport.deserializeUser(
+    function(obj, done)
+    {
 
-                locals.client.query("SELECT u.id, u.name, json_agg(SELECT us.id FROM UserStatuses us WHERE us.user_id=u.id) as statuses FROM Users u WHERE u.id = $1;",[obj],callback);
-            },
-            function(results, callback)
+        var locals = {};
+        locals.user_id = obj;
+
+        console.log("deserializing", obj);
+
+        async.waterfall(
+            [
+                database.connect,
+                function(client, client_done, callback)
+                {
+                    locals.client = client;
+                    locals.done = client_done;
+                    locals.client.query(
+                        "SELECT u.id, u.name FROM Users u WHERE u.id = $1;",
+                        [locals.user_id],
+                        callback);
+                },
+                function(results, callback)
+                {
+                    locals.user = results.rows[0];
+                    locals.client.query(
+                        "SELECT json_agg(ust.label) as statuses FROM UserStatuses us, UserStatusTypes ust WHERE us.user_id=$1 AND us.statustype_id=ust.id;",
+                        [locals.user_id],
+                        callback);
+                },
+                function(results, callback)
+                {
+                    if(results.rowCount == 0)
+                        locals.user.statuses = [];
+                    else if(results.rows[0].statuses == null)
+                        locals.user.statuses = [];
+                    else
+                        locals.user.statuses = results.rows[0].statuses;
+                    callback(null);
+                }
+            ],
+            function(err, result)
             {
-                var user = results.rows[0];
-                locals.client.end();
+                if (err)
+                    console.log(err);
                 locals.done();
-                callback(null, user);
+			    done(err, locals.user);
             }
-        ],
-        function(err, result)
-        {
-            if (err)
-                console.log(err);
-			done(null, result);
-        }
-    );
-});
+        );
+    }
+);
 
 
 // Use the SteamStrategy within Passport.
@@ -65,7 +89,7 @@ passport.use(
             var steam_id = identifier.substring(identifier.lastIndexOf("/")+1);
             console.log("id "+steam_id);
 
-            locals = {};
+            var locals = {};
             async.waterfall(
                 [
                     database.connect,
@@ -88,7 +112,14 @@ passport.use(
                                 user.steam_object = profile["_json"];
                                 user.email = "unknown";
 */
-                            locals.client.query("INSERT INTO Users(name, steam_identifier, steam_object, email) VALUES ($1, $2, $3, $4) RETURNING id, name;",[profile["displayName"], profile["id"], profile["_json"], "unknown"],callback);
+                            steam_auth.getProfile(steam_id, function(err, profile)
+                            {
+                                if(err)
+                                    callback(err);
+                                else
+                                    locals.client.query("INSERT INTO Users(name, steam_identifier, steam_object, email) VALUES ($1, $2, $3, $4) RETURNING id, name;",[profile["displayName"], profile["id"], profile["_json"], "unknown"],callback);
+                            });
+                            
                         }
                         else
                         {
@@ -110,8 +141,12 @@ passport.use(
                     locals.done();
 
                     if (!(err === "found_old") && err)
-                        console.log(err);
-                    done(null, user); 
+                    {
+                         console.log(err);
+                        done(err);
+                    }
+                    else
+                        done(null, user); 
                 }
             );
     	}
@@ -121,11 +156,6 @@ passport.use(
 // ROUTES FOR OUR API
 // =============================================================================
 var router = express.Router();
-
-router.use(function(req, res, next) {
-    console.log("Auth is doing something.");
-    next();
-});
 
 // GET /auth/steam
 //   Use passport.authenticate() as route middleware to authenticate the
@@ -160,10 +190,17 @@ router.route("/steam/return")
 //   the request will proceed.  Otherwise, the user will be redirected to the
 //   login page.
 function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) { return next(); }
     console.log("ensure");
-    console.log(req.originalUrl);
-  res.redirect('/auth/steam')
+    if (req.isAuthenticated())
+    {
+        console.log("Auth ok");
+        return next();
+    }
+    else
+    {
+        console.log("go auth u fool");
+        res.redirect('/auth/steam');
+    }
 }
 
 exports.router = router;

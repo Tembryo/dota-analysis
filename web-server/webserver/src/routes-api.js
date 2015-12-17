@@ -1,8 +1,9 @@
 var	express			= require("express"),
+    async           = require('async'),
     fs              = require("fs"),
-    formidable = require('formidable'),
-    fs_extra = require('fs-extra'),
-    shortid = require('shortid');
+    formidable      = require('formidable'),
+    fs_extra        = require('fs-extra'),
+    shortid         = require('shortid');
 
 var	authentication = require("./routes-auth.js"),
     config			= require("./config.js");
@@ -28,13 +29,12 @@ router.get('/', function(req, res) {
 
 //Match Data Serving
 // =============================================================================
-var Match = require('./models/match');
 
 router.route('/matches')
     // get all the matches
     .get(function(req, res)
         {
-            locals = {};
+            var locals = {};
             locals.header_files = [];
             async.waterfall(
                 [
@@ -56,9 +56,9 @@ router.route('/matches')
                                     if (err) callback_file(err);
                                     else
                                     {
-                                        console.log("load "+match.header_file);
+                                        console.log("load "+row.header_file);
                                         locals.header_files.push(JSON.parse(json));
-                                        console.log("added header json to list "+match.header_file);
+                                        console.log("added header json to list "+row.header_file);
                                         callback_file(null);
                                     }
                                 });
@@ -79,8 +79,7 @@ router.route('/matches')
 router.route('/match/:match_id')
     .get(function(req, res) 
         {
-            locals = {};
-            locals.header_files = [];
+            var locals = {};
             async.waterfall(
                 [
                     database.connect,
@@ -93,27 +92,32 @@ router.route('/match/:match_id')
                     },
                     function(results, callback)
                     {
+                        //console.log("fetched file", results);
                         if(results.rowCount != 1)
                             callback("bad result selecting file ", results);
                         else
-                           fs.readFile(match.file, 'utf-8',callback);
+                           fs.readFile(results.rows[0].file, 'utf-8',callback);
                     },
                     function(json, callback)
                     {
                         callback(null, JSON.parse(json));
                     }
                 ],
-                function(err, results)
+                function(err, result)
                 {
+                    locals.client.end();
+                    locals.done();
+
                     if(err)
                     {
                         console.log("error retrieving match "+req.params.match_id);
                         console.log(err);
-                        console.log(results);
+                        console.log(result);
+                        
                         res.send(err);
                     }
                     else
-                        res.json();
+                        res.json(result);
                 }
             );
         }
@@ -156,7 +160,7 @@ router.route("/upload")
                 /* Location where we want to copy the uploaded file */
                 var new_file = "/uploads/"+ identifier + ".dem";
                 
-                locals = {};
+                var locals = {};
                 async.waterfall(
                     [
                         fs_extra.copy.bind(fs_extra, temp_path, config.shared+new_file),
@@ -165,17 +169,18 @@ router.route("/upload")
                         {
                             locals.client = client;
                             locals.done = done_client;
-                            locals.client.query("INSERT INTO ReplayFiles(file, processing_status, uploader_id) VALUES($1, (SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$2), $3);",[new_file, "uploaded", req.user.id],callback);
+                            locals.client.query("INSERT INTO ReplayFiles(file, upload_filename, processing_status, uploader_id) VALUES($1, $2, (SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$3), $4);",[new_file, file_name, "uploaded", req.user.id],callback);
                         }
                     ],
                     function(err, results)
                     {
+                        locals.client.end();
+                        locals.done();
                         if(err)
                         {
                             console.log(err);
                             console.log("success " + identifier + "!");
                         }
-                        console.log("user id for upload "+req.user.identifier +" "+replay_file.uploader_identifier);
                     }
                 );
             });
@@ -185,7 +190,7 @@ router.route("/uploads")
     .get(authentication.ensureAuthenticated,
         function(req, res)
         {
-            locals = {};
+            var locals = {};
             async.waterfall(
                 [
                     database.connect,
@@ -194,17 +199,19 @@ router.route("/uploads")
                         locals.client = client;
                         locals.done = done_client;
 
-                        locals.client.query("SELECT rf.match_id,ps.label,rf.upload_filename FROM ReplayFiles rf, ProcessingStatuses ps WHERE rf.processing_status = ps.id AND rf.uploader_id=$1;",
+                        locals.client.query("SELECT rf.id, rf.match_id,ps.label as status,rf.upload_filename FROM ReplayFiles rf, ProcessingStatuses ps WHERE rf.processing_status = ps.id AND rf.uploader_id=$1;",
                             [req.user["id"]],callback);
                     },
                     function(results, callback)
                     {
                         //just give out the rows?
-                        callback(null, results);
+                        callback(null, results.rows);
                     }
                 ],
                 function(err, results)
                 {
+                    locals.client.end();
+                    locals.done();
                     if(err)
                     {
                         console.log(err);
@@ -220,7 +227,7 @@ router.route("/verify/:verification_code")
     .get(authentication.ensureAuthenticated,
         function(req, res)
         {
-            locals = {};
+            var locals = {};
             async.waterfall(
                 [
                     database.connect,
@@ -234,6 +241,7 @@ router.route("/verify/:verification_code")
                     },
                     function(results, callback)
                     {
+                        console.log("got", results);
                         var result = {};
                         if(results.rowCount == 0)
                         {
@@ -245,21 +253,22 @@ router.route("/verify/:verification_code")
                         else if(results.rowCount == 1)
                         {
                             console.log("execute verified action");
-                            locals.action = results.row[0].action;
+                            locals.action = results.rows[0].action;
                             console.log(locals.action);
                             switch(locals.action)
                             {
-                            case "SET_EMAIL":
-                                var new_email = results.row[0].args["new-address"];
+                            case "SetEmail":
+                                var new_email = results.rows[0].args["new-address"];
                                 locals.client.query(
-                                    "UPDATE Users u SET email=$2 WHERE u.id=$1; INSERT INTO UserStatuses (user_id, statustype_id, expiry_date) SELECT $1, ust.id, infinity FROM UserStatusTypes ust WHERE ust.label=$3;",
-                                    [req.user["id"], new_email, "verified"],
-                                    callback);
+                                    "UPDATE Users u SET email=$2 WHERE u.id=$1;",
+                                    [req.user["id"], new_email],
+                                    function(err, results){if(err) callback(err, results); else locals.client.query("INSERT INTO UserStatuses (user_id, statustype_id, expiry_date) SELECT $1, ust.id, 'infinity' FROM UserStatusTypes ust WHERE ust.label=$2;",
+                                    [req.user["id"], "verified"],callback);});
                                 break;
                             default: 
                                 result["action"] = "action_execution";
                                 result["result"] = "failed";
-                                result["info"] = action;
+                                result["info"] = locals.action;
                                 callback("tried to execute unknown action", result);
                             }
                         }
@@ -273,6 +282,7 @@ router.route("/verify/:verification_code")
                     },
                     function(results, callback)
                     {
+                        var result = {};
                         result["action"] = locals.action;
                         result["result"] = "success";
                         callback(null, result);
@@ -280,12 +290,19 @@ router.route("/verify/:verification_code")
                 ],
                 function(err, result)
                 {
+                    locals.client.end();
+                    locals.done();
                     if(err)
                     {
-                        console.log(err);
-                        console.log("success " + identifier + "!");
+                        var err_result = {};
+                        err_result["info"] = err;
+                        err_result["result"] = "failure";
+                        err_result["data"] = result;
+                        console.log(err_result);
+                        res.json(err_result);
                     }
-                    res.json(result);
+                    else
+                        res.json(result);
                 }
             );
         }
@@ -333,7 +350,7 @@ router.route("/settings/email/:email_address")
             mail["text"] = sprintf(mail_schema["text"], mail_data);
             mail["html"] = sprintf(mail_schema["html"], mail_data);
 
-            locals = {};
+            var locals = {};
             async.waterfall(
                [
                     transporter.sendMail.bind(transporter, mail),
@@ -347,16 +364,15 @@ router.route("/settings/email/:email_address")
                     {
                         locals.client = client;
                         locals.done = done_client;
-                        action.code = code;
-                        action.action = "SET_EMAIL";
-                        action.args = ;
 
-                        locals.client.query("INSERT INTO VerificationActions(actiontype_id, args, code) VALUES SELECT vat.id, $3, $1 FROM VerificationActionTypes vat WHERE vat.label=$2;",
+                        locals.client.query("INSERT INTO VerificationActions(actiontype_id, args, code) SELECT vat.id, $3, $1 FROM VerificationActionTypes vat WHERE vat.label=$2;",
                             [code, "SetEmail", {"new-address": req.params.email_address}],callback);
                     }
                 ],
                 function(err, results)
                 {
+                    locals.client.end();
+                    locals.done();
                     if(err)
                     {
                         result["result"] = "failed";

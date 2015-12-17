@@ -58,7 +58,7 @@ router.get('/user',
         else
             data["code"] = "";
 
-        locals = {};
+        var locals = {};
         locals.user = {};
         async.waterfall(
             [
@@ -68,30 +68,50 @@ router.get('/user',
                     locals.client = client;
                     locals.done = done;
 
-                    locals.client.query("SELECT id, name, steam_object, email, FROM Users WHERE id = $1;",[req.user["id"]],callback);
+                    locals.client.query("SELECT id, name, steam_object, email FROM Users WHERE id = $1;",[req.user["id"]],callback);
                 },
                 function(results, callback)
                 {
                     console.log("selected user, got: ", results);
                     locals.user = results.rows[0];
-                    //TODO add statuses
-                    locals.client.end();
-                    locals.done();
-                    callback(null, "success");
+
+                    locals.client.query(
+                        "SELECT us.user_id, json_agg(ust.label) as statuses FROM UserStatuses us, UserStatusTypes ust WHERE us.user_id=$1 AND us.statustype_id=ust.id GROUP BY us.user_id;",
+                        [locals.user.id],
+                        callback);
+                },
+                function(results, callback)
+                {
+                    console.log(results);
+                    if(results.rowCount == 0)
+                        locals.user.statuses = [];
+                    else if(results.rows[0].statuses == null)
+                        locals.user.statuses = [];
+                    else
+                        locals.user.statuses = results.rows[0].statuses;
+                    callback(null);
                 }
             ],
             function(err, result)
             {
+                locals.client.end();
+                locals.done();
                 if (err)
                     console.log(err);
-                data["user"] = locals.user;
-                res.render("pages/user.ejs", data);
+                else
+                {
+                    locals.client.end();
+                    locals.done();
+                    data["user"] = locals.user;
+                    res.render("pages/user.ejs", data);
+                }
             }
         );
     }
 );
 
 router.get('/matches',
+    function(req, res,next){console.log("serving matches");next();},
     authentication.ensureAuthenticated,
     function(req, res)
     {

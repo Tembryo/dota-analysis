@@ -13,7 +13,7 @@ postgres:
     - "5432"
   environment:
     POSTGRES_USER: "wisdota"
-    POSTGRES_PASSWORD: "xxx"
+    POSTGRES_PASSWORD: "the-database-elephant"
     PGDATA: "/postgres/data"
   volumes:
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/postgres:/postgres

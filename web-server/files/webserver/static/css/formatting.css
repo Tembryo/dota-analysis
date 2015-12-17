@@ -62,3 +62,8 @@ input:disabled{
     background-color: #333;
     font-size: 18pt;
 }
+
+.user-status
+{
+    font-weight: bold;
+}

@@ -11,7 +11,6 @@ checkJobs();
 
 function checkJobs()
 {
-    console.log("checking jobs");
     locals = {};
     async.waterfall(
         [
@@ -20,7 +19,6 @@ function checkJobs()
             {
                 locals.client = client;
                 locals.done = done_client;
-                console.log("got client");
                 locals.client.query(
                     "SELECT rf.id FROM ReplayFiles rf, ProcessingStatuses ps WHERE rf.processing_status=ps.id AND ps.label = $1;",
                     ["uploaded"],
@@ -28,7 +26,6 @@ function checkJobs()
             },
             function(results, callback)
             {
-                console.log("queried replay files");
                 async.each(results.rows, processReplay, callback);
             }
         ],
@@ -36,7 +33,8 @@ function checkJobs()
         {
             if (err)
                 console.log(err);
-            console.log("schedule next");
+            locals.client.end();
+            locals.done();
             setTimeout(checkJobs, check_interval);
         }
     );
@@ -44,7 +42,8 @@ function checkJobs()
 
 function processReplay(replay_row, callback_replay)
 {
-    locals = {};
+    console.log("processing replay", replay_row);
+    var locals = {};
     locals.replayfile_id = replay_row.id;
     async.waterfall(
         [
@@ -56,12 +55,11 @@ function processReplay(replay_row, callback_replay)
 
                 locals.client.query(
                     "UPDATE ReplayFiles rf SET processing_status=(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$2) WHERE rf.id=$1 RETURNING rf.file;",
-                    [locals.replayfile_id, "processing"],
+                    [locals.replayfile_id, "extracting"],
                     callback);
             },
             function(results, callback)
             {
-                console.log('starting extract: ' + results);
                 if(results.rowCount != 1)
                 {
                     callback("Setting replayfile as processing failed", results);
@@ -87,7 +85,7 @@ function processReplay(replay_row, callback_replay)
                 {
                     locals.client.query(
                         "UPDATE ReplayFiles rf SET match_id=$2, processing_status=(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$3) WHERE rf.id=$1;",
-                        [locals.replayfile_id, locals.match_id, "extracted"],
+                        [locals.replayfile_id, locals.match_id, "analysing"],
                         callback);
                 }
             },
@@ -98,12 +96,12 @@ function processReplay(replay_row, callback_replay)
                     callback("Failed when updating replayfile after extraction", results);
                     return;
                 }
-                var match_dir = config.storage+"/"+match_id;
-                var analysis_file = config.shared+"/matches/"+match_id+".json";
-                var header_file = config.shared+"/match_headers/"+match_id+".json";
+                locals.match_dir = config.storage+"/"+locals.match_id;
+                locals.analysis_file = config.shared+"/matches/"+locals.match_id+".json";
+                locals.header_file = config.shared+"/match_headers/"+locals.match_id+".json";
                 child_process.execFile(
                     "python",
-                    ["/analysis/analysis.py", locals.match_id, match_dir, analysis_file, header_file],
+                    ["/analysis/analysis.py", locals.match_id, locals.match_dir, locals.analysis_file, locals.header_file],
                     callback);
             },
             function (stdout, stderr, callback) 
@@ -112,19 +110,8 @@ function processReplay(replay_row, callback_replay)
                 console.log('pystderr: ' + stderr);
 
                 locals.client.query(
-                    "UPDATE ReplayFiles rf SET processing_status=(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$2) WHERE rf.id=$1;",
-                    [locals.replayfile_id, "analysed"],
-                    callback);
-            },
-            function(results, callback)
-            {
-                if(results.rowCount != 1)
-                {
-                    callback("Failed when updating replayfile after analysis", results);
-                }
-                locals.client.query(
                     "INSERT INTO Matches(id, label, file, header_file, replayfile_id) VALUES ($1, $2, $3, $4, $5);",
-                    [locals.match_id, "", analysis_file, header_file, locals.replayfile_id],
+                    [locals.match_id, "", locals.analysis_file, locals.header_file, locals.replayfile_id],
                     callback);
             },
             function(results, callback)
@@ -151,6 +138,8 @@ function processReplay(replay_row, callback_replay)
             {
                 console.log("fin~", locals.replayfile_id);
             }
+            locals.client.end();
+            locals.done();
             callback_replay(null);
         }
     );

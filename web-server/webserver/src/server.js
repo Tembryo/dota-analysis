@@ -28,6 +28,8 @@ app.engine('ejs', ejs_mate);
 app.set('view engine', 'ejs');
 app.set('views', config.files+"/views");
 
+app.use("/static", express.static(config.files+"/static"));
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -36,12 +38,16 @@ app.use(session({secret: session_secret}));
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.use(function(req, res, next) {
+    console.log("Webserver callled for "+req.originalUrl);
+    next();
+});
 
 //register routes
 app.use("/", website_routes.router);
 app.use("/api", api_routes.router);
 app.use("/auth", auth_routes.router)
-app.use("/static", express.static(config.files+"/static"));
+
 
 // START THE SERVER
 // =============================================================================

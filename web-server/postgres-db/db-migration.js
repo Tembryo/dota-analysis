@@ -4,7 +4,7 @@ var mongoose    = require("mongoose");
 mongoose.connect("mongodb://172.17.0.4:42200/wisdota"); // connect to our database
 
 var pg = require('pg');
-var connectionParameters = 'postgres://wisdota:xxx@172.17.0.2/wisdota';
+var connectionParameters = 'postgres://wisdota:the-database-elephant@172.17.0.2/wisdota';
 
 var User = require("./models/user.js"),
     Match = require("./models/match.js"),
@@ -68,11 +68,12 @@ waterfall(
             for(var user_i in users)
             {
                 locals.client.query(
-                    "INSERT INTO Users (name, steam_object, steam_identifier, email) VALUES($1, $2, $3, $4) RETURNING id, $5 as beta_status;",
+                    "INSERT INTO Users (name, steam_object, steam_identifier, email) VALUES($1, $2, $3, $4) RETURNING id, $5::text as beta_status;",
                     [users[user_i].name, JSON.stringify(users[user_i].steam_object), users[user_i].identifier, users[user_i].email, users[user_i].beta_status],
                     function(err, results)
                     {
                         if(err)console.log(err, results);
+                        console.log(results);
                         var user = results.rows[0];
                         if(user.beta_status === "enabled")  
                             locals.client.query("INSERT INTO UserStatuses (user_id, statustype_id, expiry_date) SELECT $1, ust.id, infinity FROM UserStatusTypes ust WHERE ust.label=$2",[ user.id, "verified"]);

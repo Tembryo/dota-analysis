@@ -36,9 +36,11 @@
            <p> Beta status: </p>
         </div>
         <div class="col-xs-3">
-           <p> 
-                <%= user["beta_status"]%>
-            </p>
+            <% for(var status_i in user["statuses"] ){ %>
+                <div class="status">            
+                <%= user["statuses"][status_i]%>
+                </div>
+            <% }%>
         </div>
     </div>
 

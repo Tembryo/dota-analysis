@@ -90,7 +90,7 @@ function updateReplays()
             keep_checking = false;
             for(var upload_i in upload_list)
             {
-                if(upload_list[upload_i]["status"] === "uploaded" || upload_list[upload_i]["status"] === "processing" || upload_list[upload_i]["status"] === "extracted" )
+                if(upload_list[upload_i]["status"] === "uploaded" || upload_list[upload_i]["status"] === "extracting" || upload_list[upload_i]["status"] === "analysing" )
                 {
                     keep_checking = true;
                     break;
@@ -110,7 +110,7 @@ function updateReplays()
 function updateList()
 {
 	var uploads = d3.select("#uploads-table").selectAll(".upload").data(upload_list, function(match){
-					return match["_id"];
+					return match["id"];
 				});
 
 	uploads.enter()
@@ -168,15 +168,15 @@ function updateUploadElement(upload)
                 {
                     case "failed": return "Failed";
                     case "uploaded": return "Queued";
-                    case "processing": return "Parsing replay";
-                    case "extracted": return "Analysing replay";
+                    case "extracting": return "Parsing replay";
+                    case "analysing": return "Analysing replay";
                 }
             });
 
     d3.select(this).select(".match-id")
         .text(function(d){
-                if(parseInt(d["match_id"]) < 0)
-                    return d["upload_name"];
+                if(!d["match_id"])
+                    return d["upload_filename"];
                 else
                     return d["match_id"];
             });

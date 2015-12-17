@@ -66,7 +66,7 @@ function getProfile(identifier, callback)
                     steamids: [ identifier ],
                     callback: function(err, result)
                         {
-                            if (err) return done(err);
+                            if (err) return callback(err);
 
                             profile = {
                                 provider: "steam",
@@ -79,7 +79,7 @@ function getProfile(identifier, callback)
                             };
                             setTimeout(function(){console.log("leaving sema");api_semaphore.leave();}, 1000);
                             console.log("returning profile");
-                            callback(profile);
+                            callback(null, profile);
                         }
                 }
             );
