@@ -192,7 +192,7 @@ router.route("/steam/return")
 //   the request will proceed.  Otherwise, the user will be redirected to the
 //   login page.
 function ensureAuthenticated(req, res, next) {
-    console.log("ensure");
+    //console.log("ensure");
     if (req.isAuthenticated())
     {
         //console.log("Auth ok");
