@@ -1,0 +1,6 @@
+retrieve:
+  build: .
+  volumes:
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/retrieve/src:/source
+  external_links:
+    - postgres-container:POSTGRES_IP
