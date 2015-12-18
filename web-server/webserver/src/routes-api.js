@@ -71,6 +71,7 @@ router.route('/matches')
                 ],
                 function(err)
                 {
+                    locals.done();
                     if(err)
                         console.log(err);
                     res.json(locals.header_files);

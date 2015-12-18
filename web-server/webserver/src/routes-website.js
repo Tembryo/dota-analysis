@@ -99,7 +99,6 @@ router.get('/user',
                     console.log(err);
                 else
                 {
-                    locals.done();
                     data["user"] = locals.user;
                     res.render("pages/user.ejs", data);
                 }
