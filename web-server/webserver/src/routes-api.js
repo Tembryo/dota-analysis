@@ -161,7 +161,7 @@ router.route("/upload")
                 /* The file name of the uploaded file */
                 var file_name = this.openedFiles[0].name;
                 /* Location where we want to copy the uploaded file */
-                var new_file = "/uploads/"+ identifier + ".dem";
+                var new_file = "/replays/"+ identifier + ".dem";
                 
                 var locals = {};
                 async.waterfall(
