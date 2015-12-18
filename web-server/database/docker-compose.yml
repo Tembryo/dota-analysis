@@ -1,7 +1,0 @@
-database:
-  build: .
-  volumes:
-    - /home/fischerq/storagebackup/db:/data/db
-  expose:
-    - "42200"
-    

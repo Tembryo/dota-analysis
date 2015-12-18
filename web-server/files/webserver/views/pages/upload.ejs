@@ -7,7 +7,7 @@
             <h1> Upload </h1>
         </div>
     </div>
-<% if(user["beta_status"] === "enabled"){%>
+<% if(user["statuses"].indexOf("verified") >=0){%>
 	<div class="row">
         <form enctype="multipart/form-data" id="upload-form">
 		    <div class="col-xs-2 col-xs-offset-3">
@@ -41,19 +41,13 @@
             <table class = "matches" id = "uploads-table"></table>
             </div>
     </div>
-<% } else if(user["beta_status"] === "disabled"){%>
+<% } else {%>
 	<div class="row">
 		    <div class="col-xs-6 col-xs-offset-3">
                 <h3>Verify your email address in the <a href="/user">User panel</a> to enable replay upload.</h2>
             </div>
     </div>
 
-<% }else {%>
-    <div class="row">
-		    <div class="col-xs-6 col-xs-offset-3">
-                Broken. please email us to fix.
-            </div>
-    </div>
 <% }%>
 </section>
 

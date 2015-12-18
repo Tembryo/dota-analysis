@@ -1,7 +1,9 @@
-var express = require('express');
+var express = require('express'),
+    async = require('async');
 
 var authentication = require("./routes-auth.js"),
-    config = require("./config.js");
+    config = require("./config.js"),
+    database = require("./database.js");
 
 var router = express.Router();
 
@@ -45,8 +47,6 @@ router.get("/dota", function(req, res)
 
 
 // Page /user
-var User = require('./models/user');
-
 router.get('/user',
     authentication.ensureAuthenticated,
     function(req, res)
@@ -58,23 +58,57 @@ router.get('/user',
         else
             data["code"] = "";
 
-        User.findOne(
+        var locals = {};
+        locals.user = {};
+        async.waterfall(
+            [
+                database.connect,
+                function(client, done, callback)
+                {
+                    locals.client = client;
+                    locals.done = done;
+
+                    locals.client.query("SELECT id, name, steam_object, email FROM Users WHERE id = $1;",[req.user["id"]],callback);
+                },
+                function(results, callback)
+                {
+                    console.log("selected user, got: ", results);
+                    locals.user = results.rows[0];
+
+                    locals.client.query(
+                        "SELECT us.user_id, json_agg(ust.label) as statuses FROM UserStatuses us, UserStatusTypes ust WHERE us.user_id=$1 AND us.statustype_id=ust.id GROUP BY us.user_id;",
+                        [locals.user.id],
+                        callback);
+                },
+                function(results, callback)
+                {
+                    console.log(results);
+                    if(results.rowCount == 0)
+                        locals.user.statuses = [];
+                    else if(results.rows[0].statuses == null)
+                        locals.user.statuses = [];
+                    else
+                        locals.user.statuses = results.rows[0].statuses;
+                    callback(null);
+                }
+            ],
+            function(err, result)
             {
-                "identifier": req.user["identifier"]
-            },
-            "identifier name steam_object email beta_status",
-            function(err, user)
-            {
+                locals.done();
                 if (err)
                     console.log(err);
-                data["user"] = user;
-                res.render("pages/user.ejs", data);
+                else
+                {
+                    data["user"] = locals.user;
+                    res.render("pages/user.ejs", data);
+                }
             }
         );
     }
 );
 
 router.get('/matches',
+    function(req, res,next){console.log("serving matches");next();},
     authentication.ensureAuthenticated,
     function(req, res)
     {
@@ -97,27 +131,10 @@ router.route("/upload")
     .get(authentication.ensureAuthenticated,
         function(req, res)
         {
-            User.findOne({"identifier": req.user["identifier"]},"identifier name beta_status", function(err, user){
-                if(err)
-                {
-                    console.log("couldnt find user");
-                    console.log(req.user);
-                    console.log(err);
-                }
-                var data = collectTemplatingData(req);
-                addNavigationData(data);
-                data["user"] = user;
-                res.render("pages/upload.ejs", data);
-            });
-        });
-
-router.route("/verify")
-    .get(function(req, res)
-        {
             var data = collectTemplatingData(req);
             addNavigationData(data);
-            data["code"] = req.params["code"];
-            res.render("pages/verify.ejs", data);
+            data["user"] = req.user;
+            res.render("pages/upload.ejs", data);
         });
 
 exports.router = router;

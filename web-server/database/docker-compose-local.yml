@@ -1,0 +1,7 @@
+database:
+  build: .
+  volumes:
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/db:/data/db
+  expose:
+    - "42200"
+    

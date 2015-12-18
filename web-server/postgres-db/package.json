@@ -1,0 +1,12 @@
+{
+    "name": "wisdota-db-migration",
+    "version": "0.0.1",
+    "author": "fischerq",
+    "main": "db-migration.js",
+    "dependencies": {
+        "mongoose": "^4.2.8",
+        "pg": "^4.4.3",
+        "async-waterfall": "^0.1.5"
+    }
+}
+

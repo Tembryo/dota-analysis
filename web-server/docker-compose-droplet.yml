@@ -6,13 +6,17 @@ proxy:
   volumes:
     - /var/run/docker.sock:/tmp/docker.sock:ro
     - /usr/local/dota-analysis/web-server/nginx/vhosts:/etc/nginx/vhost.d:ro
-database:
-  container_name: database-container
-  build: database
-  volumes:
-    - /usr/local/dota-analysis/web-server/storage/db:/data/db
+postgres:
+  container_name: postgres-container
+  image: postgres
   expose:
-    - "42200"
+    - "5432"
+  environment:
+    POSTGRES_USER: "wisdota"
+    POSTGRES_PASSWORD: "xxx"
+    PGDATA: "/postgres/data"
+  volumes:
+    - /usr/local/dota-analysis/web-server/storage/postgres:/postgres
 webserver:
   build: webserver
   expose:
@@ -27,7 +31,7 @@ webserver:
     VIRTUAL_PORT: "42000"
     VERSION: "droplet"
   links:
-    - database:DATABASE_IP
+    - postgres:POSTGRES_IP
 analysis:
   build: analysis
   volumes:
@@ -39,4 +43,4 @@ analysis:
     - /usr/local/dota-analysis/web-server/storage/shared:/shared
     - /usr/local/dota-analysis/web-server/files/analysis:/files:ro
   links:
-    - database:DATABASE_IP
+    - postgres:POSTGRES_IP

@@ -5,23 +5,35 @@ update_interval = 2000;
 upload_list = [];
 
 
-$("#upload-file").change(function(){
+$("#upload-file").on("change reset", function(){
+    console.log("checking file field");
     var file = this.files[0];
-    var name = file.name;
-    var size = file.size;
-    var type = name.substring(name.lastIndexOf(".")+1);
-    //Your validation
-    if(type === "dem")
+    if(file)
     {
-        console.log("OK");
-        $("#upload-button").prop('disabled', false);
-    }
+        var name = file.name;
+        var size = file.size;
+        var type = name.substring(name.lastIndexOf(".")+1);
+        //Your validation
+        if(type === "dem")
+        {
+            console.log("OK");
+            $("#upload-button").prop('disabled', false);
+        }
+        else
+        {
+            console.log("N" +type);
+            $("#upload-button").prop('disabled', true);
+        }
+    } 
     else
     {
-        console.log("N" +type);
+        console.log("No file");
         $("#upload-button").prop('disabled', true);
     }
 });
+
+
+
 
 $("#upload-button").click(function(){
     console.log($('#upload-form'));
@@ -49,6 +61,12 @@ $("#upload-button").click(function(){
     });
 });
 
+function resetFormElement(e) {
+    console.log("resetting");
+    e.wrap('<form>').closest('form').get(0).reset();
+    e.unwrap();
+}
+
 function beforeSendHandler(e){
 }
 
@@ -57,8 +75,10 @@ function completeHandler(e){
     setTimeout(updateReplays(), update_interval/2);
     n_tries = 5;
     $('#progress-field').text("Upload complete");
-    console.log("complete");
-    console.log(e);
+
+    resetFormElement($("#upload-file"));
+    $("#upload-file").trigger("change");
+    console.log("complete", e);
 }
 function errorHandler(e){
     $('#progress-field').text("Upload failed");
@@ -90,7 +110,7 @@ function updateReplays()
             keep_checking = false;
             for(var upload_i in upload_list)
             {
-                if(upload_list[upload_i]["status"] === "uploaded" || upload_list[upload_i]["status"] === "processing" || upload_list[upload_i]["status"] === "extracted" )
+                if(upload_list[upload_i]["status"] === "uploaded" || upload_list[upload_i]["status"] === "extracting" || upload_list[upload_i]["status"] === "analysing" )
                 {
                     keep_checking = true;
                     break;
@@ -110,7 +130,7 @@ function updateReplays()
 function updateList()
 {
 	var uploads = d3.select("#uploads-table").selectAll(".upload").data(upload_list, function(match){
-					return match["_id"];
+					return match["id"];
 				});
 
 	uploads.enter()
@@ -168,15 +188,15 @@ function updateUploadElement(upload)
                 {
                     case "failed": return "Failed";
                     case "uploaded": return "Queued";
-                    case "processing": return "Parsing replay";
-                    case "extracted": return "Analysing replay";
+                    case "extracting": return "Parsing replay";
+                    case "analysing": return "Analysing replay";
                 }
             });
 
     d3.select(this).select(".match-id")
         .text(function(d){
-                if(parseInt(d["match_id"]) < 0)
-                    return d["upload_name"];
+                if(!d["match_id"])
+                    return d["upload_filename"];
                 else
                     return d["match_id"];
             });

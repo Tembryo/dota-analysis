@@ -29,7 +29,7 @@ var icon_images = {
 "drow_ranger":          "/static/img/hero-pictures/Drow_Ranger.png",
 "earthshaker":          "/static/img/hero-pictures/Earthshaker.png",
 "elder_titan":          "/static/img/hero-pictures/Elder_Titan.png",
-"eart_spirit":          "/static/img/hero-pictures/Earth_Spirit.png",
+"earth_spirit":          "/static/img/hero-pictures/Earth_Spirit.png",
 "ember_spirit":         "/static/img/hero-pictures/Enchantress.png",
 "enchantress":          "/static/img/hero-pictures/Ember_Spirit.png",
 "enigma":               "/static/img/hero-pictures/Enigma.png",
@@ -58,7 +58,7 @@ var icon_images = {
 "morphling":            "/static/img/hero-pictures/Morphling.png",
 "naga_siren":           "/static/img/hero-pictures/Naga Siren.png",
 "necrolyte":            "/static/img/hero-pictures/Necrolyte.png",
-"nevermore":            "/static/img/hero-pictures/Shadow Fiend.png",
+"nevermore":            "/static/img/hero-pictures/Shadow_Fiend.png",
 "night_stalker":        "/static/img/hero-pictures/Night_Stalker.png",
 "nyx_assassin":         "/static/img/hero-pictures/Nyx Assassin.png",
 "obsidian_destroyer":   "/static/img/hero-pictures/Obsidian Destroyer.png",
@@ -79,7 +79,7 @@ var icon_images = {
 "sand_king":            "/static/img/hero-pictures/Sand_King.png",
 "shadow_demon":         "/static/img/hero-pictures/Shadow_Demon.png",
 "shadow_shaman":        "/static/img/hero-pictures/Shadow_Shaman.png",
-"shredder":             "/static/img/hero-pictures/Shredder.png",
+"shredder":             "/static/img/hero-pictures/Timbersaw.png",
 "silencer":             "/static/img/hero-pictures/Silencer.png",
 "skeleton_king":        "/static/img/hero-pictures/Wraith_King.png",
 "skywrath_mage":        "/static/img/hero-pictures/Skywrath_Mage.png",
@@ -108,7 +108,7 @@ var icon_images = {
 "warlock":              "/static/img/hero-pictures/Warlock.png",
 "weaver":               "/static/img/hero-pictures/Weaver.png",
 "windrunner":           "/static/img/hero-pictures/Windrunner.png",
-"winter_wyvern":        "/static/img/hero-pictures/Winter_Wyvern.png",
+"winter_wyvern":        "/static/img/hero-pictures/Winter Wyvern.png",
 "wisp":                 "/static/img/hero-pictures/Wisp.png",
 "witch_doctor":         "/static/img/hero-pictures/Witch_Doctor.png",
 "zuus":                 "/static/img/hero-pictures/Zeus.png"
@@ -156,7 +156,7 @@ function updateList()
 	    $("h2").css("margin-bottom","10px");
 	    $("h2").css("margin-top","5px");
 	    //make sub heading with the label of the match
-	    var label =  "<h3>" + my_json[i]["label"] + "</h3>";
+	    var label =  "<h3>" + (my_json[i]["label"]?my_json[i]["label"]:"") + "</h3>";
 	    $("#div" + i ).append(label);
 	    $("h3").css("margin-bottom","15px");
 	    // style the div so that it changes colour when we hover over it
@@ -179,7 +179,7 @@ function updateList()
 		        var player_hero = my_json[i]["players"][j]["hero"]; 
 		        var hero_image_location = icon_images[player_hero];
 		        var player_name = my_json[i]["players"][j]["name"];
-		        $("#my_div" + i + "a" ).append("<div class = imgWrap id =  player_div_a" + j + " > <img class = hero_img src =" + hero_image_location + " id = player_icon_" + j + " > <p class = imgDescription> " + player_name + "</p> </div>");
+		        $("#my_div" + i + "a" ).append("<div class = imgWrap id =  player_div_a" + j + " > <img class = 'hero_img' src ='" + hero_image_location + "' id = player_icon_" + j + " > <p class = imgDescription> " + player_name + "</p> </div>");
 	       	};
 	       // make a div to put next 5 hero images in
 	      	$("#div" + i ).append("<div id = my_div" + i + "b > </div>");
@@ -187,11 +187,11 @@ function updateList()
 	        	var player_hero = my_json[i]["players"][j]["hero"]; 
 	        	var hero_image_location = icon_images[player_hero];
 	        	var player_name = my_json[i]["players"][j]["name"];
-	        	$("#my_div" + i + "b" ).append("<div class = imgWrap id = player_div_b" + j + " > <img class = hero_img src =" + hero_image_location + " id = player_icon_" + j + " > <p class = imgDescription> " + player_name + "</p>  </div>");
+	        	$("#my_div" + i + "b" ).append("<div class = imgWrap id = player_div_b" + j + " > <img class = hero_img src ='" + hero_image_location + "' id = player_icon_" + j + " > <p class = imgDescription> " + player_name + "</p>  </div>");
 	     	};
 	    };
 	    // make the div containing the match summary a clickable link
-	    var my_link = "<a href = http://www.wisdota.com/match/" + my_json[i]["id"] + "> </a>";
+	    var my_link = "<a href = /match/" + my_json[i]["id"] + "> </a>";
 	    $("#div" + i ).append(my_link);
 	    $("#div" + i).click(function(){
 	      window.location = $(this).find("a:first").attr("href");

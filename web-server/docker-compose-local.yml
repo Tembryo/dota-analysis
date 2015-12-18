@@ -1,18 +1,22 @@
 proxy:
-  container_name: fischerq-proxy
+  container_name: wisdota-proxy
   image: jwilder/nginx-proxy
   ports:
     - "80:80"
   volumes:
     - /var/run/docker.sock:/tmp/docker.sock:ro
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/nginx/vhosts:/etc/nginx/vhost.d:ro
-database:
-  container_name: database-container
-  build: database
-  volumes:
-    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/db:/data/db
+postgres:
+  container_name: postgres-container
+  image: postgres
   expose:
-    - "42200"
+    - "5432"
+  environment:
+    POSTGRES_USER: "wisdota"
+    POSTGRES_PASSWORD: "the-database-elephant"
+    PGDATA: "/postgres/data"
+  volumes:
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/postgres:/postgres
 webserver:
   build: webserver
   expose:
@@ -26,7 +30,7 @@ webserver:
     VIRTUAL_HOST: "localhost"
     VIRTUAL_PORT: "42000"
   links:
-    - database:DATABASE_IP
+    - postgres:POSTGRES_IP
 analysis:
   build: analysis
   volumes:
@@ -38,4 +42,4 @@ analysis:
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/shared:/shared
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/files/analysis:/files:ro
   links:
-    - database:DATABASE_IP
+    - postgres:POSTGRES_IP

@@ -63,6 +63,11 @@ input:disabled{
     font-size: 18pt;
 }
 
+.user-status
+{
+    font-weight: bold;
+}
+
 /* formatting for the match list page */
 
 .imgWrap {
