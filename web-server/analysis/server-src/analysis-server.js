@@ -34,6 +34,7 @@ function checkJobs()
             if (err)
                 console.log(err);
             locals.done();
+            console.log("finished check_jobs");
             setTimeout(checkJobs, check_interval);
         }
     );
@@ -49,6 +50,7 @@ function processReplay(replay_row, callback_replay)
             database.connect,
             function(client, done_client, callback)
             {
+                console.log("got db client");
                 locals.client = client;
                 locals.done = done_client;
 
