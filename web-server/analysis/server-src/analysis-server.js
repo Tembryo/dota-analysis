@@ -34,7 +34,7 @@ function checkJobs()
             if (err)
                 console.log(err);
             locals.done();
-            console.log("finished check_jobs");
+            //console.log("finished check_jobs");
             setTimeout(checkJobs, check_interval);
         }
     );
@@ -71,6 +71,7 @@ function processReplay(replay_row, callback_replay)
                     child_process.execFile(
                         "java", 
                         ["-jar", "/extractor/extractor.jar", config.shared+results.rows[0].file, config.storage+"/"],
+                        {"timeout":60000},
                         callback);
                 }
             },
@@ -127,6 +128,7 @@ function processReplay(replay_row, callback_replay)
                 child_process.execFile(
                     "python",
                     ["/analysis/analysis.py", locals.match_id, locals.match_dir, locals.analysis_file, locals.header_file],
+                    {"timeout":60000},
                     callback);
             },
             function (stdout, stderr, callback) 
