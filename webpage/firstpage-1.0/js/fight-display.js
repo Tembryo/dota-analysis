@@ -205,27 +205,22 @@ $(document).ready(function(){
 			// display the first fight details in the fight-details view when the page laods up
 			var event_id = Object.keys(fights[0]);
 			var attacks = fights[0][event_id[0]]["attack-sequence"];
-			var attack_div = $("<div id = 'attack_list_div' class = 'fight_div' > </div>");
-			$(attack_div).append("<h2>Fight "+ 0 + "</h2>");
+			var attack_text = "";
 			for (i = 0; i < attacks.length; i++){
-				var attack_text = "Django!";
-				$(attack_div).append("<p class = 'fight_text'>" + attack_text + "</p>");
+				attack_text = attack_text + "\n" + "default!";
 			};
-			$('#fight-details-view').append(attack_div);
+			document.getElementById("my_text_area").value += attack_text;
 			// when a new fight is clicked remove the old one and show the new details instead
 			$('.fight_div').click(function(){
-				$('#attack_list_div').remove();
 				var selected_id = $(this).attr("id");
 				//load attack data into a variable
 				var event_id = Object.keys(fights[selected_id]);
 				var attacks = fights[selected_id][event_id[0]]["attack-sequence"];
-				var attack_div = $("<div id = 'attack_list_div' class = 'fight_div'> </div>");
-				$(attack_div).append("<h2>Fight "+ selected_id + "</h2>");	
+				var attack_text = "";
 				for (i = 0; i < attacks.length; i++){
-					var attack_text = "rampage!";
-					$(attack_div).append("<p class = 'fight_text'>" + attack_text + "</p>");
+					attack_text = attack_text + "\n" + "onclick!";
 				};
-				$('#fight-details-view').append(attack_div);
+				document.getElementById("my_text_area").value += attack_text;
 			});
   		});
   	});	
