@@ -869,6 +869,7 @@ def main():
 	h = open(header_file,'wb')
 	h.write(json.dumps(header, sort_keys=False,indent=4, separators=(',', ': ')))	
 	h.close()
+	
 	#check for errors in the Json file (optional)
 	with open(match.output_filename) as data_file:    
 		data = json.load(data_file)
