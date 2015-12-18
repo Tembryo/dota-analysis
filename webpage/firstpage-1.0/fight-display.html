@@ -1,0 +1,64 @@
+<!Doctype>
+<html lang = "en">
+<head>
+	<meta charset="utf-8">
+	<title> Fight Display </title>
+
+	<!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="css/grayscale2.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="css/diagram.css"/>
+    <link rel="stylesheet" type="text/css" href="css/fight-display.css"/>
+
+    <!-- Custom Fonts -->
+    <link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+
+    <!-- Custom Scripts -->
+    <script src="js/d3.min.js" charset="utf-8"></script>
+    <script src= "js/jquery.js"></script>
+    <script src = "js/fight-display.js"></script>
+    <!-- carouself script -->
+    <script src="js/jq.carousel.js"></script>
+
+</head>
+<body>
+	
+	<section id="match-fight-display" class="container content-section text-center">
+        <div class="row">
+            <h1>Fights for match ID: X</h1>
+            <!-- first half of the page for the fights displayed in a veritical carousel -->
+            <div id = "fights-list-container" class="col-lg-6">
+                <h2>Fights List</h1>
+                <!-- the carousel -->
+                <div class="carousel">
+                    <div id="carousel" class="carousel_inner"> 
+                        <!-- carousel_boxes will be appended in here -->
+                    </div>
+                    <p class="btns">
+                        <input type="button" id="carousel_prev" value="prev">
+                        <input type="button" id="carousel_next" value="next">
+                    </p>
+                </div>
+            </div>
+            <!-- second half of the page for the map -->
+            <div id = "fight-details-container" class="col-lg-6">
+                <h2>Fight Details</h1>
+                <div id = "fight-details-view"> 
+                    <!-- details of the selected fight go in here -->
+                    <textarea id = "my_text_area" rows="50" cols="50">
+
+                    </textarea>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+
+
+</body>
+</html>
