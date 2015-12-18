@@ -67,6 +67,7 @@ function processReplay(replay_row, callback_replay)
                 }
                 else
                 {
+                    console.log("starting java");
                     child_process.execFile(
                         "java", 
                         ["-jar", "/extractor/extractor.jar", config.shared+results.rows[0].file, config.storage+"/"],
