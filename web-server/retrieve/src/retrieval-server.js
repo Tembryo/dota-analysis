@@ -26,14 +26,14 @@ steamClient.on('connected', function() {
 function relog()
 {
     console.log("relogging");
-  /*  steamUser.logOn({
-        account_name: config.steam_user,
-        password: config.steam_pw
-      });*/
+    steamClient.connect();
 }
 
-steamClient.on('error', function(){setTimeout(relog, reconnect_delay);});
-steamClient.on('loggedOff', function(){setTimeout(relog, reconnect_delay);});
+steamClient.on('error', function(){
+        console.log("steam error");
+        setTimeout(relog, reconnect_delay);}
+    );
+steamClient.on('loggedOff', function(){        console.log("steam logoff");setTimeout(relog, reconnect_delay);});
 
 steamClient.on('logOnResponse', function(response) {
     if (response.eresult == Steam.EResult.OK)
@@ -46,14 +46,7 @@ steamClient.on('logOnResponse', function(response) {
         Dota2.on("ready", function()
         {
             console.log("Node-dota2 ready.");
-            var user_steam_id = "76561198019532009";
-            var user_account_id = Dota2.ToAccountID(user_steam_id);
-            console.log("account id", user_account_id);
-            Dota2.requestPlayerMatchHistory(user_account_id, {"start_at_match_id": 2000000000, "matches_requested": 10}, function(err, response){console.log("history", JSON.stringify(response));})
-
-            var match_id = 2005300560;
-            downloadMatch(match_id);
-
+            checkJobs();
         });
     }
     else console.log(response);
@@ -85,7 +78,16 @@ var downloadAndDecompress = function(url, dest, cb) {
         }
     });
 
-    sendReq.pipe(bz2()).pipe(file);
+    var decoder = bz2();
+    decoder.on('error', function(err) { // Handle errors
+        fs.unlink(dest); // Delete the file async. (But we don't check the result)
+    
+        if (cb) {
+            return cb(err.message);
+        }
+    });
+
+    sendReq.pipe(decoder).pipe(file);
 
     file.on('finish', function() {
         file.close(cb);  // close() is async, call cb after close completes.
@@ -102,8 +104,9 @@ var downloadAndDecompress = function(url, dest, cb) {
 
 
 
-function downloadMatch(match_id)
-{
+function downloadMatch(match_id, final_callback)
+{   
+    var file;
     async.waterfall(
         [
             Dota2.requestMatchDetails.bind(Dota2, match_id),
@@ -111,29 +114,37 @@ function downloadMatch(match_id)
             {
                 if(result.result != 1)
                     callback("bad match details:", result);
+
                 var replay_data = {
                     "cluster": result.match.cluster,
                     "match_id": result.match.match_id.low,
                     "replay_salt": result.match.replay_salt
                 };
+                if(result.match.replay_state != 0)
+                {
+                    callback("bad replay state", result.match.replay_state);
+                }
+                else
+                {
+                    file = "/replays/"+replay_data.match_id+".dem"
+                    var replay_address = "http://replay"+replay_data.cluster+".valve.net/570/"+replay_data.match_id+"_"+replay_data.replay_salt+".dem.bz2";
 
-                var replay_address = "http://replay"+replay_data.cluster+".valve.net/570/"+replay_data.match_id+"_"+replay_data.replay_salt+".dem.bz2";
-                var file = "/replays/"+replay_data.match_id+".dem";
-
-                console.log("Downloading from", replay_address);
-                console.log("Storing in shared - ", file);
-                downloadAndDecompress(replay_address, config.shared+file, callback);
+                    console.log("Downloading from", replay_address);
+                    console.log("Storing in shared - ", file);
+                    downloadAndDecompress(replay_address, config.shared+file, callback);
+                }
             }
         ],
         function(err, result)
         {
+            console.log("finished match download", err, result);
             if(err)
             {
-                console.log("some error: ",err, result);
+                final_callback(err, result);
             }
             else
             {
-                console.log("successful download", match_id);
+                final_callback(null, file);
             }
         }
     );
@@ -172,9 +183,9 @@ function checkJobs()
     );
 }
 
-function processRequest(request_row, callback_replay)
+function processRequest(request_row, callback_request)
 {
-    console.log("processing replay", replay_row);
+    console.log("processing replay", request_row);
     var locals = {};
     locals.request_id = request_row.id;
     async.waterfall(
@@ -185,33 +196,102 @@ function processRequest(request_row, callback_replay)
                 console.log("got db client");
                 locals.client = client;
                 locals.done = done_client;
-                callback();
-                //
+
                 locals.client.query(
-                    "UPDATE ReplayFiles rf SET retrieval_status=(SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label=$2) WHERE mrr.id=$1 RETURNING rf.file;",
-                    [locals.replayfile_id, "retrieving"],
+                    "UPDATE MatchRetrievalRequests mrr SET retrieval_status=(SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label=$2) WHERE mrr.id=$1 RETURNING mrr.id, mrr.requester_id;",
+                    [locals.request_id, "retrieving"],
                     callback);
             },
+            function(results, callback)
+            {
+                console.log("set to retrieving");
+                if(results.rowCount!=1)
+                    callback("bad update result", results);
+                else
+                {
+                    console.log("dl #id for #u", results.rows[0].id, results.rows[0].requester_id);
+                    locals.requester_id = results.rows[0].requester_id;
+                    downloadMatch(results.rows[0].id, callback);
+                }
+            },
+            function(replay_file, callback)
+            {
+                console.log("downloaded match to", replay_file);
+
+                locals.client.query(
+                    "INSERT INTO ReplayFiles (file, upload_filename, processing_status, uploader_id) VALUES ($1, $2, (SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$3), $4);",
+                    [replay_file,"retrieved", "uploaded", locals.requester_id],
+                    callback);
+            },
+            function(results, callback)
+            {
+                if(results.rowCount!=1)
+                    callback("inserting replayfile failed", results);
+                else
+                {
+                    console.log("inserted replayfile");
+                    locals.client.query(
+                        "UPDATE MatchRetrievalRequests mrr SET retrieval_status=(SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label=$2) WHERE mrr.id=$1 RETURNING mrr.id;",
+                        [locals.request_id, "retrieved"],
+                        callback);
+                }
+            },
+            function(results, callback)
+            {
+                if(results.rowCount!=1)
+                    callback("setting status failed", results);
+                else
+                    callback();
+            }
         ],
         function(err, results)
         {
-            if(err)
+            if(err === "bad replay state" && results == 2)
             {
                 locals.client.query(
-                    "UPDATE MatchRetrievalRequests mrr SET processing_status=(SELECT ps.id FROM MatchRetrievalStatuses mrs WHERE mrs.label=$2) WHERE mrr.id=$1;",
-                    [locals.request_id, "failed"],
-                    function()
+                    "UPDATE MatchRetrievalRequests mrr SET retrieval_status=(SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label=$2) WHERE mrr.id=$1 RETURNING mrr.id;",
+                    [locals.request_id, "unavailable"],
+                    function(err2, results2)
                     {
-                        console.log("put request as failed", locals.request_id, err);
+                        if(err2 || results2.rowsCount != 1)
+                        {
+                            console.log("put request unavailable failed", locals.request_id, err, results, err2, results2);
+                        }
+                        else
+                        {
+                            console.log("put request as unavailable", locals.request_id, err, results);
+                        }
+
                         locals.done();
-                        callback_replay(null);
+                        callback_request(null);
+                    });
+            }
+            else if(err)
+            {
+                locals.client.query(
+                    "UPDATE MatchRetrievalRequests mrr SET retrieval_status=(SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label=$2) WHERE mrr.id=$1 RETURNING mrr.id;",
+                    [locals.request_id, "failed"],
+                    function(err2, results2)
+                    {
+                        if(err2 || results2.rowsCount != 1)
+                        {
+                            console.log("put request as failed - failed again", locals.request_id, err, results, err2, results2);
+                        }
+                        else
+                        {
+                            console.log("put request as failed", locals.request_id, err, results);
+                        }
+
+                        locals.done();
+                        callback_request(null);
                     });
             }
             else
             {
-                console.log("retreved", locals.request_id);
+
+                console.log("retrieved", locals.request_id);
                 locals.done();
-                callback_replay(null);
+                callback_request(null);
             }
         }
     );

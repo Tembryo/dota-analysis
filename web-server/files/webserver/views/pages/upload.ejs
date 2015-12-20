@@ -2,12 +2,45 @@
     layout("base-template") -%>
 
 <section id="user-container" class="container content-section text-center">
+
+<% if(user["statuses"].indexOf("verified") >=0){%>
+
+    <div class="row">
+		<div class="col-xs-6 col-xs-offset-3">
+            <h1> Add Match </h1>
+        </div>
+    </div>
+	<div class="row">
+        <form id="request-form">
+		    <div class="col-xs-2 col-xs-offset-3">
+                Match ID:
+            </div>
+		    <div class="col-xs-2">
+                <input type="text" id="request-id"/>
+            </div>
+		    <div class="col-xs-2">
+                <input type="button" id="request-button" value="Add Match" disabled>
+            </div>
+        </form>
+    </div>
+
+	<div class="row">
+		    <div class="col-xs-6 col-xs-offset-3">
+                <h2>Requested Matches</h2>
+            </div>
+    </div>
+
+	<div class="row">
+	    <div class="col-xs-6 col-xs-offset-3">
+        <table class = "matches" id = "requests-table"></table>
+    </div>
+
+
 	<div class="row">
 		<div class="col-xs-6 col-xs-offset-3">
             <h1> Upload </h1>
         </div>
     </div>
-<% if(user["statuses"].indexOf("verified") >=0){%>
 	<div class="row">
         <form enctype="multipart/form-data" id="upload-form">
 		    <div class="col-xs-2 col-xs-offset-3">

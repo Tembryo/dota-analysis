@@ -2,7 +2,56 @@ keep_checking = false;
 var n_tries = 0;
 update_interval = 2000;
 
+requests_list = [];
 upload_list = [];
+
+function validateNumeric(number) {
+    var re = /[0-9]|\./;
+    return re.test(number);
+}
+
+$("#request-id").on('blur keyup change click', function(){
+    var id = $("#request-id").val();
+    //Your validation
+    if(validateNumeric(id) && id.length == 10)
+    {
+        $("#request-button").prop('disabled', false);
+    }
+    else
+    {
+        $("#request-button").prop('disabled', true);
+    }
+});
+
+
+$("#request-button").click(function(){
+    console.log($('#request-form'));
+    $.ajax({
+        url: '/api/retrieve/'+$("#request-id").val(),
+        type: 'POST',
+
+        //Ajax events
+        success: requestCompleteHandler,
+        error: requestErrorHandler,
+    });
+});
+
+function requestCompleteHandler(result)
+{
+    setTimeout(update(), update_interval/2);
+    n_tries = 5;
+
+    $('#request-field').text(result.result);
+    console.log("completed request");
+    console.log(result);
+}
+
+function requestErrorHandler(e)
+{
+    $('#request-field').text("Request failed");
+    console.log("error");
+    console.log(e);
+}
 
 
 $("#upload-file").on("change reset", function(){
@@ -72,7 +121,7 @@ function beforeSendHandler(e){
 
 function completeHandler(e){
 
-    setTimeout(updateReplays(), update_interval/2);
+    setTimeout(update(), update_interval/2);
     n_tries = 5;
     $('#progress-field').text("Upload complete");
 
@@ -97,9 +146,79 @@ function onUploadProgress(e){
     }
 }
 
+function updateRequests(callback)
+{
+    d3.json("/api/retrieve"
+		,function(error, data){
+			requests_list = data;
+            requests_list.sort(function(a,b){return parseInt(a["id"])-parseInt(b["id"]);});
+            updateRequestsList();
+            
+            for(var request_i in requests_list)
+            {
+                if(requests_list[request_i]["status"] === "requested" || requests_list[request_i]["status"] === "retrieving")
+                {
+                    keep_checking = true;
+                    break;
+                }
+            }
+            callback(); 
+		});
+}
+
+function updateRequestsList()
+{
+	var requests = d3.select("#requests-table").selectAll(".request").data(requests_list, function(match){
+					return match["id"];
+				});
+
+	requests.enter()
+		.append("tr")
+		.attr("class", "request")
+		.each(createRequestElement);
+
+	requests.each(updateRequestElement);
+
+	requests.exit()
+		.remove();
+}
+
+function createRequestElement(request)
+{
+    d3.select(this)
+	        .append("td")
+	            .append("a")
+                .attr({
+                        "href": function(file){return "/match/"+request["id"];},
+                        "class": "match-id"})
+    d3.select(this)
+	        .append("td")
+            .attr("class", "status")
+}
+
+function updateRequestElement(upload)
+{
+
+    d3.select(this).select(".status")
+        .text(function(d){
+                switch(d["status"])
+                {
+                    case "failed": return "Failed";
+                    case "requested": return "Queued";
+                    case "retrieving": return "Retrieving Match";
+                    case "unavailable": return "Not available";
+                    case "retrieved": return "Retrieved";
+                }
+            });
+
+    d3.select(this).select(".match-id")
+        .text(function(d){ return d["id"];});
+}
 
 
-function updateReplays()
+
+
+function updateReplays(callback)
 {
     d3.json("/api/uploads"
 		,function(error, data){
@@ -107,7 +226,6 @@ function updateReplays()
             upload_list.sort(function(a,b){return parseInt(a["match_id"])-parseInt(b["match_id"]);});
             updateList();
             
-            keep_checking = false;
             for(var upload_i in upload_list)
             {
                 if(upload_list[upload_i]["status"] === "uploaded" || upload_list[upload_i]["status"] === "extracting" || upload_list[upload_i]["status"] === "analysing" )
@@ -116,14 +234,7 @@ function updateReplays()
                     break;
                 }
             }
-
-            if(keep_checking || n_tries > 0)
-            {
-            	setTimeout(updateReplays, update_interval);
-                if(n_tries > 0)
-                    n_tries--;
-                console.log(n_tries);
-            }
+            callback();
 		});
 }
 
@@ -205,7 +316,27 @@ function updateUploadElement(upload)
 
 function main()
 {
-	updateReplays();
+    update();
+}
+
+function update()
+{
+    keep_checking = false;
+	async.series(
+        [
+            updateReplays,
+	        updateRequests
+        ],
+        function(err){
+            
+            if(keep_checking || n_tries > 0)
+            {
+            	setTimeout(update, update_interval);
+                if(n_tries > 0)
+                    n_tries--;
+                console.log(n_tries);
+            }
+        });
 }
 
 window.onload = main;

@@ -223,6 +223,102 @@ router.route("/uploads")
         }
     );
 
+
+router.route("/retrieve")
+    .get(authentication.ensureAuthenticated,
+        function(req, res)
+        {
+            var locals = {};
+            async.waterfall(
+                [
+                    database.connect,
+                    function(client, done_client, callback)
+                    {
+                        locals.client = client;
+                        locals.done = done_client;
+
+                        locals.client.query("SELECT mrr.id, mrs.label as status FROM MatchRetrievalRequests mrr, MatchRetrievalStatuses mrs WHERE mrr.retrieval_status = mrs.id AND mrr.requester_id=$1;",
+                            [req.user["id"]],callback);
+                    },
+                    function(results, callback)
+                    {
+                        //just give out the rows?
+                        callback(null, results.rows);
+                    }
+                ],
+                function(err, results)
+                {
+                    locals.done();
+                    if(err)
+                    {
+                        console.log(err);
+                    }
+                    res.json(results);
+                }
+            );
+        }
+    );
+
+router.route("/retrieve/:match_id")
+    .post(authentication.ensureAuthenticated,
+        function(req, res)
+        {
+            var locals = {};
+            async.waterfall(
+                [
+                    database.connect,
+                    function(client, done_client, callback)
+                    {
+                        locals.client = client;
+                        locals.done = done_client;
+
+                        locals.client.query("SELECT rf.id FROM ReplayFiles rf WHERE rf.id=$1;",
+                            [req.params.match_id],callback);
+                    },
+                    function(results, callback)
+                    {
+                        if(results.rowCount > 0)
+                            callback("already exists");
+                        else
+                        {
+                            locals.client.query("INSERT INTO MatchRetrievalRequests(id, retrieval_status, requester_id) VALUES ($1, (SELECT mrs.id FROM MatchRetrievalStatuses mrs where mrs.label=$2), $3);",
+                            [req.params.match_id, "requested", req.user["id"]],callback);
+                        }
+                    },
+                    function(results, callback)
+                    {
+                        if(results.rowCount != 1)
+                            callack("inserting request failed", results);
+                        else
+                            callback();
+                    }
+                ],
+                function(err, results)
+                {
+                    locals.done();
+                    if(err)
+                    {
+                        console.log(err);
+                        var error_result = {
+                            "result": "error",
+                            "message": err,
+                            "info": results
+                            };
+                        res.json(error_result);
+                    }
+                    else
+                    {
+                        var success_result = {
+                            "result": "success"
+                            };
+                        res.json(success_result);
+                    }
+                }
+            );
+        }
+    );
+
+
 router.route("/verify/:verification_code")
     .get(authentication.ensureAuthenticated,
         function(req, res)

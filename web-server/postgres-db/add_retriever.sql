@@ -1,3 +1,3 @@
 CREATE TABLE IF NOT EXISTS MatchRetrievalStatuses(id smallserial PRIMARY KEY, label text);
 INSERT INTO MatchRetrievalStatuses(label) VALUES ('requested'), ('retrieving'), ('retrieved'), ('unavailable'), ('failed');
-CREATE TABLE IF NOT EXISTS MatchRetrievalRequests(id bigint PRIMARY KEY, retrieval_status smallint REFERENCES MatchRetrievalStatuses(id));
+CREATE TABLE IF NOT EXISTS MatchRetrievalRequests(id bigint PRIMARY KEY, retrieval_status smallint REFERENCES MatchRetrievalStatuses(id), requester_id bigint REFERENCES Users(id));

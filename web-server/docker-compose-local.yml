@@ -43,3 +43,11 @@ analysis:
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/files/analysis:/files:ro
   links:
     - postgres:POSTGRES_IP
+retrieve:
+  build: retrieve
+  volumes:
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/retrieve:/storage
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/shared:/shared
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/retrieve/src:/source:ro
+  links:
+    - postgres:POSTGRES_IP

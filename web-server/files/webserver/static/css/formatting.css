@@ -30,6 +30,39 @@ input:disabled{
     font-size: 18pt;
 }
 
+#requests-table 
+{
+    width: 100%;
+    table-layout: fixed;
+}
+
+.request
+{
+    text-align: center;
+    font-family: Lora,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    color: #ddd;
+    background-color: #333;
+    font-size: 18pt;
+}
+
+.request td
+{
+    text-align: center;
+    font-family: Lora,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    color: #ddd;
+    background-color: #333;
+    font-size: 18pt;
+}
+
+.request a
+{
+    text-align: center;
+    font-family: Lora,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    color: #ddd;
+    background-color: #333;
+    font-size: 1;
+}
+
 #uploads-table 
 {
     width: 100%;

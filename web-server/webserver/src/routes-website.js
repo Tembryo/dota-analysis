@@ -29,7 +29,7 @@ function addNavigationData(data)
         "link": "/matches"
     },
     {
-        "label": "Replay Upload",
+        "label": "Add Match",
         "link": "/upload"
     }];
 }
