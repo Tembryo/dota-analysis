@@ -1,37 +1,5 @@
 <% title="Match "+match_id;
     layout("base-template") -%>
 
-<section id="match" class="container-fluid content-section text-center">
 
     <% include ../partials/match-diagram.ejs -%>
-</section>
-
- <section id="match-fight-display" class="container content-section text-center">
-        <div class="row">
-            <!-- first half of the page for the fights displayed in a veritical carousel -->
-            <div id = "fights-list-container" class="col-lg-6">
-                <h2>Fight List</h1>
-                <!-- the carousel -->
-                <div class="carousel">
-                    <div id="carousel" class="carousel_inner"> 
-                        <!-- carousel_boxes will be appended in here -->
-                    </div>
-                    <p class="btns">
-                        <input type="button" id="carousel_prev" value="<<">
-                        <input type="button" id="carousel_next" value=">>">
-                    </p>
-                </div>
-            </div>
-            <!-- second half of the page for the combat log -->
-            <div id = "fight-details-container" class="col-lg-6">
-                <h2>Combat Log</h1>
-                <div id = "fight-details-view"> 
-                    <!-- details of the selected fight go in here -->
-                    <textarea id = "my_text_area" rows="50" cols="50">
-
-                    </textarea>
-                </div>
-            </div>
-        </div>
-    </section>
-
