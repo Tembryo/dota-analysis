@@ -114,114 +114,155 @@ $(document).ready(function(){
 	  "zuus":                 "img/hero-pictures/Zeus.png"
 	  };
 
-	var header;
 	// open up the header file for the match
-	$.getJSON("data/header.json", function(json) {
-  		header = json;
+	// need to decide if will simply load the whole analysis file instead
+	$.getJSON("data/analysis.json", function(json) {
+  		replay_data = json;
   		var hero_id = {};
-  		var hero_namespace = header["parameters"]["namespace"]["hero_namespace"];
-  		for (i = 0; i < header["parameters"]["general"]["num_players"]; i++){
-  			hero_id[hero_namespace+i] = header["players"][i]["hero"]; 
+  		var hero_namespace = replay_data["header"]["parameters"]["namespace"]["hero_namespace"];
+  		for (i = 0; i < replay_data["header"]["parameters"]["general"]["num_players"]; i++){
+  			hero_id[hero_namespace+i] = replay_data["header"]["players"][i]["hero"]; 
   		};
-  		var fights;
-  		// open up the fight data for the match
-		$.getJSON("data/fight_data.json", function(json) {
-  			fights = json;
-  			var num_keys = Object.keys(fights).length;
-			// loop over all of the fights in the json file
-			for (var i = 0; i < num_keys; i++){
-				// make a div to contain each fight
-				var fight_div = $("<div> </div>");
-				$(fight_div).addClass("fight_div");
-				$(fight_div).addClass("carousel_box");
-				$(fight_div).attr("id",i);
-				var fight_title = "<h2 class = fight_title> Fight " + i + "</h2>"; 
-				$(fight_div).append(fight_title);
-				// put two divs inside this div to separate the radiant and dire heros
-				var fight_div_radiant = $("<div> </div>");
-				$(fight_div_radiant).addClass("fight_div_radiant");
-				$(fight_div).append(fight_div_radiant);
-				var fight_div_dire = $("<div> </div>");
-				$(fight_div).append(fight_div_dire);
-				//find the number of heros invovled in the fight
-				var event_id = Object.keys(fights[i]);
-				var involved = fights[i][event_id[0]]["involved"];
-				var killed = fights[i][event_id[0]]["killed"];
-				// make a div to contain the picture of each hero involved in the fight
-				for (var j = 0; j < involved.length; j++){
-					var hero_pic_div= $("<div> </div>");
-					$(hero_pic_div).addClass("hero_pic_div");
-					var hero_image_location = icon_images[hero_id[involved[j]]];
-					var hero_img = $("<img src = '" + hero_image_location + "'>");
-					$(hero_img).addClass("hero_img");
-					$(hero_pic_div).append(hero_img);
-					//check if that hero was killed in the fight
-					for (var k = 0; k < killed.length; k++){
-						if (involved[j] == killed[k]) {
-							var skull_img = $("<img src = 'img/Red_Cross.svg' >");
-							$(skull_img).addClass('red_cross_img');
-							$(hero_pic_div).append(skull_img);
-						};					
-					}
-					// put the images in different divs depending on if they are dire or radiant heros
-					if (involved[j] <= 104){
-						$(fight_div_radiant).append(hero_pic_div);
-					}
-					else {
-						$(fight_div_dire).append(hero_pic_div);
-					}
-				};
-				// make a div to contain information on the time of the fight/gold/xp exchanged
-				var info_div = $("<div> </div>");
-				var location = fights[i][event_id[0]]["location"];
-				var time_start = fights[i][event_id[0]]["time-start"];
-				var time_start_minutes = Math.round(time_start / 60);
-				var time_start_seconds = Math.round(time_start % 60);
+  		var fights = findFightEvents();
+		var num_keys = Object.keys(fights).length;
+		// loop over all of the fights in the json file
+		for (var i = 0; i < num_keys; i++){
+			// make a div to contain each fight
+			var fight_div = $("<div> </div>");
+			$(fight_div).addClass("fight_div");
+			$(fight_div).addClass("carousel_box");
+			$(fight_div).attr("id",i);
+			var fight_title = "<h2 class = fight_title> Fight " + i + "</h2>"; 
+			$(fight_div).append(fight_title);
+			// put two divs inside this div to separate the radiant and dire heros
+			var fight_div_radiant = $("<div> </div>");
+			$(fight_div_radiant).addClass("fight_div_radiant");
+			$(fight_div).append(fight_div_radiant);
+			var fight_div_dire = $("<div> </div>");
+			$(fight_div).append(fight_div_dire);
+			//find the number of heros invovled in the fight
+			var event_id = Object.keys(fights[i]);
+			var involved = fights[i][event_id[0]]["involved"];
+			var killed = fights[i][event_id[0]]["killed"];
+			// make a div to contain the picture of each hero involved in the fight
+			for (var j = 0; j < involved.length; j++){
+				var hero_pic_div= $("<div> </div>");
+				$(hero_pic_div).addClass("hero_pic_div");
+				var hero_image_location = icon_images[hero_id[involved[j]]];
+				var hero_img = $("<img src = '" + hero_image_location + "'>");
+				$(hero_img).addClass("hero_img");
+				$(hero_pic_div).append(hero_img);
+				//check if that hero was killed in the fight
+				for (var k = 0; k < killed.length; k++){
+					if (involved[j] == killed[k]) {
+						var skull_img = $("<img src = 'img/Red_Cross.svg' >");
+						$(skull_img).addClass('red_cross_img');
+						$(hero_pic_div).append(skull_img);
+					};					
+				}
+				// put the images in different divs depending on if they are dire or radiant heros
+				if (involved[j] <= 104){
+					$(fight_div_radiant).append(hero_pic_div);
+				}
+				else {
+					$(fight_div_dire).append(hero_pic_div);
+				}
+			};
+			// make a div to contain information on the time of the fight/gold/xp exchanged
+			var info_div = $("<div> </div>");
+			var location = fights[i][event_id[0]]["location"];
+			var time_start = Math.floor(fights[i][event_id[0]]["time_start"]);
+			var time_start_minutes = Math.floor(time_start / 60);
+			var time_start_seconds = Math.floor(time_start % 60);
 
-				var time_end = fights[i][event_id[0]]["time-end"];
-				var time_end_minutes = Math.round(time_end / 60);
-				var time_end_seconds = Math.round(time_end % 60);
+			var time_end = fights[i][event_id[0]]["time_end"];
+			var time_end_minutes = Math.floor(time_end / 60);
+			var time_end_seconds = Math.floor(time_end % 60);
 
+			var total_damage = fights[i][event_id[0]]["total_damage"];
 
-				var time_text = "<p class = 'fight_text' > Time: " + time_start_minutes +":"+ time_start_seconds + "-" + time_end_minutes +":"+ time_end_seconds + "</p>";
-				var location_text = "<p class = 'fight_text'> Location: " + location + "</p>";
-				$(info_div).append(time_text);
-				$(info_div).append(location_text);
-				$(fight_div).append(info_div);
-				// append the div to the fight-list-container
-				$("#carousel").append(fight_div);
-		  	};
-		  	var $carousel = $('#carousel').carousel({
-				vertical: true,
-				indicator:true,
-				group: 2
-			});			  
-			$('#carousel_prev').on('click', function(ev) {
-		  		$carousel.carousel('prev');
-			});
-			$('#carousel_next').on('click', function(ev) {
-		  		$carousel.carousel('next');
-			});
-			// display the first fight details in the fight-details view when the page laods up
-			var event_id = Object.keys(fights[0]);
-			var attacks = fights[0][event_id[0]]["attack-sequence"];
+			var time_text = "<p class = 'fight_text' > Time: " + str_pad_left(time_start_minutes,'0',2) +":"+ str_pad_left(time_start_seconds,'0',2) + "-" + str_pad_left(time_end_minutes,'0',2) +":"+ str_pad_left(time_end_seconds,'0',2)+ ", Total Damage: " + total_damage +" </p>";
+			var location_text = "<p class = 'fight_text'> Location: " + location + "</p>";
+			$(info_div).append(time_text);
+			$(info_div).append(location_text);
+			$(fight_div).append(info_div);
+			// append the div to the fight-list-container
+			$("#carousel").append(fight_div);
+	  	};
+	  	var $carousel = $('#carousel').carousel({
+			vertical: true,
+			indicator:true,
+			group: 3
+		});			  
+		$('#carousel_prev').on('click', function(ev) {
+	  		$carousel.carousel('prev');
+		});
+		$('#carousel_next').on('click', function(ev) {
+	  		$carousel.carousel('next');
+		});
+		// display the first fight details in the fight-details view when the page laods up
+		$("#my_text_area").val('');
+		var event_id = Object.keys(fights[0]);
+		var attacks = fights[0][event_id[0]]["attack_sequence"];
+		var attack_text = "";
+		for (i = 0; i < attacks.length; i++){
+			var attacker = hero_id[attacks[i]["attacker"]];
+			attacker = capitalizeFirstLetter(attacker);
+			var victim = hero_id[attacks[i]["victim"]];
+			victim = capitalizeFirstLetter(victim);
+			var attack_method = attacks[i]["attack_method"];
+			var damage = attacks[i]["damage"];
+			var time = Math.floor(10*attacks[i]["t"])/10;
+			var minutes = Math.floor(time /60);
+			var seconds = Math.floor(time % 60);
+			var health_delta = attacks[i]["health_delta"];
+			attack_text = attack_text + "\n " + "At " + str_pad_left(minutes,'0',2) + ":" + str_pad_left(seconds,'0',2) + " - " + attacker + " attacked " + victim + " with " + attack_method + " did " + damage + " damage" + health_delta;
+		};
+		document.getElementById("my_text_area").value += attack_text;
+		// when a new fight is clicked remove the old one and show the new details instead
+		$('.fight_div').click(function(){
+			$("#my_text_area").val('');
+			var selected_id = $(this).attr("id");
+			//load attack data into a variable
+			var event_id = Object.keys(fights[selected_id]);
+			var attacks = fights[selected_id][event_id[0]]["attack_sequence"];
 			var attack_text = "";
 			for (i = 0; i < attacks.length; i++){
-				attack_text = attack_text + "\n" + "default!";
+				var attacker = hero_id[attacks[i]["attacker"]];
+				attacker = capitalizeFirstLetter(attacker);
+				var victim = hero_id[attacks[i]["victim"]];
+				victim = capitalizeFirstLetter(victim);
+				var attack_method = attacks[i]["attack_method"];
+				var damage = attacks[i]["damage"];
+				var time = Math.floor(attacks[i]["t"]);
+				var minutes = Math.floor(time /60);
+				var seconds = Math.floor(time % 60);
+				var health_delta = attacks[i]["health_delta"];
+				attack_text = attack_text + "\n " + "At " + str_pad_left(minutes,'0',2) + ":" + str_pad_left(seconds,'0',2) + " - " + attacker + " attacked " + victim + " with " + attack_method + " did " + damage + " damage" + health_delta;
 			};
 			document.getElementById("my_text_area").value += attack_text;
-			// when a new fight is clicked remove the old one and show the new details instead
-			$('.fight_div').click(function(){
-				var selected_id = $(this).attr("id");
-				//load attack data into a variable
-				var event_id = Object.keys(fights[selected_id]);
-				var attacks = fights[selected_id][event_id[0]]["attack-sequence"];
-				var attack_text = "";
-				for (i = 0; i < attacks.length; i++){
-					attack_text = attack_text + "\n" + "onclick!";
-				};
-				document.getElementById("my_text_area").value += attack_text;
-			});
-  		});
+		});
   	});	
 });
+
+function str_pad_left(string,pad,length){ 
+	return (new Array(length+1).join(pad)+string).slice(-length); 
+}
+
+
+function findFightEvents(){
+	//sort events
+	fights = [];
+	for (var event_id in replay_data["events"]) {
+		if (replay_data["events"][event_id]["type"] === "fight")
+		{
+			fight_element = {event_id:replay_data["events"][event_id]};
+			fights.push(fight_element);
+		}
+	}
+	return fights
+}
+
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
