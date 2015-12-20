@@ -1,3 +1,8 @@
+#fights-list-container {
+	margin-left:0px;
+	padding-left: 0px;
+}
+
 .fight_div {
 	background: #444;
 	border-radius: 5px;
@@ -52,8 +57,9 @@
 #carousel {
   margin: 0 auto;
   width: 450px;
-  height: 600px;
+  height: 590px;
   overflow: hidden;
+  position: relative;
 }
 
 #carousel .carousel_box {
@@ -61,10 +67,26 @@
   border: solid #fff 5px;
 }
 
+#carousel_prev {
+	background: #555;
+	position: absolute;
+	left: 15px;
+	top: 280px;
+	border-radius: 5px;
+}
+
+#carousel_next {
+	background: #444;
+	position: absolute;
+	left: 517px;
+	top: 280px;
+	border-radius: 5px;
+}
+
 textarea {
     overflow-y: scroll;
-    height: 600px;
-    width: 500px;
+    height: 590px;
+    width: 550px;
     background: #444;
     border: solid #fff 5px;
     border-radius: 5px;
