@@ -109,7 +109,6 @@ router.get('/user',
 
 router.get('/matches',
     function(req, res,next){console.log("serving matches");next();},
-    authentication.ensureAuthenticated,
     function(req, res)
     {
         var data = collectTemplatingData(req);

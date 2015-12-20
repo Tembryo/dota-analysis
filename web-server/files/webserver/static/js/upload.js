@@ -151,7 +151,7 @@ function updateRequests(callback)
     d3.json("/api/retrieve"
 		,function(error, data){
 			requests_list = data;
-            requests_list.sort(function(a,b){return parseInt(a["id"])-parseInt(b["id"]);});
+            requests_list.sort(function(a,b){return parseInt(b["id"])-parseInt(a["id"]);});
             updateRequestsList();
             
             for(var request_i in requests_list)
@@ -205,7 +205,7 @@ function updateRequestElement(upload)
                 {
                     case "failed": return "Failed";
                     case "requested": return "Queued";
-                    case "retrieving": return "Retrieving Match";
+                    case "retrieving": return "Downloading";
                     case "unavailable": return "Not available";
                     case "retrieved": return "Retrieved";
                 }
@@ -213,6 +213,18 @@ function updateRequestElement(upload)
 
     d3.select(this).select(".match-id")
         .text(function(d){ return d["id"];});
+    
+    console.log(this);
+    d3.select(this).attr("style", function(d){
+                switch(d["status"])
+                {
+                    case "failed": return "";
+                    case "requested": return "background-color: #666;";
+                    case "retrieving": return "background-color: #666;";
+                    case "unavailable": return "";
+                    case "retrieved": return "";
+                }
+            });
 }
 
 
@@ -223,7 +235,7 @@ function updateReplays(callback)
     d3.json("/api/uploads"
 		,function(error, data){
 			upload_list = data;
-            upload_list.sort(function(a,b){return parseInt(a["match_id"])-parseInt(b["match_id"]);});
+            upload_list.sort(function(a,b){return parseInt(b["match_id"])-parseInt(a["match_id"]);});
             updateList();
             
             for(var upload_i in upload_list)
@@ -299,8 +311,8 @@ function updateUploadElement(upload)
                 {
                     case "failed": return "Failed";
                     case "uploaded": return "Queued";
-                    case "extracting": return "Parsing replay";
-                    case "analysing": return "Analysing replay";
+                    case "extracting": return "Parsing";
+                    case "analysing": return "Analysing";
                 }
             });
 
@@ -310,6 +322,16 @@ function updateUploadElement(upload)
                     return d["upload_filename"];
                 else
                     return d["match_id"];
+            });
+
+    d3.select(this).attr("style", function(d){
+                switch(d["status"])
+                {
+                    case "failed": return "";
+                    case "uploaded": return "background-color: #666;";
+                    case "extracting": return "background-color: #666;";
+                    case "analysing": return "background-color: #666;";
+                }
             });
 }
 

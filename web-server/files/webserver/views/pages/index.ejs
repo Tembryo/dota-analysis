@@ -1,7 +1,7 @@
 <%  title="Index";
     navigation_entries=[
         {"label": "Prototype", "link": "#prototype"},
-        {"label": "More Matches", "link": "#input-match-id"},
+        {"label": "More Matches", "link": "/matches"},
         {"label": "About", "link": "#about-prototype"},
         {"label": "Contact", "link": "#contact"},
     ];
@@ -15,11 +15,16 @@
                     <div class="col-md-8 col-md-offset-2">
                         <h1 class="brand-heading">Wisdota</h1>
                         <p class="intro-text"> Visualise your Dota2 games</p>
-                        <a class="page-scroll" href="auth/steam">
-                            <img src="/static/img/steam_signin3.png" height="60px" alt="Steam signin"/>
-                        </a>
 
-                        <!-- <a href="http://goo.gl/forms/Nb6S8eGaCm" class="btn btn-default btn-lg">Beta Sign Up</a> -->
+
+<a href="/matches" class="btn btn-default btn-lg"><div style="margin: 20px 20px 20px 20px;"><h2 style="margin: 0px 0px 0px 0px;">See Matches
+</h2></div></a>
+<br/>
+<div style="width:150px; height: 10px;" ></div><br/>
+<a href="/auth/steam" class="btn btn-default btn-lg"> <h4 style="margin: 0px 0px 0px 0px;">Login to parse a match:</h4><br/> <img src="/static/img/steam_signin3.png" height="60px" alt="Steam signin"/>
+</a>
+
+
                     </div>    
                     <div id="downarrow" class="col-md-8 col-md-offset-2">
                         <a href="#prototype" class="btn btn-circle page-scroll">
@@ -37,21 +42,6 @@
             <% match_id = "1950565767" %>
             <% include ../partials/match-diagram.ejs -%>
     </section>
-
-    <!-- Request A Match Section -->
-    <section id="input-match-id" class="container content-section text-center">
-        <div class="row">
-            <div class="col-lg-8 col-lg-offset-2">
-                <h1>More matches</h1>
-                <p>We have a growing list of matches analysed and ready. You can access the full list after <a href="/matches">logging in</a>.</p>
-
-                <p> If there is a particular match you would like to see analysed you can simply upload the replay file, and it will automatically be processed.</p>
-
-                <p>If you have trouble getting a match analysed, feel free to <a href="mailto:quirin.fischer@wisdota.com">email us</a> and we will try to help.
-            </div>
-        </div>
-    </section>
-
 
 	<!-- About Prototype Section -->
 	<section id="about-prototype" class="container content-section text-center">

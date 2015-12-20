@@ -608,6 +608,7 @@ icon_images = {
 	"alchemist":            "/static/img/hero-icons/Alchemist_icon.png",
 	"ancient_apparition":   "/static/img/hero-icons/Ancient_Apparition_icon.png",
 	"antimage":             "/static/img/hero-icons/Antimage_icon.png",
+    "arc_warden":           "/static/img/hero-icons/Arc_Warden_icon.png",
 	"axe":                  "/static/img/hero-icons/Axe_icon.png",
 	"bane":                 "/static/img/hero-icons/Bane_icon.png",
 	"batrider":             "/static/img/hero-icons/Batrider_icon.png",

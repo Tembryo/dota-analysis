@@ -6,6 +6,7 @@ var icon_images = {
 "alchemist":            "/static/img/hero-pictures/Alchemist.png",
 "ancient_apparition":   "/static/img/hero-pictures/Ancient_Apparition.png",
 "antimage":             "/static/img/hero-pictures/Antimage.png",
+"arc_warden":           "/static/img/hero-pictures/Arc Warden.png",
 "axe":                  "/static/img/hero-pictures/Axe.png",
 "bane":                 "/static/img/hero-pictures/Bane.png",
 "batrider":             "/static/img/hero-pictures/Batrider.png",

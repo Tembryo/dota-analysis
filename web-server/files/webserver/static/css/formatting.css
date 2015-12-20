@@ -50,7 +50,6 @@ input:disabled{
     text-align: center;
     font-family: Lora,"Helvetica Neue",Helvetica,Arial,sans-serif;
     color: #ddd;
-    background-color: #333;
     font-size: 18pt;
 }
 
@@ -58,8 +57,7 @@ input:disabled{
 {
     text-align: center;
     font-family: Lora,"Helvetica Neue",Helvetica,Arial,sans-serif;
-    color: #ddd;
-    background-color: #333;
+    color: #1D9B6C;
     font-size: 1;
 }
 
@@ -83,7 +81,6 @@ input:disabled{
     text-align: center;
     font-family: Lora,"Helvetica Neue",Helvetica,Arial,sans-serif;
     color: #ddd;
-    background-color: #333;
     font-size: 18pt;
 }
 
@@ -91,8 +88,7 @@ input:disabled{
 {
     text-align: center;
     font-family: Lora,"Helvetica Neue",Helvetica,Arial,sans-serif;
-    color: #ddd;
-    background-color: #333;
+    color: #1D9B6C;
     font-size: 18pt;
 }
 
@@ -146,4 +142,9 @@ input:disabled{
 .hero_img {
     height: 48px;
     width: 84px;
+}
+
+h1, h2
+{
+    margin: 20px 0px 20px 0px;
 }
