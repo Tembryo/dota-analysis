@@ -44,3 +44,11 @@ analysis:
     - /usr/local/dota-analysis/web-server/files/analysis:/files:ro
   links:
     - postgres:POSTGRES_IP
+retrieve:
+  build: retrieve
+  volumes:
+    - /usr/local/dota-analysis/web-server/storage/retrieve:/storage
+    - /usr/local/dota-analysis/web-server/storage/shared:/shared
+    - /usr/local/dota-analysis/web-server/retrieve/src:/source:ro
+  links:
+    - postgres:POSTGRES_IP
