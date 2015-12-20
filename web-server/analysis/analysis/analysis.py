@@ -31,7 +31,7 @@ class Match:
 		self.parameters["namespace"]["hero_namespace"] = 100
 		self.parameters["namespace"]["kills_namespace"] = 10000
 		self.parameters["namespace"]["normal_namespace"] = 11000
-		self.parameters["namespace"]["fights_namespace"] = 12000
+		self.parameters["namespace"]["fights_namespace"] = 15000
 		self.parameters["general"] = {}
 		self.parameters["general"]["col_per_player"] = 7
 		self.parameters["general"]["num_players"] = 10
@@ -67,10 +67,10 @@ class Match:
 		self.parameters["formAdjacencyMatrix"]["w_space2"] = 0.3
 		self.parameters["formAdjacencyMatrix"]["w_time"] = 80
 
-		self.parameters["evaluateFightList"] = {}
-		self.parameters["evaluateFightList"]["alpha"] = 150
-		self.parameters["evaluateFightList"]["kappa"] = 0.15
-		self.parameters["evaluateFightList"]["time_threshold"] = 2
+		self.parameters["fightEvaluation"] = {}
+		self.parameters["fightEvaluation"]["alpha"] = 150
+		self.parameters["fightEvaluation"]["kappa"] = 0.15
+		self.parameters["fightEvaluation"]["time_threshold"] = 2
 
 	def matchInfo(self):
 
@@ -611,6 +611,7 @@ def makeAttackList(match,state):
 						else:
 							split_attack_method_string = attack_method_string.split()
 							attack_method = split_attack_method_string[1]
+							attack_method = attack_method[len(attacker_name)+1:]
 						health_delta = row[6]
 
 						new_attack = Attack(attacker_name,victim_name,float(row[5]),state[0][attacker_name][index],timestamp,attack_method,health_delta)
@@ -733,21 +734,12 @@ def lookUpLocation(match,area_matrix,v):
 
 	return location
 
-def evaluateFightList(match,attack_list,A):
-
-	#alpha = 150
-	#kappa = 0.15  # based on 150 + kappa*t = 500 damage for a 2400 second long match
-	#time_threshold = 2
-
-	alpha = match.parameters["evaluateFightList"]["alpha"]
-	kappa = match.parameters["evaluateFightList"]["kappa"]
-	time_threshold = match.parameters["evaluateFightList"]["time_threshold"]
+def fightSummary(match,area_matrix,attack_list,A):
 
 	fight_list = []
 	pregame_start_time = match.pregame_start_time
 	match_start_time = match.match_start_time
 	match_end_time = match.match_end_time
-	fights_namespace = match.parameters["namespace"]["fights_namespace"]
 	heros = match.heros
 	k=0
 	#find the connected components of the graph
@@ -758,7 +750,6 @@ def evaluateFightList(match,attack_list,A):
 		fight_list.append([attack_list[j] for j, x in enumerate(labels) if x ==i ])
 
 	fight_dict = {}
-	#evaluate fights (basic checks that was above damage thereshold) and time threshold
 	for i,fight in enumerate(fight_list):
 		fight_dict[i] = {}
 		position_x = []
@@ -791,27 +782,22 @@ def evaluateFightList(match,attack_list,A):
 			attack_sequence.append(attack_element)
 
 		mean_position = [sum(position_x)/len(position_x),sum(position_y)/len(position_y)]
+		location = lookUpLocation(match,area_matrix,mean_position)
 		fight_dict[i]["involved"] = involved   #want to keep the set for use later in my_deaths function
-		involved = list(involved)
-		damage_threshold = alpha + kappa*time_start
-		fight_dict[i]["time_start"] = time_start
-		fight_dict[i]["time_end"] = time_end
+		fight_dict[i]["time-start"] = time_start
+		fight_dict[i]["time-end"] = time_end
 		fight_dict[i]["mean_position"] = mean_position
-		fight_dict[i]["fight_list"] = fight
-		# fight evaluation
-		if (total_damage > damage_threshold + kappa*time_start) and (time_end-time_start > time_threshold):
-			id_num = fights_namespace + k
-			location = lookUpLocation(match,area_matrix,mean_position)
-			events[id_num] = {"type":"fight","involved":involved,"time-start":time_start,"time-end":time_end,"intensity":"battle","location":location,"attack-sequence":attack_sequence}
-			k=k+1
-
-
+		fight_dict[i]["total_damage"] = total_damage
+		fight_dict[i]["attack_sequence"] = attack_sequence
+		fight_dict[i]["killed"] = []
+		fight_dict[i]["location"] = location
+		print "fight dictionary entry" + str(i)
 	return fight_dict
 
 ##############################################################################
 # code for retrieving personalised info about specific heros
 
-def my_deaths(match,hero_deaths,fight_dict):
+def myDeaths(match,hero_deaths,fight_dict):
 
 	heros = match.heros
 	# make a dictionary that will hold a list of indexes of fights in which each hero died
@@ -823,22 +809,30 @@ def my_deaths(match,hero_deaths,fight_dict):
 		# for each hero and for each time the hero died find the corresponding fight in the fights_list
 		for death_time in hero_deaths[hero]:
 			for key in fight_dict:
-				if (heros[hero]["hero_id"] in fight_dict[key]["involved"]) and (death_time >= fight_dict[key]["time_start"]) and ((death_time <= fight_dict[key]["time_end"])):
+				if (heros[hero]["hero_id"] in fight_dict[key]["involved"]) and (death_time >= fight_dict[key]["time-start"]) and ((death_time <= fight_dict[key]["time-end"])):
 					hero_death_fights[hero].update(set([key]))
-
+					fight_dict[key]["killed"].append(heros[hero]["hero_id"])
+					break
 	return hero_death_fights
 
-def my_fights(match,hero_name,hero_death_fights,fight_dict):
-	
-	heros = match.heros
 
-	fight_index_list = list(hero_death_fights[hero_name])
-	for index in fight_index_list:
-		print ""
-		print hero_name + " died in a fight. The fight went as follows"
-		for attack in fight_dict[index]["fight_list"]:
-			print attack.attacker + " attacked " + attack.victim + " did " + str(attack.damage) + " using " + attack.attack_method + " at " + str(attack.t) + " " + attack.health_delta
+###################################################################################
+def fightEvaluation(match,fight_dict,hero_death_fights):
+	#applies a very crude filter the fights to see if the fight is significant enough to write to the json file
+	alpha = match.parameters["fightEvaluation"]["alpha"]
+	kappa = match.parameters["fightEvaluation"]["kappa"]
+	time_threshold = match.parameters["fightEvaluation"]["time_threshold"]
+	fights_namespace = match.parameters["namespace"]["fights_namespace"]
 
+	for key in fight_dict:
+		damage_threshold = alpha + kappa*fight_dict[key]["time-start"]
+		if (len(fight_dict[key]["killed"]) > 0) or ((fight_dict[key]["total_damage"] > damage_threshold + kappa*fight_dict[key]["time-start"]) and (fight_dict[key]["time-end"] - fight_dict[key]["time-start"] > time_threshold)):
+			# overwrite the 'involved' key value pair since sets are not json serialisable
+			involved = list(fight_dict[key]["involved"])
+			fight_dict[key]["involved"] = involved
+			id_num = fights_namespace + key
+			events[id_num] = fight_dict[key]
+			events[id_num]["type"] = "fight"
 
 ###################################################################################
 
@@ -859,8 +853,10 @@ def main():
 	timeseries = goldXPInfo(match) #up to this point takes a few seconds
 	attack_list = makeAttackList(match,state)
 	A = formAdjacencyMatrix(match,attack_list)
-	fight_dict = evaluateFightList(match,attack_list,A)
-	hero_death_fights = my_deaths(match,hero_deaths,fight_dict)
+	fight_dict = fightSummary(match,area_matrix,attack_list,A)
+	hero_death_fights = myDeaths(match,hero_deaths,fight_dict)
+	fightEvaluation(match,fight_dict,hero_death_fights)
+
 	#my_fights(match,"tusk",hero_death_fights,fight_dict)
 	data_to_write = {"header":header,"entities":entities,"events":events,"timeseries":timeseries}
 	g = open(analysis_file,'wb')
@@ -869,6 +865,7 @@ def main():
 	h = open(header_file,'wb')
 	h.write(json.dumps(header, sort_keys=False,indent=4, separators=(',', ': ')))	
 	h.close()
+	
 	#check for errors in the Json file (optional)
 	with open(analysis_file) as data_file:    
 		data = json.load(data_file)

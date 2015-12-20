@@ -42,8 +42,8 @@ public class OutputGenerator {
 
 		try {
 			header_writer.write("ID, "+game_id+"\n");
-			header_writer.write("TEAM_TAG_RADIANT, "+radiant_team+"\n");
-			header_writer.write("TEAM_TAG_DIRE, "+dire_team+"\n");
+			header_writer.write("TEAM_TAG_RADIANT, "+radiant_team.replace(",", "")+"\n");
+			header_writer.write("TEAM_TAG_DIRE, "+dire_team.replace(",", "")+"\n");
 			header_writer.write("WINNER, "+winner+"\n");
 			//header_writer.write("END_TIME, "+new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(end_time)+"\n");
 		} catch (IOException e) {
@@ -127,7 +127,7 @@ public class OutputGenerator {
 	public void writePlayerInfo(int i, String playerName, long steamid, String heroName, int gameTeam) {
 		try {
 			header_writer.write("PLAYER, "+i+", "
-								+playerName+", "
+								+playerName.replace(",", "")+", "
 								+steamid+", "
 								+heroName+", "
 								+gameTeam+"\n");
