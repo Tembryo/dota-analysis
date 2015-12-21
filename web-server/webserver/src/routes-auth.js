@@ -181,7 +181,7 @@ router.route("/steam/return")
             //console.log(req.user);
 		    console.log("returned from steam");
             console.log(req.originalUrl);
-		    res.redirect('/matches');
+		    res.redirect('/upload');
         }
 	);
 
