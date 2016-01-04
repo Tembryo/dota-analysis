@@ -14,7 +14,7 @@ checkJobs();
 
 function checkJobs()
 {   
-    console.log("checking");
+    //console.log("checking");
     var locals = {};
     async.waterfall(
         [
@@ -54,7 +54,7 @@ function checkJobs()
             if (err)
                 console.log(err, results);
             locals.done();
-            console.log("finished check_jobs");
+            //console.log("finished check_jobs");
             setTimeout(checkJobs, check_interval);
         }
     );
