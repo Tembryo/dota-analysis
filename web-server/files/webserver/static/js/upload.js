@@ -135,6 +135,8 @@ function errorHandler(e){
     console.log(e);
 }
 
+retrieval_statuses = ["requested", "retrieving", "retrieved", "unavailable", "failed"];
+processing_statuses = ["uploaded", "extracting", "analysing", "registered", "failed"];
 
 function onUploadProgress(e){
     console.log("progress");
@@ -146,12 +148,20 @@ function onUploadProgress(e){
     }
 }
 
+function compareRetrievalRequests(a,b)
+{
+    if(retrieval_statuses.indexOf(a["status"]) !=  retrieval_statuses.indexOf(b["status"]))
+        return retrieval_statuses.indexOf(a["status"]) - retrieval_statuses.indexOf(b["status"]);
+    else
+        return parseInt(b["id"])-parseInt(a["id"]);
+}
+
 function updateRequests(callback)
 {
     d3.json("/api/retrieve"
 		,function(error, data){
 			requests_list = data;
-            requests_list.sort(function(a,b){return parseInt(b["id"])-parseInt(a["id"]);});
+            requests_list.sort(compareRetrievalRequests);
             updateRequestsList();
             
             for(var request_i in requests_list)
@@ -176,6 +186,8 @@ function updateRequestsList()
 		.append("tr")
 		.attr("class", "request")
 		.each(createRequestElement);
+
+    requests.order();
 
 	requests.each(updateRequestElement);
 
@@ -214,7 +226,6 @@ function updateRequestElement(upload)
     d3.select(this).select(".match-id")
         .text(function(d){ return d["id"];});
     
-    console.log(this);
     d3.select(this).attr("style", function(d){
                 switch(d["status"])
                 {
@@ -227,7 +238,13 @@ function updateRequestElement(upload)
             });
 }
 
-
+function compareReplays(a,b)
+{
+    if(processing_statuses.indexOf(a["status"]) !=  processing_statuses.indexOf(b["status"]))
+        return processing_statuses.indexOf(a["status"]) - processing_statuses.indexOf(b["status"]);
+    else
+        return parseInt(b["match_id"])-parseInt(a["match_id"]);
+}
 
 
 function updateReplays(callback)
@@ -235,7 +252,7 @@ function updateReplays(callback)
     d3.json("/api/uploads"
 		,function(error, data){
 			upload_list = data;
-            upload_list.sort(function(a,b){return parseInt(b["match_id"])-parseInt(a["match_id"]);});
+            upload_list.sort(compareReplays);
             updateList();
             
             for(var upload_i in upload_list)
@@ -260,6 +277,7 @@ function updateList()
 		.append("tr")
 		.attr("class", "upload")
 		.each(createUploadElement);
+    uploads.order();
 
 	uploads.each(updateUploadElement);
 

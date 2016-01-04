@@ -5,155 +5,16 @@ var Steam = require('steam'),
     dota2 = require('dota2');
 
 var config          = require("./config.js"),
-    database          = require("./database.js");
+    database          = require("./database.js"),
+    replay_dl          = require("./replay-download.js");
 
-var reconnect_delay = 2000;
 var check_interval = 5000;
 
-var steamClient     = new Steam.SteamClient(),
-    steamUser       = new Steam.SteamUser(steamClient),
-    steamFriends    = new Steam.SteamFriends(steamClient),
-    Dota2           = new dota2.Dota2Client(steamClient, true);
-
-steamClient.connect();
-steamClient.on('connected', function() {
-  steamUser.logOn({
-    account_name: config.steam_user,
-    password: config.steam_pw
-  });
-});
-
-function relog()
-{
-    console.log("relogging");
-    steamClient.connect();
-}
-
-steamClient.on('error', function(){
-        console.log("steam error");
-        setTimeout(relog, reconnect_delay);}
-    );
-steamClient.on('loggedOff', function(){        console.log("steam logoff");setTimeout(relog, reconnect_delay);});
-
-steamClient.on('logOnResponse', function(response) {
-    if (response.eresult == Steam.EResult.OK)
-    {
-        steamFriends.setPersonaState(Steam.EPersonaState.Busy);
-        steamFriends.setPersonaName("Wisdota Bot");
-        console.log("Logged on.");
-
-        Dota2.launch();
-        Dota2.on("ready", function()
-        {
-            console.log("Node-dota2 ready.");
-            checkJobs();
-        });
-    }
-    else console.log(response);
-
-});
-
-
-var fs = require('fs');
-var bz2 = require('unbzip2-stream');
-var request = require('request');
-
-var downloadAndDecompress = function(url, dest, cb) {
-    var file = fs.createWriteStream(dest);
-    var sendReq = request.get(url);
-
-    // verify response code
-    sendReq.on('response', function(response) {
-        if (response.statusCode !== 200) {
-            return cb('Response status was ' + response.statusCode);
-        }
-    });
-
-    // check for request errors
-    sendReq.on('error', function (err) {
-        fs.unlink(dest);
-
-        if (cb) {
-            return cb(err.message);
-        }
-    });
-
-    var decoder = bz2();
-    decoder.on('error', function(err) { // Handle errors
-        fs.unlink(dest); // Delete the file async. (But we don't check the result)
-    
-        if (cb) {
-            return cb(err.message);
-        }
-    });
-
-    sendReq.pipe(decoder).pipe(file);
-
-    file.on('finish', function() {
-        file.close(cb);  // close() is async, call cb after close completes.
-    });
-
-    file.on('error', function(err) { // Handle errors
-        fs.unlink(dest); // Delete the file async. (But we don't check the result)
-
-        if (cb) {
-            return cb(err.message);
-        }
-    });
-};
-
-
-
-function downloadMatch(match_id, final_callback)
-{   
-    var file;
-    async.waterfall(
-        [
-            Dota2.requestMatchDetails.bind(Dota2, match_id),
-            function(result, callback)
-            {
-                if(result.result != 1)
-                    callback("bad match details:", result);
-
-                var replay_data = {
-                    "cluster": result.match.cluster,
-                    "match_id": result.match.match_id.low,
-                    "replay_salt": result.match.replay_salt
-                };
-                if(result.match.replay_state != 0)
-                {
-                    callback("bad replay state", result.match.replay_state);
-                }
-                else
-                {
-                    file = "/replays/"+replay_data.match_id+".dem"
-                    var replay_address = "http://replay"+replay_data.cluster+".valve.net/570/"+replay_data.match_id+"_"+replay_data.replay_salt+".dem.bz2";
-
-                    console.log("Downloading from", replay_address);
-                    console.log("Storing in shared - ", file);
-                    downloadAndDecompress(replay_address, config.shared+file, callback);
-                }
-            }
-        ],
-        function(err, result)
-        {
-            console.log("finished match download", err, result);
-            if(err)
-            {
-                final_callback(err, result);
-            }
-            else
-            {
-                final_callback(null, file);
-            }
-        }
-    );
-
-
-}
+checkJobs();
 
 function checkJobs()
-{
+{   
+    console.log("checking");
     var locals = {};
     async.waterfall(
         [
@@ -167,23 +28,109 @@ function checkJobs()
                     ["requested"],
                     callback);
             },
-            function(results, callback)
+            function(requests, jobs_callback)
             {
-                async.eachSeries(results.rows, processRequest, callback);
+                if(requests.rowCount > 0)
+                {
+                    performDotaAction(
+                        function(dota_client, callback_dota)
+                        {
+                            async.eachSeries(
+                                requests.rows,
+                                function(request_row, callback_request)
+                                {
+                                    processRequest(request_row, dota_client, callback_request); 
+                                },
+                                callback_dota);
+                        },
+                        jobs_callback);
+                }
+                else
+                    jobs_callback();
             }
         ],
-        function(err)
+        function(err, results)
         {
             if (err)
-                console.log(err);
+                console.log(err, results);
             locals.done();
-            //console.log("finished check_jobs");
+            console.log("finished check_jobs");
             setTimeout(checkJobs, check_interval);
         }
     );
 }
 
-function processRequest(request_row, callback_request)
+function performDotaAction(main_call, callback_final)
+{
+    var steamClient     = new Steam.SteamClient(),
+        steamUser       = new Steam.SteamUser(steamClient),
+        steamFriends    = new Steam.SteamFriends(steamClient),
+        Dota2           = new dota2.Dota2Client(steamClient, true);
+
+    async.waterfall(
+        [
+            function(callback)
+            {
+                steamClient.on('connected', callback);
+                steamClient.connect();
+            },
+            function(callback)
+            {
+                steamClient.on('logOnResponse', 
+                    function(response)
+                    {
+                        if (response.eresult == Steam.EResult.OK)
+                            callback();
+                        else
+                            callback("bad logOn response", response);
+                    });
+                steamClient.on('error', function(){ callback("steamClient error"); });
+                steamClient.on('loggedOff', function(){ callback("steamClient logged off"); });
+
+                steamUser.logOn({
+                    account_name: config.steam_user,
+                    password: config.steam_pw
+                });
+            },
+            function(callback)
+            {
+                steamFriends.setPersonaState(Steam.EPersonaState.Busy);
+                steamFriends.setPersonaName("Wisdota Bot");
+                console.log("Logged on.");
+
+                Dota2.on("ready", callback);
+                Dota2.launch();
+            },
+            function(callback)
+            {
+                console.log("Node-dota2 ready.");
+
+                main_call(Dota2, callback);
+            },
+            function(callback)
+            {
+                Dota2.on("unready", function() {
+                            console.log("Node-dota2 unready.");
+                        });
+                Dota2.exit();
+                callback();
+            },
+            function(callback)
+            {
+                steamClient.disconnect();
+                callback();
+            }
+        ],
+        function(err, result){
+            console.log("Dota action finished", err, result);
+            callback_final(err, result);
+        }
+    );
+
+
+}
+
+function processRequest(request_row, dota_client, callback_request)
 {
     console.log("processing replay", request_row);
     var locals = {};
@@ -211,7 +158,7 @@ function processRequest(request_row, callback_request)
                 {
                     console.log("dl #id for #u", results.rows[0].id, results.rows[0].requester_id);
                     locals.requester_id = results.rows[0].requester_id;
-                    downloadMatch(results.rows[0].id, callback);
+                    replay_dl.downloadMatch(dota_client, results.rows[0].id, callback);
                 }
             },
             function(replay_file, callback)
