@@ -148,3 +148,22 @@ h1, h2
 {
     margin: 20px 0px 20px 0px;
 }
+
+#history-table th
+{
+    padding: 5px
+}
+
+.history-match td
+{
+    padding: 5px
+}
+
+.history-match.parsed td
+{
+    background-color: #666;
+}
+.history-match.parsed.mouseover td
+{
+    background-color: #888;
+}

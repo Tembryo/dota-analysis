@@ -6,6 +6,8 @@ var config          = require("./config.js"),
     database          = require("./database.js");
 
 var check_interval = 5000;
+var max_extraction_time = 60000;
+var max_analysis_time = 60000;
 
 checkJobs();
 
@@ -71,7 +73,7 @@ function processReplay(replay_row, callback_replay)
                     child_process.execFile(
                         "java", 
                         ["-jar", "/extractor/extractor.jar", config.shared+results.rows[0].file, config.storage+"/"],
-                        {"timeout":60000},
+                        {"timeout":max_extraction_time},
                         callback);
                 }
             },
@@ -128,7 +130,7 @@ function processReplay(replay_row, callback_replay)
                 child_process.execFile(
                     "python",
                     ["/analysis/analysis.py", locals.match_id, locals.match_dir, locals.analysis_file, locals.header_file],
-                    {"timeout":60000},
+                    {"timeout":max_analysis_time},
                     callback);
             },
             function (stdout, stderr, callback) 

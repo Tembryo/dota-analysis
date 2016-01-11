@@ -40,14 +40,20 @@ router.get('/', function(req, res)
     res.render("pages/index.ejs", data);
 });
 
-router.get("/dota", function(req, res)
-{
-    res.redirect('/');
-});
-
-
-// Page /user
 router.get('/user',
+    authentication.ensureAuthenticated,
+    function(req, res,next){console.log("serving user / history");next();},
+    function(req, res)
+    {
+        var data = collectTemplatingData(req);
+        addNavigationData(data);
+        console.log("data", JSON.stringify(data));
+        res.render("pages/history.ejs", data);
+    }
+);
+
+// Page /settings
+router.get('/settings',
     authentication.ensureAuthenticated,
     function(req, res)
     {

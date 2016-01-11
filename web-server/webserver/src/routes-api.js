@@ -318,6 +318,41 @@ router.route("/retrieve/:match_id")
         }
     );
 
+router.route("/history")
+    .get(authentication.ensureAuthenticated,
+        function(req, res)
+        {
+            var locals = {};
+            async.waterfall(
+                [
+                    database.connect,
+                    function(client, done_client, callback)
+                    {
+                        locals.client = client;
+                        locals.done = done_client;
+
+                        locals.client.query("SELECT umh.match_id, umh.data, COALESCE((SELECT TEXT('parsed') FROM Matches m WHERE m.id=umh.match_id), (SELECT ps.label FROM ReplayFiles rf, ProcessingStatuses ps WHERE rf.match_id=umh.match_id AND rf.processing_status = ps.id),(SELECT mrs.label FROM MatchRetrievalRequests mrr, MatchRetrievalStatuses mrs WHERE mrr.retrieval_status = mrs.id AND mrr.id=umh.match_id), 'untried') as match_status FROM UserMatchHistory umh WHERE umh.user_id = $1;",
+                            [req.user["id"]],callback);
+                    },
+                    function(results, callback)
+                    {
+                        //just give out the rows?
+                        callback(null, results.rows);
+                    }
+                ],
+                function(err, results)
+                {
+                    locals.done();
+                    if(err)
+                    {
+                        console.log(err);
+                    }
+                    res.json(results);
+                }
+            );
+        }
+    );
+
 
 router.route("/verify/:verification_code")
     .get(authentication.ensureAuthenticated,

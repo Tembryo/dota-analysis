@@ -1,16 +1,191 @@
 // retrieve - server.js
 var async       = require("async");
 
-var Steam = require('steam'),
-    dota2 = require('dota2');
 
-var config          = require("./config.js"),
-    database          = require("./database.js"),
-    replay_dl          = require("./replay-download.js");
+
+var config      = require("./config.js"),
+    database    = require("./database.js"),
+    replay_dl   = require("./replay-download.js"),
+    dota        = require("./dota.js");
 
 var check_interval = 5000;
+var check_interval_api = 60000;
+var matches_per_request = 20;
+var history_retrieve_delay = 100;
 
 checkJobs();
+checkAPIHistoryData();
+
+function checkAPIHistoryData()
+{   
+    var locals = {};
+    async.waterfall(
+        [
+            database.connect,
+            function(client, done_client, callback)
+            {
+                locals.client = client;
+                locals.done = done_client;
+                locals.client.query(
+                    "SELECT u.id, u.steam_identifier, u.last_match FROM Users u;",
+                    [],
+                    callback);
+            },
+            function(users, jobs_callback)
+            {
+                if(users.rowCount > 0)
+                {
+                    dota.performAction(
+                        config,
+                        function(dota_client, callback_dota)
+                        {
+                            async.eachSeries(
+                                users.rows,
+                                function(user_row, callback_request)
+                                {
+                                    updateUserHistory(user_row, dota_client, callback_request); 
+                                },
+                                callback_dota);
+                        },
+                        jobs_callback);
+                }
+                else
+                    jobs_callback();
+            }
+        ],
+        function(err, results)
+        {
+            if (err)
+                console.log(err, results);
+            locals.done();
+            //console.log("finished check_jobs");
+            setTimeout(checkAPIHistoryData, check_interval_api);
+        }
+    );
+}
+
+function updateUserHistory(user_row, dota_client, callback_request)
+{
+    console.log("updating user replay", user_row);
+    var locals = {};
+    locals.user_id = user_row["id"];
+    locals.user_account_id = dota_client.ToAccountID(user_row["steam_identifier"]);
+    locals.user_last_match = user_row["last_match"];
+    locals.user_new_last_match = locals.user_last_match;
+    locals.user_min_match_checked = Number.MAX_VALUE;
+    locals.dota_client = dota_client;
+    async.waterfall(
+        [
+            database.connect,
+            function(client, done_client, callback)
+            {
+                console.log("got db client");
+                locals.client = client;
+                locals.done = done_client;
+
+                dota_client.requestPlayerMatchHistory(
+                    locals.user_account_id,
+                    {
+                        "matches_requested": matches_per_request
+                    },
+                    callback);
+            },
+            function(history, callback)
+            {
+                processMatchHistory(history, locals, callback);
+            },
+            function(callback)
+            {
+                locals.client.query(
+                        "UPDATE Users u SET last_match=$2 WHERE u.id=$1;",
+                        [locals.user_id, locals.user_new_last_match],
+                        callback);
+            },
+            function(results, callback)
+            {
+                if(results.rowCount!=1)
+                    callback("setting new last match failed", results);
+                else
+                    callback();
+            }
+        ],
+        function(err, results)
+        {
+            locals.done();
+            callback_request(err, results);
+        }
+    );
+}
+
+function processMatchHistory(history, locals, callback)
+{
+    console.log("history", history)
+    async.eachSeries(
+        history["matches"],
+        function (match, callback_foreach) {
+            console.log(JSON.stringify(match));
+
+            locals.user_new_last_match = Math.max(locals.user_new_last_match, match["match_id"]["low"]);
+
+            locals.user_min_match_checked = Math.min(locals.user_min_match_checked, match["match_id"]["low"]);
+
+            if(match["match_id"]["low"] > locals.user_last_match)
+            {           
+                console.log("insert new matchhist");
+                locals.client.query(
+                    "INSERT INTO UserMatchHistory (user_id, match_id, data) VALUES ($1, $2, $3);",
+                    [locals.user_id, match["match_id"]["low"], match],
+                    callback_foreach);
+            }
+            else
+            {
+                console.log("reached old matches", match["match_id"]["low"], locals.user_last_match);
+                callback_foreach();
+            }
+        },
+        function(err, result){
+            if(err)
+            {
+                console.log("got err", err, result);
+                callback(err, result);
+            }
+            else if(locals.user_min_match_checked >  locals.user_last_match &&
+                    history["matches"].length == matches_per_request)
+            {
+                console.log("keep fetching", locals.user_id, locals.user_last_match, locals.user_new_last_match, locals.user_min_match_checked);
+                setTimeout(function()
+                    {
+                        locals.dota_client.requestPlayerMatchHistory(
+                            locals.user_account_id,
+                            {
+                                "start_at_match_id": locals.user_min_match_checked,
+                                "matches_requested": matches_per_request
+                            },
+                            function(err, next_history)
+                            {
+                                if(err)
+                                {
+                                    console.log(err, next_history);
+                                    callback(err, next_history);
+                                }
+                                else
+                                    processMatchHistory(next_history, locals, callback);
+                            }
+                        );
+                    },
+                    history_retrieve_delay
+                );
+            }
+            else
+            {
+                console.log("finished", locals.user_id, locals.user_last_match, locals.user_new_last_match, locals.user_min_match_checked);  
+                callback();
+            }
+            
+        });
+}
+
+
 
 function checkJobs()
 {   
@@ -32,7 +207,8 @@ function checkJobs()
             {
                 if(requests.rowCount > 0)
                 {
-                    performDotaAction(
+                    dota.performAction(
+                        config,
                         function(dota_client, callback_dota)
                         {
                             async.eachSeries(
@@ -60,75 +236,6 @@ function checkJobs()
     );
 }
 
-function performDotaAction(main_call, callback_final)
-{
-    var steamClient     = new Steam.SteamClient(),
-        steamUser       = new Steam.SteamUser(steamClient),
-        steamFriends    = new Steam.SteamFriends(steamClient),
-        Dota2           = new dota2.Dota2Client(steamClient, true);
-
-    async.waterfall(
-        [
-            function(callback)
-            {
-                steamClient.on('connected', callback);
-                steamClient.connect();
-            },
-            function(callback)
-            {
-                steamClient.on('logOnResponse', 
-                    function(response)
-                    {
-                        if (response.eresult == Steam.EResult.OK)
-                            callback();
-                        else
-                            callback("bad logOn response", response);
-                    });
-                steamClient.on('error', function(){ callback("steamClient error"); });
-                steamClient.on('loggedOff', function(){ callback("steamClient logged off"); });
-
-                steamUser.logOn({
-                    account_name: config.steam_user,
-                    password: config.steam_pw
-                });
-            },
-            function(callback)
-            {
-                steamFriends.setPersonaState(Steam.EPersonaState.Busy);
-                steamFriends.setPersonaName("Wisdota Bot");
-                console.log("Logged on.");
-
-                Dota2.on("ready", callback);
-                Dota2.launch();
-            },
-            function(callback)
-            {
-                console.log("Node-dota2 ready.");
-
-                main_call(Dota2, callback);
-            },
-            function(callback)
-            {
-                Dota2.on("unready", function() {
-                            console.log("Node-dota2 unready.");
-                        });
-                Dota2.exit();
-                callback();
-            },
-            function(callback)
-            {
-                steamClient.disconnect();
-                callback();
-            }
-        ],
-        function(err, result){
-            console.log("Dota action finished", err, result);
-            callback_final(err, result);
-        }
-    );
-
-
-}
 
 function processRequest(request_row, dota_client, callback_request)
 {
@@ -158,7 +265,8 @@ function processRequest(request_row, dota_client, callback_request)
                 {
                     console.log("dl #id for #u", results.rows[0].id, results.rows[0].requester_id);
                     locals.requester_id = results.rows[0].requester_id;
-                    replay_dl.downloadMatch(dota_client, results.rows[0].id, callback);
+                    locals.match_id = results.rows[0].id;
+                    replay_dl.downloadMatch(dota_client, locals.match_id, callback);
                 }
             },
             function(replay_file, callback)
@@ -167,7 +275,7 @@ function processRequest(request_row, dota_client, callback_request)
 
                 locals.client.query(
                     "INSERT INTO ReplayFiles (file, upload_filename, processing_status, uploader_id) VALUES ($1, $2, (SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$3), $4);",
-                    [replay_file,"retrieved", "uploaded", locals.requester_id],
+                    [replay_file, locals.match_id, "uploaded", locals.requester_id],
                     callback);
             },
             function(results, callback)
