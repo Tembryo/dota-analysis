@@ -6,8 +6,8 @@ var config          = require("./config.js"),
     database          = require("./database.js");
 
 var check_interval = 5000;
-var max_extraction_time = 60000;
-var max_analysis_time = 60000;
+var max_extraction_time = 120000;
+var max_analysis_time = 120000;
 
 checkJobs();
 

@@ -42,12 +42,10 @@ router.get('/', function(req, res)
 
 router.get('/user',
     authentication.ensureAuthenticated,
-    function(req, res,next){console.log("serving user / history");next();},
     function(req, res)
     {
         var data = collectTemplatingData(req);
         addNavigationData(data);
-        console.log("data", JSON.stringify(data));
         res.render("pages/history.ejs", data);
     }
 );
@@ -78,7 +76,6 @@ router.get('/settings',
                 },
                 function(results, callback)
                 {
-                    console.log("selected user, got: ", results);
                     locals.user = results.rows[0];
 
                     locals.client.query(
@@ -113,8 +110,20 @@ router.get('/settings',
     }
 );
 
+// Page /settings
+router.get('/admin',
+    authentication.ensureAuthenticated,
+    authentication.ensureAdmin,
+    function(req, res)
+    {
+        var data = collectTemplatingData(req);
+        addNavigationData(data);
+        res.render("pages/admin.ejs", data);
+    }
+);
+
+
 router.get('/matches',
-    function(req, res,next){console.log("serving matches");next();},
     function(req, res)
     {
         var data = collectTemplatingData(req);

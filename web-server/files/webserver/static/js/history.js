@@ -11,34 +11,10 @@ function displayHistory()
 
 	history.enter()
 		.append("tr")
-		.attr("class", function(d)
-            {
-                if(d["match_status"]==="parsed")
-                    return "history-match parsed";
-                else
-                    return "history-match";
-            })
-        .on("click", function(d)
-            {
-                if(d["match_status"]==="parsed")
-                    window.document.location = "/match/"+d["match_id"];
-            })
-        .on("mouseover", function(d)
-            {
-               if(d["match_status"]==="parsed")
-                     d3.select(this).attr("class", "history-match parsed mouseover");
-                else
-                     d3.select(this).attr("class", "history-match mouseover");
-            })
-        .on("mouseout", function(d)
-            {
-               if(d["match_status"]==="parsed")
-                     d3.select(this).attr("class", "history-match parsed");
-                else
-                     d3.select(this).attr("class", "history-match");
-            })
 		.each(createHistoryRow);
     history.order();
+
+    history.each(updateHistoryRow);
 
 	history.exit()
 		.remove();
@@ -177,6 +153,7 @@ function iconForStatus(status)
         case "retrieving":
             return "/static/img/elements/colored_balls/yellow.png";
         case "uploaded":
+        case "retrieved":
             return "/static/img/elements/colored_balls/blue.png";
         case "extracting":
         case "analysing":
@@ -211,10 +188,12 @@ function createHistoryRow(data)
 {
     var row = d3.select(this);
         
-    row.append("td")
-        .append("img")
-            .attr({"src": iconForStatus(data.match_status),
-                    "width": "20px"});
+    var status = row.append("td")
+                        .attr("id", "status");
+    status.append("img")
+        .attr({"id": "image",
+               "width": "20px"});
+
     row.append("td")
         .text(formatTime(data.data.start_time));
     row.append("td")
@@ -229,6 +208,83 @@ function createHistoryRow(data)
 
 }
 
+function updateHistoryRow(data)
+{
+    var row = d3.select(this);
+
+	row.attr("class", function(d)
+            {
+                if(d["match_status"]==="parsed")
+                    return "history-match parsed";
+                else
+                    return "history-match";
+            })
+        .on("click", function(d)
+            {
+                if(d["match_status"]==="parsed")
+                    window.document.location = "/match/"+d["match_id"];
+            })
+        .on("mouseover", function(d)
+            {
+               if(d["match_status"]==="parsed")
+                     d3.select(this).attr("class", "history-match parsed mouseover");
+                else
+                     d3.select(this).attr("class", "history-match mouseover");
+            })
+        .on("mouseout", function(d)
+            {
+               if(d["match_status"]==="parsed")
+                     d3.select(this).attr("class", "history-match parsed");
+                else
+                     d3.select(this).attr("class", "history-match");
+            });
+
+
+    var status = row.select("#status");
+    if(data.match_status === "untried" && (Date.now()/1000) - data.data.start_time < 8*24*60*60)
+    {
+        status.attr("class", "clickable")
+            .on("click", function(){requestMatch(data);})
+    }
+    else
+    {
+        status.attr("class", "")
+            .on("click", null)
+    }
+    row.select("#image")
+            .attr({"src": iconForStatus(data.match_status),
+                    "alt": data.match_status});
+}
+
+function requestMatch(data)
+{
+    $.ajax({
+        url: '/api/retrieve/'+data["match_id"],
+        type: 'POST',
+
+        //Ajax events
+        success: requestCompleteHandler,
+        error: requestErrorHandler,
+    });
+}
+
+function requestCompleteHandler(result)
+{
+    n_tries = 5;
+    setTimeout(checkUpdate(), update_interval/2);
+
+    $('#request-field').text(result.result);
+    alert("Requested match! Download starting ASAP.");
+    console.log("sent match request", result);
+}
+
+function requestErrorHandler(e)
+{
+    $('#request-field').text("Requesting match failed");
+    console.log("error");
+    console.log(e);
+}
+
 function compareMatches(a,b)
 {
     return parseInt(b["match_id"])-parseInt(a["match_id"]);
@@ -241,8 +297,40 @@ function loadPlayerHistory()
 			match_history = data;
             match_history.sort(compareMatches);
             displayHistory();
+            
+            setTimeout(checkUpdate, update_interval);
 		});
 }
+
+keep_checking = false;
+var n_tries = 0;
+update_interval = 2000;
+
+var polling_states = ["requested","retrieving","uploaded","retrieved","extracting","analysing"];
+
+function checkUpdate()
+{
+    keep_checking = false;
+    for(var match_i in match_history)
+    {
+        if(polling_states.indexOf(match_history[match_i]["match_status"]) >= 0)
+        {
+            console.log("found", match_history[match_i]["match_status"]);
+            keep_checking = true;
+            n_tries = 5;
+            break;
+        }
+    }
+    console.log("checking?", keep_checking);
+    if(keep_checking || n_tries > 0)
+    {
+        if(n_tries > 0)
+            n_tries--;
+        loadPlayerHistory();
+    }
+
+}
+
 
 function main()
 {

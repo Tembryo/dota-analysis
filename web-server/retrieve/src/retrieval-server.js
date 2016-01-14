@@ -51,6 +51,15 @@ function checkAPIHistoryData()
                 }
                 else
                     jobs_callback();
+            },
+            function(results, jobs_callback)
+            {
+                //auto-request matches for plus users.
+                console.log("results", results);
+                locals.client.query(
+                    "INSERT INTO MatchRetrievalRequests(id, retrieval_status, requester_id) (SELECT umh.match_id, mrs.id, MAX(umh.user_id) FROM UserMatchHistory umh, UserStatuses us, UserStatusTypes ust, MatchRetrievalStatuses mrs WHERE umh.user_id=us.user_id AND us.statustype_id=ust.id  AND ust.label=$1 AND mrs.label=$2 AND NOT EXISTS (SELECT id FROM Matches m WHERE m.id=umh.match_id) AND NOT EXISTS (SELECT id FROM MatchRetrievalRequests mrr2 WHERE mrr2.id=umh.match_id) AND to_timestamp((umh.data->>'start_time')::int) > current_timestamp - interval '7 days' GROUP BY umh.match_id, mrs.id);",
+                    ["plus", "requested"],
+                    jobs_callback);
             }
         ],
         function(err, results)
@@ -66,7 +75,6 @@ function checkAPIHistoryData()
 
 function updateUserHistory(user_row, dota_client, callback_request)
 {
-    console.log("updating user replay", user_row);
     var locals = {};
     locals.user_id = user_row["id"];
     locals.user_account_id = dota_client.ToAccountID(user_row["steam_identifier"]);
@@ -79,7 +87,6 @@ function updateUserHistory(user_row, dota_client, callback_request)
             database.connect,
             function(client, done_client, callback)
             {
-                console.log("got db client");
                 locals.client = client;
                 locals.done = done_client;
 
@@ -119,7 +126,6 @@ function updateUserHistory(user_row, dota_client, callback_request)
 
 function processMatchHistory(history, locals, callback)
 {
-    console.log("history", history)
     async.eachSeries(
         history["matches"],
         function (match, callback_foreach) {
@@ -131,7 +137,6 @@ function processMatchHistory(history, locals, callback)
 
             if(match["match_id"]["low"] > locals.user_last_match)
             {           
-                console.log("insert new matchhist");
                 locals.client.query(
                     "INSERT INTO UserMatchHistory (user_id, match_id, data) VALUES ($1, $2, $3);",
                     [locals.user_id, match["match_id"]["low"], match],
@@ -139,7 +144,6 @@ function processMatchHistory(history, locals, callback)
             }
             else
             {
-                console.log("reached old matches", match["match_id"]["low"], locals.user_last_match);
                 callback_foreach();
             }
         },
@@ -178,7 +182,6 @@ function processMatchHistory(history, locals, callback)
             }
             else
             {
-                console.log("finished", locals.user_id, locals.user_last_match, locals.user_new_last_match, locals.user_min_match_checked);  
                 callback();
             }
             
@@ -189,7 +192,7 @@ function processMatchHistory(history, locals, callback)
 
 function checkJobs()
 {   
-    //console.log("checking");
+    console.log("checking retrieval");
     var locals = {};
     async.waterfall(
         [
@@ -207,6 +210,7 @@ function checkJobs()
             {
                 if(requests.rowCount > 0)
                 {
+                    console.log("fetching matches",requests.rows);
                     dota.performAction(
                         config,
                         function(dota_client, callback_dota)

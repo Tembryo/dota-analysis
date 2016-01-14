@@ -72,7 +72,7 @@ function verifyCompleteHandler(e){
     }
     else
     {
-        message_str = "We are afraid, something went wrong.";
+        message_str = "Sorry, something went wrong.";
     }
     alert(message_str);
     $("#verify-code").val("");

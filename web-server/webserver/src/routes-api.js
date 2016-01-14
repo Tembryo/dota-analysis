@@ -372,7 +372,6 @@ router.route("/verify/:verification_code")
                     },
                     function(results, callback)
                     {
-                        console.log("got", results);
                         var result = {};
                         if(results.rowCount == 0)
                         {
@@ -395,6 +394,25 @@ router.route("/verify/:verification_code")
                                     [req.user["id"], new_email],
                                     function(err, results){if(err) callback(err, results); else locals.client.query("INSERT INTO UserStatuses (user_id, statustype_id, expiry_date) SELECT $1, ust.id, 'infinity' FROM UserStatusTypes ust WHERE ust.label=$2;",
                                     [req.user["id"], "verified"],callback);});
+                                break;
+                            case "ActivatePlus":
+                                locals.extension = results.rows[0].args["duration"];
+                                locals.client.query("SELECT us.user_id FROM UserStatuses us, UserStatusTypes ust WHERE us.user_id=$1 AND us.statustype_id=ust.id AND ust.label=$2;",
+                                    [req.user["id"], "plus"],
+                                    function(err, results)
+                                    {
+                                        if(err) callback(err, results);
+                                        else if(results.rowCount==0)
+                                        {
+                                            locals.client.query("INSERT INTO UserStatuses (user_id, statustype_id, expiry_date) (SELECT $1, ust.id, current_timestamp + interval $3 FROM UserStatusTypes ust WHERE ust.label=$2);",
+                                            [req.user["id"], "plus", locals.extension],callback);
+                                        }
+                                        else
+                                        {
+                                            locals.client.query("UPDATE UserStatuses SET expiry_date = (GREATEST(expiry_date, current_timestamp) + (interval '"+locals.extension+"')) WHERE user_id=$1 AND statustype_id = (SELECT ust.id FROM UserStatusTypes ust WHERE ust.label=$2);",
+                                            [req.user["id"], "plus"],callback);
+                                        }
+                                    });
                                 break;
                             default: 
                                 result["action"] = "action_execution";
@@ -511,6 +529,48 @@ router.route("/settings/email/:email_address")
                     {
                         result["result"] = "success";
                         result["info"] = {};//code;
+                    }
+                    res.json(result);
+                }
+            );
+        });
+
+
+router.route("/admin/request-plus")
+    .get(authentication.ensureAuthenticated,
+        authentication.ensureAdmin,
+        function(req, res)
+        {
+            var code = shortid.generate();
+
+            var result = {"action": "action_request_plus", "info": "", "result": "failed"};
+
+            var locals = {};
+            async.waterfall(
+               [
+                    database.connect,
+                    function(client, done_client, callback)
+                    {
+                        locals.client = client;
+                        locals.done = done_client;
+
+                        locals.client.query("INSERT INTO VerificationActions(actiontype_id, args, code) SELECT vat.id, $3, $1 FROM VerificationActionTypes vat WHERE vat.label=$2;",
+                            [code, "ActivatePlus", {"duration": "2 weeks"}],callback);
+                    }
+                ],
+                function(err, results)
+                {
+                    locals.done();
+                    if(err)
+                    {
+                        result["result"] = "failed";
+                        result["info"] = err;
+                    }
+                    else
+                    {
+                        result["result"] = "success";
+                        result["key"] = code;
+                        result["duration"] = "2 weeks";
                     }
                     res.json(result);
                 }

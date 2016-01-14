@@ -167,3 +167,13 @@ h1, h2
 {
     background-color: #888;
 }
+
+
+.history-match td.clickable
+{
+	border: 3px solid #1D9B6C;
+}
+.history-match td.clickable:hover
+{
+    background-color: #1D9B6C;
+}

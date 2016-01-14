@@ -181,7 +181,7 @@ router.route("/steam/return")
             //console.log(req.user);
 		    console.log("returned from steam");
             console.log(req.originalUrl);
-		    res.redirect('/upload');
+		    res.redirect('/user');
         }
 	);
 
@@ -204,6 +204,44 @@ function ensureAuthenticated(req, res, next) {
     }
 }
 
+//restrict access to admin accounts
+function ensureAdmin(req, res, next)
+{
+    var locals = {};
+    locals.user = {};
+    async.waterfall(
+        [
+            database.connect,
+            function(client, done, callback)
+            {
+                locals.client = client;
+                locals.done = done;
+
+                locals.client.query(
+                    "SELECT us.user_id FROM UserStatuses us, UserStatusTypes ust WHERE us.user_id=$1 AND us.statustype_id=ust.id And ust.label=$2",
+                    [req.user["id"], "admin"],
+                    callback);
+            },
+            function(results, callback)
+            {
+                //allow access if admin entry found 
+                callback(null, results.rowCount > 0);
+            }
+        ],
+        function(err, result)
+        {
+            locals.done();
+            if(result)
+            {
+                next();
+            }
+            else
+                res.render("pages/no-permission.ejs", data);
+        }
+    );
+};
+
 exports.router = router;
 exports.ensureAuthenticated = ensureAuthenticated;
+exports.ensureAdmin = ensureAdmin;
 
