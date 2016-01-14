@@ -33,6 +33,7 @@ function checkAPIHistoryData()
             },
             function(users, jobs_callback)
             {
+                console.log("updating user histories");
                 if(users.rowCount > 0)
                 {
                     dota.performAction(
@@ -52,14 +53,19 @@ function checkAPIHistoryData()
                 else
                     jobs_callback();
             },
-            function(results, jobs_callback)
+            function(results, callback)
             {
                 //auto-request matches for plus users.
                 console.log("results", results);
                 locals.client.query(
                     "INSERT INTO MatchRetrievalRequests(id, retrieval_status, requester_id) (SELECT umh.match_id, mrs.id, MAX(umh.user_id) FROM UserMatchHistory umh, UserStatuses us, UserStatusTypes ust, MatchRetrievalStatuses mrs WHERE umh.user_id=us.user_id AND us.statustype_id=ust.id  AND ust.label=$1 AND mrs.label=$2 AND NOT EXISTS (SELECT id FROM Matches m WHERE m.id=umh.match_id) AND NOT EXISTS (SELECT id FROM MatchRetrievalRequests mrr2 WHERE mrr2.id=umh.match_id) AND to_timestamp((umh.data->>'start_time')::int) > current_timestamp - interval '7 days' GROUP BY umh.match_id, mrs.id);",
                     ["plus", "requested"],
-                    jobs_callback);
+                    callback);
+            },
+            function(results, callback)
+            {
+                console.log("auto request results:", results)
+                callback();
             }
         ],
         function(err, results)
