@@ -68,7 +68,19 @@ function verifyCompleteHandler(e){
     var message_str = "";
     if(e["result"] === "success")
     {
-        message_str = "Verification successfull! You can now upload replay files.";
+        message_str = "Code activation successfull!";
+        switch(e["action"])
+        {
+            case "SetEmail":
+                message_str += " Your email was verified!";
+                break;
+            case "ActivatePlus":
+                message_str += " Plus was enabled on your account!";
+                break;
+            default:
+                message_str += " Whatever that was...";
+                break;
+        };
     }
     else
     {
