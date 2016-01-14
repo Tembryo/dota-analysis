@@ -404,7 +404,7 @@ router.route("/verify/:verification_code")
                                         if(err) callback(err, results);
                                         else if(results.rowCount==0)
                                         {
-                                            locals.client.query("INSERT INTO UserStatuses (user_id, statustype_id, expiry_date) (SELECT $1, ust.id, current_timestamp + interval $3 FROM UserStatusTypes ust WHERE ust.label=$2);",
+                                            locals.client.query("INSERT INTO UserStatuses (user_id, statustype_id, expiry_date) (SELECT $1, ust.id, (current_timestamp + interval '"+locals.extension+"') FROM UserStatusTypes ust WHERE ust.label=$2);",
                                             [req.user["id"], "plus", locals.extension],callback);
                                         }
                                         else
