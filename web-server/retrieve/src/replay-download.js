@@ -34,8 +34,15 @@ var downloadAndDecompress = function(url, dest, cb) {
         }
     });
 
-    sendReq.pipe(decoder).pipe(file);
-
+    try
+    {
+        sendReq.pipe(decoder).pipe(file);
+    }
+    catch(e)
+    {
+        cb(e);
+    }
+    
     file.on('finish', function() {
         file.close(cb);  // close() is async, call cb after close completes.
     });

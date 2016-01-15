@@ -12,6 +12,7 @@ exports.port            = process.env.VIRTUAL_PORT;
 exports.steam_realm   = "http://"+host+":80/";
 
 exports.steam_api_key   = "738D637E98D73D27B9802CA833784D7F";
+//wertync - 2nd key F1C8B59D43BAC59F6B648FD0D217B974
 
 exports.gmail_user = "quirin.fischer@tembryo.com";
 exports.gmail_password = sensitive.gmail_pw;
