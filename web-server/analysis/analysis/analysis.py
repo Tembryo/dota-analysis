@@ -10,6 +10,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from dota2_area_boxes_ver2 import area_matrix, areas
 import datetime
+import shutil
 
 events = {}
 
@@ -866,6 +867,9 @@ def main():
 	h.write(json.dumps(header, sort_keys=False,indent=4, separators=(',', ': ')))	
 	h.close()
 	
+    #delete intermediate files
+	shutil.rmtree(match_directory)
+
 	#check for errors in the Json file (optional)
 	with open(analysis_file) as data_file:    
 		data = json.load(data_file)

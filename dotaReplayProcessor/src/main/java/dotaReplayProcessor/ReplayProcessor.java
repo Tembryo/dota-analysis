@@ -1,4 +1,5 @@
 package dotaReplayProcessor;
+import java.util.Arrays;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -7,8 +8,10 @@ import java.util.Map;
 import skadistats.clarity.model.CombatLogEntry;
 import skadistats.clarity.model.Entity;
 import skadistats.clarity.model.FieldPath;
+import skadistats.clarity.model.StringTable;
 import skadistats.clarity.processor.entities.Entities;
 import skadistats.clarity.processor.entities.OnEntityCreated;
+import skadistats.clarity.processor.entities.OnEntityDeleted;
 import skadistats.clarity.processor.entities.OnEntityUpdated;
 import skadistats.clarity.processor.entities.UsesEntities;
 import skadistats.clarity.processor.gameevents.OnCombatLogEntry;
@@ -16,15 +19,24 @@ import skadistats.clarity.processor.reader.OnTickStart;
 import skadistats.clarity.processor.runner.Context;
 import skadistats.clarity.processor.runner.ControllableRunner;
 import skadistats.clarity.processor.runner.SimpleRunner;
+import skadistats.clarity.processor.stringtables.OnStringTableCreated;
+import skadistats.clarity.processor.stringtables.OnStringTableEntry;
 import skadistats.clarity.source.MappedFileSource;
 import javax.vecmath.Vector2d;
 import javax.vecmath.Vector2f;
+
+import com.google.protobuf.ByteString;
+
 import skadistats.clarity.decoder.Util;
+import java.util.HashMap;
 
 public class ReplayProcessor {
 	MappedFileSource file_source;
 	OutputGenerator output;
 	private static int MAX_COORD_INTEGER = 16384;
+    HashMap<Integer, String> entity_names = new HashMap<Integer, String>();
+    HashMap<Integer, String> cl_names = new HashMap<Integer, String>();
+	
 	boolean init = false;
     Integer time = 0;
     int numPlayers = 10;
@@ -135,17 +147,7 @@ public class ReplayProcessor {
                 //get the hero's coordinates
                 if (e != null) {
                     //System.err.println(e);
-                    
-            		int cell_x = getEntityProperty(e, "CBodyComponent.m_cellX", null);
-            		int cell_y = getEntityProperty(e, "CBodyComponent.m_cellY", null);
-            	    float offsetx = getEntityProperty(e, "CBodyComponent.m_vecX", null);
-            	    float offsety = getEntityProperty(e, "CBodyComponent.m_vecY", null);
-            	    int cellbits = 7;//getEntityProperty(e, "CBodyComponent.m_cellbits", null);
-            	    
-            	    int cellwidth = 1 << cellbits;
-            	    Vector2f pos = new Vector2f();
-            	    pos.x = (float)(((cell_x * cellwidth) - MAX_COORD_INTEGER) + (double)offsetx);
-            	    pos.y = (float) (((cell_y * cellwidth) - MAX_COORD_INTEGER) + (double)offsety);
+            	    Vector2f pos = computePosition(e);
             	    
                     //int alive = getEntityProperty(e, "m_iLifeState", null);
                     //System.err.format("%s, %s\n", entry.x, entry.y);
@@ -168,7 +170,23 @@ public class ReplayProcessor {
         }
     }
 
-    public <T> T getEntityProperty(Entity e, String property, Integer idx) {
+	public Vector2f computePosition(Entity e)
+	{
+		int cell_x = getEntityProperty(e, "CBodyComponent.m_cellX", null);
+		int cell_y = getEntityProperty(e, "CBodyComponent.m_cellY", null);
+	    float offsetx = getEntityProperty(e, "CBodyComponent.m_vecX", null);
+	    float offsety = getEntityProperty(e, "CBodyComponent.m_vecY", null);
+	    int cellbits = 7;//getEntityProperty(e, "CBodyComponent.m_cellbits", null);
+	    
+	    int cellwidth = 1 << cellbits;
+	    Vector2f pos = new Vector2f();
+	    pos.x = (float)(((cell_x * cellwidth) - MAX_COORD_INTEGER) + (double)offsetx);
+	    pos.y = (float) (((cell_y * cellwidth) - MAX_COORD_INTEGER) + (double)offsety);
+	    
+	    return pos;
+	}
+
+	public <T> T getEntityProperty(Entity e, String property, Integer idx) {
         if (e == null) {
             return null;
         }
@@ -176,7 +194,10 @@ public class ReplayProcessor {
             property = property.replace("%i", Util.arrayIdxToString(idx));
         }
         FieldPath fp = e.getDtClass().getFieldPathForName(property);
-        return e.getPropertyForFieldPath(fp);
+        if(fp==null)
+        	return null;
+        else
+        	return e.getPropertyForFieldPath(fp);
     }
 	
 
@@ -187,7 +208,126 @@ public class ReplayProcessor {
     private String getTargetNameCompiled(CombatLogEntry cle) {
         return cle.getTargetName() + (cle.isTargetIllusion() ? " (illusion)" : "");
     }
+    
+    /*@OnStringTableCreated
+    public void onStringTableCreated(Context ctx, int a,  StringTable stringTable) {
+    	output.writeEntityEvent("new table", time, a+" "+stringTable.getName());
+    }*/
+    
+    @OnStringTableEntry("EntityNames")
+    public void onStringTableEntry(Context ctx, StringTable stringTable, int rowIndex, String key, ByteString bs) {
+    	// output.writeEntityEvent("strtab", time, rowIndex+" - "+key);
+	    entity_names.put(rowIndex, key);
+    }
+    @OnStringTableEntry("CombatLogNames")
+    public void onCLEntry(Context ctx, StringTable stringTable, int rowIndex, String key, ByteString bs) {
+    	// output.writeEntityEvent("strtab", time, rowIndex+" - "+key);
+	    cl_names.put(rowIndex, key);
+    }
+    
 
+    @OnEntityCreated
+    public void onEntityCreated(Context ctx, Entity e) {
+    	 double time = 0;
+         Entity grp = ctx.getProcessor(Entities.class).getByDtName("CDOTAGamerulesProxy");
+ 		if (grp != null) {
+         	float t = getEntityProperty(grp, "m_pGameRules.m_fGameTime", null);
+     		time = t;
+         }
+ 		
+    	//output.writeEntityEvent("create", time, e.getDtClass().getDtName()+", "+e.getHandle());//.toString()
+    }
+    
+    @OnEntityUpdated
+    public void onEntityUpdated(Context ctx, Entity e, FieldPath[] fields, int a) {
+        Entity grp = ctx.getProcessor(Entities.class).getByDtName("CDOTAGamerulesProxy");
+        double time = 0;
+		if (grp != null) {
+        	float t = getEntityProperty(grp, "m_pGameRules.m_fGameTime", null);
+    		time = t;
+        }
+        
+    	String updates = "[";
+    	int n_ignored = 0;
+    	String[] ignored_ents = {"CDOTAPlayer", "CDOTAWearableItem"};
+    	String[] checked_ents = {};//"CDOTA_BaseNPC_Creep_Lane"};
+    	String[] ignored_fields = {"m_pGameRules.m_fGameTime", "m_pGameRules.m_iFoWFrameNumber", "m_iCursor.0000", "m_iCursor.0001", "CBodyComponent.m_cellX", "CBodyComponent.m_cellY", "CBodyComponent.m_vecX", "CBodyComponent.m_vecY"};
+    	String[] tracked_fields = {"m_lifeState"};
+    	
+    	boolean show = false;
+    	for(int j = 0; j < ignored_ents.length; ++j)
+			if(e.getDtClass().getDtName().equals(ignored_ents[j]))
+				show = false;
+    	for(int j = 0; j < checked_ents.length; ++j)
+			if(e.getDtClass().getDtName().equals(checked_ents[j]))
+				show = true;
+    	
+    	boolean tracked = true;
+    	for(int i = 0; i < a; ++i)
+    	{
+			String fieldname = e.getDtClass().getNameForFieldPath(fields[i]);
+    		updates += fieldname+" ";
+    		for(int j = 0; j < ignored_fields.length; ++j)
+    			if(fieldname.equals(ignored_fields[j]))
+    				n_ignored++;
+    		for(int j = 0; j < tracked_fields.length; ++j)
+    			if(fieldname.equals(tracked_fields[j]))
+    				tracked=true;
+    	}
+    	updates+="]";
+    	if(!show && (!tracked || n_ignored == a))
+    		return;
+    	String entity_name = e.getDtClass().getDtName();
+    	if(e.hasProperty("m_pEntity.m_nameStringableIndex"))
+    		entity_name = entity_names.get((int)getEntityProperty(e, "m_pEntity.m_nameStringableIndex", null));
+    	//output.writeEntityEvent("update", time, entity_name+", "+a+", "+e.getHandle()+", "+updates);//.toString()
+    	
+
+    	String[] creep_entities = {"npc_dota_creep_lane", "npc_dota_creep_siege", "npc_dota_creep_neutral"};
+    	if(entity_name != null && contains(entity_name, creep_entities))
+    	{
+    		boolean life_changed=false;
+    		for(int i = 0; i < a; ++i)
+        	{
+    			String fieldname = e.getDtClass().getNameForFieldPath(fields[i]);
+    			if(fieldname.equals("m_lifeState"))
+    			{
+    				life_changed=true;
+					break;
+    			}
+        	}
+
+    		if(life_changed)
+    		{
+    			//System.out.println(e.toString());
+    			int lifestate= (int)getEntityProperty(e, "m_lifeState", null);
+    			int team= (int)getEntityProperty(e, "m_iTeamNum", null);
+    			Vector2f pos = computePosition(e);
+				if(lifestate == 1)//just died
+					output.writeEntityEvent("CREEP_DEATH", time, entity_name+", "+team+", "+", "+pos.x+", "+pos.y);//.toString()
+    	    	
+    		}
+    	}
+    	
+    }
+    public static boolean contains(String s, String[] list)
+    {
+		for(int j = 0; j < list.length; ++j)
+			if(s.equals(list[j]))
+				return true;
+		return false;
+    }
+    @OnEntityDeleted
+    public void onEntityDeleted(Context ctx, Entity e) {
+    	 double time = 0;
+         Entity grp = ctx.getProcessor(Entities.class).getByDtName("CDOTAGamerulesProxy");
+ 		if (grp != null) {
+         	float t = getEntityProperty(grp, "m_pGameRules.m_fGameTime", null);
+     		time = t;
+         }
+    	//output.writeEntityEvent("delete", time, e.getDtClass().getDtName()+", "+e.getHandle());
+    }
+    
     @OnCombatLogEntry
     public void onCombatLogEntry(Context ctx, CombatLogEntry cle) {
         Entity grp = ctx.getProcessor(Entities.class).getByDtName("CDOTAGamerulesProxy");

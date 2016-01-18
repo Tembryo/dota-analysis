@@ -135,7 +135,7 @@ function processMatchHistory(history, locals, callback)
     async.eachSeries(
         history["matches"],
         function (match, callback_foreach) {
-            console.log(JSON.stringify(match));
+            //console.log(JSON.stringify(match));
 
             locals.user_new_last_match = Math.max(locals.user_new_last_match, match["match_id"]["low"]);
 
