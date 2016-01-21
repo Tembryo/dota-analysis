@@ -22,6 +22,7 @@ class Match:
 		self.header_input_filename = match_directory+"/header.csv"
 		self.position_input_filename = match_directory+"/trajectories.csv"
 		self.events_input_filename = match_directory+"/events.csv"
+		self.entitied_input_filename = match_directory+"/ents.csv"
 		# variables that determine how the data is analysed - need to include all parameters
 		self.parameters = {}
 		self.parameters["version"] = "0.0.03"
@@ -33,6 +34,7 @@ class Match:
 		self.parameters["namespace"]["kills_namespace"] = 10000
 		self.parameters["namespace"]["normal_namespace"] = 11000
 		self.parameters["namespace"]["fights_namespace"] = 15000
+		self.parameters["namespace"]["creeps_namespace"] = 20000
 		self.parameters["general"] = {}
 		self.parameters["general"]["col_per_player"] = 7
 		self.parameters["general"]["num_players"] = 10
@@ -838,6 +840,36 @@ def fightEvaluation(match,fight_dict,hero_death_fights):
 ###################################################################################
 
 
+def creepEvaluation(match):
+    with open(match.entitied_input_filename, 'rb') as csvfile:
+        entity_reader = csv.reader(csvfile)
+        for i, row in enumerate(entity_reader):
+            if row[0]=="CREEP_DEATH":
+                creep_event = {}
+                creep_event["type"] = "creep-death"
+                if row[1]=="npc_dota_creep_lane":
+                    creep_event["creep-type"]="lane"
+                elif row[1]=="npc_dota_creep_siege":
+                    creep_event["creep-type"]="siege"
+                elif row[1]=="npc_dota_creep_neutral":
+                    creep_event["creep-type"]="neutral"
+                else:
+                    creep_event["creep-type"]="unknown"
+                creep_event["time"] = float(row[6]) - match.match_start_time
+                creep_event["position"] = { "x":float(row[4]), "y":float(row[5]) }
+                if int(row[2]) == 2:
+                    creep_event["team"] = "radiant"
+                elif int(row[2]) == 3:
+                    creep_event["team"] = "dire"
+                elif int(row[2]) == 4:
+                    creep_event["team"] = "neutral"
+                creep_event["gold-claimed-by"] = -1 #TODO
+                creep_event["exp-claimed-by"] = [] #TODO
+                creep_event["responsible"] = [] #TODO
+                creep_event["lasthit-type"] = "none" #none/lasthit/denie
+                event_id = match.parameters["namespace"]["creeps_namespace"]+i
+                events[str(event_id)]= creep_event
+
 def main():
 	match_id = sys.argv[1]
 	match_directory = sys.argv[2]
@@ -857,6 +889,7 @@ def main():
 	fight_dict = fightSummary(match,area_matrix,attack_list,A)
 	hero_death_fights = myDeaths(match,hero_deaths,fight_dict)
 	fightEvaluation(match,fight_dict,hero_death_fights)
+	creepEvaluation(match)
 
 	#my_fights(match,"tusk",hero_death_fights,fight_dict)
 	data_to_write = {"header":header,"entities":entities,"events":events,"timeseries":timeseries}
@@ -876,13 +909,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-# #graphAttacks(attack_list,1590,1605)
-
-# #graphFights(attack_list,A,1590,1605)
-
-
-################################################################################################
-
 
