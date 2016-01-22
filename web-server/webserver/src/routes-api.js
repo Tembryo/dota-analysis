@@ -577,4 +577,47 @@ router.route("/admin/request-plus")
             );
         });
 
+router.route("/admin/rerun-fails")
+    .get(authentication.ensureAuthenticated,
+        authentication.ensureAdmin,
+        function(req, res)
+        {
+            var code = shortid.generate();
+
+            var result = {"action": "action_rerun_fails", "info": "", "result": "failed"};
+
+            var locals = {};
+            async.waterfall(
+               [
+                    database.connect,
+                    function(client, done_client, callback)
+                    {
+                        locals.client = client;
+                        locals.done = done_client;
+
+                        locals.client.query(
+                            "UPDATE ReplayFiles rf SET processing_status=(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$2) WHERE rf.processing_status=(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$1);",
+                                            ["failed", "uploaded"],
+                            callback);
+                    }
+                ],
+                function(err, results)
+                {
+                    locals.done();
+                    if(err)
+                    {
+                        result["result"] = "failed";
+                        result["info"] = err;
+                    }
+                    else
+                    {
+                        result["result"] = "success";
+                        result["n"] = results.rowCount;
+                        result["info"] = results;
+                    }
+                    res.json(result);
+                }
+            );
+        });
+
 exports.router = router;
