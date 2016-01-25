@@ -10,6 +10,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from dota2_area_boxes_ver2 import area_matrix, areas
 import datetime
+import shutil
 
 events = {}
 
@@ -784,8 +785,8 @@ def fightSummary(match,area_matrix,attack_list,A):
 		mean_position = [sum(position_x)/len(position_x),sum(position_y)/len(position_y)]
 		location = lookUpLocation(match,area_matrix,mean_position)
 		fight_dict[i]["involved"] = involved   #want to keep the set for use later in my_deaths function
-		fight_dict[i]["time_start"] = time_start
-		fight_dict[i]["time_end"] = time_end
+		fight_dict[i]["time-start"] = time_start
+		fight_dict[i]["time-end"] = time_end
 		fight_dict[i]["mean_position"] = mean_position
 		fight_dict[i]["total_damage"] = total_damage
 		fight_dict[i]["attack_sequence"] = attack_sequence
@@ -809,7 +810,7 @@ def myDeaths(match,hero_deaths,fight_dict):
 		# for each hero and for each time the hero died find the corresponding fight in the fights_list
 		for death_time in hero_deaths[hero]:
 			for key in fight_dict:
-				if (heros[hero]["hero_id"] in fight_dict[key]["involved"]) and (death_time >= fight_dict[key]["time_start"]) and ((death_time <= fight_dict[key]["time_end"])):
+				if (heros[hero]["hero_id"] in fight_dict[key]["involved"]) and (death_time >= fight_dict[key]["time-start"]) and ((death_time <= fight_dict[key]["time-end"])):
 					hero_death_fights[hero].update(set([key]))
 					fight_dict[key]["killed"].append(heros[hero]["hero_id"])
 					break
@@ -825,8 +826,8 @@ def fightEvaluation(match,fight_dict,hero_death_fights):
 	fights_namespace = match.parameters["namespace"]["fights_namespace"]
 
 	for key in fight_dict:
-		damage_threshold = alpha + kappa*fight_dict[key]["time_start"]
-		if (len(fight_dict[key]["killed"]) > 0) or ((fight_dict[key]["total_damage"] > damage_threshold + kappa*fight_dict[key]["time_start"]) and (fight_dict[key]["time_end"] - fight_dict[key]["time_start"] > time_threshold)):
+		damage_threshold = alpha + kappa*fight_dict[key]["time-start"]
+		if (len(fight_dict[key]["killed"]) > 0) or ((fight_dict[key]["total_damage"] > damage_threshold + kappa*fight_dict[key]["time-start"]) and (fight_dict[key]["time-end"] - fight_dict[key]["time-start"] > time_threshold)):
 			# overwrite the 'involved' key value pair since sets are not json serialisable
 			involved = list(fight_dict[key]["involved"])
 			fight_dict[key]["involved"] = involved
@@ -866,6 +867,9 @@ def main():
 	h.write(json.dumps(header, sort_keys=False,indent=4, separators=(',', ': ')))	
 	h.close()
 	
+    #delete intermediate files
+	shutil.rmtree(match_directory)
+
 	#check for errors in the Json file (optional)
 	with open(analysis_file) as data_file:    
 		data = json.load(data_file)
@@ -880,5 +884,6 @@ if __name__ == "__main__":
 
 
 ################################################################################################
+
 
 

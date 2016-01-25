@@ -15,23 +15,28 @@ public class OutputGenerator {
 	BufferedWriter writer;
 	BufferedWriter header_writer;
 	BufferedWriter event_writer;
+	BufferedWriter ents_writer;
 	List<String> key_order;
 	public OutputGenerator(String directory_out) {
 		try {
 		File file = new File(directory_out+"trajectories.csv");
 		File file_events = new File(directory_out+"events.csv");
 		File file_header = new File(directory_out+"header.csv");
+		File file_ents = new File(directory_out+"ents.csv");
 		FileWriter fw;
 		FileWriter fw_events;
 		FileWriter fw_header;
+		FileWriter fw_ents;
 	
 		fw = new FileWriter(file);
 		fw_events = new FileWriter(file_events);
 		fw_header = new FileWriter(file_header);
+		fw_ents = new FileWriter(file_ents);
 
 		 writer = new BufferedWriter(fw);
 		 event_writer = new BufferedWriter(fw_events);
 		 header_writer = new BufferedWriter(fw_header);
+		 ents_writer = new BufferedWriter(fw_ents);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -117,6 +122,8 @@ public class OutputGenerator {
 			event_writer.close();
 			header_writer.flush();
 			header_writer.close();
+			ents_writer.flush();
+			ents_writer.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -131,6 +138,16 @@ public class OutputGenerator {
 								+steamid+", "
 								+heroName+", "
 								+gameTeam+"\n");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public void writeEntityEvent(String type, double time, String data) {
+		try {
+			ents_writer.write( type+", " +
+								data+", "+time+"\n");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
