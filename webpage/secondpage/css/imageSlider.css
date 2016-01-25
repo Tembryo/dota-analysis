@@ -1,0 +1,142 @@
+
+#sliderContainer {
+    position: relative;
+}
+
+.ImageSlider {
+    position: relative;
+    margin-left: auto;
+    width: 300px;
+    height: 300px;
+    margin-right: auto;
+    overflow: visible;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-text-size-adjust: none;
+    -moz-text-size-adjust: none;
+    -ms-text-size-adjust: none;
+    -o-text-size-adjust: none;
+    text-size-adjust: none;
+}
+
+.ImageSlider .ScrollArea {
+    width: 2000000px;
+    height: 300px;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    -o-transform: translateZ(0);
+    transform: translateZ(0);
+    border: solid white;
+    box-sizing: content-box;
+    margin-left: -500px;
+    border-width: 20px 500px;
+    background-image: url("../img/gradient.png");
+}
+
+.ImageSlider .ScrollArea img {
+    float: left;
+    margin-left: 0;
+    margin-right: 0;
+    opacity: .4;
+    width: 300px;
+    height: 300px;
+}
+
+.ImageSlider .selectedImage {
+    opacity: 1 !important;
+    filter: alpha(opacity=100);
+    width: 300px;
+    height: 300px;
+}
+
+.scrollButton {
+    position: absolute;
+    background-color: #2E3542;
+    border-radius: 40px;
+}
+
+.scrollButton.prev {
+    left: 3.5em;
+    top: 22em;
+}
+
+.scrollButton.next {
+    right: 3.5em;
+    top: 22em;
+}
+
+
+@media only screen and (max-width : 991px) {
+
+    .ImageSlider {
+        width: 200px;
+        height: 200px;
+    }
+
+    .ImageSlider .selectedImage {
+        opacity: 1;
+        filter: alpha(opacity=100);
+        width: 200px;
+        height: 200px;
+    }
+
+    .ImageSlider .ScrollArea {
+        height: 200px;
+    }
+
+    .ImageSlider .ScrollArea img {
+        width: 200px;
+        height: 200px;
+    }
+
+    .ScrollArea {
+        height: 200px;
+    }
+
+    .scrolling {
+        width: 200px;
+        height: 200px;
+    }
+
+    .scrollButton.prev {
+        top: 22em;
+    }
+
+    .scrollButton.next {
+        top: 22em;
+    }
+}
+
+@media only screen and (max-width : 768px) {
+
+    .scrollButton.prev {
+        top: 17em;
+        left: 2.5em;
+    }
+
+    .scrollButton.next {
+        top: 17em;
+        right: 2.5em;
+    }
+
+}
+
+@media only screen and (max-width : 691px) {
+
+    .scrollButton.prev {
+        top: 20em;
+        left: 2.5em;
+    }
+
+    .scrollButton.next {
+        top: 20em;
+        right: 2.5em;
+    }
+
+}
+

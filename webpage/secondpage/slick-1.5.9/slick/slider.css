@@ -1,0 +1,16 @@
+.slider {
+        margin: 60px auto;
+      }
+
+button.slick-prev.slick-arrow {
+       background: url("img/logos/previous.svg");
+      }
+
+.slider-container {
+	margin-left: 15px;
+	margin-right: 15px;
+}
+
+#hotornot-container {
+	bottom: 10px;
+}

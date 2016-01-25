@@ -1,0 +1,102 @@
+.featurette-heading {
+	font-size: 40px;
+}
+
+.features-heading {
+	font-size: 40px;
+	margin-bottom: 20px;
+	margin-top: 0;
+}
+
+#try-wisdota-link {
+	margin-top: 15px;
+}
+
+#form-label {
+	font-weight:bold;
+	text-align:right;
+	padding-top: 3px;
+	font-size: 20px;
+}
+
+#steam-logo-small {
+	display: inline-block;
+}
+
+.page-header {
+	padding-top: 40px;
+	font-size: 40px;
+}
+
+.pager-header-small {
+	margin-top: 5px;
+}
+
+#steamIDInputBtn {
+	width:200px;
+	height: 48px;
+	margin-bottom: 5px;
+	font-size: 20px;
+}
+
+#ratePlayerBtn {
+	width:200px;
+	height: 48px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+	cursor: pointer;
+	font-size: 20px;
+}
+
+#player-slider {
+	height: 300px;
+	margin-bottom: 2px;
+	margin-top: 5px;
+	padding-bottom: 0;
+	padding-right: 30px;
+	padding-left: 30px;
+}
+
+.slider {
+	vertical-align: top;	
+}
+
+button.slick-prev {
+	height: 40px;
+	width: 40px;
+}
+
+button.slick-next {
+	height: 40px;
+	width: 40px;
+}
+
+.slick-prev:before {
+  font-size: 40px;
+}
+.slick-next:before {
+  font-size: 40px;
+}
+
+.socialmedia_container{
+	height: 20px;
+	background-color: gray;
+}
+
+@media screen and (min-width: 993px) {
+	.slider {
+		width: 1050px;
+	}
+}
+
+@media screen and (max-width: 992px) {
+	.slider {
+		width: 650px;
+	}
+}
+
+@media screen and (max-width: 768px) {
+	.slider {
+		width: 250px;
+	}
+}
