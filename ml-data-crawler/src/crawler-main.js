@@ -33,21 +33,53 @@ function iterateLogin()
         current_acc ++;
     console.log("Using call"+current_acc+"/"+current_account_i);
 }
+function iterateAccount()
+{
+    console.log("done with acc", current_acc, current_account_i);
+    current_acc ++;
+    current_account_i = 0;
+}
+console.log("crawley happily crawling ur replays");
 
-console.log("hello world ");
+var CrawlerKeepRunning = true;
+var dlInterval = 3000;
 
 crawl();
 
+var switcher = 1;
+
 function crawl()
 {
-    getApiMatches(null, fetchMore);
+    fetchMore(null, null);
 }
 function fetchMore(err, final_id)
 {
     if(err)
         return;
     if(getLogin() != null)
-        getApiMatches(final_id-1, fetchMore);
+    {
+        CrawlerKeepRunning = true;
+        if(switcher == 0)
+       {
+            console.log("fetch mmrs");
+            if(final_id)
+                getApiMatches(final_id-1, fetchMore);
+            else
+                getApiMatches(final_id, fetchMore);
+            switcher = 1;
+        }
+        else
+        {
+            console.log("DL replays");
+            dlMatches(final_id, fetchMore);
+            switcher = 0;
+        }
+    }
+    else
+    {
+        console.log("done, login bad");
+        CrawlerKeepRunning = false;
+    }
 }
 
 function getApiMatches(start, cb)
@@ -62,7 +94,7 @@ function getApiMatches(start, cb)
                 locals.client = client;
                 locals.done = done_client;
                 var earliest_match_time = moment().subtract(3,"hours").unix();
-                var url = "https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?key="+config.steam_api_key+"&date_max="+earliest_match_time+"&min_players=10&game_mode=22";
+                var url = "https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?key="+config.steam_api_key+"&date_max="+earliest_match_time+"&min_players=10&game_mode=22&matches_requested=30";
                 if(start != null)
                     url+="&start_at_match_id="+start;
                 api_semaphore.take(function(){
@@ -89,24 +121,11 @@ function getApiMatches(start, cb)
                     login,
                     checkMMRs.bind(this, responseData, locals),
                     callback);
-            },
-            function(match_result, callback)
-            {
-                async.eachSeries(
-                    match_result["matches"],
-                    function(match, callback_match)
-                    {
-                        var next_login = getLogin();
-                        iterateLogin();
-                        fetchMatch(match, next_login, locals, callback_match); 
-                    },
-                    function(){
-                        callback(null, match_result["next_id"]);
-                    });
             }
         ],
         function(err, results)
         {
+            console.log("done");
             locals.done();
             cb(err, results);
         }
@@ -184,7 +203,7 @@ function checkMMRs(responseData, locals, dota_client, callback)
                                     result.matches.push({"match_id": match["match_id"]});
 
                                     locals.client.query(
-                                        "INSERT INTO Matches(matchid, downloaded) VALUES ($1, FALSE);",
+                                        "INSERT INTO Matches(matchid, status) VALUES ($1, 'queued');",
                                         [match["match_id"]],
                                         function(err, results)
                                         {
@@ -202,7 +221,10 @@ function checkMMRs(responseData, locals, dota_client, callback)
                                 }
                                 else
                                 {
-                                    callback_match(err);
+                                    locals.client.query(
+                                        "INSERT INTO Matches(matchid, status) VALUES ($1, 'nommrs');",
+                                        [match["match_id"]],
+                                        callback_match);
                                 }
                             }
                         );
@@ -215,8 +237,50 @@ function checkMMRs(responseData, locals, dota_client, callback)
         });
 }
 
+function dlMatches(next_match, cb)
+{
+    var locals = {};
 
-function fetchMatch(match, next_login, locals, callback)
+    async.waterfall(
+        [
+            database.connect,
+            function(client, done_client, callback)
+            {
+                locals.client = client;
+                locals.done = done_client;
+                locals.client.query(
+                    "SELECT matchid FROM Matches where status = 'queued' LIMIT 10;",
+                    [],
+                    callback);
+            },
+            function(results, callback)
+            {
+                console.log("got", results.rowCount, results.rows)
+                async.eachSeries(
+                    results.rows,
+                    function(match_row, callback_match)
+                    {
+                        var next_login = getLogin();
+                        iterateLogin();
+                        fetchMatch(match_row["matchid"], next_login, locals, callback_match); 
+                    },
+                    function(){
+                        callback();//null, match_result["next_id"]);
+                    });
+            }
+        ],
+        function(err, results)
+        {
+            console.log("done");
+            locals.done();
+            if(CrawlerKeepRunning)
+                setTimeout(function(){cb(err, next_match);}, dlInterval);
+        }
+    );
+}
+
+
+function fetchMatch(match_id, next_login, locals, callback)
 {
     async.waterfall(
         [
@@ -227,17 +291,38 @@ function fetchMatch(match, next_login, locals, callback)
                     function(dota_client, callback_dl)
                     {
                         console.log("before dl");
-                        replay_dl.downloadMatch(dota_client, match["match_id"], config.files+"/replays/", callback_dl);
+                        replay_dl.downloadMatch(dota_client, match_id, config.files+"/replays/", callback_dl);
                     },
                     callback);
             },
-            function(callback)
+            function(results, callback)
+            {
+                console.log("setting as dled");
+                locals.client.query(
+                    "UPDATE Matches SET status = 'dled' WHERE matchid = $1;",
+                    [match_id],
+                    callback);
+            },
+        ],
+        function(err, results)
+        {
+            if(err == "details-timeout")
+            {
+                //got timed out, retry with next account fordetails
+                iterateAccount();
+                if(getLogin() == null)
+                    callback("no accounts left");
+                else
+                    fetchMatch(match_id, getLogin(), locals, callback);
+            }
+            else if(err)
             {
                 locals.client.query(
-                    "UPDATE Matches SET downloaded = TRUE WHERE matchid = $1;",
-                    [match["match_id"]],
+                    "UPDATE Matches SET status = 'faileddl' WHERE matchid = $1;",
+                    [match_id],
                     callback);
             }
-        ],
-        callback);
+            else
+                callback();
+        });
 }
