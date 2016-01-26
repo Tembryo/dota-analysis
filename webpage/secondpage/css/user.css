@@ -11,6 +11,14 @@ svg {
 	margin: auto;
 }
 
+.dashboard-button {
+	width: 120px;
+}
+
+.dashboard-button-matches {
+	width: 60px;
+}
+
 .circle{
 	display:block;
 	width:25px;
