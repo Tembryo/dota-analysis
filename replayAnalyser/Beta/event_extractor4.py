@@ -237,7 +237,7 @@ def heroPositions(match):
 				for key in heros:
 					v_mat[key].append([float(row[col_per_player*heros[key]["index"]+5]),float(row[col_per_player*heros[key]["index"]+6])])
 
-	return v_mat, t_vec
+	return v_mat, t_vec  #state = [v_mat,t_vec]
 
 #####################
 # hero trajectories #
