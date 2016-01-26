@@ -1,0 +1,58 @@
+.results-box {
+	height: 340px;
+	width: 440px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#hero-img {
+	display: block;
+    margin-left: auto;
+    margin-right: auto;
+    height: 191px;
+    width: 340px;
+}
+
+.results-header-small {
+	margin-top: 20px;
+	margin-bottom: 0;
+}
+
+.my-block {
+	float:left;
+	position: relative;
+}
+
+.block-text{
+	position: absolute;
+	top:24px;
+}
+
+#pblock1 {
+	left:18px;
+}
+
+#pblock2 {
+	left:26px;
+}
+
+#pblock3 {
+	left:20px;
+}
+
+#pblock4 {
+	left:17px;
+}
+
+#pblock5 {
+	left:16px;
+}
+
+#pblock6 {
+	left:10px;
+}
+
+#social-media {
+	margin-top: 30px;
+	margin-bottom: 30px;
+}
