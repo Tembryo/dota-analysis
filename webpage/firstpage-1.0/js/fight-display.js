@@ -205,17 +205,26 @@ $(document).ready(function(){
 		var event_id = Object.keys(fights[0]);
 		var attacks = fights[0][event_id[0]]["attack_sequence"];
 		var attack_text = "";
+		var old_attack = new Object();
+		old_attack.attack_method = "";
+		old_attack.victim_list = [];
+		old_attack.attacker = "";
+		old_attack.damage = 0;
+		old_attack.time_start = "";
+		old_attack.time_end = "";
+
+		var new_attack = new Object();
 		for (i = 0; i < attacks.length; i++){
-			var attacker = hero_id[attacks[i]["attacker"]];
-			attacker = capitalizeFirstLetter(attacker);
-			var victim = hero_id[attacks[i]["victim"]];
-			victim = capitalizeFirstLetter(victim);
-			var attack_method = attacks[i]["attack_method"];
-			var damage = attacks[i]["damage"];
-			var time = Math.floor(10*attacks[i]["t"])/10;
-			var minutes = Math.floor(time /60);
-			var seconds = Math.floor(time % 60);
-			var health_delta = attacks[i]["health_delta"];
+			new_attack.attack_method = attacks[i]["attack_method"];
+			new_attack.attacker = capitalizeFirstLetter(hero_id[attacks[i]["attacker"]]);
+			new_attack.victim = capitalizeFirstLetter(hero_id[attacks[i]["victim"]]);
+			new_attack.damage = attacks[i]["damage"];
+			new_attack.time = Math.floor(10*attacks[i]["t"])/10;
+			if (attack_method === old_attack_method){
+
+			}
+
+
 			attack_text = attack_text + "\n " + "At " + str_pad_left(minutes,'0',2) + ":" + str_pad_left(seconds,'0',2) + " - " + attacker + " attacked " + victim + " with " + attack_method + " did " + damage + " damage" + health_delta;
 		};
 		document.getElementById("my_text_area").value += attack_text;
@@ -227,7 +236,7 @@ $(document).ready(function(){
 			var event_id = Object.keys(fights[selected_id]);
 			var attacks = fights[selected_id][event_id[0]]["attack_sequence"];
 			var attack_text = "";
-			for (i = 0; i < attacks.length; i++){
+			for (i = 0; i < attacks.length; i++){		
 				var attacker = hero_id[attacks[i]["attacker"]];
 				attacker = capitalizeFirstLetter(attacker);
 				var victim = hero_id[attacks[i]["victim"]];
@@ -266,3 +275,7 @@ function findFightEvents(){
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
+
+			//var minutes = Math.floor(time /60);
+			//var seconds = Math.floor(time % 60);
+			//var health_delta = attacks[i]["health_delta"];

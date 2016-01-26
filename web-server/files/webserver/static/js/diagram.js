@@ -421,7 +421,7 @@ gui_state = {
 	"highlighted-unit": null
 };
 
-map_events = ["fight", "movement", "fountain-visit", "jungling", "laning"/*, "rotation"*/];
+map_events = ["fight", "movement", "fountain-visit", "jungling", "laning", "creep-death"/*, "rotation"*/];
 
 d3_elements = {}; //Filled by creation methods
 
@@ -1201,8 +1201,8 @@ function filterEventsMap(event){
 	
 	if(event.hasOwnProperty("time"))
 	{
-		if( ! (event["time"]-event_duration/2 <= gui_state["cursor-time"]) &&
-			(event["time"]+event_duration/2 > gui_state["cursor-time"]) )
+		if( ! ((event["time"]-event_duration/2 <= gui_state["cursor-time"]) &&
+			(event["time"]+event_duration/2 > gui_state["cursor-time"])) )
 			return false;
 	}
 	else if(event.hasOwnProperty("time-start") && event.hasOwnProperty("time-end"))
@@ -1273,8 +1273,7 @@ function createMapEvent(event){
 
 	
 	var location;
-	var position;
-	if(event.hasOwnProperty("location"))
+	if(event.hasOwnProperty("location") ||event.hasOwnProperty("position"))
 	{	
 
 		location = group.append("svg:circle")
@@ -1333,6 +1332,24 @@ function createMapEvent(event){
 				"opacity": computeEventOpacity(event)
 				});
 		break;
+    case "creep-death":
+        color = "";
+        switch(event["team"])
+        {
+            case "radiant":
+                color= colors_greens[2];
+                break;
+            case "dire":
+                color= colors_reds[2];
+                break;
+            case "neutral":
+                color= colors_yellows[2];
+                break;
+        }
+        location.attr({
+			"r": icon_size*0.5,
+			"fill": color
+			});
 	}
 
     updateMapEvent.call(this,event);
@@ -1453,22 +1470,26 @@ function updateMapEvent(event){
 	//var position = getLocationCoordinates(event["location"]);
 	var position = new Victor(0,0);
     var units_available = 0;
-	for(var involved_i in event["involved"])
-	{
-		var unit_position = getEntityPosition(event["involved"][involved_i]);
-        if(unit_position)
-    	{
-        	position.add(new Victor(unit_position[0], unit_position[1]));
-            units_available += 1;
-        }
-	}
-	position.multiplyScalar(1/event["involved"].length);
-
+    if(event.hasOwnProperty("involved"))
+    {
+	    for(var involved_i in event["involved"])
+	    {
+		    var unit_position = getEntityPosition(event["involved"][involved_i]);
+            if(unit_position)
+        	{
+            	position.add(new Victor(unit_position[0], unit_position[1]));
+                units_available += 1;
+            }
+	    }
+	    position.multiplyScalar(1/event["involved"].length);
+    }
 	var coords;
     if(units_available >0)
         coords = gamePositionToCoordinates([position.x, position.y]);
     else
         coords = new Victor(5,5);
+    if(event.hasOwnProperty("position"))
+        coords = gamePositionToCoordinates([event["position"]["x"], event["position"]["y"]]);
 
 	group.attr({
 			"transform": "translate("+coords.x+","+coords.y+")"

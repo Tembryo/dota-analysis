@@ -1,0 +1,64 @@
+#user-dashboard{
+	margin-top: 40px;
+}
+
+h2 {
+	padding-top: 40px;
+}
+
+svg {
+	display: block;
+	margin: auto;
+}
+
+.circle{
+	display:block;
+	width:25px;
+	height:25px;
+	border-radius:50px;
+	font-size:20px;color:#fff;
+	line-height:100px;
+	text-align:center;
+	text-decoration:none;
+	}
+
+#red-circle {
+	background:#d9534f;
+}
+
+#orange-circle {
+	background:#f0ad4e;
+}
+
+#green-circle {
+	background:#5cb85c;
+}
+
+.table > tbody > tr > td {
+     vertical-align: middle;
+}
+
+.image-thumbnail {
+	vertical-align: middle;
+}
+
+.big-table {
+	font-size: 20px;
+}
+
+.small-table {
+	font-size: 16px;
+}
+
+@media screen and (max-width: 640px) {
+	.big-table {
+		display: none;
+	}
+}
+
+
+@media screen and (min-width: 640px) {
+	.small-table {
+		display: none;
+	}
+}

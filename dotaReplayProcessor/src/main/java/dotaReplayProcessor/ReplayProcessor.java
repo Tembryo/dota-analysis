@@ -3,6 +3,7 @@ import java.util.Arrays;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import skadistats.clarity.model.CombatLogEntry;
@@ -15,19 +16,31 @@ import skadistats.clarity.processor.entities.OnEntityDeleted;
 import skadistats.clarity.processor.entities.OnEntityUpdated;
 import skadistats.clarity.processor.entities.UsesEntities;
 import skadistats.clarity.processor.gameevents.OnCombatLogEntry;
+import skadistats.clarity.processor.reader.OnMessage;
 import skadistats.clarity.processor.reader.OnTickStart;
 import skadistats.clarity.processor.runner.Context;
 import skadistats.clarity.processor.runner.ControllableRunner;
 import skadistats.clarity.processor.runner.SimpleRunner;
+import skadistats.clarity.processor.sendtables.DTClasses;
 import skadistats.clarity.processor.stringtables.OnStringTableCreated;
 import skadistats.clarity.processor.stringtables.OnStringTableEntry;
+import skadistats.clarity.processor.tempentities.OnTempEntity;
+import skadistats.clarity.processor.tempentities.TempEntities;
 import skadistats.clarity.source.MappedFileSource;
+import skadistats.clarity.wire.s1.proto.S1NetMessages;
+import skadistats.clarity.wire.s2.proto.S2UserMessages.CUserMessageSayText2;
+import skadistats.clarity.wire.common.proto.DotaUserMessages.CDOTAUserMsg_OverheadEvent;
 import javax.vecmath.Vector2d;
 import javax.vecmath.Vector2f;
 
 import com.google.protobuf.ByteString;
 
+import skadistats.clarity.decoder.FieldReader;
 import skadistats.clarity.decoder.Util;
+import skadistats.clarity.decoder.bitstream.BitStream;
+import skadistats.clarity.decoder.s1.ReceiveProp;
+import skadistats.clarity.decoder.s1.S1DTClass;
+
 import java.util.HashMap;
 
 public class ReplayProcessor {
@@ -38,9 +51,10 @@ public class ReplayProcessor {
     HashMap<Integer, String> cl_names = new HashMap<Integer, String>();
 	
 	boolean init = false;
-    Integer time = 0;
-    int numPlayers = 10;
-    int[] validIndices = new int[numPlayers];
+    int num_players = 10;
+    int[] valid_indices = new int[num_players];
+    boolean[] hero_units_valid = new boolean[num_players];
+	int n_hero_units_valid = 0;
 	
 	Map<String, Integer> hero_indices;
 	Map<String, Double> data_fields;
@@ -50,7 +64,7 @@ public class ReplayProcessor {
 
 		data_fields = new HashMap<String, Double>();
 		data_fields.put("time", 0.0);
-    	for(int i = 0; i < 10; ++i)
+    	for(int i = 0; i < num_players; ++i)
     	{
     		data_fields.put(i+"X", 0.0);
         	data_fields.put(i+"Y", 0.0);
@@ -59,6 +73,7 @@ public class ReplayProcessor {
           	data_fields.put(i+"Mana", 0.0);
           	data_fields.put(i+"MaxMana", 0.0);
     		data_fields.put(i+"Alive", 1.0); //start as dead
+    		hero_units_valid[i] = false;
     	}
 		this.output = output;
 		this.output.init(data_fields);
@@ -67,7 +82,8 @@ public class ReplayProcessor {
 
 	public void process() throws IOException {
 		ControllableRunner runner = new ControllableRunner(file_source);
-		runner.runWith(this);
+		TempEntities temp = new TempEntities();
+		runner.runWith(this, temp);
         while(!runner.isAtEnd()) {
             runner.tick();
             output.writeTick(data_fields);
@@ -85,11 +101,13 @@ public class ReplayProcessor {
         Entity dData = ctx.getProcessor(Entities.class).getByDtName("CDOTA_DataDire");
         Entity rData = ctx.getProcessor(Entities.class).getByDtName("CDOTA_DataRadiant");
 
+        double time = 0;
         if (grp != null) {
         	float t = getEntityProperty(grp, "m_pGameRules.m_fGameTime", null);
-        	Double time = (double) t;
+        	time = (double) t;
             data_fields.put("time", time);
         }
+        
         if (pr != null) {
             //Radiant coach shows up in vecPlayerTeamData as position 5
             //all the remaining dire entities are offset by 1 and so we miss reading the last one and don't get data for the first dire player
@@ -100,12 +118,12 @@ public class ReplayProcessor {
                 int i = 0;
                 //according to @Decoud Valve seems to have fixed this issue and players should be in first 10 slots again
                 //sanity check of i to prevent infinite loop when <10 players?
-                while (added < numPlayers && i < 100) {
+                while (added < num_players && i < 100) {
                     //check each m_vecPlayerData to ensure the player's team is radiant or dire
                     int playerTeam = getEntityProperty(pr, "m_vecPlayerData.%i.m_iPlayerTeam", i);
                     if (playerTeam == 2 || playerTeam == 3) {
                         //if so, add it to validIndices, add 1 to added
-                        validIndices[added] = i;
+                        valid_indices[added] = i;
                         added += 1;
                     }
 
@@ -115,12 +133,12 @@ public class ReplayProcessor {
             }
 
             //System.err.println(pr);
-            for (int i = 0; i < numPlayers; i++) {
+            for (int i = 0; i < num_players; i++) {
                 //Integer hero = getEntityProperty(pr, "m_vecPlayerTeamData.%i.m_nSelectedHeroID", validIndices[i]);
-                int handle = getEntityProperty(pr, "m_vecPlayerTeamData.%i.m_hSelectedHero", validIndices[i]);
+                int handle = getEntityProperty(pr, "m_vecPlayerTeamData.%i.m_hSelectedHero", valid_indices[i]);
                 //Long steamid = getEntityProperty(pr, "m_vecPlayerData.%i.m_iPlayerSteamID", validIndices[i]);
-                int playerTeam = getEntityProperty(pr, "m_vecPlayerData.%i.m_iPlayerTeam", validIndices[i]);
-                int teamSlot = getEntityProperty(pr, "m_vecPlayerTeamData.%i.m_iTeamSlot", validIndices[i]);
+                int playerTeam = getEntityProperty(pr, "m_vecPlayerData.%i.m_iPlayerTeam", valid_indices[i]);
+                int teamSlot = getEntityProperty(pr, "m_vecPlayerTeamData.%i.m_iTeamSlot", valid_indices[i]);
                 //System.err.format("hero:%s i:%s teamslot:%s playerteam:%s\n", hero, i, teamSlot, playerTeam);
                 
                 //2 is radiant, 3 is dire, 1 is other?
@@ -135,12 +153,6 @@ public class ReplayProcessor {
                 //entry.xp = getEntityProperty(dataTeam, "m_vecDataTeam.%i.m_iTotalEarnedXP", teamSlot);
                 //entry.stuns = getEntityProperty(dataTeam, "m_vecDataTeam.%i.m_fStuns", teamSlot);
 
-                //TODO: gem, rapier time?
-                //https://github.com/yasp-dota/yasp/issues/333
-                //need to dump inventory items for each player and possibly keep track of item entity handles
-
-                //time dead, count number of intervals where this value is >0?
-                //m_iRespawnSeconds.0000
 
                 //get the player's hero entity
                 Entity e = ctx.getProcessor(Entities.class).getByHandle(handle);
@@ -167,6 +179,25 @@ public class ReplayProcessor {
 
             }
             output.writeTick(data_fields);
+        }
+        
+        if(n_hero_units_valid < num_players)
+        {
+	        Iterator<Entity> players = ctx.getProcessor(Entities.class).getAllByDtName("CDOTAPlayer");
+	        while(players.hasNext())
+	        {
+
+	        	Entity p = players.next();
+
+	        	int id = (int)getEntityProperty(p,"m_iPlayerID", null);
+	        	if(id >= 0 && !hero_units_valid[id])
+	        	{
+		            output.writeEvent(time, "PLAYER_ENT,"+id+","+p.getHandle());
+		            System.out.println(id);
+		            hero_units_valid[id] = true;
+		            n_hero_units_valid++;
+	        	}
+	        }
         }
     }
 
@@ -304,7 +335,7 @@ public class ReplayProcessor {
     			int team= (int)getEntityProperty(e, "m_iTeamNum", null);
     			Vector2f pos = computePosition(e);
 				if(lifestate == 1)//just died
-					output.writeEntityEvent("CREEP_DEATH", time, entity_name+", "+team+", "+", "+pos.x+", "+pos.y);//.toString()
+					output.writeEntityEvent(time,"CREEP_DEATH", entity_name+","+e.getHandle()+","+team+","+pos.x+","+pos.y);//.toString()
     	    	
     		}
     	}
@@ -328,13 +359,31 @@ public class ReplayProcessor {
     	//output.writeEntityEvent("delete", time, e.getDtClass().getDtName()+", "+e.getHandle());
     }
     
+	@UsesEntities
+    @OnMessage(CDOTAUserMsg_OverheadEvent.class)
+    public void onAllChatS2(Context ctx, CDOTAUserMsg_OverheadEvent ohe) {
+	   	 double time = 0;
+	     Entity grp = ctx.getProcessor(Entities.class).getByDtName("CDOTAGamerulesProxy");
+			if (grp != null) {
+	     	float t = getEntityProperty(grp, "m_pGameRules.m_fGameTime", null);
+	 		time = t;
+	     }
+		
+    	output.writeEvent(time, ohe.getMessageType().toString()+","+ohe.getValue()+","+
+    				ctx.getProcessor(Entities.class).getByIndex(ohe.getSourcePlayerEntindex()).getHandle()+","+
+    				ctx.getProcessor(Entities.class).getByIndex(ohe.getTargetEntindex()).getHandle()+","+
+    				ctx.getProcessor(Entities.class).getByIndex(ohe.getTargetPlayerEntindex()).getHandle());
+    	
+    				
+    }
+    
     @OnCombatLogEntry
     public void onCombatLogEntry(Context ctx, CombatLogEntry cle) {
         Entity grp = ctx.getProcessor(Entities.class).getByDtName("CDOTAGamerulesProxy");
     	float t = getEntityProperty(grp, "m_pGameRules.m_fGameTime", null);
     	Double time = (double) t;
     	
-    	String event = time+ ",";
+    	String event = "";
     	event += cle.getType().toString()+",";
         switch (cle.getType()) {
             case DOTA_COMBATLOG_DAMAGE:
@@ -427,6 +476,6 @@ public class ReplayProcessor {
 			break;
         }
         
-        output.writeEvent(event);
+        output.writeEvent(time, event);
     }
 }

@@ -103,10 +103,10 @@ public class OutputGenerator {
 		}
 	}
 	
-	public void writeEvent(String event)
+	public void writeEvent(double time, String event)
 	{
 		try {
-			event_writer.write(event+"\n");
+			event_writer.write(time+","+event+"\n");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -133,10 +133,10 @@ public class OutputGenerator {
 
 	public void writePlayerInfo(int i, String playerName, long steamid, String heroName, int gameTeam) {
 		try {
-			header_writer.write("PLAYER, "+i+", "
-								+playerName.replace(",", "")+", "
-								+steamid+", "
-								+heroName+", "
+			header_writer.write("PLAYER,"+i+","
+								+playerName.replace(",", "")+","
+								+steamid+","
+								+heroName+","
 								+gameTeam+"\n");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -144,10 +144,9 @@ public class OutputGenerator {
 		}
 	}
 
-	public void writeEntityEvent(String type, double time, String data) {
+	public void writeEntityEvent(double time, String type, String data) {
 		try {
-			ents_writer.write( type+", " +
-								data+", "+time+"\n");
+			ents_writer.write(time+","+type+","+data+"\n");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -24,8 +24,9 @@
 }
 
 .page-header {
-	padding-top: 40px;
+	padding-top: 20px;
 	font-size: 40px;
+	margin-bottom: 0;
 }
 
 .pager-header-small {
@@ -71,6 +72,26 @@ button.slick-next {
 	width: 40px;
 }
 
+.mugshots {
+	position: relative;
+	border: 3px solid black;
+	border-radius: 4px;
+}
+
+.mugshot-match-info {
+	font-size: 20px;
+	margin-bottom: 10px;
+}
+
+
+.user-name {
+	color: white;
+	position: absolute;
+	bottom: 70px;
+	left:36px;
+	font-size: 30px
+}
+
 .slick-prev:before {
   font-size: 40px;
 }
@@ -85,18 +106,18 @@ button.slick-next {
 
 @media screen and (min-width: 993px) {
 	.slider {
-		width: 1050px;
+		width: 1135px;
 	}
 }
 
 @media screen and (max-width: 992px) {
 	.slider {
-		width: 650px;
+		width: 704px;
 	}
 }
 
 @media screen and (max-width: 768px) {
 	.slider {
-		width: 250px;
+		width: 275px;
 	}
 }
