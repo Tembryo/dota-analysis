@@ -61,12 +61,19 @@ var downloadAndDecompress = function(url, dest, cb) {
 //Retrieves salt using a given Dota2 client, stores the downloaded/decompressed replay 
 function downloadMatch(client, match_id, target, final_callback)
 {   
+    var details_timeout = 2000;
+    var timeout_status = 0; 
     var file;
     async.waterfall(
         [
-            client.requestMatchDetails.bind(client, match_id),
+            function(callback){
+                client.requestMatchDetails(match_id, callback);
+                timeout_status = 0; 
+                setTimeout(function(){if(timeout_status == 0){callback("details-timeout"); timeout_status = 2;}else return;}, details_timeout);
+            },
             function(result, callback)
             {
+                timeout_status = 1;
                 if(result.result != 1)
                     callback("bad match details:", result);
 
