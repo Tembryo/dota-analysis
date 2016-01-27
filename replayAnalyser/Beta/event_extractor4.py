@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from dota2_area_boxes_ver2 import area_matrix, areas
 import datetime
 import shutil
+import cProfile
 
 events = {}
 
@@ -157,7 +158,7 @@ class Match:
             logging.info('No DOTA_COMBATLOG_GAME_STATE == 4 transition in this events file')
             pregame_start_time = max(match_start_time - self.parameters["pregame_time_shift"],first_timestamp)
 
-
+        
         self.teams = teams
         self.players = players
         self.heroes = heroes
@@ -273,6 +274,7 @@ def heroTrajectories(match,state,hero_deaths):
 
         for i in range(0,len(death_time_list)-1):
             try:
+                #can we replace with a respawn flag?
                  respawn_time = next(t for j, t in enumerate(state[1]) if (t > death_time_list[i]) and (t < death_time_list[i+1]) and ((state[0][key][j][0]-state[0][key][j+1][0])**2+ (state[0][key][j][1]-state[0][key][j+1][1])**2 > delta))
                  t1 = respawn_time
                  t2 = death_time_list[i+1]
@@ -457,7 +459,7 @@ def goldXPInfo(match):
     radiant_xp_total = 0
     dire_xp_total =0
 
-    for row in match.events:
+    for row in match.goldexp_events:
         absolute_time = float(row[0])
         timestamp = absolute_time-match_start_time
         if (absolute_time >= pregame_start_time) and (absolute_time <= match_end_time):
@@ -533,7 +535,7 @@ def fightDistMetric(attack1,attack2,radius,w_space1,w_space2,w_time):
     else:
         w_space = w_space2
 
-    dist = w_space*r + w_time*(math.sqrt((attack1.t-attack2.t)**2)) 
+    dist = w_space*r + w_time*(abs(attack1.t-attack2.t)) 
     return dist
 
 
@@ -648,10 +650,13 @@ def formAdjacencyMatrix(match,attack_list):
 
     for i in range(0,n):
         for j in range(i+1,n):
-            d = fightDistMetric(attack_list[i],attack_list[j],radius,w_space1,w_space2,w_time)
-            if d < distance_threshold:
-                A[i,j] = 1
-                A[j,i] = 1
+            if attack_list[j].t-attack_list[i].t > distance_threshold/w_time:
+                break
+            else:            
+                d = fightDistMetric(attack_list[i],attack_list[j],radius,w_space1,w_space2,w_time)
+                if d < distance_threshold:
+                    A[i,j] = 1
+                    A[j,i] = 1
 
     return A
 
@@ -731,12 +736,12 @@ def fightSummary(match,area_matrix,attack_list,A):
     match_end_time = match.match_end_time
     heroes = match.heroes
     k=0
-    #find the connected components of the graph
+    #find the connected components of the graph using scipy (this takes a couple of seconds)
     n_components, labels = scipy.sparse.csgraph.connected_components(A, directed=False, return_labels=True)
 
     #for each fight make a list of attacks
     for i in range(0,n_components):
-        fight_list.append([attack_list[j] for j, x in enumerate(labels) if x ==i ])
+        fight_list.append([attack_list[j] for j, x in enumerate(labels) if x == i ])
 
     fight_dict = {}
     for i,fight in enumerate(fight_list):
@@ -1001,5 +1006,5 @@ def main():
     #shutil.rmtree(match_directory)
 
 if __name__ == "__main__":
-    main()
+    cProfile.run('main()')
 
