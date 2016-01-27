@@ -31,7 +31,7 @@ class Match:
         self.entitied_input_filename = match_directory+"/ents.csv"
         # variables that determine how the data is analysed - need to include all parameters
         self.parameters = {}
-        self.parameters["version"] = "0.0.03"
+        self.parameters["version"] = "0.0.04"
         self.parameters["datetime"] = {}
         self.parameters["datetime"]["date"] = str(datetime.date.today())
         self.parameters["datetime"]["time"] = str(datetime.datetime.now().time())
@@ -84,7 +84,7 @@ class Match:
 
     def matchInfo(self):
 
-        # extract the match info from the files
+        # extract the match and player info (id,team names,player names,hero names,match start and end times) from the header and events files
 
         teams = {0:{"side":"radiant","name":"empty","short":"empty"},1:{"side":"dire","name":"empty","short":"empty"}}
         players = {}
@@ -144,6 +144,7 @@ class Match:
                 pregame_flag = 1
             elif row[1] == "DOTA_COMBATLOG_GAME_STATE" and row[2] == "6":
                 match_end_time  = math.floor(float(row[0]))
+                #extract the events required for our analysis and store as a element in the array match.goldexp_events
             elif row[1] == "DOTA_COMBATLOG_GOLD" or row[1] == "DOTA_COMBATLOG_XP" or row[1] == "OVERHEAD_ALERT_GOLD" or row[1] == "OVERHEAD_ALERT_DENY":
                 self.goldexp_events.append(row)
             elif row[1] == "PLAYER_ENT":
@@ -157,13 +158,13 @@ class Match:
             pregame_start_time = max(match_start_time - self.parameters["pregame_time_shift"],first_timestamp)
 
 
-        # calculate the length of the match (time between states 5 and 6)
         self.teams = teams
         self.players = players
         self.heroes = heroes
         self.pregame_start_time = pregame_start_time
         self.match_start_time = match_start_time
         self.match_end_time = match_end_time
+        # calculate the length of the match (time between states 5 and 6)
         self.total_match_time = match_end_time - match_start_time 
 
 def headerInfo(match):
@@ -298,7 +299,8 @@ def heroTrajectories(match,state,hero_deaths):
 
 # this reuses and modifies some old code from area_assignment and should probably be removed/rewritten at some point
 
-def assignPlayerArea2(match,hero_name,state,area_matrix):
+def assignPlayerArea(match,hero_name,state,area_matrix):
+    #takes in player data (x,y,t,g) and returns which box of the area_matrix they were in at each timestep
 
     xmax = match.parameters["map"]["xmax"]
     xmin = match.parameters["map"]["xmin"]
@@ -306,14 +308,13 @@ def assignPlayerArea2(match,hero_name,state,area_matrix):
     ymin = match.parameters["map"]["ymin"]
     num_box = match.parameters["map"]["num_box"]
 
-    #takes in player data (x,y,t,g) and returns a list of areas they visit in that data set
     grid_size_x = (xmax-xmin)/num_box
     grid_size_y = (ymax-ymin)/num_box
 
     x = [math.floor((i[0]-xmin)/grid_size_x) for i in state[0][hero_name]]
     y = [math.floor((i[1]-ymin)/grid_size_y) for i in state[0][hero_name]]
 
-    area_state =[]
+    area_state = []
     for k in range(0,len(x)):
         i = num_box-1-int(y[k])
         j = int(x[k])
@@ -321,7 +322,7 @@ def assignPlayerArea2(match,hero_name,state,area_matrix):
     return area_state
 
 
-def areaStateSummary2(state,area_state):
+def areaStateSummary(state,area_state):
     #make two arrays that store the area visited and the time that area was first visited
     #the time is stored as an integer with second precision.
     area_state_summary =["start"]
@@ -353,8 +354,8 @@ def eventsMapping(match,state,area_matrix):
     k=0
 
     for key in heroes:
-        area_state = assignPlayerArea2(match,key,state,area_matrix)
-        summary = areaStateSummary2(state,area_state)
+        area_state = assignPlayerArea(match,key,state,area_matrix)
+        summary = areaStateSummary(state,area_state)
         #create events from summary of the areas the hero has visited
         for i in range(1,len(summary[0])-1): #the first and last elements contain strings so we don't consider them
             location = summary_to_events_mapping[summary[0][i]]
