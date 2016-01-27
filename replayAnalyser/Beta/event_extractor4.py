@@ -133,6 +133,7 @@ class Match:
         pregame_flag = 0
         self.events = []
         self.goldexp_events = []
+        self.damage_events = []
         for i, row in enumerate(f):
             row = row.strip().split(",")
             self.events.append(row)
@@ -150,6 +151,8 @@ class Match:
                 self.goldexp_events.append(row)
             elif row[1] == "PLAYER_ENT":
                 self.player_id_by_handle[row[3]] = row[2]
+            elif row[1]=="DOTA_COMBATLOG_DAMAGE" and row[2]!="null":
+                self.damage_events.append(row)
 
         f.close()
         # if there was no GAME_STATE = 4 event set the pregame start time to be 60 seconds before the match start time    
@@ -552,7 +555,7 @@ def makeAttackList(match,state):
     prior_timestamp = math.floor(pregame_start_time - match_start_time)
     bin_size = match.parameters["makeAttackList"]["bin_size"]
 
-    for row in match.events:
+    for row in match.damage_events:
         # for each row check if some damage occured (if a non-hero character dies sometimes you get null in row[2])
         absolute_time  = float(row[0])
         timestamp = absolute_time-match_start_time
@@ -563,51 +566,50 @@ def makeAttackList(match,state):
                 damage_total = 0
                 prior_timestamp = timestamp
             #if the row records damage
-            if row[1]=="DOTA_COMBATLOG_DAMAGE" and row[2]!="null":
                 # now check if the damage was between two heroes 
-                attacker = row[2] 
-                split_attacker_string = re.split("_| ",attacker)
-                victim = row[3] 
-                split_victim_string = re.split("_| ",victim)                
-                if (len(split_attacker_string) >=4) and (len(split_victim_string)>=4):
-                    if (split_attacker_string[2] == "hero") and (split_victim_string[2] == "hero"):
-                        # handle case where attacker and victim are illusions
-                        if (split_attacker_string[-1]=="(illusion)") and (split_victim_string[-1]=="(illusion)"):
-                            attacker_name_list =split_attacker_string[3:-1]
-                            victim_name_list =split_victim_string[3:-1]
-                            # handle attacker illusions case
-                        elif (split_attacker_string[-1]=="(illusion)"):
-                            attacker_name_list =split_attacker_string[3:-1]
-                            victim_name_list =split_victim_string[3:]
-                            # handle victim illusions case
-                        elif (split_victim_string[-1]=="(illusion)"):
-                            attacker_name_list =split_attacker_string[3:]
-                            victim_name_list =split_victim_string[3:-1]
-                        else:
-                            attacker_name_list =split_attacker_string[3:]
-                            victim_name_list =split_victim_string[3:]
-                        #join the names up
-                        s = "_"
-                        attacker_name = s.join(attacker_name_list)
-                        attacker_side = heroes[attacker_name]["side"]
-                        #now for the victim_name
-                        victim_name = s.join(victim_name_list)
-                        victim_side = heroes[victim_name]["side"]
-                        shifted_time = [(t-timestamp)**2 for t in state[1]]
-                        index = np.argmin(shifted_time)
-                        damage_total = damage_total + float(row[5])
-                        attack_method_string = row[4]
-                        if (attack_method_string == " ") or (attack_method_string == ""):
-                            attack_method = "melee"
-                        else:
-                            split_attack_method_string = attack_method_string.split()
-                            attack_method = split_attack_method_string[1]
-                            attack_method = attack_method[len(attacker_name)+1:]
-                        health_delta = row[6]
+            attacker = row[2] 
+            split_attacker_string = re.split("_| ",attacker)
+            victim = row[3] 
+            split_victim_string = re.split("_| ",victim)                
+            if (len(split_attacker_string) >=4) and (len(split_victim_string)>=4):
+                if (split_attacker_string[2] == "hero") and (split_victim_string[2] == "hero"):
+                    # handle case where attacker and victim are illusions
+                    if (split_attacker_string[-1]=="(illusion)") and (split_victim_string[-1]=="(illusion)"):
+                        attacker_name_list =split_attacker_string[3:-1]
+                        victim_name_list =split_victim_string[3:-1]
+                        # handle attacker illusions case
+                    elif (split_attacker_string[-1]=="(illusion)"):
+                        attacker_name_list =split_attacker_string[3:-1]
+                        victim_name_list =split_victim_string[3:]
+                        # handle victim illusions case
+                    elif (split_victim_string[-1]=="(illusion)"):
+                        attacker_name_list =split_attacker_string[3:]
+                        victim_name_list =split_victim_string[3:-1]
+                    else:
+                        attacker_name_list =split_attacker_string[3:]
+                        victim_name_list =split_victim_string[3:]
+                    #join the names up
+                    s = "_"
+                    attacker_name = s.join(attacker_name_list)
+                    attacker_side = heroes[attacker_name]["side"]
+                    #now for the victim_name
+                    victim_name = s.join(victim_name_list)
+                    victim_side = heroes[victim_name]["side"]
+                    shifted_time = [(t-timestamp)**2 for t in state[1]]
+                    index = np.argmin(shifted_time)
+                    damage_total = damage_total + float(row[5])
+                    attack_method_string = row[4]
+                    if (attack_method_string == " ") or (attack_method_string == ""):
+                        attack_method = "melee"
+                    else:
+                        split_attack_method_string = attack_method_string.split()
+                        attack_method = split_attack_method_string[1]
+                        attack_method = attack_method[len(attacker_name)+1:]
+                    health_delta = row[6]
 
-                        new_attack = Attack(attacker_name,victim_name,float(row[5]),state[0][attacker_name][index],timestamp,attack_method,health_delta)
-                        #print attacker_name + " at " + str(state[0][attacker_name][index]) + " attacked " + victim_name + " at " + str(state[0][victim_name][index])  + " did " + str(row[5]) + " damage  at " + str(timestamp)              
-                        attack_list.append(new_attack)
+                    new_attack = Attack(attacker_name,victim_name,float(row[5]),state[0][attacker_name][index],timestamp,attack_method,health_delta)
+                    #print attacker_name + " at " + str(state[0][attacker_name][index]) + " attacked " + victim_name + " at " + str(state[0][victim_name][index])  + " did " + str(row[5]) + " damage  at " + str(timestamp)              
+                    attack_list.append(new_attack)
 
     return attack_list
 
@@ -728,20 +730,25 @@ def lookUpLocation(match,area_matrix,v):
 
     return location
 
-def fightSummary(match,area_matrix,attack_list,A):
-
+def makeFightList(match,attack_list,A):
+    #take the list of attacks and group them into fights using the adjacency matrix A
     fight_list = []
-    pregame_start_time = match.pregame_start_time
-    match_start_time = match.match_start_time
-    match_end_time = match.match_end_time
-    heroes = match.heroes
-    k=0
     #find the connected components of the graph using scipy (this takes a couple of seconds)
     n_components, labels = scipy.sparse.csgraph.connected_components(A, directed=False, return_labels=True)
 
     #for each fight make a list of attacks
     for i in range(0,n_components):
         fight_list.append([attack_list[j] for j, x in enumerate(labels) if x == i ])
+
+    return fight_list
+
+def makeFightDict(match,fight_list,area_matrix):
+    # make a dictionary that stores the basic information about each fight and formats it to be outputted to the json file
+    pregame_start_time = match.pregame_start_time
+    match_start_time = match.match_start_time
+    match_end_time = match.match_end_time
+    heroes = match.heroes
+    k=0
 
     fight_dict = {}
     for i,fight in enumerate(fight_list):
@@ -777,7 +784,7 @@ def fightSummary(match,area_matrix,attack_list,A):
 
         mean_position = [sum(position_x)/len(position_x),sum(position_y)/len(position_y)]
         location = lookUpLocation(match,area_matrix,mean_position)
-        fight_dict[i]["involved"] = involved   #want to keep the set for use later in my_deaths function
+        fight_dict[i]["involved"] = involved #want to keep the set for use later in my_deaths function
         fight_dict[i]["time-start"] = time_start
         fight_dict[i]["time-end"] = time_end
         fight_dict[i]["mean_position"] = mean_position
@@ -983,7 +990,8 @@ def main():
     timeseries = goldXPInfo(match) #up to this point takes a few seconds
     attack_list = makeAttackList(match,state)
     A = formAdjacencyMatrix(match,attack_list)
-    fight_dict = fightSummary(match,area_matrix,attack_list,A)
+    fight_list = makeFightList(match,attack_list,A)
+    fight_dict = makeFightDict(match,fight_list,area_matrix)
     hero_death_fights = myDeaths(match,hero_deaths,fight_dict)
     fightEvaluation(match,fight_dict,hero_death_fights)
     creepEvaluation(match)
