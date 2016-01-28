@@ -78,6 +78,9 @@ class Match:
         self.parameters["formAdjacencyMatrix"]["w_space2"] = 0.3
         self.parameters["formAdjacencyMatrix"]["w_time"] = 80
 
+        self.parameters["initiationDamage"] = {}
+        self.parameters["initiationDamage"]["initiation_window"] = 1 #time window in seconds that we consider to be when initiating
+
         self.parameters["fightEvaluation"] = {}
         self.parameters["fightEvaluation"]["alpha"] = 150
         self.parameters["fightEvaluation"]["kappa"] = 0.15
@@ -756,10 +759,13 @@ def makeFightDict(match,fight_list,area_matrix):
         position_x = []
         position_y = []
         involved =set([])
-        time_start = match_end_time
-        time_end = pregame_start_time - match_start_time
         total_damage = 0
         attack_sequence = []
+        time_start = fight[0].t
+        time_end = fight[-1].t
+        damage_dealt = {}
+        damage_dealt["radiant"] = []
+        damage_dealt["dire"] = []
         for attack in fight:
             id1 = heroes[attack.attacker]["hero_id"]
             id1_set = set([id1])
@@ -767,9 +773,8 @@ def makeFightDict(match,fight_list,area_matrix):
             id2_set = set([id2])
             involved.update(id1_set)
             involved.update(id2_set)
+            damage_dealt[heroes[attack.attacker]["side"]].append([attack.t,attack.damage,id1])
             total_damage = total_damage + attack.damage
-            time_start = min(time_start,attack.t)
-            time_end = max(time_end,attack.t)
             attack_element = {}
             position_x.append(attack.v[0])
             position_y.append(attack.v[1])
@@ -792,8 +797,116 @@ def makeFightDict(match,fight_list,area_matrix):
         fight_dict[i]["attack_sequence"] = attack_sequence
         fight_dict[i]["killed"] = []
         fight_dict[i]["location"] = location
+        fight_dict[i]["damage_dealt"] = damage_dealt
+        #evaluate who initiated the fight
+        fight_dict[i]["initiation"] = initiationDamage(match,damage_dealt,time_start)
+        #evaluate who won the fight
+        fight_dict[i]["received"] = whoWonFight(match,fight,involved)
         #print "fight dictionary entry" + str(i)
     return fight_dict
+
+def initiationDamage(match,damage_dealt,time_start):
+    initiation_window = match.parameters["initiationDamage"]["initiation_window"]
+    radiant_initiation_damage = 0
+    dire_initiation_damage = 0
+
+    for item in damage_dealt["radiant"]:
+        if item[0]-time_start  < 1:
+            radiant_initiation_damage = radiant_initiation_damage + item[1]
+        else:
+            break
+
+    for item in damage_dealt["dire"]:
+        if item[0]-time_start  < 1:
+            dire_initiation_damage = dire_initiation_damage + item[1]
+        else:
+            break
+    
+
+    initiation_damage = {}
+    initiation_damage["radiant"] = radiant_initiation_damage
+    initiation_damage["dire"] = dire_initiation_damage
+
+    #+1 for 100% radiant and -1 for 100% dire
+    side_indicator = (radiant_initiation_damage-dire_initiation_damage)/(dire_initiation_damage+radiant_initiation_damage)
+
+    initiation = {}
+    initiation["initiation_damage"] = initiation_damage
+    initiation["side_indicator"] = side_indicator
+    return initiation
+
+def whoWonFight(match,fight,involved):
+    #return the gold and xp that was exchanged during a fight and use this as a metric of who won the fight 
+    #one issue is how to determine who won the fight when nobody dies and no xp/gold was exchanged.
+    received = {}
+    received["xp_received"] = {}
+    received["gold_received"] = {}
+
+    xp_received_radiant = 0
+    xp_received_dire = 0
+
+    gold_received_radiant = 0
+    gold_received_dire = 0
+
+    #look up the timestamp of the first and last elements in the array of attacks that make up the fight
+    time_start = fight[0].t
+    time_end = fight[-1].t
+
+    #float(row[0]) is the absolute time, does this make sense to use the time_start/end from the attack list?
+    for row in match.goldexp_events:
+        if (row[1]=="DOTA_COMBATLOG_XP") and (float(row[0])-match.match_start_time <= time_end) and (float(row[0])-match.match_start_time >= time_start):
+            #look up the id of the hero receiving xp and see if they were involved in the fight
+            hero_name = transformHeroName(row[2]) #receiver
+            id1 = match.heroes[hero_name]["hero_id"]
+            if id1 in involved:
+                xp_amount = int(float(row[3]))
+                side = match.heroes[hero_name]["side"]
+                if side == "radiant":
+                    #increment radiant xp
+                    xp_received_radiant = xp_received_radiant + xp_amount
+                elif side == "dire":
+                    #increment dire xp
+                    xp_received_dire = xp_received_dire + xp_amount
+        elif (row[1]=="DOTA_COMBATLOG_GOLD") and (float(row[0])-match.match_start_time <= time_end) and (float(row[0])-match.match_start_time >= time_start):
+            hero_name = transformHeroName(row[2]) #receiver
+            id1 = match.heroes[hero_name]["hero_id"]
+            if id1 in involved:
+                gold_amount = int(float(row[4]))
+                side = match.heroes[hero_name]["side"]
+                if row[3] == "looses":
+                    gold_amount = -gold_amount
+                if side == "radiant":
+                    #increment radiant xp
+                    gold_received_radiant = gold_received_radiant + gold_amount
+                elif side == "dire":
+                    #increment dire xp
+                    gold_received_dire = gold_received_dire + gold_amount 
+
+    received["xp_received"]["radiant"] = xp_received_radiant
+    received["xp_received"]["dire"] = xp_received_dire
+
+    received["gold_received"]["radiant"] = gold_received_radiant
+    received["gold_received"]["dire"] = gold_received_dire
+    return received 
+
+
+###################################################################################
+def fightEvaluation(match,fight_dict,hero_death_fights):
+    #applies a very crude filter the fights to see if the fight is significant enough to write to the json file
+    alpha = match.parameters["fightEvaluation"]["alpha"]
+    kappa = match.parameters["fightEvaluation"]["kappa"]
+    time_threshold = match.parameters["fightEvaluation"]["time_threshold"]
+    fights_namespace = match.parameters["namespace"]["fights_namespace"]
+
+    for key in fight_dict:
+        damage_threshold = alpha + kappa*fight_dict[key]["time-start"]
+        if (len(fight_dict[key]["killed"]) > 0) or ((fight_dict[key]["total_damage"] > damage_threshold + kappa*fight_dict[key]["time-start"]) and (fight_dict[key]["time-end"] - fight_dict[key]["time-start"] > time_threshold)):
+            # overwrite the 'involved' key value pair since sets are not json serialisable
+            involved = list(fight_dict[key]["involved"])
+            fight_dict[key]["involved"] = involved
+            id_num = fights_namespace + key
+            events[id_num] = fight_dict[key]
+            events[id_num]["type"] = "fight"
 
 ##############################################################################
 # code for retrieving personalised info about specific heroes
@@ -816,27 +929,7 @@ def myDeaths(match,hero_deaths,fight_dict):
                     break
     return hero_death_fights
 
-
 ###################################################################################
-def fightEvaluation(match,fight_dict,hero_death_fights):
-    #applies a very crude filter the fights to see if the fight is significant enough to write to the json file
-    alpha = match.parameters["fightEvaluation"]["alpha"]
-    kappa = match.parameters["fightEvaluation"]["kappa"]
-    time_threshold = match.parameters["fightEvaluation"]["time_threshold"]
-    fights_namespace = match.parameters["namespace"]["fights_namespace"]
-
-    for key in fight_dict:
-        damage_threshold = alpha + kappa*fight_dict[key]["time-start"]
-        if (len(fight_dict[key]["killed"]) > 0) or ((fight_dict[key]["total_damage"] > damage_threshold + kappa*fight_dict[key]["time-start"]) and (fight_dict[key]["time-end"] - fight_dict[key]["time-start"] > time_threshold)):
-            # overwrite the 'involved' key value pair since sets are not json serialisable
-            involved = list(fight_dict[key]["involved"])
-            fight_dict[key]["involved"] = involved
-            id_num = fights_namespace + key
-            events[id_num] = fight_dict[key]
-            events[id_num]["type"] = "fight"
-
-###################################################################################
-
 
 def creepEvaluation(match):
     last_tick_time = 0
