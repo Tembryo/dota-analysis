@@ -1,0 +1,112 @@
+{
+    "parameters": {
+        "formAdjacencyMatrix": {
+            "w_space1": 0.02,
+            "w_space2": 0.3,
+            "w_time": 80,
+            "radius": 1500,
+            "distance_threshold": 300
+        },
+        "map": {
+            "xmin": -8200,
+            "num_box": 32,
+            "ymin": -8200,
+            "ymax": 8000,
+            "xmax": 8000
+        },
+        "evaluateFightList": {
+            "alpha": 150,
+            "kappa": 0.15,
+            "time_threshold": 2
+        },
+        "graphAttacks": {
+            "damage_threshold": 50
+        },
+        "namespace": {
+            "normal_namespace": 11000,
+            "kills_namespace": 10000,
+            "fights_namespace": 12000,
+            "hero_namespace": 100
+        },
+        "heroPositions": {
+            "sample_step_size": 150
+        },
+        "general": {
+            "col_per_player": 3,
+            "num_players": 10
+        },
+        "goldXPInfo": {
+            "bin_size": 2
+        },
+        "makeAttackList": {
+            "bin_size": 1
+        },
+        "version": "0.0.01",
+        "heroTrajectories": {
+            "min_timespan": 3,
+            "delta": 1000
+        },
+        "pregame_time_shift": 60,
+        "datetime": {
+            "date": "2015-12-11",
+            "time": "15:54:49.263265"
+        }
+    },
+    "teams": {
+        "0": {
+            "short": "empty",
+            "side": "radiant",
+            "name": "empty"
+        },
+        "1": {
+            "short": "empty",
+            "side": "dire",
+            "name": "empty"
+        }
+    },
+    "players": {
+        "0": {
+            "steam_id": 76561198082784854,
+            "name": "xiaolow"
+        },
+        "1": {
+            "steam_id": 76561198095099338,
+            "name": "AisakaTaiga"
+        },
+        "2": {
+            "steam_id": 76561198118735522,
+            "name": "Mocha"
+        },
+        "3": {
+            "steam_id": 76561197972496172,
+            "name": "Debito"
+        },
+        "4": {
+            "steam_id": 76561198068926996,
+            "name": "kr"
+        },
+        "5": {
+            "steam_id": 76561198100954786,
+            "name": "bronz_vulture"
+        },
+        "6": {
+            "steam_id": 76561197971866010,
+            "name": "MagicMoon"
+        },
+        "7": {
+            "steam_id": 76561197999607704,
+            "name": "NateDawg"
+        },
+        "8": {
+            "steam_id": 76561198067304814,
+            "name": "Manoblades"
+        },
+        "9": {
+            "steam_id": 76561198053855151,
+            "name": "\u6c38\u4e0d\u653e\u5f03"
+        }
+    },
+    "length": 1730.0,
+    "draft": {},
+    "id": "1959488533"
+}

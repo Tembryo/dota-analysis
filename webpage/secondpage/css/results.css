@@ -5,12 +5,23 @@
 	margin-right: auto;
 }
 
+#rate-another-player-btn {
+	margin-top: 20px;
+	margin-bottom: 10px;
+}
+
 #hero-img {
 	display: block;
     margin-left: auto;
     margin-right: auto;
     height: 191px;
     width: 340px;
+}
+
+.results-page-header {
+	padding-top: 60px;
+	font-size: 40px;
+	padding-bottom: 25px;
 }
 
 .results-header-small {
@@ -53,6 +64,6 @@
 }
 
 #social-media {
-	margin-top: 30px;
+	margin-top: 0;
 	margin-bottom: 30px;
 }

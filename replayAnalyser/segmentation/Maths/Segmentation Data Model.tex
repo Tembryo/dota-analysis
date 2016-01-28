@@ -1,0 +1,38 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amstext}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{graphicx}
+%\usepackage{fullpage}
+%\usepackage{epstopdf}
+%\DeclareGraphicsExtensions{.pdf,.eps,.png,.jpg,.mps}
+%\usepackage[margin=2.5cm]{geometry}
+%\usepackage{helvet} \renewcommand{\familydefault}{\sfdefault}
+
+\begin{document}
+
+\title{Segmentation Data Model}
+\maketitle
+
+Let $D$ be the match data. Let $\Omega$ be a set of discrete elements that we shall call labels. Later these labels will be used to label segments of the data set, for example a label might be `hero 1' or `laning'. Let $S\subset\mathbb{R}^{3}$ be the space composed of 2D space and 1D time relevant to our match data set, i.e., a cuboid in 3D bounded by the $(x,y)$ coordinates of the map and the start and end times of the match.
+
+We are interested in partitioning the space $S$ into segments and assigning labels to each of these segments. We also wish to pass each segment the data necessary to perform finer grained analysis relevant to that segment. This motivates us to define a function $f$ mapping $S$ (the space in which the data exists in the game), $\Omega$ (the set of labels we have defined) and $D$ (the data set) into $n$ segments:
+\begin{equation*}
+f:(S,\Omega,D)\rightarrow \{ (S_{1},\Omega_{1},D_{1}),(S_{2},\Omega_{2},D_{2}),\dots,(S_{n},\Omega_{n},D_{n}) \}
+\end{equation*}
+where $P = \{S_{1},S_{2},\ldots,S_{n}\}$ is a partition of $S$, $\Omega_{i}$ is a set of labels and $D_{i}\subseteq D$ for $i=1,2,\ldots,n$. Each segment $(S_{i},\Omega_{i},D_{i})$ may then also be partitioned into segments to provide finer grained labelling of each segment, and so on, creating a tree structure which we call the segment hierarchy. For example, the top level might be segmented into $n$ segments according to which team is winning and labeled with `dire winning'  or 'radiant winning', this segmentation is carried out according to some criteria that we define such as `gold advantage', `xp advantage', `map control'. Since each of these states change depending on events that happen in the game i.e., a hero kills  another hero and gets gold, this feeds up the tree so that we can make statements like 'the dire team take the lead because hero x killed hero y and earned z amount of gold'.
+
+A hero narrative is the sequence of segments that a hero is part of. Each hero can only be part of one segment at each level of the segment hierarchy.
+
+%\bibliographystyle{IEEEtran}
+%\bibliography{C:/Users/}
+
+\subsection{Definitions}
+
+A family of sets $P = \{S_{1},S_{2},\ldots,S_{n}\}$ is a partition of a set $S$ if and only if 
+\begin{equation*}
+\emptyset \not\in P,\quad \bigcup_{i=1}^{n}S_{i} = S,\quad S_{i}\cap S_{j} = \emptyset\text{ if } i\neq j.
+\end{equation*}
+
+\end{document} 
