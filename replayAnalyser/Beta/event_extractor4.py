@@ -12,6 +12,7 @@ from dota2_area_boxes_ver2 import area_matrix, areas
 import datetime
 import shutil
 import cProfile
+import bisect
 
 events = {}
 
@@ -57,6 +58,7 @@ class Match:
 
         self.parameters["heroPositions"] = {}
         self.parameters["heroPositions"]["sample_step_size"] = 150
+        self.parameters["heroPositions"]["sample_step_size_hifi"] = 10
 
         self.parameters["heroTrajectories"] = {}
         self.parameters["heroTrajectories"]["delta"] = 1000
@@ -223,33 +225,46 @@ def heroPositions(match):
     # and the match end time and store in v_mat and t_vec  
     v_mat = {}
     t_vec = []
+
+    v_mat_hifi = {}
+    t_vec_hifi = []
+
     heroes = match.heroes
     col_per_player = match.parameters["general"]["col_per_player"]
     num_players = match.parameters["general"]["num_players"]
     sample_step_size = match.parameters["heroPositions"]["sample_step_size"]
+    sample_step_size_hifi = match.parameters["heroPositions"]["sample_step_size_hifi"]
     match_start_time = match.match_start_time
     pregame_start_time = match.pregame_start_time
     match_end_time = match.match_end_time
 
     for key in heroes:
         v_mat[key] = []
+        v_mat_hifi[key] = []
 
     e = open(match.position_input_filename,'rb')
     reader = csv.reader(e)    
 
 
     for i, row in enumerate(reader):
-        if (i % sample_step_size==0) and (i > 0):
+        if (i % sample_step_size_hifi==0) and (i > 0):
             # if the time stamp is after the state 4 transition
             absolute_time = float(row[col_per_player*num_players])
             if (absolute_time >= pregame_start_time) and (absolute_time <= match_end_time):
                 # append that time point to the time vector with the state 5 transition point set to equal zero
-                t_vec.append(absolute_time - match_start_time)
+                t_vec_hifi.append(absolute_time - match_start_time)
                 # and for each hero extract the [x,y] coordinate for that time point
                 for key in heroes:
-                    v_mat[key].append([float(row[col_per_player*heroes[key]["index"]+5]),float(row[col_per_player*heroes[key]["index"]+6])])
+                    v_mat_hifi[key].append([float(row[col_per_player*heroes[key]["index"]+5]),float(row[col_per_player*heroes[key]["index"]+6])])
+            if (i % sample_step_size==0):
+                    t_vec.append(absolute_time - match_start_time)
+                    for key in heroes:
+                        v_mat[key].append([float(row[col_per_player*heroes[key]["index"]+5]),float(row[col_per_player*heroes[key]["index"]+6])])
 
-    return v_mat, t_vec
+    state = [v_mat,t_vec]
+    state_hifi = [v_mat_hifi,t_vec_hifi]
+
+    return (state,state_hifi) 
 
 #####################
 # hero trajectories #
@@ -543,7 +558,6 @@ def fightDistMetric(attack1,attack2,radius,w_space1,w_space2,w_time):
 
     dist = w_space*r + w_time*(abs(attack1.t-attack2.t)) 
     return dist
-
 
 def makeAttackList(match,state):
 
@@ -890,6 +904,17 @@ def whoWonFight(match,fight,involved):
     return received 
 
 
+####################################################################################
+
+def lookupHeroPosition(match,state,hero_name,absolute_time):
+    #given a hero_name and an absolute time, return the (x,y) position of that hero at that point in time
+    i = bisect.bisect_left(state[1],absolute_time-match.match_start_time)
+    if i:
+        return state[0][hero_name][i]
+    raise ValueError
+        
+
+
 ###################################################################################
 def fightEvaluation(match,fight_dict,hero_death_fights):
     #applies a very crude filter the fights to see if the fight is significant enough to write to the json file
@@ -1077,7 +1102,7 @@ def main():
     match.matchInfo()
     header = headerInfo(match)
     hero_deaths = killsInfo(match)
-    state = heroPositions(match)  #[[v_mat],t_vec]
+    state, state_hifi = heroPositions(match)  #[[v_mat],t_vec]
     entities = heroTrajectories(match,state,hero_deaths)
     eventsMapping(match,state,area_matrix)
     timeseries = goldXPInfo(match) #up to this point takes a few seconds
@@ -1091,6 +1116,7 @@ def main():
     analysis = {"header":header,"entities":entities,"events":events,"timeseries":timeseries}
     stats = computeStats(match, analysis)
 
+    lookupHeroPosition(match,state_hifi,"queenofpain",2000)  
 
     #my_fights(match,"tusk",hero_death_fights,fight_dict)
     analysisfile = open(analysis_filename,'wb')
