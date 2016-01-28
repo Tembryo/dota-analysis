@@ -282,20 +282,37 @@ public class ReplayProcessor {
     @OnEntityCreated
     public void onEntityCreated(Context ctx, Entity e) {
         double time = getTime(ctx);
+    	String entity_name = e.getDtClass().getDtName();
+    	if(e.hasProperty("m_pEntity.m_nameStringableIndex"))
+    	{
+    		String new_entity_name = entity_names.get((int)getEntityProperty(e, "m_pEntity.m_nameStringableIndex", null));
+    		if(new_entity_name != null)
+    			entity_name = new_entity_name;
+    	}
+    	
         if(e.hasProperty("m_lifeState"))
 		{
-        	String entity_name = e.getDtClass().getDtName();
-        	if(e.hasProperty("m_pEntity.m_nameStringableIndex"))
-        	{
-        		String new_entity_name = entity_names.get((int)getEntityProperty(e, "m_pEntity.m_nameStringableIndex", null));
-        		if(new_entity_name != null)
-        			entity_name = new_entity_name;
-        	}
 			Vector2f pos = computePosition(e);
 			output.writeEntityEvent(time,"SPAWN", entity_name+","+e.getHandle()+","+pos.x+","+pos.y);//.toString()
 		}
-		
+        if(entity_name != null && entity_name.contains("hero"))
+    	{
+    		processHeroCreate(ctx, e);
+    	}
     	//output.writeEntityEvent("create", time, e.getDtClass().getDtName()+", "+e.getHandle());//.toString()
+    }
+
+    public void processHeroCreate(Context ctx, Entity e) {
+		int visibility= (int)getEntityProperty(e, "m_iTaggedAsVisibleByTeam", null);
+		String entity_name = e.getDtClass().getDtName();
+    	if(e.hasProperty("m_pEntity.m_nameStringableIndex"))
+    	{
+    		String new_entity_name = entity_names.get((int)getEntityProperty(e, "m_pEntity.m_nameStringableIndex", null));
+    		if(new_entity_name != null)
+    			entity_name = new_entity_name;
+    	}
+    	Vector2f pos = computePosition(e);
+		output.writeEntityEvent(getTime(ctx),"HERO_VISIBILITY", entity_name+","+e.getHandle()+","+visibility+","+pos.x+","+pos.y);//.toString()
     }
     
     @OnEntityUpdated

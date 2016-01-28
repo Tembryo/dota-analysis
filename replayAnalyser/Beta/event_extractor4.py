@@ -944,7 +944,24 @@ def fightEvaluation(match,fight_dict,hero_death_fights):
 # code for retrieving personalised info about specific heroes
 
 def camControlEvaluation(match):
-    pass#for row in match.unit_selection_rows:
+    last_selection = {}
+    for player in match.players:
+        last_selection[str(player)] = {"unit":None, "t":0}
+    camera_event_counter = 0
+    for row in match.unit_selection_rows:
+        if last_selection[row[2]]["unit"] is not None and last_selection[row[2]]["unit"] != "":
+            event_id = match.parameters["namespace"]["camera_namespace"] + camera_event_counter
+            event = {
+                    "type": "unit-selection",
+                    "time-start": match.transformTime(last_selection[row[2]]["t"]),
+                    "time-end":match.transformTime(row[0]),
+                    "player": int(row[2]),
+                    "unit": last_selection[row[2]]["unit"]
+                    }
+            events[str(event_id)] = event
+            camera_event_counter += 1
+        last_selection[row[2]]["t"] = row[0]
+        last_selection[row[2]]["unit"] = row[4]
 
 def myDeaths(match,hero_deaths,fight_dict):
 
@@ -1020,41 +1037,6 @@ def putSpawn(match, row):
             position = l["name"]
     print "put {} {}".format(position, row)
     match.creep_positions[row[3]] = position
-
-def computeStats(match, analysis):
-    evaluation = {"player-stats": {}, "match-stats": {}}
-    evaluation["match-stats"]["creeps-killed"] = 0
-    evaluation["match-stats"]["creeps-lasthit"] = 0
-    for player_id in match.players:
-        player_eval = {}
-        player_eval["steamid"] = match.players[player_id]["steam_id"]
-
-        player_eval["lasthits"] = 0
-        player_eval["denies"] = 0
-
-        player_eval["creeps-missed"] = 0
-        player_eval["denies-with-exp"] = 0
-        player_eval["neutrals"] = 0
-        player_eval["lane-creeps"] = 0
-        evaluation["player-stats"][str(player_id)] = player_eval
-
-    for event_id in analysis["events"]:
-        event = analysis["events"][event_id]
-        if event["type"] == "creep-death":
-            evaluation["match-stats"]["creeps-killed"] += 1
-            if event["lasthit-type"] == "lasthit":
-                evaluation["match-stats"]["creeps-lasthit"] += 1
-                evaluation["player-stats"][str(event["lasthit-by"])]["lasthits"] += 1
-                if event["creep-type"] == "lane" or event["creep-type"] == "siege":
-                    evaluation["player-stats"][str(event["lasthit-by"])]["lane-creeps"] += 1
-                elif event["creep-type"] == "neutral":
-                    evaluation["player-stats"][str(event["lasthit-by"])]["neutrals"] += 1
-            elif event["lasthit-type"] == "denie":
-                evaluation["player-stats"][str(event["denied-by"])]["denies"] += 1
-                if len(event["exp-claimed-by"]) > 0:
-                    evaluation["player-stats"][str(event["denied-by"])]["denies-with-exp"] += 1
-
-    return evaluation
 
 def matchCreepsWithLog(match, time, creeps, log):
     gold = []
@@ -1134,6 +1116,69 @@ def createCreepEvent(match, creep_row):
     return creep_event
 
 
+
+def computeStats(match, analysis):
+    evaluation = {"player-stats": {}, "match-stats": {}}
+
+    evaluation["match-stats"]["duration"] = match.match_end_time - match.match_start_time
+    evaluation["match-stats"]["duration-all"] = match.match_end_time - match.pregame_start_time
+    evaluation["match-stats"]["creeps-killed"] = 0
+    evaluation["match-stats"]["creeps-lasthit"] = 0
+    for player_id in match.players:
+        player_eval = {}
+        player_eval["steamid"] = match.players[player_id]["steam_id"]
+
+        player_eval["lasthits"] = 0
+        player_eval["denies"] = 0
+
+        player_eval["creeps-missed"] = 0
+        player_eval["denies-with-exp"] = 0
+        player_eval["neutrals"] = 0
+        player_eval["lane-creeps"] = 0
+
+        player_eval["time-visible"] = 0
+        player_eval["time-visible-first10"] = 0
+
+        last_visibility_change = None
+        hero_entity_id = match.heroes[match.players[player_id]["hero"]]["hero_id"]
+        for change in analysis["entities"][hero_entity_id]["visibility"]["samples"]:
+            time = change["t"]
+            if change["v"][0] == 0 and last_visibility_change is not None:
+                player_eval["time-visible"] += change["t"] - last_visibility_change
+            
+                #track vis in first 10min separately
+                start_beg = max(0, last_visibility_change)
+                stop_beg = min(time, 10*60)
+                player_eval["time-visible-first10"] += max(0, stop_beg - start_beg)
+            
+            last_visibility_change = time
+
+        player_eval["n-checks"] = 0
+        player_eval["average-check-duration"] = 0
+
+
+        evaluation["player-stats"][str(player_id)] = player_eval
+
+    for event_id in analysis["events"]:
+        event = analysis["events"][event_id]
+        if event["type"] == "creep-death":
+            evaluation["match-stats"]["creeps-killed"] += 1
+            if event["lasthit-type"] == "lasthit":
+                evaluation["match-stats"]["creeps-lasthit"] += 1
+                evaluation["player-stats"][str(event["lasthit-by"])]["lasthits"] += 1
+                if event["creep-type"] == "lane" or event["creep-type"] == "siege":
+                    evaluation["player-stats"][str(event["lasthit-by"])]["lane-creeps"] += 1
+                elif event["creep-type"] == "neutral":
+                    evaluation["player-stats"][str(event["lasthit-by"])]["neutrals"] += 1
+            elif event["lasthit-type"] == "denie":
+                evaluation["player-stats"][str(event["denied-by"])]["denies"] += 1
+                if len(event["exp-claimed-by"]) > 0:
+                    evaluation["player-stats"][str(event["denied-by"])]["denies-with-exp"] += 1
+        elif event["type"] == "unit-selection":
+            evaluation["player-stats"][str(event["player"])]["n-checks"] += 1
+            evaluation["player-stats"][str(event["player"])]["average-check-duration"] += ((event["time-end"] - event["time-start"]) - evaluation["player-stats"][str(event["player"])]["average-check-duration"] )/ evaluation["player-stats"][str(event["player"])]["n-checks"]
+
+    return evaluation
 def main():
     match_id = sys.argv[1]
     match_directory = sys.argv[2]
