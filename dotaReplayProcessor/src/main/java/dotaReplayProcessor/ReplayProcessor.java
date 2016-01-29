@@ -214,7 +214,7 @@ public class ReplayProcessor {
 	        	if(id >= 0 && id <num_players && !hero_units_valid[id])
 	        	{
 		            output.writeEvent(time, "PLAYER_ENT,"+id+","+p.getHandle());
-		            System.out.println(id);
+		            //System.out.println(id);
 		            hero_units_valid[id] = true;
 	            	player_handles.put(id, p.getHandle());
 		            n_hero_units_valid++;

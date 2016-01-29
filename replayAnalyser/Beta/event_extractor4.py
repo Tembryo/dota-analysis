@@ -357,7 +357,7 @@ def heroTrajectories(match,state,hero_deaths,number_of_kills,number_of_deaths):
         elif heroes[hero]["side"] == "dire":
             enemy_visibility_bit = 2
         else:
-            print "unknown team"
+            pass#print "unknown team"
         visible_to_enemy = (int(row[4]) & (1<<enemy_visibility_bit) ) >> enemy_visibility_bit
         entities[heroes[hero]["hero_id"]]["visibility"]["samples"].append({"t": match.transformTime(row[0]), "v": [visible_to_enemy]})
 
@@ -1046,6 +1046,9 @@ def camControlEvaluation(match):
         last_selection[str(player)] = {"unit":None, "t":0}
     camera_event_counter = 0
     for row in match.unit_selection_rows:
+        if not row[2] in last_selection:
+            #print "WASGEHTAB {} {}".format(last_selection,row)
+            continue
         if last_selection[row[2]]["unit"] is not None and last_selection[row[2]]["unit"] != "":
             event_id = match.parameters["namespace"]["camera_namespace"] + camera_event_counter
             event = {
@@ -1113,7 +1116,7 @@ def creepEvaluation(match):
             last_tick_time = creep_time
         for d in alldropped:
             if not  d in all_matched:
-                print "lost overhead {}".format(d)
+                pass#print "lost overhead {}".format(d)
         tick_creepdeaths_set.append(row)
     
 def putSpawn(match, row):
@@ -1161,7 +1164,10 @@ def matchCreepsWithLog(match, time, creeps, log):
             if lh[4] == creepy[3]: #same creep
                 #if lh[5] not in match.player_id_by_handle[lh[5]]:
                 #    print match.player_id_by_handle
-                lh_player = int(match.player_id_by_handle[lh[5]])
+                if lh[5] in match.player_id_by_handle:
+                    lh_player = match.player_id_by_handle[lh[5]]
+                else:
+                    lh_player = 0 #FIXME
                 death_type = "lasthit"
                 event["lasthit-by"] = lh_player
                 event["gold-gained"] = int(lh[2])
@@ -1184,7 +1190,7 @@ def matchCreepsWithLog(match, time, creeps, log):
                 exp_obj = {"id":match.heroes[transformHeroName(exp[2])]["index"], "v": int(exp[3])}
                 exp_ids.append(exp_obj)
         elif len(exps) > 0:
-            print "multiple creeps and exps \n\t{}\n\t{}\n\t{}\n\t{}\n\t{}\n".format(creeps, gold, exps, lh_list, denie_list) #todo
+            pass#print "multiple creeps and exps \n\t{}\n\t{}\n\t{}\n\t{}\n\t{}\n".format(creeps, gold, exps, lh_list, denie_list) #todo
         event["exp-claimed-by"] = exp_ids
         event["lasthit-type"] = death_type #none/lasthit/denie
         event["responsible"] = [] #TODO
@@ -1346,5 +1352,5 @@ def main():
     #shutil.rmtree(match_directory)
 
 if __name__ == "__main__":
-    cProfile.run('main()')
-    #main()
+    #cProfile.run('main()')
+    main()
