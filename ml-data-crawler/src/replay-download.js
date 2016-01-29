@@ -18,6 +18,7 @@ var downloadAndDecompress = function(url, dest, cb) {
 
     // check for request errors
     sendReq.on('error', function (err) {
+        console.log("sendreq got error");
         fs.unlink(dest);
 
         if (cb) {
@@ -25,8 +26,14 @@ var downloadAndDecompress = function(url, dest, cb) {
         }
     });
 
+    // check for request errors
+    sendReq.on('end', function (err) {
+        console.log("sendreq got end");
+    });
+
     var decoder = bz2();
     decoder.on('error', function(err) { // Handle errors
+        console.log("decoder got error");
         fs.unlink(dest); // Delete the file async. (But we don't check the result)
     
         if (cb) {
@@ -46,6 +53,7 @@ var downloadAndDecompress = function(url, dest, cb) {
     file.on('finish', function() {
         file.close(cb);  // close() is async, call cb after close completes.
     });
+
 
     file.on('error', function(err) { // Handle errors
         fs.unlink(dest); // Delete the file async. (But we don't check the result)

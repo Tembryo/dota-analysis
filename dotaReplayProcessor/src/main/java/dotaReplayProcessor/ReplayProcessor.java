@@ -57,7 +57,11 @@ public class ReplayProcessor {
 	int n_hero_units_valid = 0;
 	
 	Map<String, Integer> hero_indices;
+	Map<Integer, Integer> player_handles;
 	Map<String, Double> data_fields;
+	
+	double last_time = -1;
+	double tick_interval = 0.001;
 	
 	public ReplayProcessor(String filename_replay, OutputGenerator output) throws IOException {
 		file_source = new MappedFileSource(filename_replay);
@@ -69,15 +73,17 @@ public class ReplayProcessor {
     		data_fields.put(i+"X", 0.0);
         	data_fields.put(i+"Y", 0.0);
         	data_fields.put(i+"HP", 0.0);
-        	data_fields.put(i+"MaxHP", 0.0);
           	data_fields.put(i+"Mana", 0.0);
-          	data_fields.put(i+"MaxMana", 0.0);
-    		data_fields.put(i+"Alive", 1.0); //start as dead
+        	data_fields.put(i+"MouseX", 0.0);
+          	data_fields.put(i+"MouseY", 0.0);
+    		data_fields.put(i+"CamX", 0.0);
+    		data_fields.put(i+"CamY", 0.0);
     		hero_units_valid[i] = false;
     	}
 		this.output = output;
 		this.output.init(data_fields);
 		hero_indices = new HashMap<String, Integer>();
+		player_handles = new HashMap<Integer, Integer>();
 	}
 
 	public void process() throws IOException {
@@ -86,10 +92,24 @@ public class ReplayProcessor {
 		runner.runWith(this, temp);
         while(!runner.isAtEnd()) {
             runner.tick();
-            output.writeTick(data_fields);
+            if(data_fields.get("time") - last_time >= tick_interval)
+            {
+            	output.writeTick(data_fields);
+            	last_time = data_fields.get("time");
+            }
         }
         runner.halt();
 		//new SimpleRunner(file_source).runWith(this);
+	}
+	
+	double getTime(Context ctx)
+	{
+        Entity grp = ctx.getProcessor(Entities.class).getByDtName("CDOTAGamerulesProxy");
+        if (grp != null) {
+        	float t = getEntityProperty(grp, "m_pGameRules.m_fGameTime", null);
+        	return (double) t;
+        }
+        else return 0;
 	}
 	
 	@UsesEntities
@@ -101,13 +121,8 @@ public class ReplayProcessor {
         Entity dData = ctx.getProcessor(Entities.class).getByDtName("CDOTA_DataDire");
         Entity rData = ctx.getProcessor(Entities.class).getByDtName("CDOTA_DataRadiant");
 
-        double time = 0;
-        if (grp != null) {
-        	float t = getEntityProperty(grp, "m_pGameRules.m_fGameTime", null);
-        	time = (double) t;
-            data_fields.put("time", time);
-        }
-        
+        double time = getTime(ctx);
+		data_fields.put("time", time);
         if (pr != null) {
             //Radiant coach shows up in vecPlayerTeamData as position 5
             //all the remaining dire entities are offset by 1 and so we miss reading the last one and don't get data for the first dire player
@@ -149,18 +164,21 @@ public class ReplayProcessor {
                 //entry.slot = i;
                 
                 int gold = getEntityProperty(dataTeam, "m_vecDataTeam.%i.m_iTotalEarnedGold", teamSlot);
-                //entry.lh = getEntityProperty(dataTeam, "m_vecDataTeam.%i.m_iLastHitCount", teamSlot);
+                int lh = getEntityProperty(dataTeam, "m_vecDataTeam.%i.m_iLastHitCount", teamSlot);//TODO check all
                 //entry.xp = getEntityProperty(dataTeam, "m_vecDataTeam.%i.m_iTotalEarnedXP", teamSlot);
                 //entry.stuns = getEntityProperty(dataTeam, "m_vecDataTeam.%i.m_fStuns", teamSlot);
 
 
                 //get the player's hero entity
                 Entity e = ctx.getProcessor(Entities.class).getByHandle(handle);
+                Entity pl = null;
+                if(player_handles.containsKey(i))
+                	pl = ctx.getProcessor(Entities.class).getByHandle(player_handles.get(i));
                 //get the hero's coordinates
                 if (e != null) {
                     //System.err.println(e);
             	    Vector2f pos = computePosition(e);
-            	    
+
                     //int alive = getEntityProperty(e, "m_iLifeState", null);
                     //System.err.format("%s, %s\n", entry.x, entry.y);
                     //get the hero's entity name, ex: CDOTA_Hero_Zuus
@@ -170,15 +188,18 @@ public class ReplayProcessor {
                     data_fields.put(i+"X", (double)pos.x);
                     data_fields.put(i+"Y", (double)pos.y);
                 	data_fields.put(i+"HP", ((Integer)getEntityProperty(e, "m_iHealth", null)).doubleValue());
-                	data_fields.put(i+"MaxHP", ((Integer)getEntityProperty(e, "m_iMaxHealth", null)).doubleValue());
                   	data_fields.put(i+"Mana", ((Float)getEntityProperty(e, "m_flMana", null)).doubleValue());
-                  	data_fields.put(i+"MaxMana", ((Float)getEntityProperty(e, "m_flMaxMana", null)).doubleValue());
-            		data_fields.put(i+"Alive", ((Integer)getEntityProperty(e, "m_lifeState", null)).doubleValue());
+                }
+                if(pl != null)
+                {
+            	    Vector2f cam_pos = computePosition(pl);
+                	data_fields.put(i+"MouseX", ((Integer)getEntityProperty(pl, "m_iCursor.0000", null)).doubleValue());
+                  	data_fields.put(i+"MouseY", ((Integer)getEntityProperty(pl, "m_iCursor.0001", null)).doubleValue());
+            		data_fields.put(i+"CamX", (double)cam_pos.x);
+            		data_fields.put(i+"CamY", (double)cam_pos.y);
                 }
                 //es.output(entry);
-
             }
-            output.writeTick(data_fields);
         }
         
         if(n_hero_units_valid < num_players)
@@ -195,6 +216,7 @@ public class ReplayProcessor {
 		            output.writeEvent(time, "PLAYER_ENT,"+id+","+p.getHandle());
 		            System.out.println(id);
 		            hero_units_valid[id] = true;
+	            	player_handles.put(id, p.getHandle());
 		            n_hero_units_valid++;
 	        	}
 	        }
@@ -259,28 +281,47 @@ public class ReplayProcessor {
 
     @OnEntityCreated
     public void onEntityCreated(Context ctx, Entity e) {
-    	 double time = 0;
-         Entity grp = ctx.getProcessor(Entities.class).getByDtName("CDOTAGamerulesProxy");
- 		if (grp != null) {
-         	float t = getEntityProperty(grp, "m_pGameRules.m_fGameTime", null);
-     		time = t;
-         }
- 		
+        double time = getTime(ctx);
+    	String entity_name = e.getDtClass().getDtName();
+    	if(e.hasProperty("m_pEntity.m_nameStringableIndex"))
+    	{
+    		String new_entity_name = entity_names.get((int)getEntityProperty(e, "m_pEntity.m_nameStringableIndex", null));
+    		if(new_entity_name != null)
+    			entity_name = new_entity_name;
+    	}
+    	
+        if(e.hasProperty("m_lifeState"))
+		{
+			Vector2f pos = computePosition(e);
+			output.writeEntityEvent(time,"SPAWN", entity_name+","+e.getHandle()+","+pos.x+","+pos.y);//.toString()
+		}
+        if(entity_name != null && entity_name.contains("hero"))
+    	{
+    		processHeroCreate(ctx, e);
+    	}
     	//output.writeEntityEvent("create", time, e.getDtClass().getDtName()+", "+e.getHandle());//.toString()
+    }
+
+    public void processHeroCreate(Context ctx, Entity e) {
+		int visibility= (int)getEntityProperty(e, "m_iTaggedAsVisibleByTeam", null);
+		String entity_name = e.getDtClass().getDtName();
+    	if(e.hasProperty("m_pEntity.m_nameStringableIndex"))
+    	{
+    		String new_entity_name = entity_names.get((int)getEntityProperty(e, "m_pEntity.m_nameStringableIndex", null));
+    		if(new_entity_name != null)
+    			entity_name = new_entity_name;
+    	}
+    	Vector2f pos = computePosition(e);
+		output.writeEntityEvent(getTime(ctx),"HERO_VISIBILITY", entity_name+","+e.getHandle()+","+visibility+","+pos.x+","+pos.y);//.toString()
     }
     
     @OnEntityUpdated
     public void onEntityUpdated(Context ctx, Entity e, FieldPath[] fields, int a) {
-        Entity grp = ctx.getProcessor(Entities.class).getByDtName("CDOTAGamerulesProxy");
-        double time = 0;
-		if (grp != null) {
-        	float t = getEntityProperty(grp, "m_pGameRules.m_fGameTime", null);
-    		time = t;
-        }
+        double time = getTime(ctx);
         
-    	String updates = "[";
+    	/*String updates = "[";
     	int n_ignored = 0;
-    	String[] ignored_ents = {"CDOTAPlayer", "CDOTAWearableItem"};
+    	String[] ignored_ents = {"CDOTAWearableItem"};
     	String[] checked_ents = {};//"CDOTA_BaseNPC_Creep_Lane"};
     	String[] ignored_fields = {"m_pGameRules.m_fGameTime", "m_pGameRules.m_iFoWFrameNumber", "m_iCursor.0000", "m_iCursor.0001", "CBodyComponent.m_cellX", "CBodyComponent.m_cellY", "CBodyComponent.m_vecX", "CBodyComponent.m_vecY"};
     	String[] tracked_fields = {"m_lifeState"};
@@ -307,7 +348,23 @@ public class ReplayProcessor {
     	}
     	updates+="]";
     	if(!show && (!tracked || n_ignored == a))
-    		return;
+    		return;*/
+        for(int i = 0; i < a; ++i)
+    	{
+			String fieldname = e.getDtClass().getNameForFieldPath(fields[i]);
+			if(fieldname.equals("m_nUnitState64"))
+			{
+				long state= (long)getEntityProperty(e, "m_nUnitState64", null);
+
+		    	String entity_name = e.getDtClass().getDtName();
+		    	if(e.hasProperty("m_pEntity.m_nameStringableIndex"))
+		    		entity_name = entity_names.get((int)getEntityProperty(e, "m_pEntity.m_nameStringableIndex", null));
+				
+				output.writeEntityEvent(time,"HERO_STATE", entity_name+","+e.getHandle()+","+state);//.toString()
+			}
+    	}
+         
+        
     	String entity_name = e.getDtClass().getDtName();
     	if(e.hasProperty("m_pEntity.m_nameStringableIndex"))
     		entity_name = entity_names.get((int)getEntityProperty(e, "m_pEntity.m_nameStringableIndex", null));
@@ -315,32 +372,156 @@ public class ReplayProcessor {
     	
 
     	String[] creep_entities = {"npc_dota_creep_lane", "npc_dota_creep_siege", "npc_dota_creep_neutral"};
-    	if(entity_name != null && contains(entity_name, creep_entities))
+    	String[] hero_entities = {"npc_dota_creep_lane", "npc_dota_creep_siege", "npc_dota_creep_neutral"};
+    	/*if(entity_name != null && contains(entity_name, creep_entities))
     	{
-    		boolean life_changed=false;
-    		for(int i = 0; i < a; ++i)
-        	{
-    			String fieldname = e.getDtClass().getNameForFieldPath(fields[i]);
-    			if(fieldname.equals("m_lifeState"))
-    			{
-    				life_changed=true;
-					break;
-    			}
-        	}
-
-    		if(life_changed)
-    		{
-    			//System.out.println(e.toString());
-    			int lifestate= (int)getEntityProperty(e, "m_lifeState", null);
-    			int team= (int)getEntityProperty(e, "m_iTeamNum", null);
-    			Vector2f pos = computePosition(e);
-				if(lifestate == 1)//just died
-					output.writeEntityEvent(time,"CREEP_DEATH", entity_name+","+e.getHandle()+","+team+","+pos.x+","+pos.y);//.toString()
-    	    	
-    		}
+    		processCreepChange(ctx, e, fields, a);
+    	}
+    	else */if(entity_name != null && entity_name.contains("hero"))
+    	{
+    		processHeroChange(ctx, e, fields, a);
+    	}
+    	else if(e.getDtClass().getDtName().equals("CDOTAPlayer"))
+    	{
+    		processPlayerChange(ctx, e, fields, a);
+    	}
+    	
+    	if(entity_name != null)
+    	{
+    		processThingChanges(ctx, e, fields, a);
     	}
     	
     }
+    
+	void processPlayerChange(Context ctx, Entity e, FieldPath[] fields, int a)
+	{
+        double time = getTime(ctx);
+    	boolean selected_changed=false;
+		for(int i = 0; i < a; ++i)
+    	{
+			String fieldname = e.getDtClass().getNameForFieldPath(fields[i]);
+			if(fieldname.equals("m_hSpectatorQueryUnit"))
+			{
+				selected_changed=true;
+				break;
+			}
+    	}
+
+		if(selected_changed)
+		{
+			int id= (int)getEntityProperty(e, "m_iPlayerID", null);
+			int selected= (int)getEntityProperty(e, "m_hSpectatorQueryUnit", null);
+			Entity s_e = ctx.getProcessor(Entities.class).getByHandle(selected);
+			String selected_name = "";
+			if(s_e != null)
+			{
+				selected_name = s_e.getDtClass().getDtName();
+		    	if(s_e.hasProperty("m_pEntity.m_nameStringableIndex"))
+		    		selected_name = entity_names.get((int)getEntityProperty(s_e, "m_pEntity.m_nameStringableIndex", null));
+			}
+			output.writeEntityEvent(time,"PLAYER_CHANGE_SELECTION", id+","+selected+","+selected_name);//.toString()
+		}
+	}
+	
+	void processHeroChange(Context ctx, Entity e, FieldPath[] fields, int a)
+	{
+        double time = getTime(ctx);
+    	
+    	String entity_name = e.getDtClass().getDtName();
+    	if(e.hasProperty("m_pEntity.m_nameStringableIndex"))
+    		entity_name = entity_names.get((int)getEntityProperty(e, "m_pEntity.m_nameStringableIndex", null));
+    	
+    	//System.out.println(e.toString());
+		for(int i = 0; i < a; ++i)
+    	{
+			String fieldname = e.getDtClass().getNameForFieldPath(fields[i]);
+			if(fieldname.equals("m_lifeState"))
+			{
+				int team= (int)getEntityProperty(e, "m_iTeamNum", null);
+				Vector2f pos = computePosition(e);
+				
+				int lifestate= (int)getEntityProperty(e, "m_lifeState", null);
+
+				if(lifestate == 1)//just died
+					output.writeEntityEvent(time,"HERO_DEATH", entity_name+","+e.getHandle()+","+team+","+pos.x+","+pos.y);//.toString()
+				if(lifestate == 0)//just respawned
+					output.writeEntityEvent(time,"HERO_RESPAWN", entity_name+","+e.getHandle()+","+team+","+pos.x+","+pos.y);//.toString()
+			}
+			else if (fieldname.equals("m_iTaggedAsVisibleByTeam"))
+			{
+				Vector2f pos = computePosition(e);
+				int visibility= (int)getEntityProperty(e, "m_iTaggedAsVisibleByTeam", null);
+
+				output.writeEntityEvent(time,"HERO_VISIBILITY", entity_name+","+e.getHandle()+","+visibility+","+pos.x+","+pos.y);//.toString()
+				break;
+			}
+    	}
+
+	}
+    
+    /*void processCreepChange(Context ctx, Entity e, FieldPath[] fields, int a)
+    {
+        double time = getTime(ctx);
+    	boolean life_changed=false;
+		for(int i = 0; i < a; ++i)
+    	{
+			String fieldname = e.getDtClass().getNameForFieldPath(fields[i]);
+			if(fieldname.equals("m_lifeState"))
+			{
+				life_changed=true;
+				break;
+			}
+    	}
+
+		if(life_changed)
+		{
+	    	String entity_name = e.getDtClass().getDtName();
+	    	if(e.hasProperty("m_pEntity.m_nameStringableIndex"))
+	    		entity_name = entity_names.get((int)getEntityProperty(e, "m_pEntity.m_nameStringableIndex", null));
+			
+			//System.out.println(e.toString());
+			int lifestate= (int)getEntityProperty(e, "m_lifeState", null);
+			int team= (int)getEntityProperty(e, "m_iTeamNum", null);
+			Vector2f pos = computePosition(e);
+			if(lifestate == 1)//just died
+				output.writeEntityEvent(time,"CREEP_DEATH", entity_name+","+e.getHandle()+","+team+","+pos.x+","+pos.y);//.toString()
+			else if(lifestate == 0)//just spawned?7
+				output.writeEntityEvent(time,"CREEP_SPAWN", entity_name+","+e.getHandle()+","+team+","+pos.x+","+pos.y);//.toString()
+		}
+    }*/
+    
+    void processThingChanges(Context ctx, Entity e, FieldPath[] fields, int a)
+    {
+        double time = getTime(ctx);
+    	boolean life_changed=false;
+		for(int i = 0; i < a; ++i)
+    	{
+			String fieldname = e.getDtClass().getNameForFieldPath(fields[i]);
+			if(fieldname.equals("m_lifeState"))
+			{
+				life_changed=true;
+				break;
+			}
+    	}
+
+		if(life_changed)
+		{
+	    	String entity_name = e.getDtClass().getDtName();
+	    	if(e.hasProperty("m_pEntity.m_nameStringableIndex"))
+	    		entity_name = entity_names.get((int)getEntityProperty(e, "m_pEntity.m_nameStringableIndex", null));
+			
+			//System.out.println(e.toString());
+			int lifestate= (int)getEntityProperty(e, "m_lifeState", null);
+			int team= (int)getEntityProperty(e, "m_iTeamNum", null);
+			Vector2f pos = computePosition(e);
+			if(lifestate == 0)//just spawned?7
+				output.writeEntityEvent(time,"SPAWN", entity_name+","+e.getHandle()+","+team+","+pos.x+","+pos.y);//.toString()
+			else if(lifestate == 1)//just died
+				output.writeEntityEvent(time,"DEATH", entity_name+","+e.getHandle()+","+team+","+pos.x+","+pos.y);//.toString()
+			 
+		}
+    }
+    
     public static boolean contains(String s, String[] list)
     {
 		for(int j = 0; j < list.length; ++j)
