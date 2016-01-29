@@ -940,14 +940,34 @@ def whoWonFight(match,fight,involved):
 
 ####################################################################################
 
-def lookupHeroPosition(match,state,hero_name,absolute_time):
-    #given a hero_name and an absolute time, return the (x,y) position of that hero at that point in time
+def lookupTimeIndex(match,state,absolute_time):
+    #given absolute time, return the index that would need to insert that time into state[1] and maintain the ordering
     i = bisect.bisect_left(state[1],absolute_time-match.match_start_time)
     if i:
-        return state[0][hero_name][i]
+        return i
     raise ValueError
         
+##################################################################################
 
+def lookupHeroPosition(match,state,hero_name,absolute_time):
+    i = lookupTimeIndex(match,state,absolute_time)
+    return  state[0][hero_name][i]
+
+#####################################################################################
+
+def heroPairwiseDistances(match,state,hero_name,absolute_time):  
+    hero_distances = {}
+
+    i = lookupTimeIndex(match,state,absolute_time)     
+    #look up the position of hero that want to measure distances from
+    v0 = state[0][hero_name][i]
+    #for all the other heros measure the distance from hero_name
+    for hero in match.heroes:
+        v = state[0][hero][i]
+        dist = math.sqrt((v0[0]-v[0])**2 + (v0[1]-v[1])**2)
+        hero_distances[hero] = dist
+
+    return hero_distances
 
 ###################################################################################
 def fightEvaluation(match,fight_dict,hero_death_fights):
@@ -1237,7 +1257,8 @@ def main():
     analysis = {"header":header,"entities":entities,"events":events,"timeseries":timeseries}
     stats = computeStats(match, analysis)
 
-    lookupHeroPosition(match,state_hifi,"queenofpain",2000)  
+    #lookupHeroPosition(match,state_hifi,"queenofpain",2000)  
+    heroPairwiseDistances(match,state_hifi,"tusk",674.956)
 
     #my_fights(match,"tusk",hero_death_fights,fight_dict)
     analysisfile = open(analysis_filename,'wb')
@@ -1254,5 +1275,5 @@ def main():
     #shutil.rmtree(match_directory)
 
 if __name__ == "__main__":
-    cProfile.run('main()')
-
+    #cProfile.run('main()')
+    main()
