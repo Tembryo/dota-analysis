@@ -95,6 +95,7 @@ class Match:
         teams = {0:{"side":"radiant","name":"empty","short":"empty"},1:{"side":"dire","name":"empty","short":"empty"}}
         players = {}
         heroes = {}
+        id_2_side = {}
 
         f = open(self.header_input_filename,'rb')
         header_reader = csv.reader(f)
@@ -125,11 +126,14 @@ class Match:
                 players[int(row[1])]["hero"] = hero_name
                 heroes[hero_name] = {}
                 heroes[hero_name]["index"] = int(row[1])
-                heroes[hero_name]["hero_id"] = self.parameters["namespace"]["hero_namespace"] + int(row[1])
+                hero_id = self.parameters["namespace"]["hero_namespace"] + int(row[1])
+                heroes[hero_name]["hero_id"] = hero_id
                 if int(row[5]) == 2:
                     heroes[hero_name]["side"] = "radiant"
+                    id_2_side[hero_id] = "radiant"
                 elif int(row[5]) == 3:
                     heroes[hero_name]["side"] = "dire"
+                    id_2_side[hero_id] = "dire"
 
         f.close()
 
@@ -144,7 +148,6 @@ class Match:
             self.events.append(row)
             if i == 0:
                 first_timestamp = math.floor(float(row[0]))
-
             if row[1] == "DOTA_COMBATLOG_GAME_STATE" and row[2] == "5":
                 match_start_time = math.floor(float(row[0]))
             elif row[1] == "DOTA_COMBATLOG_GAME_STATE" and row[2] == "4":
@@ -153,7 +156,7 @@ class Match:
             elif row[1] == "DOTA_COMBATLOG_GAME_STATE" and row[2] == "6":
                 match_end_time  = math.floor(float(row[0]))
                 #extract the events required for our analysis and store as a element in the array match.goldexp_events
-            elif row[1] == "DOTA_COMBATLOG_GOLD" or row[1] == "DOTA_COMBATLOG_XP" or row[1] == "OVERHEAD_ALERT_GOLD" or row[1] == "OVERHEAD_ALERT_DENY":
+            elif row[1] == "DOTA_COMBATLOG_GOLD" or row[1] == "DOTA_COMBATLOG_XP" or row[1] == "OVERHEAD_ALERT_GOLD" or row[1] == "OVERHEAD_ALERT_DENY" or row[1] == "DOTA_COMBATLOG_DEATH":
                 self.goldexp_events.append(row)
             elif row[1] == "PLAYER_ENT":
                 self.player_id_by_handle[row[3]] = row[2]
@@ -185,7 +188,7 @@ class Match:
             logging.info('No DOTA_COMBATLOG_GAME_STATE == 4 transition in this events file')
             pregame_start_time = max(match_start_time - self.parameters["pregame_time_shift"],first_timestamp)
 
-        
+        self.id_2_side = id_2_side
         self.teams = teams
         self.players = players
         self.heroes = heroes
@@ -900,13 +903,32 @@ def whoWonFight(match,fight,involved):
     time_start = fight[0].t
     time_end = fight[-1].t
 
+    #make a first pass and find out how many deaths occured
+
+    flag = 0
     #float(row[0]) is the absolute time, does this make sense to use the time_start/end from the attack list?
     for row in match.goldexp_events:
-        if (row[1]=="DOTA_COMBATLOG_XP") and (float(row[0])-match.match_start_time <= time_end) and (float(row[0])-match.match_start_time >= time_start):
-            #look up the id of the hero receiving xp and see if they were involved in the fight
-            hero_name = transformHeroName(row[2]) #receiver
-            id1 = match.heroes[hero_name]["hero_id"]
-            if id1 in involved:
+        if (float(row[0])-match.match_start_time <= time_end) and (float(row[0])-match.match_start_time >= time_start):
+            if (row[3] == "looses"):
+                flag = 1
+                hero_name = transformHeroName(row[2]) #loser
+                id1 = match.heroes[hero_name]["hero_id"]
+                gold_amount = int(float(row[4]))
+                side = match.heroes[hero_name]["side"]
+                if side == "radiant":
+                    #remove gold from radiant account
+                    gold_received_radiant = gold_received_radiant - gold_amount
+                elif side == "dire":
+                    #remove gold from dire account
+                    gold_received_dire = gold_received_dire - gold_amount 
+
+            elif (row[1] == "DOTA_COMBATLOG_DEATH"):
+                #change flag state so that xp and gold due to creeps are ignored
+                flag = 0
+
+            elif (row[1]=="DOTA_COMBATLOG_XP") and (flag == 1):
+                #look up the id of the hero receiving xp and see if they were involved in the fight
+                hero_name = transformHeroName(row[2]) #receiver
                 xp_amount = int(float(row[3]))
                 side = match.heroes[hero_name]["side"]
                 if side == "radiant":
@@ -915,14 +937,10 @@ def whoWonFight(match,fight,involved):
                 elif side == "dire":
                     #increment dire xp
                     xp_received_dire = xp_received_dire + xp_amount
-        elif (row[1]=="DOTA_COMBATLOG_GOLD") and (float(row[0])-match.match_start_time <= time_end) and (float(row[0])-match.match_start_time >= time_start):
-            hero_name = transformHeroName(row[2]) #receiver
-            id1 = match.heroes[hero_name]["hero_id"]
-            if id1 in involved:
+            elif (row[1]=="DOTA_COMBATLOG_GOLD") and (flag == 1):
+                hero_name = transformHeroName(row[2]) #receiver
                 gold_amount = int(float(row[4]))
                 side = match.heroes[hero_name]["side"]
-                if row[3] == "looses":
-                    gold_amount = -gold_amount
                 if side == "radiant":
                     #increment radiant xp
                     gold_received_radiant = gold_received_radiant + gold_amount
@@ -935,6 +953,8 @@ def whoWonFight(match,fight,involved):
 
     received["gold_received"]["radiant"] = gold_received_radiant
     received["gold_received"]["dire"] = gold_received_dire
+    #add a score for the the fight as a metric of whether was a good fight for radiant or dire
+    received["score"] = gold_received_radiant- gold_received_dire + xp_received_radiant -  xp_received_dire 
     return received 
 
 
@@ -970,7 +990,7 @@ def heroPairwiseDistances(match,state,hero_name,absolute_time):
     return hero_distances
 
 ###################################################################################
-def fightEvaluation(match,fight_dict,hero_death_fights):
+def fightFiltering(match,fight_dict,hero_death_fights):
     #applies a very crude filter the fights to see if the fight is significant enough to write to the json file
     alpha = match.parameters["fightEvaluation"]["alpha"]
     kappa = match.parameters["fightEvaluation"]["kappa"]
@@ -986,6 +1006,14 @@ def fightEvaluation(match,fight_dict,hero_death_fights):
             id_num = fights_namespace + key
             events[id_num] = fight_dict[key]
             events[id_num]["type"] = "fight"
+
+
+############################################################################
+def initiationScoring(fight_event):
+    #given a player was in the set of players involved in a fight their initiation score is 
+        #\alpha * [(radiant_gold -dire_gold) + (radiant_xp - dire_xp)]
+    initiation_score = fight["initiation"]["side_indicator"]*(fight["received"]["gold_received"]["radiant_gold"]-fight["received"]["gold_received"]["dire_gold"]+fight["received"]["xp_received"]["radiant_xp"]-fight["received"][xp_received]["dire_xp"])
+    involved = fight["involved"]
 
 ##############################################################################
 # code for retrieving personalised info about specific heroes
@@ -1009,6 +1037,8 @@ def camControlEvaluation(match):
             camera_event_counter += 1
         last_selection[row[2]]["t"] = row[0]
         last_selection[row[2]]["unit"] = row[4]
+
+####################################################################################
 
 def myDeaths(match,hero_deaths,fight_dict):
 
@@ -1191,6 +1221,9 @@ def computeStats(match, analysis):
         player_eval["time-visible"] = 0
         player_eval["time-visible-first10"] = 0
 
+        player_eval["initation-score"] = 0
+        player_eval["num-of-fights"] = 0
+
         last_visibility_change = None
         hero_entity_id = match.heroes[match.players[player_id]["hero"]]["hero_id"]
         for change in analysis["entities"][hero_entity_id]["visibility"]["samples"]:
@@ -1229,6 +1262,20 @@ def computeStats(match, analysis):
         elif event["type"] == "unit-selection":
             evaluation["player-stats"][str(event["player"])]["n-checks"] += 1
             evaluation["player-stats"][str(event["player"])]["average-check-duration"] += ((event["time-end"] - event["time-start"]) - evaluation["player-stats"][str(event["player"])]["average-check-duration"] )/ evaluation["player-stats"][str(event["player"])]["n-checks"]
+        elif event["type"] == "fight":
+            involved = event["involved"]
+            side_indicator = event["initiation"]["side_indicator"]
+            fight_score = event["received"]["score"]
+            for item in involved:
+                evaluation["player-stats"][str(item-match.parameters["namespace"]["hero_namespace"])]["num-of-fights"] += 1
+                #if the player is on the radiant side and radiant initiated or the player is on the dire side and dire initiated
+                if (match.id_2_side[item] == "radiant") and (side_indicator > 0) or (match.id_2_side[item] == "dire") and (side_indicator < 0 ):
+                    evaluation["player-stats"][str(item-match.parameters["namespace"]["hero_namespace"])]["initation-score"] += side_indicator*fight_score
+        
+    for player_id in match.players:
+        if evaluation["player-stats"][str(player_id)]["num-of-fights"]!= 0:
+            evaluation["player-stats"][str(player_id)]["initation-score"] =  evaluation["player-stats"][str(player_id)]["initation-score"]/evaluation["player-stats"][str(player_id)]["num-of-fights"]
+    
 
     return evaluation
 def main():
@@ -1251,14 +1298,11 @@ def main():
     fight_list = makeFightList(match,attack_list,A)
     fight_dict = makeFightDict(match,fight_list,area_matrix)
     hero_death_fights = myDeaths(match,hero_deaths,fight_dict)
-    fightEvaluation(match,fight_dict,hero_death_fights)
+    fightFiltering(match,fight_dict,hero_death_fights)
     camControlEvaluation(match)
     creepEvaluation(match)
     analysis = {"header":header,"entities":entities,"events":events,"timeseries":timeseries}
     stats = computeStats(match, analysis)
-
-    #lookupHeroPosition(match,state_hifi,"queenofpain",2000)  
-    heroPairwiseDistances(match,state_hifi,"tusk",674.956)
 
     #my_fights(match,"tusk",hero_death_fights,fight_dict)
     analysisfile = open(analysis_filename,'wb')
