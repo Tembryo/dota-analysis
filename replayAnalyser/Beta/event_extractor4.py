@@ -216,19 +216,25 @@ def killsInfo(match):
     heroes = match.heroes
     match_start_time = match.match_start_time
     kills_namespace = match.parameters["namespace"]["kills_namespace"]
+    number_of_kills = {}
+    number_of_deaths = {}
 
     for key in heroes:
         hero_deaths[key] = []
+        number_of_kills[key] = 0
+        number_of_deaths[key] = 0
 
     for row in match.events:
         # for each row check if a death occurred
         if row[1]=="DOTA_COMBATLOG_DEATH":
-            # now check if it was a hero that died
+            killer = row[3]
             deceased = row[2]
+            # now check if it was a hero that died
             if deceased.split("_")[2] == "hero":
                 # look up which side the hero was on
-                hero_name =transformHeroName(deceased)
-                side = heroes[hero_name]["side"]
+                killer_name = transformHeroName(killer)
+                deceased_name =transformHeroName(deceased)
+                side = heroes[deceased_name]["side"]
                 # now form a dictionary 
                 id_num = kills_namespace+k
                 death_time = float(row[0]) - match_start_time 
@@ -236,10 +242,13 @@ def killsInfo(match):
                 # put kill event in the events dictionary
                 events[str(id_num)] = new_event
                 # add death to the appropriate list in the hero_deaths dictionary
-                hero_deaths[hero_name].append(death_time)
+                hero_deaths[deceased_name].append(death_time)
+                #add kill to the killers total
+                number_of_kills[killer_name] += 1
+                number_of_deaths[deceased_name] += 1
                 k=k+1
 
-    return hero_deaths
+    return (hero_deaths,number_of_kills,number_of_deaths) 
 
 #############################################################################################
 
@@ -292,7 +301,7 @@ def heroPositions(match):
 # hero trajectories #
 #####################
  
-def heroTrajectories(match,state,hero_deaths):
+def heroTrajectories(match,state,hero_deaths,number_of_kills,number_of_deaths):
 
     logging.info('In heroTrajectories')
     entities = {}
@@ -337,6 +346,8 @@ def heroTrajectories(match,state,hero_deaths):
                     tmp_list.append(trajectory)
         visibility_summary = {"format":"changelist", "samples":[]}
         entities[heroes[key]["hero_id"]] = {"unit":key,"team": heroes[key]["side"],"control":heroes[key]["index"],"position":tmp_list, "visibility": visibility_summary}
+        entities[heroes[key]["hero_id"]]["number_of_kills"] = number_of_kills[key]
+        entities[heroes[key]["hero_id"]]["number_of_deaths"] = number_of_deaths[key]
 
     for row in match.visibility_rows:
         enemy_visibility_bit = 0
@@ -487,7 +498,7 @@ def eventsMapping(match,state,area_matrix):
 #########################################################################
 
 
-def goldXPInfo(match):
+def goldXPInfo(match,entities):
 
     # calculates the differences between radiant and dire xp and gold as well as individual hero xp and gold
     bin_size = match.parameters["goldXPInfo"]["bin_size"]
@@ -501,8 +512,8 @@ def goldXPInfo(match):
     hero_gold = {}
     hero_xp = {}
     for key in heroes:
-        hero_gold[key] = []    
-        hero_xp[key] = []
+        hero_gold[key] = 0    
+        hero_xp[key] = 0
 
     radiant_gold = []
     dire_gold = []
@@ -515,7 +526,7 @@ def goldXPInfo(match):
     radiant_gold_total = 0
     dire_gold_total = 0
     radiant_xp_total = 0
-    dire_xp_total =0
+    dire_xp_total = 0
 
     for row in match.goldexp_events:
         absolute_time = float(row[0])
@@ -524,7 +535,7 @@ def goldXPInfo(match):
             if row[1]=="DOTA_COMBATLOG_XP":
                 hero_name = transformHeroName(row[2]) #receiver
                 xp_amount = int(float(row[3]))
-                hero_xp[hero_name].append([xp_amount,timestamp]) 
+                hero_xp[hero_name] += xp_amount
                 side = heroes[hero_name]["side"]
                 if side == "radiant":
                     #increment radiant xp
@@ -537,13 +548,13 @@ def goldXPInfo(match):
                 gold_amount = int(float(row[4]))
                 side = heroes[hero_name]["side"]
                 if row[3]=="receives":
-                    hero_gold[hero_name].append([gold_amount,timestamp])
+                    hero_gold[hero_name] += gold_amount
                     if side == "radiant":
                         radiant_gold_total = radiant_gold_total + gold_amount
                     elif side == "dire":
                         dire_gold_total = dire_gold_total + gold_amount
                 elif row[3]=="looses":
-                    hero_gold[hero_name].append([-gold_amount,timestamp])
+                    hero_gold[hero_name] -= gold_amount
                     if side == "radiant":
                         radiant_gold_total = radiant_gold_total - gold_amount
                     elif side == "dire":
@@ -557,6 +568,11 @@ def goldXPInfo(match):
                 prior_timestamp = timestamp
 
 
+    for key in match.heroes:
+        entities[heroes[key]["hero_id"]]["GPM"] = math.floor(60*hero_gold[key]/(match_end_time-pregame_start_time))
+        entities[heroes[key]["hero_id"]]["XPM"] = math.floor(60*hero_xp[key]/(match_end_time-pregame_start_time))
+
+
     gold_samples = [{"t": x[1],"v":[x[0]]} for x in gold_difference]
 
     exp_samples = [{"t": x[1],"v":[x[0]]} for x in xp_difference]
@@ -564,7 +580,6 @@ def goldXPInfo(match):
     timeseries = {"gold-advantage":{"format":"samples","samples":gold_samples},"exp-advantage":{"format":"samples","samples":exp_samples}}
 
     return timeseries
-
 
 ######################################################################################################
 # extract the fight events
@@ -817,6 +832,7 @@ def makeFightDict(match,fight_list,area_matrix):
         damage_dealt = {}
         damage_dealt["radiant"] = []
         damage_dealt["dire"] = []
+        damage_matrix = np.zeros((10,10))
         for attack in fight:
             id1 = heroes[attack.attacker]["hero_id"]
             id1_set = set([id1])
@@ -824,6 +840,10 @@ def makeFightDict(match,fight_list,area_matrix):
             id2_set = set([id2])
             involved.update(id1_set)
             involved.update(id2_set)
+            #find rows and columns for the damage matrix
+            mat_row = id1 - match.parameters["namespace"]["hero_namespace"]
+            mat_col = id2 - match.parameters["namespace"]["hero_namespace"]
+            damage_matrix[mat_row][mat_col] = damage_matrix[mat_row][mat_col] + attack.damage
             damage_dealt[heroes[attack.attacker]["side"]].append([attack.t,attack.damage,id1])
             total_damage = total_damage + attack.damage
             attack_element = {}
@@ -853,6 +873,8 @@ def makeFightDict(match,fight_list,area_matrix):
         fight_dict[i]["initiation"] = initiationDamage(match,damage_dealt,time_start)
         #evaluate who won the fight
         fight_dict[i]["received"] = whoWonFight(match,fight,involved)
+
+        fight_dict[i]["damage_matrix"] = damage_matrix.tolist()
         #print "fight dictionary entry" + str(i)
     return fight_dict
 
@@ -1271,11 +1293,16 @@ def computeStats(match, analysis):
                 #if the player is on the radiant side and radiant initiated or the player is on the dire side and dire initiated
                 if (match.id_2_side[item] == "radiant") and (side_indicator > 0) or (match.id_2_side[item] == "dire") and (side_indicator < 0 ):
                     evaluation["player-stats"][str(item-match.parameters["namespace"]["hero_namespace"])]["initation-score"] += side_indicator*fight_score
-        
+
     for player_id in match.players:
+        hero_entity_id = match.heroes[match.players[player_id]["hero"]]["hero_id"]
+        evaluation["player-stats"][str(player_id)]["num-of-kills"] = analysis["entities"][hero_entity_id]["number_of_kills"]
+        evaluation["player-stats"][str(player_id)]["num-of-deaths"] = analysis["entities"][hero_entity_id]["number_of_deaths"] 
+        evaluation["player-stats"][str(player_id)]["GPM"] = analysis["entities"][hero_entity_id]["GPM"]
+        evaluation["player-stats"][str(player_id)]["XPM"] = analysis["entities"][hero_entity_id]["XPM"]      
         if evaluation["player-stats"][str(player_id)]["num-of-fights"]!= 0:
             evaluation["player-stats"][str(player_id)]["initation-score"] =  evaluation["player-stats"][str(player_id)]["initation-score"]/evaluation["player-stats"][str(player_id)]["num-of-fights"]
-    
+        
 
     return evaluation
 def main():
@@ -1288,11 +1315,11 @@ def main():
     match = Match(match_id, match_directory)
     match.matchInfo()
     header = headerInfo(match)
-    hero_deaths = killsInfo(match)
+    hero_deaths, number_of_kills, number_of_deaths = killsInfo(match)
     state, state_hifi = heroPositions(match)  #[[v_mat],t_vec]
-    entities = heroTrajectories(match,state,hero_deaths)
+    entities = heroTrajectories(match,state,hero_deaths,number_of_kills,number_of_deaths)
     eventsMapping(match,state,area_matrix)
-    timeseries = goldXPInfo(match) #up to this point takes a few seconds
+    timeseries = goldXPInfo(match,entities) #up to this point takes a few seconds
     attack_list = makeAttackList(match,state)
     A = formAdjacencyMatrix(match,attack_list)
     fight_list = makeFightList(match,attack_list,A)
@@ -1319,5 +1346,5 @@ def main():
     #shutil.rmtree(match_directory)
 
 if __name__ == "__main__":
-    #cProfile.run('main()')
-    main()
+    cProfile.run('main()')
+    #main()
