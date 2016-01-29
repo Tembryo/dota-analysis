@@ -144,7 +144,8 @@ class Match:
             self.events.append(row)
             if i == 0:
                 first_timestamp = math.floor(float(row[0]))
-            elif row[1] == "DOTA_COMBATLOG_GAME_STATE" and row[2] == "5":
+
+            if row[1] == "DOTA_COMBATLOG_GAME_STATE" and row[2] == "5":
                 match_start_time = math.floor(float(row[0]))
             elif row[1] == "DOTA_COMBATLOG_GAME_STATE" and row[2] == "4":
                 pregame_start_time = math.floor(float(row[0]))
@@ -158,7 +159,7 @@ class Match:
                 self.player_id_by_handle[row[3]] = row[2]
             elif row[1]=="DOTA_COMBATLOG_DAMAGE" and row[2]!="null":
                 self.damage_events.append(row)
-
+        #print self.player_id_by_handle
         f.close()
 
         self.spawn_rows = []
@@ -322,6 +323,8 @@ def heroTrajectories(match,state,hero_deaths):
                 t2 = death_time_list[i+1]
                 if t2 - t1 >= min_timespan: #filter out very short erroneous trajectories
                     samples_list =[{"t":t,"v":state[0][key][j]} for j, t in enumerate(state[1]) if (t > t1) and (t < t2)]
+                    if len(samples_list) == 0:
+                        continue #FIXME TODO WASGEHTAB
                     trajectory = {"time-start":samples_list[0]["t"],"time-end":samples_list[-1]["t"],"timeseries":{"format":"samples","samples":samples_list}}    
                     tmp_list.append(trajectory)
             else:
@@ -1059,7 +1062,7 @@ def putSpawn(match, row):
         if d < min_d:
             min_d = d
             position = l["name"]
-    print "put {} {}".format(position, row)
+    #print "put {} {}".format(position, row)
     match.creep_positions[row[3]] = position
 
 def matchCreepsWithLog(match, time, creeps, log):
@@ -1084,6 +1087,8 @@ def matchCreepsWithLog(match, time, creeps, log):
         death_type = "none"
         for lh in lh_list:
             if lh[4] == creepy[3]: #same creep
+                #if lh[5] not in match.player_id_by_handle[lh[5]]:
+                #    print match.player_id_by_handle
                 lh_player = int(match.player_id_by_handle[lh[5]])
                 death_type = "lasthit"
                 event["lasthit-by"] = lh_player
@@ -1092,7 +1097,10 @@ def matchCreepsWithLog(match, time, creeps, log):
                 break
         for denie in denie_list:
             if denie[4] == creepy[3]: #same creep
-                denie_player = match.player_id_by_handle[denie[3]]
+                if denie[3] in match.player_id_by_handle:
+                    denie_player = match.player_id_by_handle[denie[3]]
+                else:
+                    denie_player = 0 #FIXME
                 death_type = "denie"
                 event["denied-by"] = denie_player
                 break

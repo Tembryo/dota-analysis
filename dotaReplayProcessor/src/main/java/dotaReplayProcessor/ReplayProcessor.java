@@ -211,7 +211,7 @@ public class ReplayProcessor {
 	        	Entity p = players.next();
 
 	        	int id = (int)getEntityProperty(p,"m_iPlayerID", null);
-	        	if(id >= 0 && !hero_units_valid[id])
+	        	if(id >= 0 && id <num_players && !hero_units_valid[id])
 	        	{
 		            output.writeEvent(time, "PLAYER_ENT,"+id+","+p.getHandle());
 		            System.out.println(id);
@@ -410,6 +410,8 @@ public class ReplayProcessor {
 		if(selected_changed)
 		{
 			int id= (int)getEntityProperty(e, "m_iPlayerID", null);
+			if(id >= num_players)//dont log casters
+				return;
 			int selected= (int)getEntityProperty(e, "m_hSpectatorQueryUnit", null);
 			Entity s_e = ctx.getProcessor(Entities.class).getByHandle(selected);
 			String selected_name = "";
