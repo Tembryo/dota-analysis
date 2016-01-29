@@ -46,7 +46,7 @@ var dlInterval = 3000;
 
 crawl();
 
-var switcher = 1;
+var switcher = 0;
 
 function crawl()
 {
@@ -94,7 +94,7 @@ function getApiMatches(start, cb)
                 locals.client = client;
                 locals.done = done_client;
                 var earliest_match_time = moment().subtract(3,"hours").unix();
-                var url = "https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?key="+config.steam_api_key+"&date_max="+earliest_match_time+"&min_players=10&game_mode=22&matches_requested=30";
+                var url = "https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?key="+config.steam_api_key+"&date_max="+earliest_match_time+"&min_players=10&game_mode=22&matches_requested=50";
                 if(start != null)
                     url+="&start_at_match_id="+start;
                 api_semaphore.take(function(){

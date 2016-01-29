@@ -1,0 +1,11 @@
+postgres:
+  container_name: crawler-db
+  image: postgres
+  expose:
+    - "5432"
+  environment:
+    POSTGRES_USER: "wisdota"
+    POSTGRES_PASSWORD: "the-database-elephant"
+    PGDATA: "/postgres/data"
+  volumes:
+    - /home/fischerq/Documents/Wisdota/dota-analysis/ml-data-crawler/db:/postgres

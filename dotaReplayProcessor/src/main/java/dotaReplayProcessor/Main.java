@@ -72,7 +72,7 @@ public class Main {
 		}
 
         long tMatch = System.currentTimeMillis() - tStart;
-        System.out.printf("total time taken: %s s", (tMatch) / 1000.0);
+        //System.out.printf("total time taken: %s s", (tMatch) / 1000.0);
 		
         output.finish();
         System.out.print(matchid);

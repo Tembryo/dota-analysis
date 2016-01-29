@@ -30,6 +30,10 @@ var downloadAndDecompress = function(url, dest, cb) {
     sendReq.on('end', function (err) {
         console.log("sendreq got end");
     });
+    // check for request errors
+    //sendReq.on('data', function (err) {
+    //    console.log("sendreq got data");
+    //});
 
     var decoder = bz2();
     decoder.on('error', function(err) { // Handle errors
@@ -40,6 +44,15 @@ var downloadAndDecompress = function(url, dest, cb) {
             return cb(err.message);
         }
     });
+    // check for request errors
+    decoder.on('data', function (err) {
+        console.log("decoder got data");
+    });
+    // check for request errors
+    decoder.on('end', function (err) {
+        console.log("decoder got end");
+    });
+
 
     try
     {
