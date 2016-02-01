@@ -1,5 +1,10 @@
+
 .featurette-heading {
 	font-size: 40px;
+}
+
+#plus-link {
+	color: orange;
 }
 
 .features-heading {
@@ -21,6 +26,7 @@
 
 #steam-logo-small {
 	display: inline-block;
+	padding-right: 4px;
 }
 
 .page-header {
