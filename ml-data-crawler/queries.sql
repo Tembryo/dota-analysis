@@ -1,0 +1,1 @@
+SELECT count(*), floor(mmr/500)*500 as mmrgroup from matches, mmrsamples where matches.matchid=mmrsamples.matchid group by mmrgroup ORDER BY mmrgroup DESC;

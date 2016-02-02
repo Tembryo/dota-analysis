@@ -5,17 +5,28 @@ var child_process   = require("child_process"),
 var config          = require("./config.js"),
     database          = require("./database.js");
 
-var max_extraction_time = 120*1000;
+var max_extraction_time = 80*1000;
 var max_analysis_time = 120*1000;
-var max_learn_time = 300*1000;
 
-stats = fs.lstatSync('/extract.jar');
-console.log("extract", stats.isFile());
-stats = fs.lstatSync('/files');
-console.log("file-dir", stats.isDirectory());
-stats = fs.lstatSync('/files-crawl');
-console.log("crawl-dir", stats.isDirectory());
-analyseMatches();
+var mode;
+mode = "process";
+//mode = "generate";
+//mode = "learn";
+
+switch(mode)
+{
+    case "process":
+        analyseMatches();
+        break;
+    case "generate":
+        gatherData();
+        break;
+    case "learn":
+        trainModel();
+        break;
+}
+
+var repeat_delay = 60*1000;
 
 function analyseMatches()
 {
@@ -28,7 +39,7 @@ function analyseMatches()
                 locals.client = client;
                 locals.done = done_client;
                 locals.client.query(
-                    "SELECT matchid FROM matches WHERE matches.status='dled' LIMIT 2;",
+                    "SELECT matchid FROM matches WHERE matches.status='dled' LIMIT 10;",
                     [],
                     callback);
             },
@@ -43,7 +54,7 @@ function analyseMatches()
                 console.log(err);
             locals.done();
             console.log("finished analyseMatch");
-            gatherData();
+            setTimeout(analyseMatches, repeat_delay);//gatherData();
         }
     );
 }
@@ -110,7 +121,12 @@ function analyseMatch(row, callback)
         {
             if(err)
             {
-                console.log("error", err, results);
+                locals.client.query(
+                    "UPDATE Matches SET status='processing-error' WHERE matchid=$1;",
+                    [locals.matchid],
+                    function(){                console.log("error", err, results);
+                callback();});
+
             }
             else
             {
@@ -144,6 +160,7 @@ function gatherData()
             {
                 var filename = "/files/data.csv";
                 locals.csv_file = fs.createWriteStream(filename);
+                writeSample(locals.csv_file, sampleHeader());
                 locals.csv_file.on("close", function(){console.log("finished writing");callback();});
                 async.eachSeries(results.rows, gatherMatchData.bind(this, locals.csv_file), function(){console.log("done iterating"); locals.csv_file.end();});
             }
@@ -172,6 +189,7 @@ function gatherMatchData(file, row, callback)
             //load stats
         for(var row_i in row["samples"])
         {
+            file.write("\n");
             var sample = row["samples"][row_i];
             var fullsample = {"label": sample["f1"], "data": createSampleData(match, sample["f2"])};
             writeSample(file,fullsample);
@@ -181,15 +199,54 @@ function gatherMatchData(file, row, callback)
 
 }
 
+  function getHeroID(name)
+  {
+    //TODO
+        return 0;
+  }
+
+function sampleHeader()
+{
+    var header = {  "label":"MMR", 
+                    "data": [   "hero",
+                                "win",
+                                "durationMins",
+                                "GPM",
+                                "XPM",
+                                "checksPmin",
+                                "time-fraction-visible",
+                                "initiation-score"]};
+    return header;
+}
+
 function createSampleData(match, slot)
 {
-    var features = [slot];
+    var id;
+    if(slot < 128)
+        id = slot;
+    else
+        id = slot - 128 + 5;
+    var match_stats = match["match-stats"];
+    if(!match["player-stats"].hasOwnProperty(id))
+        return [];
+    var player_stats = match["player-stats"][id];
+    var win = 0;
+    if( (match_stats["winner"] === "radiant" && slot < 128) ||
+        (match_stats["winner"] === "dire" && slot >= 128))
+        win = 1;
+    //console.log(match, match["player-stats"],id, match["player-stats"][id], player_stats);
 
+    var durationMins =  (match_stats["duration"] /60);
+    var checksPmin = player_stats["n-checks"] / durationMins;
+    var timeFractionVisible = player_stats["time-visible"] / durationMins;
+    var features =  [player_stats["hero"], win, durationMins.toFixed(3), player_stats["GPM"], player_stats["XPM"], checksPmin, timeFractionVisible, player_stats["initation-score"]];
     return features;    
 }
 
 function writeSample(file, sample)
 {
+    if(sample.length == 0)
+        return;
     var line = "";
     line += sample["label"]+",";
     for(var feature_i = 0; feature_i < sample["data"].length; feature_i ++)
@@ -198,19 +255,18 @@ function writeSample(file, sample)
         if(feature_i +1 < sample["data"].length )
             line += ",";
     }
-    line+= "\n";
     file.write(line)
 }
 
-function trainModel(data)
+
+function trainModel()
 {
     child_process.execFile(
         "python",
         ["/learn/learn.py", "/files/data.csv", "/files/model.json"],
-        {"timeout":max_learn_time},
+        {},
         function (stdout, stderr)
         {
             console.log("done", stdout, stderr);
         });
 }
-

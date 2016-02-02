@@ -2,7 +2,7 @@
     "name": "wisdota-mmr-learner",
     "version": "0.0.1",
     "author": "fischerq",
-    "main": "learn-main.js",
+    "main": "process-main.js",
     "dependencies": {
         "pg": "^4.4.3",
         "async": "^1.5.0"

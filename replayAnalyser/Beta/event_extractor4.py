@@ -98,21 +98,22 @@ class Match:
         id_2_side = {}
 
         f = open(self.header_input_filename,'rb')
-        header_reader = csv.reader(f)
+        #header_reader = csv.reader(f)
 
         self.player_id_by_handle = {}
-        for i, row in enumerate(header_reader):
+        for i, row in enumerate(f):
+            row = row.split(",")
             if row[0].upper() == "TEAM_TAG_RADIANT":
                 if row[1] == " ":
                     teams[0]["name"] = "empty"
                 else:            
                     teams[0]["name"] = row[1]
-            if row[0].upper() == "TEAM_TAG_DIRE":
+            elif row[0].upper() == "TEAM_TAG_DIRE":
                 if row[1] == " ":
                     teams[1]["name"] = "empty"
                 else:            
                     teams[1]["name"] = row[1]
-            if row[0].upper() == "PLAYER":
+            elif row[0].upper() == "PLAYER":
                 # extract the player's name
                 players[int(row[1])] = {}        
                 player_name_string = row[2]
@@ -134,6 +135,8 @@ class Match:
                 elif int(row[5]) == 3:
                     heroes[hero_name]["side"] = "dire"
                     id_2_side[hero_id] = "dire"
+            elif row[0] == "WINNER":
+                self.winner = row[1].strip()
 
         f.close()
 
@@ -203,7 +206,7 @@ class Match:
 
 def headerInfo(match):
     # form the header
-    header = {"id":match.match_id,"draft": {},"length":match.total_match_time ,"teams":match.teams,"players":match.players,"parameters":match.parameters}
+    header = {"id":match.match_id,"draft": {},"length":match.total_match_time ,"teams":match.teams, "winner": match.winner, "players":match.players,"parameters":match.parameters}
 
     return header
 
@@ -234,6 +237,8 @@ def killsInfo(match):
                 # look up which side the hero was on
                 killer_name = transformHeroName(killer)
                 deceased_name =transformHeroName(deceased)
+                if not  deceased_name in heroes:
+                    continue
                 side = heroes[deceased_name]["side"]
                 # now form a dictionary 
                 id_num = kills_namespace+k
@@ -244,7 +249,8 @@ def killsInfo(match):
                 # add death to the appropriate list in the hero_deaths dictionary
                 hero_deaths[deceased_name].append(death_time)
                 #add kill to the killers total
-                number_of_kills[killer_name] += 1
+                if killer_name in number_of_kills:
+                    number_of_kills[killer_name] += 1
                 number_of_deaths[deceased_name] += 1
                 k=k+1
 
@@ -352,6 +358,8 @@ def heroTrajectories(match,state,hero_deaths,number_of_kills,number_of_deaths):
     for row in match.visibility_rows:
         enemy_visibility_bit = 0
         hero = transformHeroName(row[2])
+        if not hero in heroes:
+            continue
         if heroes[hero]["side"] == "radiant":
             enemy_visibility_bit = 3
         elif heroes[hero]["side"] == "dire":
@@ -535,6 +543,8 @@ def goldXPInfo(match,entities):
             if row[1]=="DOTA_COMBATLOG_XP":
                 hero_name = transformHeroName(row[2]) #receiver
                 xp_amount = int(float(row[3]))
+                if not hero_name in heroes or not hero_name in hero_xp:
+                    continue
                 hero_xp[hero_name] += xp_amount
                 side = heroes[hero_name]["side"]
                 if side == "radiant":
@@ -546,6 +556,8 @@ def goldXPInfo(match,entities):
             elif row[1]=="DOTA_COMBATLOG_GOLD":
                 hero_name = transformHeroName(row[2]) #receiver
                 gold_amount = int(float(row[4]))
+                if not hero_name in heroes:
+                    continue
                 side = heroes[hero_name]["side"]
                 if row[3]=="receives":
                     hero_gold[hero_name] += gold_amount
@@ -660,9 +672,13 @@ def makeAttackList(match,state):
                     #join the names up
                     s = "_"
                     attacker_name = s.join(attacker_name_list)
+                    if not attacker_name in heroes:
+                        continue
                     attacker_side = heroes[attacker_name]["side"]
                     #now for the victim_name
                     victim_name = s.join(victim_name_list)
+                    if not victim_name in heroes:
+                        continue
                     victim_side = heroes[victim_name]["side"]
                     shifted_time = [(t-timestamp)**2 for t in state[1]]
                     index = np.argmin(shifted_time)
@@ -934,6 +950,8 @@ def whoWonFight(match,fight,involved):
             if (row[3] == "looses"):
                 flag = 1
                 hero_name = transformHeroName(row[2]) #loser
+                if not hero_name in match.heroes:
+                    continue
                 id1 = match.heroes[hero_name]["hero_id"]
                 gold_amount = int(float(row[4]))
                 side = match.heroes[hero_name]["side"]
@@ -952,6 +970,8 @@ def whoWonFight(match,fight,involved):
                 #look up the id of the hero receiving xp and see if they were involved in the fight
                 hero_name = transformHeroName(row[2]) #receiver
                 xp_amount = int(float(row[3]))
+                if not hero_name in match.heroes:
+                    continue
                 side = match.heroes[hero_name]["side"]
                 if side == "radiant":
                     #increment radiant xp
@@ -961,6 +981,8 @@ def whoWonFight(match,fight,involved):
                     xp_received_dire = xp_received_dire + xp_amount
             elif (row[1]=="DOTA_COMBATLOG_GOLD") and (flag == 1):
                 hero_name = transformHeroName(row[2]) #receiver
+                if not hero_name in match.heroes:
+                    continue
                 gold_amount = int(float(row[4]))
                 side = match.heroes[hero_name]["side"]
                 if side == "radiant":
@@ -1187,6 +1209,8 @@ def matchCreepsWithLog(match, time, creeps, log):
         exp_ids = []
         if len(creeps) == 1:
             for exp in exps:
+                if not transformHeroName(exp[2]) in match.heroes:
+                    continue
                 exp_obj = {"id":match.heroes[transformHeroName(exp[2])]["index"], "v": int(exp[3])}
                 exp_ids.append(exp_obj)
         elif len(exps) > 0:
@@ -1230,6 +1254,7 @@ def createCreepEvent(match, creep_row):
 def computeStats(match, analysis):
     evaluation = {"player-stats": {}, "match-stats": {}}
 
+    evaluation["match-stats"]["winner"] = match.winner
     evaluation["match-stats"]["duration"] = match.match_end_time - match.match_start_time
     evaluation["match-stats"]["duration-all"] = match.match_end_time - match.pregame_start_time
     evaluation["match-stats"]["creeps-killed"] = 0
@@ -1238,6 +1263,7 @@ def computeStats(match, analysis):
         player_eval = {}
         player_eval["steamid"] = match.players[player_id]["steam_id"]
 
+        player_eval["hero"] = match.players[player_id]["hero"]
         player_eval["lasthits"] = 0
         player_eval["denies"] = 0
 
@@ -1278,12 +1304,16 @@ def computeStats(match, analysis):
             evaluation["match-stats"]["creeps-killed"] += 1
             if event["lasthit-type"] == "lasthit":
                 evaluation["match-stats"]["creeps-lasthit"] += 1
+                if not str(event["lasthit-by"]) in evaluation["player-stats"]: #FIXME
+                    continue
                 evaluation["player-stats"][str(event["lasthit-by"])]["lasthits"] += 1
                 if event["creep-type"] == "lane" or event["creep-type"] == "siege":
                     evaluation["player-stats"][str(event["lasthit-by"])]["lane-creeps"] += 1
                 elif event["creep-type"] == "neutral":
                     evaluation["player-stats"][str(event["lasthit-by"])]["neutrals"] += 1
             elif event["lasthit-type"] == "denie":
+                if not str(event["denied-by"]) in evaluation["player-stats"]: #FIXME
+                    continue
                 evaluation["player-stats"][str(event["denied-by"])]["denies"] += 1
                 if len(event["exp-claimed-by"]) > 0:
                     evaluation["player-stats"][str(event["denied-by"])]["denies-with-exp"] += 1
@@ -1349,7 +1379,7 @@ def main():
     statsfile.close()
 
     #delete intermediate/input files
-    #shutil.rmtree(match_directory)
+    shutil.rmtree(match_directory)
 
 if __name__ == "__main__":
     #cProfile.run('main()')
