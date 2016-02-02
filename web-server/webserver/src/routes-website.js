@@ -23,15 +23,6 @@ function collectTemplatingData(req)
 
 function addNavigationData(data)
 {
-    data["navigation_entries"] = [
-    {
-        "label": "Parsed Matches",
-        "link": "/matches"
-    },
-    {
-        "label": "Add Match",
-        "link": "/upload"
-    }];
 }
 
 router.get('/', function(req, res)
@@ -40,115 +31,24 @@ router.get('/', function(req, res)
     res.render("pages/index.ejs", data);
 });
 
-router.get('/user',
-    authentication.ensureAuthenticated,
-    function(req, res)
-    {
-        var data = collectTemplatingData(req);
-        addNavigationData(data);
-        res.render("pages/history.ejs", data);
-    }
-);
-
-// Page /settings
-router.get('/settings',
-    authentication.ensureAuthenticated,
-    function(req, res)
-    {
-        var data = collectTemplatingData(req);
-        addNavigationData(data);
-        if(req.params.code)
-            data["code"] = res.params.code;
-        else
-            data["code"] = "";
-
-        var locals = {};
-        locals.user = {};
-        async.waterfall(
-            [
-                database.connect,
-                function(client, done, callback)
-                {
-                    locals.client = client;
-                    locals.done = done;
-
-                    locals.client.query("SELECT id, name, steam_object, email FROM Users WHERE id = $1;",[req.user["id"]],callback);
-                },
-                function(results, callback)
-                {
-                    locals.user = results.rows[0];
-
-                    locals.client.query(
-                        "SELECT us.user_id, json_agg(ust.label) as statuses FROM UserStatuses us, UserStatusTypes ust WHERE us.user_id=$1 AND us.statustype_id=ust.id GROUP BY us.user_id;",
-                        [locals.user.id],
-                        callback);
-                },
-                function(results, callback)
-                {
-                    console.log(results);
-                    if(results.rowCount == 0)
-                        locals.user.statuses = [];
-                    else if(results.rows[0].statuses == null)
-                        locals.user.statuses = [];
-                    else
-                        locals.user.statuses = results.rows[0].statuses;
-                    callback(null);
-                }
-            ],
-            function(err, result)
-            {
-                locals.done();
-                if (err)
-                    console.log(err);
-                else
-                {
-                    data["user"] = locals.user;
-                    res.render("pages/user.ejs", data);
-                }
-            }
-        );
-    }
-);
-
-// Page /settings
-router.get('/admin',
-    authentication.ensureAuthenticated,
-    authentication.ensureAdmin,
-    function(req, res)
-    {
-        var data = collectTemplatingData(req);
-        addNavigationData(data);
-        res.render("pages/admin.ejs", data);
-    }
-);
+router.get('/plus', function(req, res)
+{
+    var data = collectTemplatingData(req);
+    res.render("pages/plus.ejs", data);
+});
 
 
-router.get('/matches',
-    function(req, res)
-    {
-        var data = collectTemplatingData(req);
-        addNavigationData(data);
-        res.render("pages/matches.ejs", data);
-    }
-);
-router.get('/match/:match_id',
-    function(req, res)
-    {
-        var data = collectTemplatingData(req);
-        addNavigationData(data);
-        data["match_id"] = req.params.match_id;
-        res.render("pages/match.ejs", data);
-    }
-);
+router.get('/results/:result_id', function(req, res)
+{
+    var data = collectTemplatingData(req);
+    res.render("pages/result.ejs", data);
+});
 
-router.route("/upload")
-    .get(authentication.ensureAuthenticated,
-        function(req, res)
-        {
-            var data = collectTemplatingData(req);
-            addNavigationData(data);
-            data["user"] = req.user;
-            res.render("pages/upload.ejs", data);
-        });
+router.get('/user', function(req, res)
+{
+    var data = collectTemplatingData(req);
+    res.render("pages/user.ejs", data);
+});
+
 
 exports.router = router;

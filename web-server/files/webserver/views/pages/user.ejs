@@ -1,73 +1,152 @@
-<% 
-    title="User";
-    layout("base-template")
+<%  layout('base-template'); 
+    navigation_entries=[
+    ];
 -%>
+    <link href="/static/css/user.css" rel="stylesheet">
 
-<section id="user-container" class="container content-section text-center">
-	<div class="row">
-		<div class="col-xs-1 col-xs-offset-3">
-            <img src="<%= user["steam_object"]["avatarmedium"] %>"/>
+
+<!--User Dasboard -->
+<section id="user-dashboard text-center">
+    <div class="container-fluid">
+        <h2>Overview </h2>
+        <div id="dashboard">
+            <!-- SVG element in here -->
         </div>
-		<div class="col-xs-5" >
-            <h1 style="display: inline;line-height:48px;"> <%= user["name"]%> </h1>
-        </div>
-        <% if(user["statuses"].indexOf("admin")>=0){ %>
-	        <div class="col-xs-2 col-xs-offset-1" >
-                <p><a href="/admin">Admin panel</a> </p>
+        <div class="row">
+            <div class="col-md-2"></div>
+            <div class="col-md-8 text-center">
+                <button id="mmr-button" type="button" class="btn btn-success dashboard-button">General MMR</button>
+                <button id="last-hits-button" type="button" class="btn btn-primary dashboard-button">Last Hitting</button>
+                <button id="fights-button" type="button" class="btn btn-warning dashboard-button">Fights</button>
+                <button id="objectives-button" type="button" class="btn btn-info dashboard-button">Objectives</button>
+                <button id="movement-button" type="button" class="btn btn-danger dashboard-button">Movement</button>
+                <button id="nom-button" type="button" class="btn btn-default dashboard-button">No. of Matches</button>
             </div>
-        <% }%>
-    </div>
-	<div class="row" style="height:10px"></div>
-	<div class="row">
-        <div class="col-xs-2 col-xs-offset-3">
-            <p>Email: </p>
-        </div>
-        <div class="col-xs-3 ">
-
-                    <% if(user["email"] ==="unknown") {%>
-                   <p> Not set </p>
-                    <% }else{%>
-                    <p><%= user["email"] -%></p>
-                    <% }%>
-        </div>
-
-            <form id="email-form">
-                        <input type="text" id="email-address">
-                        <input type="button" id="email-button" value="Set email" disabled>
-                </form>
-    </div>
-	<div class="row">
-        <div class="col-xs-2 col-xs-offset-3">
-           <p> Beta status: </p>
-        </div>
-        <div class="col-xs-3">
-            <% for(var status_i in user["statuses"] ){ %>
-                <div class="user-status">            
-                <%= user["statuses"][status_i]%>
-                </div>
-            <% }%>
+            <div class="col-md-2"></div>
         </div>
     </div>
-
-	<div class="row">
-        <div class="col-xs-2 col-xs-offset-3">
-           <p> Verification: </p>
-        </div>
-        <div class="col-xs-3">
-                <form id="verify-form">
-                    <input type="text" id="verify-code" value="<%= code%>">
-                    <input type="button" id="verify-button" value="Activate Code">
-                    <div id="verify-result"></div>
-                </form>
-        </div>
-    </div>
-
 </section>
 
-<script type="text/javascript">
-    user_id = "<%= user["identifier"] %>";
-</script>
-<script src="/static/js/user.js" charset="utf-8"></script>
+<section id="user-container" class="container content-section">
+    <div class="container big-table">
+      <h2>Match List</h2>
+        <table class="table">
+            <thead>
+              <tr>
+                <th><a style="color:black">Status </a></th>
+                <th><a style="color:black">Match ID</a></th>
+                <th><a style="color:black">Date</a></th>
+                <th><a style="color:black">Time</a></th>
+                <th><a style="color:black">Hero</a></th>
+                <th><a style="color:black">Duration</a></th>
+                <th><a style="color:black">Result</a></th>
+                <th><a style="color:black">Download</a></th>
+              </tr>
+            </thead>
+            <tbody id ="large-match-list">
+              <tr>
+                <td><a href="#" id="red-circle" class="circle"></a></td>
+                <td>2104146160</td>
+                <td>12/02/2016</td>
+                <td>00:58:18</td>
+                <td><div class="image-thumbnail"><img src="/static/img/heroes/pictures/Earthshaker.png" style="height:37px"></div></td>
+                <td>30:25</td>
+                <td>Win</td>
+                <td><button type="button" class="btn btn-default disabled"><span class="glyphicon glyphicon-download-alt"></span> 2104146160.dem</button></td>
+              </tr>
+              <tr>
+                <td><a href="#" id="orange-circle" class="circle"></a></td>
+                <td>2104129186</td>
+                <td>11/02/2016</td>
+                <td>18:10:11</td>
+                <td><div class="image-thumbnail"><img src="/static/img/heroes/pictures/Antimage.png" style="height:37px"></div> </td>
+                <td>42:22 </td>
+                <td>Loss</td>
+                <td><button type="button" class="btn btn-default disabled"><span class="glyphicon glyphicon-download-alt"></span> 2104129186.dem</button></td>
+              </tr>
+              <tr>
+                <td><a href="#" id="green-circle" class="circle"></a></td>
+                <td>2104131509</td>
+                <td>11/02/2016</td> 
+                <td>22:43:58</td>
+                <td><div class="image-thumbnail"><img src="/static/img/heroes/pictures/Alchemist.png" style="height:37px"></div></td>
+                <td>46:36</td>
+                <td>Win</td>
+                <td><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-download-alt"></span> 2104131509.dem</button></td>
+              </tr>
+            </tbody>
+      </table>
+    </div>
+
+    <div class="container small-table">
+        <h2>Match List</h2>
+        <table class="table">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>ID/Result</th>
+            <th>Date/Time</th>
+            <th>Hero</th>
+          </tr>
+        </thead>
+            <tbody id="small-match-list">
+              <tr>
+                <td><a href="#" id="red-circle" class="circle"></a></td>
+                <td>2104146160 </br> Win </td>
+                <td>12/02/2016<br>00:58:18</td>
+                <td><div class="image-thumbnail"><img src="/static/img/heroes/pictures/Earthshaker.png" style="height:37px"></div></td>
+              </tr>
+              <tr>
+                <td><a href="#" id="orange-circle" class="circle"></a></td>
+                <td>2104129186 <br> Loss </td>
+                <td>11/02/2016<br>18:10:11</td>
+                <td><div class="image-thumbnail"><img src="/static/img/heroes/pictures/Antimage.png" style="height:37px"></div> </td>
+              </tr>
+              <tr>
+                <td><a href="#" id="green-circle" class="circle"></a></td>
+                <td>2104131509 <br> Win </td>
+                <td>11/02/2016<br>22:43:58</td>
+                <td><div class="image-thumbnail"><img src="/static/img/heroes/pictures/Alchemist.png" style="height:37px"></div></td>
+              </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="container big-table">
+                <h2>Key</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th> Status </th>
+                            <th> Information </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                      <tr> 
+                        <td class="col-md-1"><a href="#" id="green-circle" class="circle"></a></td>
+                        <td>Success! We were able to download this replay from the Steam servers and analyse it.  </td>
+                      </tr>
+                      <tr>
+                        <td class="col-md-1"><a href="#" id="orange-circle" class="circle"></a></td>
+                        <td> This replay has not been downloaded yet. Click the orange circle to attempt to download it from the Steam servers.</td>
+                      </tr>
+                      <tr>
+                        <td class="col-md-1"><a href="#" id="red-circle" class="circle"></a></td>
+                        <td> This replay failed to download from the Steam servers, it may be too old. </td>
+                      </tr> 
+                       <tr>
+                        <td class="col-md-1"><a href="#" id="black-circle" class="circle"></a></td>
+                        <td> Some unexpected status occurred, let us know and we will try to fix it! </td>
+                      </tr> 
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
 
 
-<link href="/static/css/formatting.css" rel="stylesheet">
+<script type="text/javascript" src="/static/js/user.js"></script>
+<script type="text/javascript" src="/static/js/matchlist.js"></script>

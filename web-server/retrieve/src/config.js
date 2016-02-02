@@ -6,6 +6,6 @@ exports.files           = "/files";
 exports.storage         = "/storage";
 exports.shared          = "/shared";
 
-exports.steam_user = "wisdota_nr1";
+exports.steam_user = "wisdota_dev";
 exports.steam_pw   = sensitive.steam_pw;
 

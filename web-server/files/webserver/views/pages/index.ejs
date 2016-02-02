@@ -1,98 +1,139 @@
-<%  title="Index";
+<%  layout('base-template'); 
     navigation_entries=[
-        {"label": "Example", "link": "#match"},
-        {"label": "More Matches", "link": "/matches"},
-        {"label": "About", "link": "#about-prototype"},
-        {"label": "Contact", "link": "#contact"},
+        {"label": "About", "link": "#about"},
     ];
-    layout('base-template'); -%>
+-%>
+<!-- Header -->
+<div id="hotornot">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h1 class="page-header">Let A.I. rate your Dota game</h1>
+                    <h2 class="pager-header-small"><span class="text-muted">Ready to turn pro?</span></h2>
+                </div>
+            </div>
+        </div>
 
- <!-- Intro Header -->
-    <header class="intro">
-        <div class="intro-body">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-8 col-md-offset-2">
-                        <h1 class="brand-heading">Wisdota</h1>
-                        <p class="intro-text"> Visualise your Dota2 games</p>
+<!-- Player Image Carousel -->
+<!-- Todo: make this responsive -->
+    <div class="container">
+        <div id="player-slider" class="slider">
+            <div id="slide1" class="mugshots text-center"><img src="/static/img/heroes/portraits/earthshaker_vert.jpg" width="210px"><p class="user-name">Lord_Zera</p> <p class="mugshot-match-info"> 21164033676 <br> 30:35 Win</p></div>
+
+            <div id="slide2" class="mugshots text-center"><img src="/static/img/heroes/portraits/brewmaster_vert.jpg" width="210px"><p class="user-name">Noob_Face</p> <p class="mugshot-match-info"> 21164033085 <br> 30:35 Loss</p></div>
+
+            <div id="slide3" class="mugshots text-center"><img src="/static/img/heroes/portraits/lina_vert.jpg" width="210px"><p class="user-name">RedditPro</p> <p class="mugshot-match-info"> 21164033692 <br> 30:35 Win</p></div>
+
+            <div id="slide4" class="mugshots text-center"><img src="/static/img/heroes/portraits/lion_vert.jpg" width="210px"><p class="user-name">FullRussi</p> <p class="mugshot-match-info">21164033680 <br> 30:35 Win</p></div>
+            <div id="slide5" class="mugshots text-center"><img src="/static/img/heroes/portraits/juggernaut_vert.jpg" width="210px"><p class="user-name">MustBMid</p> <p class="mugshot-match-info">211640273612 <br> 42:35 Loss</p></div>
+            <div id="slide6" class="mugshots text-center"><img src="/static/img/heroes/portraits/lina_vert.jpg" width="210px"><p class="user-name">Solo_Hero</p> <p class="mugshot-match-info"> 21164033692 <br> 30:35 Win</p></div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4 col-md-4 col-sm-2"></div>
+            <div class="col-lg-4 col-md-4 col-sm-8 text-center">
+                <div id ="ratePlayerDiv" data-target="#loading" data-toggle="modal">
+                    <p id="ratePlayerTxt"> Rate This Player </p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-2"></div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-4 col-md-4 col-sm-2"></div>
+            <div class="col-lg-4 col-md-4 col-sm-8 text-center">
+                <input id="steamIDInputBtn" type="button" class="btn btn-warning active btn-lg" value="Rate Myself">
+                <p>(Requires Steam Sign-In)</p>
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-2"></div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-4 col-md-4 col-sm-2"></div>
+            <div class="col-lg-4 col-md-4 col-sm-8 text-center">
+                <h4>Share Wisdota with your friends:</h4>
+                <div class="socialmedia_container center-block">
+                    <div class="fb-send socialmediabutton" data-href="https://wisdota.com"></div>
+
+                   <a href="https://twitter.com/share" class="twitter-share-button" data-text="Let AI guess your MMR" data-via="wisdota" data-related="" data-hashtags="wisdota"></a>
+
+                   <a href="mailto:?subject=How%20good%20are%20you%25&body=Let%20Artificial%20Intelligence%20guess%20your%20MMR!%20http://www.wisdota.com" class="mailLink socialmediabutton hidden-xs">
+                         <img src="/static/img/email.svg" width="61px" height="20px">
+                    </a>
+
+                    <a href="WhatsApp://send?text=Pick a game and find out how good you are! https://wisdota.com" class="whatsAppLink socialmediabutton hidden-sm hidden-md hidden-lg">
+                         <img src="/static/img/whatsapp.svg" width="61px" height="20px">
+                    </a>
 
 
-<a href="/matches" class="btn btn-default btn-lg"><div style="margin: 20px 20px 20px 20px;"><h2 style="margin: 0px 0px 0px 0px;">See Matches
-</h2></div></a>
-<br/>
-<div style="width:150px; height: 10px;" ></div><br/>
-<a href="/auth/steam" class="btn btn-default btn-lg"> <h4 style="margin: 0px 0px 0px 0px;">Login to parse a match:</h4><br/> <img src="/static/img/steam_signin3.png" height="60px" alt="Steam signin"/>
-</a>
+                    <div class="fb-share-button socialmediabutton" data-href="http://wisdota.com" data-layout="button_count"></div>
 
-
-                    </div>    
-                    <div id="downarrow" class="col-md-8 col-md-offset-2">
-                        <a href="#prototype" class="btn btn-circle page-scroll">
-                            <i class="fa fa-angle-double-down animated"></i>
-                        </a> 
                     </div>
                 </div>
+            <div class="col-lg-4 col-md-4 col-sm-2"></div>
+        
+        </div>
+    </div>
+</div>
+
+
+<!-- Wisdota Featurette -->
+<section id ="about">
+    <div class="container">
+        <div class ="row">
+            <hr class="featurette-divider">
+            <div class="col-lg-12 text-center">
+                <h2 class="features-heading">About Wisdota</h2>
+                <p class="lead">Wisdota is an automated coaching platform for Dota players. Our machine learning algorithms can analyse your replay files and pinpoint ways in which you can improve. </p>  
             </div>
         </div>
-    </header>
-
-    <!-- Prototype Section -->
-    <% match_id = "1950565767" %>
-    <% include ../partials/match-diagram.ejs -%>
-
-    <!-- Request A Match Section -->
-    <section id="input-match-id" class="container content-section text-center">
         <div class="row">
-            <div class="col-lg-8 col-lg-offset-2">
-                <h1>More matches</h1>
-                <p>We have a growing list of matches analysed and ready. You can access the full list after <a href="/matches">logging in</a>.</p>
-
-                <p> If there is a particular match you would like to see analysed you can simply upload the replay file, and it will automatically be processed.</p>
-
-                <p>If you have trouble getting a match analysed, feel free to <a href="mailto:quirin.fischer@wisdota.com">email us</a> and we will try to help.
-            </div>
+            <div class="col-md-4 text-center">
+                <img src="http://placehold.it/250x250&text=Hello world" height="200px" width="200px">
+                <h3>Personalised Analysis</h3>
+                <p>Analyse your Dota games and compare to top players. See the patterns in your play from last hitting performance to fights. </p>
+            </div> 
+            <div class="col-md-4 text-center">
+                <img src="http://placehold.it/250x250&text=Hello world" height="200px" width="200px">
+                <h3>Replay Storage</h3>
+                <p>All of your replay files automatically downloaded and stored for six months. Sort through replays quickly and easily. </p>
+            </div> 
+            <div class="col-md-4 text-center">
+                <img src="http://placehold.it/250x250&text=Hello world" height="200px" width="200px">
+                <h3>Team Strategy</h3>
+                <p>Annotate and share summaries of matches with teammates to discuss tactics. Strategise like the top pros and win more matches. </p>
+            </div> 
         </div>
-    </section>
-
-
-	<!-- About Prototype Section -->
-	<section id="about-prototype" class="container content-section text-center">
-		<div class="row">
-			<div class="col-lg-8 col-lg-offset-2">
-                <h1> About </h1>
-
-                <p> This is an early-stage protoype for an application that will take in Dota 2 replays and automatically generate an overview of the gameplay. The idea is to allow you to review a game quickly and focus on the important aspects without having to watch the whole replay.</p>
-
-                <p>Above you can see the final game of the Frankfurt Major, Team Secret vs. OG Game 4 - processed using the current version of our software.
-                </p>
-
-        <p> Log in with your Steam accout to get on the platform and see all the other games we have parsed so far. You can also upload replay files to see your own games analysed!</p>
-
-                <p> The project is work in progress with lots more features planned - so stay tuned for updates and let us know if you have any feedback! </p>
-
-                <a class="page-scroll" href="auth/steam">
-                            <img src="static/img/steam_signin3.png" height="60px" alt="Steam signin"/>
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Contact Section -->
-    <section id="contact" class="container content-section text-center">
+        <!-- Click Me Button -->
         <div class="row">
-            <div class="col-lg-8 col-lg-offset-2">
-                <h2>Contact Wisdota</h2>
-                <p>We would love to hear how we can improve and what you want to see from us. Please fill out our short feedback form: </p>
-                <a href="http://goo.gl/forms/vfHqGGvybU" class="btn btn-default btn-lg">Feedback Form</a>
-                <p id="more-margin">Or you can find us on Twitter:</p>
-                <a href="https://twitter.com/wisdota" class="btn btn-default btn-lg"><i class="fa fa-twitter fa-fw"></i><span class="network-name">Twitter</span></a>
-                <p>Like us on Facebook: </p>
-                <div
-                  class="fb-like"
-                  data-share="true"
-                  data-width="450"
-                  data-show-faces="true">
+            <div class="col-md-4"></div>
+            <div class="col-md-4 text-center">
+                <a id="try-wisdota-link" href="#" class="btn btn-warning btn-lg btn-block active"><span class="glyphicon glyphicon-play"></span> Try Wisdota For Free</a>
+                <hr class="primary">                
+            </div>
+            <div class="col-md-4"></div>
+        </div>
+    </div>
+</section>
+
+
+
+<div class="modal fade" id="loading" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 id="my-modal-title">Downloading and Analysing Replay File</h4>
+            </div>
+            <div class="modal-body">
+                <div class="progress">
+                    <div id="progressTimer"></div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</div>
+<script type="text/javascript" src="/static/js/index.js"></script>
+
+<!-- JavaScript for the progress bar -->
+ <script src="/static/js/jquery.progressTimer.js"></script>

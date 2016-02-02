@@ -1,97 +1,117 @@
-function validateEmail(email) {
-    var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
-    return re.test(email);
+$(document).ready(function(){
+
+var data =[{date:10,MMR:3000,LH:3100},{date:40,MMR:3100,LH:3150},{date:50,MMR:3325,LH:2900},{date:100,MMR:2955,LH:2925},{date:120,MMR:3155,LH:2850},{date:130,MMR:3199,LH:2775},{date:160,MMR:2825,LH:2750},{date:200,MMR:3505,LH:2700}];
+
+var width = 1100;
+var height = 400;
+var padding = 50;
+
+
+var canvas =d3.select("#dashboard")
+            .append("svg")
+            .attr("width",width)
+            .attr("height",height);
+
+var group = canvas.append("g")
+
+
+function plot_graph(var1,var2){
+
+    var var1_max = find_max(data,var1);
+    var var1_min = find_min(data,var1);
+
+    var var2_max = find_max(data,var2);
+    var var2_min = find_min(data,var2);
+
+    var horizontal_scale = var1_scale(var1_min,var1_max,width,padding);
+    var vertical_scale = var2_scale(var2_min,var2_max,height,padding);
+
+    var line =d3.svg.line()
+                .x(function(d){return horizontal_scale(d[var1]);})
+                .y(function(d){return vertical_scale(d[var2]);});
+
+    var mypath = group.selectAll("path")
+                 .data([data]);
+
+   mypath.enter()
+   .append("path")
+   .attr("fill","none")
+   .attr("stroke","black")  
+   .attr("stroke-width",6);
+
+   mypath
+      .attr("d",line);
+
+  var xAxis = d3.svg.axis()
+                  .scale(horizontal_scale)
+                  .orient("bottom");
+
+  var yAxis = d3.svg.axis()
+                  .scale(vertical_scale)
+                  .orient("left");
+
+  canvas.append("g")
+  .attr("transform", "translate(0," + (height-padding) + ")")
+    .call(xAxis);
+
+  canvas.append("g")
+    .attr("transform", "translate(" + padding + ",0)")
+    .call(yAxis);
+
+}
+
+function find_max(data,value){
+    var max_val = d3.max(data,function(d){return d[value]});
+    return max_val;
+}
+
+function find_min(data,value){
+    var max_val = d3.min(data,function(d){return d[value]});
+    return max_val;
 }
 
 
-$("#email-address").on('blur keyup change click', function(){
-    var address = $("#email-address").val();
-    //Your validation
-    if(validateEmail(address))
-    {
-        $("#email-button").prop('disabled', false);
-    }
-    else
-    {
-        $("#email-button").prop('disabled', true);
-    }
-});
+function var1_scale(var1_min,var1_max,width,padding){
+  return d3.scale.linear()
+                  .domain([var1_min,var1_max])
+                    .range([padding,width-padding]);
+}
+
+function var2_scale(var2_min,var2_max,height,padding){
+  return d3.scale.linear()
+                  .domain([var2_min,var2_max])
+                  .range([height-padding,padding]);
+}
 
 
-$("#email-button").click(function(){
-    console.log($('#email-form'));
-    var email_address = $("#email-address").val();
-    console.log("address: "+email_address);
-    $.ajax({
-        url: '/api/settings/email/'+encodeURIComponent(email_address),
-        type: 'GET',
-        //Ajax events
-        success: emailCompleteHandler,
-        error: emailErrorHandler,
+plot_graph("date","MMR");
+
+
+    $("#last-hits-button").click(function(){
+    	 plot_graph("date","LH");
     });
-});
 
-function emailCompleteHandler(e){
-    if(e["result"] === "success")
-    {
-        message_str = "Verification email sent! Please check your inbox.";
-    }
-    else
-    {
-        message_str = "We are afraid, something went wrong.";
-    }
-    alert(message_str);
-    console.log("email complete");
-    console.log(e);
-}
-function emailErrorHandler(e){
-    console.log("email error");
-    console.log(e);
-}
-
-
-$("#verify-button").click(function(){
-    console.log($('#verify-form'));
-    var verify_code = $("#verify-code").val();
-    console.log("code: "+verify_code);
-    $.ajax({
-        url: '/api/verify/'+encodeURIComponent(verify_code),
-        type: 'GET',
-        //Ajax events
-        success: verifyCompleteHandler,
-        error: verifyErrorHandler,
+    $("#mmr-button").click(function(){
+       plot_graph("date","MMR");
     });
-});
 
-function verifyCompleteHandler(e){
-    console.log("verify complete");
-    var message_str = "";
-    if(e["result"] === "success")
-    {
-        message_str = "Code activation successfull!";
-        switch(e["action"])
-        {
-            case "SetEmail":
-                message_str += " Your email was verified!";
-                break;
-            case "ActivatePlus":
-                message_str += " Plus was enabled on your account!";
-                break;
-            default:
-                message_str += " Whatever that was...";
-                break;
-        };
-    }
-    else
-    {
-        message_str = "Sorry, something went wrong.";
-    }
-    alert(message_str);
-    $("#verify-code").val("");
-    //$("#verify-result").text(e["action"]+" "+JSON.stringify(e["info"])+" "+e["result"]);
-    console.log(e);
-}
-function verifyErrorHandler(e){
-    console.log("verify error");
-    console.log(e);
-}
+    $("#fights-button").click(function(){
+       plot_graph("date","LH");
+    });
+
+    $("#objectives-button").click(function(){
+       plot_graph("date","MMR");
+    });
+
+    $("#movement-button").click(function(){
+       plot_graph("date","LH");
+    });
+
+    $("#nom-button").click(function(){
+       plot_graph("date","MMR");
+    });
+
+
+
+
+});

@@ -1,0 +1,134 @@
+
+.featurette-heading {
+	font-size: 40px;
+}
+
+.features-heading {
+	font-size: 40px;
+	margin-bottom: 20px;
+	margin-top: 0;
+}
+
+#try-wisdota-link {
+	margin-top: 15px;
+}
+
+#form-label {
+	font-weight:bold;
+	text-align:right;
+	padding-top: 3px;
+	font-size: 20px;
+}
+
+#steam-logo-small {
+	display: inline-block;
+	padding-right: 4px;
+}
+
+.page-header {
+	padding-top: 24px;
+	font-size: 40px;
+	margin-bottom: 0;
+}
+
+.pager-header-small {
+	margin-top: 5px;
+}
+
+#steamIDInputBtn {
+	width:200px;
+	height: 48px;
+	margin-bottom: 5px;
+	font-size: 20px;
+}
+
+#ratePlayerTxt {
+	font-size: 20px;
+	color: white;
+	padding-top: 18px;
+}
+
+#ratePlayerDiv {
+	width:200px;
+	height: 58px;
+	background: url(../img/logos/pointer_button.png);
+	background-size: 100% 100%;
+	background-position: center;
+	cursor: pointer;
+	margin: 0 auto;
+	margin-bottom: 10px;
+	margin-top: 15px;
+}
+
+#player-slider {
+	height: 300px;
+	margin-bottom: 2px;
+	margin-top: 5px;
+	padding-bottom: 0;
+	padding-right: 30px;
+	padding-left: 30px;
+}
+
+.slider {
+	vertical-align: top;	
+}
+
+button.slick-prev {
+	height: 40px;
+	width: 40px;
+}
+
+button.slick-next {
+	height: 40px;
+	width: 40px;
+}
+
+.mugshots {
+	position: relative;
+	border: 3px solid black;
+	border-radius: 4px;
+}
+
+.mugshot-match-info {
+	font-size: 20px;
+	margin-bottom: 10px;
+}
+
+
+.user-name {
+	color: white;
+	position: absolute;
+	bottom: 70px;
+	left:36px;
+	font-size: 30px
+}
+
+.slick-prev:before {
+  font-size: 40px;
+}
+.slick-next:before {
+  font-size: 40px;
+}
+
+.socialmedia_container{
+	height: 20px;
+	background-color: gray;
+}
+
+@media screen and (min-width: 993px) {
+	.slider {
+		width: 1135px;
+	}
+}
+
+@media screen and (max-width: 992px) {
+	.slider {
+		width: 704px;
+	}
+}
+
+@media screen and (max-width: 768px) {
+	.slider {
+		width: 275px;
+	}
+}

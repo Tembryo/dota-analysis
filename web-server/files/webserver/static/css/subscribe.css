@@ -1,0 +1,83 @@
+#page-header {
+	padding-top: 40px;
+	font-size: 40px;
+}
+
+.fat-button {
+	width: 200px;
+	height: 50px;
+}
+
+#free-button {
+	background-color: #eee;
+}
+
+button {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+.primary-thick {
+	border-color: #111111;
+    border-width: 1px;
+}
+
+.subscription-container-basic {
+	border: 1px solid gray;
+	border-radius: 5px;
+	padding: 4px 4px 4px 4px; 
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+
+.subscription-container-plus {
+	border: 1px solid gray;
+	border-radius: 5px;
+	padding: 4px 4px 4px 4px; 
+	margin-top: 20px;
+	margin-bottom: 20px;
+	background-color: #a0a0a0;
+}
+
+.subscription-container-gold {
+	border: 1px solid gray;
+	border-radius: 5px;
+	padding: 4px 4px 4px 4px; 
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+	
+.bg-image-top {
+	background-color:black;
+	background-image: url(../img/tournament/TI4_cropped_top.jpg);
+	height: 250px;
+	background-size: 100% 100%;
+	background-position: center;
+}
+
+.bg-image-bottom {
+	position: relative;
+	background-image: url(../img/tournament/TI4_cropped_bottom.jpg);
+	height: 150px;
+	background-size: 100% 100%;
+	background-position: center;
+}
+
+
+#tyg {
+	position: absolute;
+	top:40px;
+	left:10px;
+	color:white;
+	font-size: 30px;
+}
+
+#tnl {
+	position: absolute;
+	top: 70px;
+	left:130px;
+	color:orange;
+	font-size: 30px;
+}
+
+
