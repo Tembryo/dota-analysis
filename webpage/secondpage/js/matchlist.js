@@ -16,22 +16,26 @@ $(document).ready(function(){
     function drawRow(rowData) {
     var row = $("<tr />")
     $("#large-match-list").append(row); 
-    /* status */
-    var results_td = $("<td />");
-    row.append($(results_td));
+    /* circle */
+    var circle_td = $("<td />");
+    row.append($(circle_td));
+    var status_td = $("<td />")
+    row.append($(status_td));
     var my_circle = $("<a> </a>");
-    results_td.append(my_circle);
+    circle_td.append(my_circle);
     my_circle.addClass("circle");
     if (rowData["status"]=="green"){
         my_circle.attr("id","green-circle");
     } else if (rowData["status"]=="orange"){
         my_circle.attr("id","orange-circle");
+        status_td.append("Click Me <span class='glyphicon glyphicon-arrow-right'></span>");
     }
     else if ((rowData["status"]=="red")){
         my_circle.attr("id","red-circle");
     }
     else {
         my_circle.attr("id","black-circle");
+
     }
     /* match-id*/
     row.append($("<td>" + rowData["match-id"] + "</td>"));

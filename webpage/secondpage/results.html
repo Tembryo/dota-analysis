@@ -40,6 +40,7 @@
     <!-- Custom Wisdota CSS -->
     <link href="css/main.css" rel="stylesheet">
     <link href="css/results.css" rel="stylesheet">
+    <link href="css/user.css" rel="stylesheet">
 
 </head>
 
@@ -193,11 +194,13 @@
 
 <section id="user-container" class="container content-section">
     <div class="container big-table">
-      <h2>Match List</h2>
+      <h2 id="match-list-header">Match List</h2>
+      <h4> Click on an a Match ID in the list below to have it analysed.</h4>
         <table class="table">
             <thead>
               <tr>
-                <th><a style="color:black">Status </a></th>
+                <th><a style="color:black">Status</a></th>
+                <th><a style="color:black"> </a></th>
                 <th><a style="color:black">Match ID</a></th>
                 <th><a style="color:black">Date</a></th>
                 <th><a style="color:black">Time</a></th>
@@ -209,41 +212,13 @@
             </thead>
             <tbody id ="large-match-list">
               <tr>
-                <td><a href="#" id="red-circle" class="circle"></a></td>
-                <td>2104146160</td>
-                <td>12/02/2016</td>
-                <td>00:58:18</td>
-                <td><div class="image-thumbnail"><img src="img/heros/thumbnails/Earthshaker.png" style="height:37px"></div></td>
-                <td>30:25</td>
-                <td>Win</td>
-                <td><button type="button" class="btn btn-default disabled"><span class="glyphicon glyphicon-download-alt"></span> 2104146160.dem</button></td>
-              </tr>
-              <tr>
-                <td><a href="#" id="orange-circle" class="circle"></a></td>
-                <td>2104129186</td>
-                <td>11/02/2016</td>
-                <td>18:10:11</td>
-                <td><div class="image-thumbnail"><img src="img/heros/thumbnails/Antimage.png" style="height:37px"></div> </td>
-                <td>42:22 </td>
-                <td>Loss</td>
-                <td><button type="button" class="btn btn-default disabled"><span class="glyphicon glyphicon-download-alt"></span> 2104129186.dem</button></td>
-              </tr>
-              <tr>
-                <td><a href="#" id="green-circle" class="circle"></a></td>
-                <td>2104131509</td>
-                <td>11/02/2016</td> 
-                <td>22:43:58</td>
-                <td><div class="image-thumbnail"><img src="img/heros/thumbnails/Alchemist.png" style="height:37px"></div></td>
-                <td>46:36</td>
-                <td>Win</td>
-                <td><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-download-alt"></span> 2104131509.dem</button></td>
               </tr>
             </tbody>
       </table>
     </div>
 
     <div class="container small-table">
-        <h2>Match List</h2>
+        <h2 id="match-list-header">Match List</h2>
         <table class="table">
         <thead>
           <tr>
@@ -254,60 +229,8 @@
           </tr>
         </thead>
             <tbody id="small-match-list">
-              <tr>
-                <td><a href="#" id="red-circle" class="circle"></a></td>
-                <td>2104146160 </br> Win </td>
-                <td>12/02/2016<br>00:58:18</td>
-                <td><div class="image-thumbnail"><img src="img/heros/thumbnails/Earthshaker.png" style="height:37px"></div></td>
-              </tr>
-              <tr>
-                <td><a href="#" id="orange-circle" class="circle"></a></td>
-                <td>2104129186 <br> Loss </td>
-                <td>11/02/2016<br>18:10:11</td>
-                <td><div class="image-thumbnail"><img src="img/heros/thumbnails/Antimage.png" style="height:37px"></div> </td>
-              </tr>
-              <tr>
-                <td><a href="#" id="green-circle" class="circle"></a></td>
-                <td>2104131509 <br> Win </td>
-                <td>11/02/2016<br>22:43:58</td>
-                <td><div class="image-thumbnail"><img src="img/heros/thumbnails/Alchemist.png" style="height:37px"></div></td>
-              </tr>
             </tbody>
         </table>
-    </div>
-
-    <div class="row">
-        <div class="col-md-6">
-            <div class="container big-table">
-                <h2>Key</h2>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th> Status </th>
-                            <th> Information </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                      <tr> 
-                        <td class="col-md-1"><a href="#" id="green-circle" class="circle"></a></td>
-                        <td>Success! We were able to download this replay from the Steam servers and analyse it.  </td>
-                      </tr>
-                      <tr>
-                        <td class="col-md-1"><a href="#" id="orange-circle" class="circle"></a></td>
-                        <td> This replay has not been downloaded yet. Click the orange circle to attempt to download it from the Steam servers.</td>
-                      </tr>
-                      <tr>
-                        <td class="col-md-1"><a href="#" id="red-circle" class="circle"></a></td>
-                        <td> This replay failed to download from the Steam servers, it may be too old. </td>
-                      </tr> 
-                       <tr>
-                        <td class="col-md-1"><a href="#" id="black-circle" class="circle"></a></td>
-                        <td> Some unexpected status occurred, let us know and we will try to fix it! </td>
-                      </tr> 
-                    </tbody>
-                </table>
-            </div>
-        </div>
     </div>
 </section>
 
@@ -325,7 +248,7 @@
 
 <!--Javascript to load results from json file -->
 <script type="text/javascript" src="js/results.js"></script>
-<script type="text/javascript" src="js/user.js"></script>
+<script type="text/javascript" src="js/matchlist.js"></script>
 
 </body>
 </html>
