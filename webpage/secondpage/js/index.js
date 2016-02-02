@@ -11,7 +11,6 @@ $(document).ready(function(){
         slidesToShow: 3,
         slidesToScroll: 1,
         infinite: true,
-        dots: true
       }
     },
     {
@@ -28,11 +27,10 @@ $(document).ready(function(){
 
   });
 
-
   $('.slider').on('afterChange', function(event, slick, currentSlide, nextSlide){
     var elSlide = $(slick.$slides[currentSlide]);
     console.log(currentSlide)
-    $("#ratePlayerBtn").click(function(){   
+    $("#ratePlayerDiv").click(function(){   
     $("#progressTimer").progressTimer({
         timeLimit: 10,
         warningThreshold: 10,
@@ -49,7 +47,7 @@ $(document).ready(function(){
     
     });
 
-  $("#ratePlayerBtn").click(function(){   
+  $("#ratePlayerDiv").click(function(){   
     $("#progressTimer").progressTimer({
         timeLimit: 12,
         warningThreshold: 10,

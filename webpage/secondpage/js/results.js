@@ -2,7 +2,7 @@ $(document).ready(function(){
 	var pathname = "data/results/3097372263_RedditPro.json"
 	$.getJSON(pathname, function(json) {
     	$("h1").text(json["user"] + ": " +json["id"])
-    	$("h2").text(json["MMR"])
+    	$(".results-header-small").text(json["MMR"])
 		$("#hero-img").attr("src","img/heros/thumbnails/"+json["hero"]+".png")
 		$("#skill-bar1").attr("valuenow",String(json["last_hits"]))
 		$("#skill-bar1").attr("style","width:"+ String(json["last_hits"] + "%"))
