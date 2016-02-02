@@ -42,6 +42,10 @@ svg {
 	background:#5cb85c;
 }
 
+#black-circle {
+	background:#000;
+}
+
 .table > tbody > tr > td {
      vertical-align: middle;
 }

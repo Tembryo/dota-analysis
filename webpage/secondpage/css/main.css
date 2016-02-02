@@ -3,10 +3,6 @@
 	font-size: 40px;
 }
 
-#plus-link {
-	color: orange;
-}
-
 .features-heading {
 	font-size: 40px;
 	margin-bottom: 20px;
@@ -49,7 +45,7 @@
 #ratePlayerBtn {
 	width:200px;
 	height: 48px;
-	margin-top: 5px;
+	margin-top: 15px;
 	margin-bottom: 5px;
 	cursor: pointer;
 	font-size: 20px;

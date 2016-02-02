@@ -1,5 +1,5 @@
 $(document).ready(function(){	
-	var pathname = "data/results/2097372263_Zera.json"
+	var pathname = "data/results/3097372263_RedditPro.json"
 	$.getJSON(pathname, function(json) {
     	$("h1").text(json["user"] + ": " +json["id"])
     	$("h2").text(json["MMR"])
