@@ -10,6 +10,10 @@
 	margin-bottom: 10px;
 }
 
+#match-list-header {
+	padding-top: 0;
+}
+
 #hero-img {
 	display: block;
     margin-left: auto;
@@ -25,8 +29,10 @@
 }
 
 .results-header-small {
-	margin-top: 20px;
-	margin-bottom: 0;
+	padding-top: 0;
+	padding-bottom: 4px;
+	margin-top: 10px;
+
 }
 
 .my-block {
