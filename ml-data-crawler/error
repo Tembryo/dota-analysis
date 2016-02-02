@@ -1,0 +1,18 @@
+crawler_1  | Storing in  /files/replays/2105299618.dem
+crawler_1  | /source/node_modules/unbzip2-stream/index.js:62
+crawler_1  |                 throw e;
+crawler_1  |                 ^
+crawler_1  | 
+crawler_1  | TypeError: Cannot read property '0' of undefined
+crawler_1  |     at f (/source/node_modules/unbzip2-stream/lib/bit_iterator.js:24:34)
+crawler_1  |     at Object.bzip2.decompress (/source/node_modules/unbzip2-stream/lib/bzip2.js:277:28)
+crawler_1  |     at decompressBlock (/source/node_modules/unbzip2-stream/index.js:29:28)
+crawler_1  |     at decompressAndQueue (/source/node_modules/unbzip2-stream/index.js:46:20)
+crawler_1  |     at Stream.end (/source/node_modules/unbzip2-stream/index.js:86:23)
+crawler_1  |     at _end (/source/node_modules/through/index.js:65:9)
+crawler_1  |     at Stream.stream.end (/source/node_modules/through/index.js:74:5)
+crawler_1  |     at Request.onend (stream.js:59:10)
+crawler_1  |     at emitOne (events.js:82:20)
+crawler_1  |     at Request.emit (events.js:169:7)
+mldatacrawler_crawler_1 exited with code 1
+

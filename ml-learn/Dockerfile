@@ -93,7 +93,8 @@ RUN curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-
 ####################     Install python libs.     ####################
 
 RUN apt-get install -y libblas-dev liblapack-dev libatlas-base-dev gfortran
-RUN pip install numpy scipy logging matplotlib    
+RUN pip install numpy scipy logging matplotlib
+RUN pip install -U scikit-learn
 
 ####################       Install sources.       ####################
 
@@ -105,4 +106,4 @@ VOLUME ["/analysis"]
 VOLUME ["/extractor"]
 
 # start node
-CMD ["node", "learn-main.js"]
+CMD ["node", "process-main.js"]

@@ -43,49 +43,79 @@ console.log("crawley happily crawling ur replays");
 
 var CrawlerKeepRunning = true;
 var dlInterval = 3000;
-
+var match_threshold = 400000;
 crawl();
 
-var switcher = 0;
+var crawl_repeats = 2;
+var crawl_repeats_per_dl = 2;
 
 function crawl()
 {
-    fetchMore(null, null);
+    var url = "https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?key="+config.steam_api_key+"&min_players=10&game_mode=22&matches_requested=1";
+    console.log(url);           
+    api_semaphore.take(function(){
+        request(url,
+                function (err, response, body)
+                    {
+                        console.log("got initial history");
+                        setTimeout(api_semaphore.leave.bind(api_semaphore), get_api_interval());
+                        if (response.statusCode == 200) {
+                            var responseData = JSON.parse(body);
+
+                            var start_id = parseInt(responseData["result"]["matches"][0]["match_seq_num"]) - match_threshold;
+                            console.log(responseData["result"]["matches"][0]["match_id"], match_threshold, start_id);
+                            fetchMore(null, start_id);
+                        } else {
+                            console.log("Got an error: "+response+" \n status code: ", response.statusCode);
+                            return;
+                        }
+                    });
+    });
 }
 function fetchMore(err, final_id)
 {
     if(err)
-        return;
+    {
+        console.log("got error", err);
+    }
+    console.log(final_id);
     if(getLogin() != null)
     {
         CrawlerKeepRunning = true;
-        if(switcher == 0)
+        if(crawl_repeats > 0)
        {
             console.log("fetch mmrs");
             if(final_id)
                 getApiMatches(final_id-1, fetchMore);
             else
                 getApiMatches(final_id, fetchMore);
-            switcher = 1;
+            crawl_repeats --;
         }
         else
         {
             console.log("DL replays");
             dlMatches(final_id, fetchMore);
-            switcher = 0;
+            crawl_repeats += crawl_repeats_per_dl;
         }
     }
     else
     {
-        console.log("done, login bad");
-        CrawlerKeepRunning = false;
+        CrawlerKeepRunning = true;  
+        console.log("fetch mmrs");
+        if(final_id)
+            getApiMatches(final_id+1, fetchMore);
+        else
+            getApiMatches(final_id, fetchMore);
+
+//        console.log("done, login bad");
+//        CrawlerKeepRunning = false;
     }
 }
 
 function getApiMatches(start, cb)
 {
     var locals = {};
-
+    var login = steam_accs.account_list[2];
     async.waterfall(
         [
             database.connect,
@@ -93,38 +123,44 @@ function getApiMatches(start, cb)
             {
                 locals.client = client;
                 locals.done = done_client;
-                var earliest_match_time = moment().subtract(3,"hours").unix();
-                var url = "https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?key="+config.steam_api_key+"&date_max="+earliest_match_time+"&min_players=10&game_mode=22&matches_requested=50";
-                if(start != null)
-                    url+="&start_at_match_id="+start;
+
+                var url = "https://api.steampowered.com/IDOTA2Match_570/GetMatchHistoryBySequenceNum/V001/?key="+config.steam_api_key+"&min_players=10&game_mode=22&matches_requested=100&start_at_match_seq_num="+start;
+                console.log(url);           
                 api_semaphore.take(function(){
                     request(url,callback);
                 });
             },
             function (response, body, callback)
             {
+                //console.log("got history "+body);
                 setTimeout(api_semaphore.leave.bind(api_semaphore), get_api_interval());
-                  if (response.statusCode == 200) {
+                if (response.statusCode == 200) {
                     var responseData = JSON.parse(body);
-                    callback(null, responseData);
-                  } else {
-                    console.log("Got an error: ", error, ", status code: ", response.statusCode);
+                    locals.history_response = responseData;
+                    callback();
+                } else {
+                    console.log("Got an error: "+response+" \n status code: ", response.statusCode);
                     callback("bad status", response.statusCode);
-                  }
+                }
             },
-            function(responseData, callback)
+            function(callback)
+            {
+                checkLeavers(start, locals, callback)
+            },
+            function(result, callback)
             {
                 console.log("got match hist");
-                var login = steam_accs.account_list[0];
                 console.log("login with", JSON.stringify(login));
                 dota.performAction(
                     login,
-                    checkMMRs.bind(this, responseData, locals),
+                    checkMMRs.bind(this, result, locals),
                     callback);
             }
         ],
         function(err, results)
         {
+            if(err)
+                console.log(err, results);
             console.log("done");
             locals.done();
             cb(err, results);
@@ -133,10 +169,11 @@ function getApiMatches(start, cb)
 
 }
 
-function checkMMRs(responseData, locals, dota_client, callback)
+
+function checkLeavers(start_seq_num, locals, callback_matches)
 {
-    var data = responseData["result"];
-    var result = {"matches": [], "next_id": 0};
+    var data = locals.history_response["result"];
+    var result = {"matches": [], "next_id": start_seq_num};
     var match_i = 0;
     async.eachSeries(
         data["matches"],
@@ -144,103 +181,221 @@ function checkMMRs(responseData, locals, dota_client, callback)
         {
             console.log(match_i+"/"+data["matches"].length);
             match_i ++;
-            result["next_id"] = match["match_id"];
-            locals.client.query(
-                "SELECT * FROM Matches WHERE matchid=$1;",
-                [match["match_id"]],
-                function(err, results)
-                {
-                    if(err)
-                        callback_match(err, results);
-                    else if(results.rowCount != 0)
+            result["next_id"] = match["match_seq_num"];
+            async.waterfall(
+                [
+                    function(callback){
+                        locals.client.query(
+                            "SELECT * FROM Matches WHERE matchid=$1;",
+                            [match["match_id"]],
+                            callback);
+                    },
+                    /*function(results, callback)
                     {
-                        console.log("duplicate");
-                        callback_match();
-                    }
-                    else
+                        if(results.rowCount != 0)
+                        {
+                            console.log("duplicate");
+                            callback_match();
+                        }
+                        else
+                        {
+                            var url = "https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/?key="+config.steam_api_key+"&match_id="+match["match_id"];
+                            api_semaphore.take(function(){
+                                request(url,callback);
+                            });
+                        }
+                    },
+                    function (response, body, callback){
+                        setTimeout(api_semaphore.leave.bind(api_semaphore), get_api_interval());
+                        if (response.statusCode == 200) {
+                            var details_response = JSON.parse(body);
+                            callback(null, details_response["result"]);
+                        } else {
+                            console.log("Got an error getting details: "+response+" \n status code: ", response.statusCode);
+                            callback("bad status", response.statusCode);
+                        }
+                    },
+                    function(details_response, callback)
                     {
-                        var match_mmrs = [];
+                        if(details_response["human_players"] != 10)
+                        {
+                            console.log("no 10 players?" + details_response["human_players"]+" "+details_response["match_id"]);
+                            callback();
+                            return;
+                        }
                         async.eachSeries(
-                            match["players"],
+                            details_response["players"],
                             function(player, callback_player)
                             {
-                                //console.log("player", player);
-                                var acc_id = player["account_id"];
-                                if(acc_id == 4294967295)
+                                var leaver = player["leaver_status"];
+                                if(leaver == 0)
                                     callback_player();
                                 else
                                 {
-                                    api_semaphore.take(function(){
-                                        var status = 0;
-                                        dota_client.requestProfileCard(acc_id,
-                                        function(err, profile)
-                                        {
-                                            if(status == 1)
-                                            {
-                                                return;
-                                            }
-                                            else status = 2;
-                                            setTimeout(api_semaphore.leave.bind(api_semaphore), get_api_interval());
-                                            for(var slot in profile["slots"])
-                                            {
-                                                if(profile["slots"][slot]["stat"] && profile["slots"][slot]["stat"]["stat_id"]==1 && profile["slots"][slot]["stat"]["stat_score"] > 0)
-                                                {
-                                                    console.log("found mmr", profile["slots"][slot]["stat"]["stat_score"]);
-                                                    match_mmrs.push({"slot": player["player_slot"], "steamid": dota_client.ToSteamID(acc_id), "mmr": profile["slots"][slot]["stat"]["stat_score"]});
-                                                    break;
-                                                }
-                                            }
-                                            callback_player();
-                                        });
-                                       setTimeout(function(){if(status == 0){console.log("timeouted a profilecard");api_semaphore.leave(); status = 1; callback_player();}}, api_timeout);
-                                    });
+                                    console.log("found leaver "+player["player_slot"]);
+                                    callback_player("bad");
                                 }
                             },
                             function(err)
                             {
-                                if(match_mmrs.length > 0)
+                                if(!err)
                                 {
-                                    result.matches.push({"match_id": match["match_id"]});
-
-                                    locals.client.query(
-                                        "INSERT INTO Matches(matchid, status) VALUES ($1, 'queued');",
-                                        [match["match_id"]],
-                                        function(err, results)
-                                        {
-                                            async.eachSeries(match_mmrs,
-                                                    function(mmr,callback)
-                                                    {
-                                                        locals.client.query(
-                                                            "INSERT INTO MMRSamples(matchid, slot, steamid, mmr) VALUES ($1, $2, $3, $4);",
-                                                            [match["match_id"], mmr["slot"],mmr["steamid"], mmr["mmr"]],
-                                                            function(err, results){ console.log("wrote mmr");callback()});
-                                                    },
-                                                    callback_match);
-                                        }
-                                    );
+                                    console.log("all players ok");
+                                    result["matches"].push(details_response);
                                 }
+                                callback();
+                            }
+                        );
+
+                    }*/
+                    function(results, callback)
+                    {
+                        if(results.rowCount != 0)
+                        {
+                            console.log("duplicate");
+                            callback_match();
+                        }
+                        else
+                        {
+                            if(match["game_mode"] != 22)
+                            {
+                                console.log("bad mode"+match["game_mode"]);
+                                callback();
+                                return;
+                            }    
+                            async.eachSeries(
+                            match["players"],
+                            function(player, callback_player)
+                            {
+                                var leaver = player["leaver_status"];
+                                if(leaver == 0)
+                                    callback_player();
                                 else
                                 {
-                                    locals.client.query(
-                                        "INSERT INTO Matches(matchid, status) VALUES ($1, 'nommrs');",
-                                        [match["match_id"]],
-                                        callback_match);
+                                    console.log("found leaver "+player["player_slot"]);
+                                    callback_player("bad");
                                 }
+                            },
+                            function(err)
+                            {
+                                if(!err)
+                                {
+                                    console.log("all players ok");
+                                    result["matches"].push(match);
+                                }
+                                callback();
+                            }
+                        );
+                        }
+                    }
+                ],
+                callback_match
+            );
+        },
+        function(err, err_results)
+        {
+            if(err)
+                callback_matches(err,err_results);
+            else
+                callback_matches(null, result);
+        }
+    );
+}
+
+
+
+
+function checkMMRs(results_leaver, locals, dota_client, callback)
+{
+    var result = {"matches": [], "next_id": results_leaver["next_id"]};
+    var match_i = 0;
+    async.eachSeries(
+        results_leaver["matches"],
+        function(match, callback_match)
+        {
+            console.log(match_i+"/"+results_leaver["matches"].length);
+            match_i ++;
+            var match_mmrs = [];
+            async.eachSeries(
+                match["players"],
+                function(player, callback_player)
+                {
+                    //console.log("player", player);
+                    var acc_id = player["account_id"];
+                    if(acc_id == 4294967295)
+                        callback_player();
+                    else
+                    {
+                        api_semaphore.take(function(){
+                            var status = 0;
+                            dota_client.requestProfileCard(acc_id,
+                            function(err, profile)
+                            {
+                                if(status == 1)
+                                {
+                                    return;
+                                }
+                                else status = 2;
+                                setTimeout(api_semaphore.leave.bind(api_semaphore), get_api_interval());
+                                for(var slot in profile["slots"])
+                                {
+                                    if(profile["slots"][slot]["stat"] && profile["slots"][slot]["stat"]["stat_id"]==1 && profile["slots"][slot]["stat"]["stat_score"] > 0)
+                                    {
+                                        console.log("found mmr", profile["slots"][slot]["stat"]["stat_score"]);
+                                        match_mmrs.push({"slot": player["player_slot"], "steamid": dota_client.ToSteamID(acc_id), "mmr": profile["slots"][slot]["stat"]["stat_score"]});
+                                        break;
+                                    }
+                                }
+                                callback_player();
+                            });
+                           setTimeout(function(){if(status == 0){console.log("timeouted a profilecard");api_semaphore.leave(); status = 1; callback_player();}}, api_timeout);
+                        });
+                    }
+                },
+                function(err)
+                {
+                    if(match_mmrs.length > 0)
+                    {
+                        result.matches.push({"match_id": match["match_id"]});
+
+                        locals.client.query(
+                            "INSERT INTO Matches(matchid, status) VALUES ($1, 'queued');",
+                            [match["match_id"]],
+                            function(err, results)
+                            {
+                                async.eachSeries(match_mmrs,
+                                        function(mmr,callback)
+                                        {
+                                            locals.client.query(
+                                                "INSERT INTO MMRSamples(matchid, slot, steamid, mmr) VALUES ($1, $2, $3, $4);",
+                                                [match["match_id"], mmr["slot"],mmr["steamid"], mmr["mmr"]],
+                                                function(err, results){ console.log("wrote mmr");callback()});
+                                        },
+                                        callback_match);
                             }
                         );
                     }
-                });
+                    else
+                    {
+                        locals.client.query(
+                            "INSERT INTO Matches(matchid, status) VALUES ($1, 'nommrs');",
+                            [match["match_id"]],
+                            callback_match);
+                    }
+                }
+            );
+
         },
         function(err)
         {
-            callback(err, result);
+            callback(err, result["next_id"]);
         });
 }
 
 function dlMatches(next_match, cb)
 {
     var locals = {};
-
+    console.log("dl "+next_match);
     async.waterfall(
         [
             database.connect,
@@ -249,7 +404,7 @@ function dlMatches(next_match, cb)
                 locals.client = client;
                 locals.done = done_client;
                 locals.client.query(
-                    "SELECT matchid FROM Matches where status = 'queued' LIMIT 10;",
+                    "SELECT matches.matchid FROM Matches, mmrsamples where matches.matchid = mmrsamples.matchid AND  status = 'queued' GROUP BY  matches.matchid ORDER BY Count(*) DESC LIMIT 10;",
                     [],
                     callback);
             },
@@ -274,7 +429,7 @@ function dlMatches(next_match, cb)
             console.log("done");
             locals.done();
             if(CrawlerKeepRunning)
-                setTimeout(function(){cb(err, next_match);}, dlInterval);
+                setTimeout(function(){    console.log("dl cb  "+next_match); cb(err, next_match);}, dlInterval);
         }
     );
 }
