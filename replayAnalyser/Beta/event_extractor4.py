@@ -998,7 +998,10 @@ def whoWonFight(match,fight,involved):
     received["gold_received"]["radiant"] = gold_received_radiant
     received["gold_received"]["dire"] = gold_received_dire
     #add a score for the the fight as a metric of whether was a good fight for radiant or dire
-    received["score"] = gold_received_radiant- gold_received_dire + xp_received_radiant -  xp_received_dire 
+    if (xp_received_radiant==0) and (xp_received_dire == 0) and (gold_received_radiant == 0) and (gold_received_dire==0):
+         received["score"] = 0
+    else:
+        received["score"] = (gold_received_radiant- gold_received_dire + xp_received_radiant -  xp_received_dire)/(abs(gold_received_radiant)+ abs(gold_received_dire) + xp_received_radiant +  xp_received_dire) 
     return received 
 
 
@@ -1056,7 +1059,14 @@ def fightFiltering(match,fight_dict,hero_death_fights):
 def initiationScoring(fight_event):
     #given a player was in the set of players involved in a fight their initiation score is 
         #\alpha * [(radiant_gold -dire_gold) + (radiant_xp - dire_xp)]
-    initiation_score = fight["initiation"]["side_indicator"]*(fight["received"]["gold_received"]["radiant_gold"]-fight["received"]["gold_received"]["dire_gold"]+fight["received"]["xp_received"]["radiant_xp"]-fight["received"][xp_received]["dire_xp"])
+
+    radiant_gold = fight["received"]["gold_received"]["radiant_gold"]
+    dire_gold = fight["received"]["gold_received"]["dire_gold"]
+    radiant_xp = fight["received"]["xp_received"]["radiant_xp"]
+    dire_xp = fight["received"]["xp_received"]["dire_xp"]
+    side_indicator = fight["initiation"]["side_indicator"]
+
+    initiation_score = side_indicator*((radiant_gold-dire_gold+ radiant_xp-dire_xp)/(radiant_gold+dire_gold+radiant_xp+dire_xp))
     involved = fight["involved"]
 
 ##############################################################################

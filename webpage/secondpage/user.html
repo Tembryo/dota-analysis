@@ -20,7 +20,6 @@
     <script type="text/javascript" src="js/jquery-1.12.0.min.js"></script>
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
 
-
     <!-- D3 -->
     <script src="http://d3js.org/d3.v3.min.js"></script>
 
@@ -79,17 +78,17 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand page-scroll" href="#page-top">Wisdota</a>
+            <a class="navbar-brand page-scroll" href="index.html">Wisdota</a>
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav navbar-right">
                 <li>
-                    <a class="page-scroll" href="#about">About</a>
+                    <a class="page-scroll" href="subscribe.html">Plus</a>
                 </li>
                 <li>
-                    <a class="page-scroll" href="#contact">Contact</a>
+                    <a class="page-scroll" href="#about">About</a>
                 </li>
                 <li>
                     <a class="page-scroll" href="#signin">Sign In</a>
@@ -129,16 +128,17 @@
         <table class="table">
             <thead>
               <tr>
-                <th>Status</th>
-                <th>Match ID</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Hero</th>
-                <th>Duration</th>
-                <th>Result</th>
+                <th><a style="color:black">Status </a></th>
+                <th><a style="color:black">Match ID</a></th>
+                <th><a style="color:black">Date</a></th>
+                <th><a style="color:black">Time</a></th>
+                <th><a style="color:black">Hero</a></th>
+                <th><a style="color:black">Duration</a></th>
+                <th><a style="color:black">Result</a></th>
+                <th><a style="color:black">Download</a></th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id ="large-match-list">
               <tr>
                 <td><a href="#" id="red-circle" class="circle"></a></td>
                 <td>2104146160</td>
@@ -147,6 +147,7 @@
                 <td><div class="image-thumbnail"><img src="img/heros/thumbnails/Earthshaker.png" style="height:37px"></div></td>
                 <td>30:25</td>
                 <td>Win</td>
+                <td><button type="button" class="btn btn-default disabled"><span class="glyphicon glyphicon-download-alt"></span> 2104146160.dem</button></td>
               </tr>
               <tr>
                 <td><a href="#" id="orange-circle" class="circle"></a></td>
@@ -156,6 +157,7 @@
                 <td><div class="image-thumbnail"><img src="img/heros/thumbnails/Antimage.png" style="height:37px"></div> </td>
                 <td>42:22 </td>
                 <td>Loss</td>
+                <td><button type="button" class="btn btn-default disabled"><span class="glyphicon glyphicon-download-alt"></span> 2104129186.dem</button></td>
               </tr>
               <tr>
                 <td><a href="#" id="green-circle" class="circle"></a></td>
@@ -165,6 +167,7 @@
                 <td><div class="image-thumbnail"><img src="img/heros/thumbnails/Alchemist.png" style="height:37px"></div></td>
                 <td>46:36</td>
                 <td>Win</td>
+                <td><button type="button" class="btn btn-default"><span class="glyphicon glyphicon-download-alt"></span> 2104131509.dem</button></td>
               </tr>
             </tbody>
       </table>
@@ -181,7 +184,7 @@
             <th>Hero</th>
           </tr>
         </thead>
-            <tbody>
+            <tbody id="small-match-list">
               <tr>
                 <td><a href="#" id="red-circle" class="circle"></a></td>
                 <td>2104146160 </br> Win </td>
@@ -203,21 +206,34 @@
             </tbody>
         </table>
     </div>
+
     <div class="row">
         <div class="col-md-6">
             <div class="container big-table">
                 <h2>Key</h2>
                 <table class="table">
+                    <thead>
+                        <tr>
+                            <th> Status </th>
+                            <th> Information </th>
+                        </tr>
+                    </thead>
                     <tbody>
-                      <tr>
+                      <tr> 
                         <td class="col-md-1"><a href="#" id="green-circle" class="circle"></a></td>
-                        <td>Success - click to view</td>
-                        <td> </td>
+                        <td>Success! We were able to download this replay from the Steam servers and analyse it.  </td>
+                      </tr>
+                      <tr>
                         <td class="col-md-1"><a href="#" id="orange-circle" class="circle"></a></td>
-                        <td> Click to attempt download</td>
-                        <td> </td>
+                        <td> This replay has not been downloaded yet. Click the orange circle to attempt to download it from the Steam servers.</td>
+                      </tr>
+                      <tr>
                         <td class="col-md-1"><a href="#" id="red-circle" class="circle"></a></td>
-                        <td> Failed to download/analyse replay </td>
+                        <td> This replay failed to download from the Steam servers, it may be too old. </td>
+                      </tr> 
+                       <tr>
+                        <td class="col-md-1"><a href="#" id="black-circle" class="circle"></a></td>
+                        <td> Some unexpected status occurred, let us know and we will try to fix it! </td>
                       </tr> 
                     </tbody>
                 </table>
@@ -238,6 +254,7 @@
 </footer>
 
 <script type="text/javascript" src="js/user.js"></script>
+<script type="text/javascript" src="js/matchlist.js"></script>
 
 </body>
 </html>

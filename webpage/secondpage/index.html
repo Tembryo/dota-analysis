@@ -42,7 +42,7 @@
 
 </head>
 
-<body>
+<body id = "page-top">
 
 <!-- Facebook SDK -->
     <script>
@@ -81,13 +81,13 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav navbar-right">
                 <li>
+                    <a class="page-scroll" href="subscribe.html">Plus</a>
+                </li>
+                <li>
                     <a class="page-scroll" href="#about">About</a>
                 </li>
                 <li>
-                    <a class="page-scroll" href="#contact">Contact</a>
-                </li>
-                <li>
-                    <a class="page-scroll" href="#signin">Sign In</a>
+                    <a class="page-scroll" href="/auth/steam"> <img id="steam-logo-small" src="img/logos/steam.png" height="20px" alt="Steam signin"/>Sign In</a>
                 </li>
             </ul>
         </div>
@@ -111,22 +111,24 @@
 <!-- Todo: make this responsive -->
     </div class="container">
         <div id="player-slider" class="slider">
-            <div class="mugshots text-center"><img src="img/heros/portraits/earthshaker_vert.jpg" width="210px"><p class="user-name">Lord_Zera</p> <p class="mugshot-match-info"> 21164033676 <br> 30:35 Win</p></div>
+            <div id="slide1" class="mugshots text-center"><img src="img/heros/portraits/earthshaker_vert.jpg" width="210px"><p class="user-name">Lord_Zera</p> <p class="mugshot-match-info"> 21164033676 <br> 30:35 Win</p></div>
 
-            <div class="mugshots text-center"><img src="img/heros/portraits/brewmaster_vert.jpg" width="210px"><p class="user-name">Noob_Face</p> <p class="mugshot-match-info"> 21164033085 <br> 30:35 Loss</p></p></div>
+            <div id="slide2" class="mugshots text-center"><img src="img/heros/portraits/brewmaster_vert.jpg" width="210px"><p class="user-name">Noob_Face</p> <p class="mugshot-match-info"> 21164033085 <br> 30:35 Loss</p></p></div>
 
-            <div class="mugshots text-center"><img src="img/heros/portraits/lina_vert.jpg" width="210px"><p class="user-name">RedditPro</p> <p class="mugshot-match-info"> 21164033692 <br> 30:35 Win</p> </p></div>
+            <div id="slide3" class="mugshots text-center"><img src="img/heros/portraits/lina_vert.jpg" width="210px"><p class="user-name">RedditPro</p> <p class="mugshot-match-info"> 21164033692 <br> 30:35 Win</p> </p></div>
 
-            <div class="mugshots text-center"><img src="img/heros/portraits/lion_vert.jpg" width="210px"><p class="user-name">FullRussi</p> <p class="mugshot-match-info">21164033680 <br> 30:35 Win</p> </p></div>
-            <div class="mugshots text-center"><img src="img/heros/portraits/juggernaut_vert.jpg" width="210px"><p class="user-name">MustBMid</p> <p class="mugshot-match-info">211640273612 <br> 42:35 Loss</p> </p></div>
-            <div class="mugshots text-center"><img src="img/heros/portraits/lina_vert.jpg" width="210px"><p class="user-name">Solo_Hero</p> <p class="mugshot-match-info"> 21164033692 <br> 30:35 Win</p> </p></div>
+            <div id="slide4" class="mugshots text-center"><img src="img/heros/portraits/lion_vert.jpg" width="210px"><p class="user-name">FullRussi</p> <p class="mugshot-match-info">21164033680 <br> 30:35 Win</p> </p></div>
+            <div id="slide5" class="mugshots text-center"><img src="img/heros/portraits/juggernaut_vert.jpg" width="210px"><p class="user-name">MustBMid</p> <p class="mugshot-match-info">211640273612 <br> 42:35 Loss</p> </p></div>
+            <div id="slide6" class="mugshots text-center"><img src="img/heros/portraits/lina_vert.jpg" width="210px"><p class="user-name">Solo_Hero</p> <p class="mugshot-match-info"> 21164033692 <br> 30:35 Win</p> </p></div>
         </div>
     </div>
     <div class="container">
         <div class="row">
             <div class="col-lg-4 col-md-4 col-sm-2"></div>
             <div class="col-lg-4 col-md-4 col-sm-8 text-center">
-                <a href="#loading" data-toggle="modal" id="ratePlayerBtn" class="btn btn-default main-button">Rate This Player</a>
+                <div id ="ratePlayerDiv" data-target="#loading" data-toggle="modal">
+                    <p id="ratePlayerTxt"> Rate This Player </p>
+                </div>
             </div>
             <div class="col-lg-4 col-md-4 col-sm-2"></div>
         </div>
@@ -170,7 +172,7 @@
 
 
 <!-- Wisdota Featurette -->
-<div id ="try-wisdota">
+<section id ="about">
     <div class="container">
         <div class ="row">
             <hr class="featurette-divider">
@@ -188,7 +190,7 @@
             <div class="col-md-4 text-center">
                 <img src="http://placehold.it/250x250&text=Hello world" height="200px" width="200px">
                 <h3>Replay Storage</h3>
-                <p>All of your replays automatically downloaded and stored for life. Wisdota makes filtering and sorting through your replays quick and easy. </p>
+                <p>All of your replay files automatically downloaded and stored for six months. Sort through replays quickly and easily. </p>
             </div> 
             <div class="col-md-4 text-center">
                 <img src="http://placehold.it/250x250&text=Hello world" height="200px" width="200px">
@@ -206,14 +208,21 @@
             <div class="col-md-4"></div>
         </div>
     </div>
-</div>
+</section>
+
 
 <!-- Footer -->
 <footer>
         <div class="container">
             <div class="row">
-                <div class="col-md-12 text-center">
-                    <span class="copyright">Copyright &copy; Wisdota 2016</span>
+                <div class="col-md-4 text-center">
+                    <p>Powered by <a href="http://store.steampowered.com/">Steam</a></p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <span class="copyright">Copyright &copy; Tembryo 2016</span>
+                </div>
+                <div class="col-md-4 text-center">
+                    <p>Match Parsing by <a href="https://github.com/skadistats/clarity">Clarity</a></p>
                 </div>
             </div>
         </div>
@@ -223,29 +232,24 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 id="my-modal-title">Downloading Replay File</h4>
+                <h4 id="my-modal-title">Downloading and Analysing Replay File</h4>
             </div>
             <div class="modal-body">
                 <div class="progress">
                     <div id="progressTimer"></div>
-
-<!--                   <div id="my-loading-bar" class="progress-bar progress-bar-info progress-bar-striped" role="progressbar"
-                  aria-valuenow="10" aria-valuemin="0" aria-valuemax="100" style="width:10%">
-                    10% Complete
-                  </div> -->
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+
 <script type="text/javascript" src="slick-1.5.9/slick/slick.js"></script>
 
-<script type="text/javascript" src="js/mycarousel.js"></script>
+<script type="text/javascript" src="js/index.js"></script>
 
 <!-- JavaScript for the progress bar -->
-    <script src="js/jquery.progressTimer.js"></script>
-    <script type="text/javascript" src="js/landing.js"></script>
+ <script src="js/jquery.progressTimer.js"></script>
 
 </body>
 </html>
