@@ -81,3 +81,20 @@ button {
 }
 
 
+@media screen and (max-width: 641px) {
+    #tnl {
+        left:60px;
+    }
+
+    .bg-image-top {
+	background-color:black;
+	background-image: url(../img/tournament/TI4_cropped_top.jpg);
+	width: 640px;
+	background-position: center;
+}
+
+    .bg-image-bottom {
+    	display: none;
+    }
+}
+
