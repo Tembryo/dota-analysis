@@ -43,7 +43,7 @@
         <div class="row">
             <div class="col-lg-4 col-md-4 col-sm-2"></div>
             <div class="col-lg-4 col-md-4 col-sm-8 text-center">
-                <input id="steamIDInputBtn" type="button" class="btn btn-warning active btn-lg" value="Rate Myself">
+                <input id="login-button" type="button" class="btn btn-warning active btn-lg" value="Rate Myself">
                 <p>(Requires Steam Sign-In)</p>
             </div>
             <div class="col-lg-4 col-md-4 col-sm-2"></div>
@@ -54,22 +54,9 @@
             <div class="col-lg-4 col-md-4 col-sm-8 text-center">
                 <h4>Share Wisdota with your friends:</h4>
                 <div class="socialmedia_container center-block">
-                    <div class="fb-send socialmediabutton" data-href="https://wisdota.com"></div>
-
-                   <a href="https://twitter.com/share" class="twitter-share-button" data-text="Let AI guess your MMR" data-via="wisdota" data-related="" data-hashtags="wisdota"></a>
-
-                   <a href="mailto:?subject=How%20good%20are%20you%25&body=Let%20Artificial%20Intelligence%20guess%20your%20MMR!%20http://www.wisdota.com" class="mailLink socialmediabutton hidden-xs">
-                         <img src="/static/img/email.svg" width="61px" height="20px">
-                    </a>
-
-                    <a href="WhatsApp://send?text=Pick a game and find out how good you are! https://wisdota.com" class="whatsAppLink socialmediabutton hidden-sm hidden-md hidden-lg">
-                         <img src="/static/img/whatsapp.svg" width="61px" height="20px">
-                    </a>
-
-
-                    <div class="fb-share-button socialmediabutton" data-href="http://wisdota.com" data-layout="button_count"></div>
-
-                    </div>
+                    <% tweet_text = "Rate your play on Wisdota! " %>
+                    <a href="https://twitter.com/share" style="vertical-align: text-bottom" class="twitter-share-button"{count} data-text="<%=tweet_text%>" data-size="large" data-url="http://www.wisdota.com/" data-hashtags="wisdota,dota2">Tweet</a>
+                    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 </div>
             <div class="col-lg-4 col-md-4 col-sm-2"></div>
         

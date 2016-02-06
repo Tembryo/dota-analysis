@@ -1,4 +1,8 @@
+current_slide = 0;
+examples = [0,1,2,3,4];
+
 $(document).ready(function(){
+
   $('.slider').slick({
   infinite: true,
   speed: 300,
@@ -27,25 +31,13 @@ $(document).ready(function(){
 
   });
 
+
+
   $('.slider').on('afterChange', function(event, slick, currentSlide, nextSlide){
     var elSlide = $(slick.$slides[currentSlide]);
     console.log(currentSlide)
-    $("#ratePlayerDiv").click(function(){   
-    $("#progressTimer").progressTimer({
-        timeLimit: 10,
-        warningThreshold: 10,
-        baseStyle: 'progress-bar-warning',
-        warningStyle: 'progress-bar-danger',
-        completeStyle: 'progress-bar-info',
-        onFinish: function() {
-            window.location.replace("results"+String(currentSlide)+".html")
-        }
-    });  
+    current_slide = currentSlide; 
   });
-
-
-    
-    });
 
   $("#ratePlayerDiv").click(function(){   
     $("#progressTimer").progressTimer({
@@ -55,8 +47,13 @@ $(document).ready(function(){
         warningStyle: 'progress-bar-danger',
         completeStyle: 'progress-bar-info',
         onFinish: function() {
-            window.location.replace("results.html")
+            window.location.replace("/result?example="+current_slide)
         }
     });  
   });
+
+  $("#login-button").click(function(){
+      window.location.replace("/user")
+  });
+  
 });

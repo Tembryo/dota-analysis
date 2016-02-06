@@ -5,7 +5,8 @@
     "main": "analysis-server.js",
     "dependencies": {
         "pg": "^4.4.3",
-        "async": "^1.5.0"
+        "async": "^1.5.0",
+        "semaphore": "^1.0.3"
     }
 }
 

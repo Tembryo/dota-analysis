@@ -80,6 +80,48 @@ router.route('/matches')
         }
     );
 
+
+router.route('/result/:result_id')
+    .get(function(req, res) 
+        {
+            var locals = {};
+            async.waterfall(
+                [
+                    database.connect,
+                    function(client, done_client, callback)
+                    {
+                        locals.client = client;
+                        locals.done = done_client;
+
+                        locals.client.query("SELECT r.data as score_data, ps.data as player_data FROM Results r, PlayerStats ps WHERE r.id=$1 AND ps.match_id=r.match_id AND ps.steam_identifier = r.steam_identifier;",[req.params.result_id],callback);
+                    },
+                    function(results, callback)
+                    {
+                        //console.log("fetched file", results);
+                        if(results.rowCount != 1)
+                            callback("no result found", results);
+                        else
+                           callback(null, results.rows[0]);
+                    }
+                ],
+                function(err, result)
+                {
+                    locals.done();
+                    console.log(result);
+                    if(err)
+                    {
+                        console.log("error retrieving result "+req.params.match_id);
+                        console.log(err);
+                        
+                        res.json({});
+                    }
+                    else
+                        res.json(result);
+                }
+            );
+        }
+    );
+
 router.route('/match/:match_id')
     .get(function(req, res) 
         {
@@ -317,8 +359,7 @@ router.route("/retrieve/:match_id")
             );
         }
     );
-
-router.route("/history")
+router.route("/score/:match_id")
     .get(authentication.ensureAuthenticated,
         function(req, res)
         {
@@ -331,8 +372,93 @@ router.route("/history")
                         locals.client = client;
                         locals.done = done_client;
 
-                        locals.client.query("SELECT umh.match_id, umh.data, COALESCE((SELECT TEXT('parsed') FROM Matches m WHERE m.id=umh.match_id), (SELECT ps.label FROM ReplayFiles rf, ProcessingStatuses ps WHERE rf.match_id=umh.match_id AND rf.processing_status = ps.id),(SELECT mrs.label FROM MatchRetrievalRequests mrr, MatchRetrievalStatuses mrs WHERE mrr.retrieval_status = mrs.id AND mrr.id=umh.match_id), 'untried') as match_status FROM UserMatchHistory umh WHERE umh.user_id = $1;",
-                            [req.user["id"]],callback);
+                        locals.client.query("SELECT r.id FROM Results r, Users u WHERE r.match_id=$1 AND r.steam_identifier= u.steam_identifier AND u.id=$2;",
+                            [req.params.match_id, req.user["id"]],callback);
+                    },
+                    function(results, callback)
+                    {
+                        if(results.rowCount > 0)
+                            callback("already exists");
+                        else
+                        {
+                            locals.client.query("INSERT INTO ScoreRequests(match_id, steam_identifier) VALUES ($1, (SELECT u.steam_identifier FROM Users u where u.id=$2));",
+                            [req.params.match_id, req.user["id"]],callback);
+                        }
+                    },
+                    function(results, callback)
+                    {
+                        if(results.rowCount != 1)
+                            callack("inserting request failed", results);
+                        else
+                            callback();
+                    }
+                ],
+                function(err, results)
+                {
+                    locals.done();
+                    if(err)
+                    {
+                        console.log(err);
+                        var error_result = {
+                            "result": "error",
+                            "message": err,
+                            "info": results
+                            };
+                        res.json(error_result);
+                    }
+                    else
+                    {
+                        var success_result = {
+                            "result": "success"
+                            };
+                        res.json(success_result);
+                    }
+                }
+            );
+        }
+    );
+
+
+router.route("/history")
+    .get(authentication.ensureAuthenticated,
+        function(req, res)
+        {
+            var locals = {};
+            var offset = 0;
+            var n_matches = 10;
+            if(req.query.hasOwnProperty("start") && req.query.hasOwnProperty("end"))
+            {
+                var start = parseInt(req.query.start);
+                var end = parseInt(req.query.end);
+                if(start < end && start >= 0)
+                {
+                    offset = start;
+                    n_matches = end - start;
+                }
+            }
+
+            async.waterfall(
+                [
+                    database.connect,
+                    function(client, done_client, callback)
+                    {
+                        locals.client = client;
+                        locals.done = done_client;
+
+                        locals.client.query("SELECT umh.match_id, umh.data,"+
+                                               "COALESCE("+
+                                                "(SELECT r.id FROM Results r, Users u WHERE r.steam_identifier = u.steam_identifier AND r.match_id = umh.match_id AND u.id = $1),"+
+                                                "-1) AS result_id, "+
+                                                "COALESCE("+
+                                                    "(SELECT TEXT('parsed') FROM Matches m WHERE m.id=umh.match_id), "+
+                                                    "(SELECT ps.label FROM ReplayFiles rf, ProcessingStatuses ps WHERE rf.match_id=umh.match_id AND rf.processing_status = ps.id),"+
+                                                    "(SELECT mrs.label FROM MatchRetrievalRequests mrr, MatchRetrievalStatuses mrs WHERE mrr.retrieval_status = mrs.id AND mrr.id=umh.match_id),"+
+                                                    "'untried') as match_status "+
+                                            "FROM UserMatchHistory umh "+
+                                            "WHERE umh.user_id = $1 "+
+                                            "ORDER BY umh.match_id DESC "+
+                                            "LIMIT $2 OFFSET $3;",
+                            [req.user["id"], n_matches, offset],callback);
                     },
                     function(results, callback)
                     {
@@ -352,6 +478,69 @@ router.route("/history")
             );
         }
     );
+
+
+router.route("/stats")
+    .get(authentication.ensureAuthenticated,
+        function(req, res)
+        {
+            var locals = {};
+            var offset = 0;
+            var n_matches = 10;
+            if(req.query.hasOwnProperty("start") && req.query.hasOwnProperty("end"))
+            {
+                var start = parseInt(req.query.start);
+                var end = parseInt(req.query.end);
+                if(start < end && start >= 0)
+                {
+                    offset = start;
+                    n_matches = end - start;
+                }
+            }
+
+            async.waterfall(
+                [
+                    database.connect,
+                    function(client, done_client, callback)
+                    {
+                        locals.client = client;
+                        locals.done = done_client;
+
+                        locals.client.query("SELECT ps.match_id, ps.data, ms.data AS match_data, "+
+                                                "COALESCE("+
+                                                    "(SELECT r.data FROM Results r WHERE r.match_id = ps.match_id AND r.steam_identifier = u.steam_identifier),"+
+                                                    "'null'::json) AS score_data "+
+                                            "FROM PlayerStats ps, Users u, MatchStats ms, UserMatchHistory umh "+
+                                            "WHERE ps.steam_identifier = u.steam_identifier "+
+                                                "AND u.id = $1 "+
+                                                "AND ms.id=ps.match_id "+
+                                                "AND u.id = umh.user_id AND umh.match_id = ps.match_id "+
+                                            "ORDER BY umh.match_id DESC "+
+                                            "LIMIT $2 OFFSET $3;",
+                            [req.user["id"], n_matches, offset],callback);
+                    },
+                    function(results, callback)
+                    {
+                        //just give out the rows?
+                        callback(null, results.rows);
+                    }
+                ],
+                function(err, results)
+                {
+                    locals.done();
+                    if(err)
+                    {
+                        console.log(err);
+                    }
+                    res.json(results);
+                }
+            );
+            /*var exampledata =[{date:10,MMR:3000,LH:3100},{date:40,MMR:3100,LH:3150},{date:50,MMR:3325,LH:2900},{date:100,MMR:2955,LH:2925},{date:120,MMR:3155,LH:2850},{date:130,MMR:3199,LH:2775},{date:160,MMR:2825,LH:2750},{date:200,MMR:3505,LH:2700}];
+
+            res.json(exampledata);*/
+        }
+    );
+
 
 
 router.route("/verify/:verification_code")

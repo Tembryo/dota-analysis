@@ -60,18 +60,19 @@ function performDotaAction(login_data, main_call, callback_final)
 
                         main_call(Dota2, callback);
                     },
-                    function(callback)
+                    function(result, callback)
                     {
                         Dota2.on("unready", function() {
                                     console.log("Node-dota2 unready.");
                                 });
                         Dota2.exit();
-                        callback();
+                        //console.log(result, callback);
+                        callback(null, result);
                     },
-                    function(callback)
+                    function(result, callback)
                     {
                         steamClient.disconnect();
-                        callback();
+                        callback(null, result);
                     }
                 ],
                 function(err, result){

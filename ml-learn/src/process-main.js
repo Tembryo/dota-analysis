@@ -9,8 +9,8 @@ var max_extraction_time = 80*1000;
 var max_analysis_time = 120*1000;
 
 var mode;
-mode = "process";
-//mode = "generate";
+//mode = "process";
+mode = "generate";
 //mode = "learn";
 
 switch(mode)
@@ -26,7 +26,7 @@ switch(mode)
         break;
 }
 
-var repeat_delay = 60*1000;
+var repeat_delay = 1*1000;
 
 function analyseMatches()
 {
@@ -213,8 +213,14 @@ function sampleHeader()
                                 "durationMins",
                                 "GPM",
                                 "XPM",
-                                "checksPmin",
+                                "fraction-creeps-lasthit",
+                                "fraction-lasthits",
+                                "checks-per-minute",
+                                "average-check-duration",
                                 "time-fraction-visible",
+                                "kills",
+                                "deaths",
+                                "fightsPerMin",
                                 "initiation-score"]};
     return header;
 }
@@ -237,9 +243,26 @@ function createSampleData(match, slot)
     //console.log(match, match["player-stats"],id, match["player-stats"][id], player_stats);
 
     var durationMins =  (match_stats["duration"] /60);
-    var checksPmin = player_stats["n-checks"] / durationMins;
+    var fractionCreepsLasthit =  (match_stats["creeps-lasthit"] /match_stats["creeps-killed"]);
+    var fractionLasthits =  (player_stats["lasthits"] /match_stats["creeps-lasthit"]);
+    var checksPerMin = player_stats["n-checks"] / durationMins;
     var timeFractionVisible = player_stats["time-visible"] / durationMins;
-    var features =  [player_stats["hero"], win, durationMins.toFixed(3), player_stats["GPM"], player_stats["XPM"], checksPmin, timeFractionVisible, player_stats["initation-score"]];
+    var fightsPerMin =  (player_stats["num-of-fights"] /durationMins);  
+    var features =  [   player_stats["hero"],
+                        win,
+                        durationMins.toFixed(3),
+                        player_stats["GPM"],
+                        player_stats["XPM"],
+                        fractionCreepsLasthit,
+                        fractionLasthits,
+                        checksPerMin,
+                        player_stats["average-check-duration"],
+                        timeFractionVisible,
+                        player_stats["num-of-kills"],
+                        player_stats["num-of-deaths"],
+                        fightsPerMin,
+                        player_stats["initation-score"]
+                        ];
     return features;    
 }
 
@@ -268,5 +291,5 @@ function trainModel()
         function (stdout, stderr)
         {
             console.log("done", stdout, stderr);
-        });
+        }).stdout.pipe(process.stdout);
 }

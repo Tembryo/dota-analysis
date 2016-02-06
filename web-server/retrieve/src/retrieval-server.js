@@ -9,11 +9,11 @@ var config      = require("./config.js"),
     dota        = require("./dota.js");
 
 var check_interval = 5000;
-var check_interval_api = 60000;
+var check_interval_history = 60000;
 var matches_per_request = 20;
 var history_retrieve_delay = 100;
 
-checkJobs();
+registerListener();
 checkAPIHistoryData();
 
 function checkAPIHistoryData()
@@ -46,7 +46,7 @@ function checkAPIHistoryData()
                                 {
                                     updateUserHistory(user_row, dota_client, callback_request); 
                                 },
-                                callback_dota);
+                                function(err, results){callback_dota(err, results);});
                         },
                         jobs_callback);
                 }
@@ -64,7 +64,7 @@ function checkAPIHistoryData()
             },
             function(results, callback)
             {
-                console.log("auto request results:", results)
+                console.log("auto request added:", results.rowCount)
                 callback();
             }
         ],
@@ -74,7 +74,7 @@ function checkAPIHistoryData()
                 console.log(err, results);
             locals.done();
             //console.log("finished check_jobs");
-            setTimeout(checkAPIHistoryData, check_interval_api);
+            setTimeout(checkAPIHistoryData, check_interval_history);
         }
     );
 }
@@ -196,62 +196,63 @@ function processMatchHistory(history, locals, callback)
 
 
 
-function checkJobs()
-{   
-    console.log("checking retrieval");
-    var locals = {};
-    async.waterfall(
-        [
-            database.connect,
-            function(client, done_client, callback)
-            {
-                locals.client = client;
-                locals.done = done_client;
-                locals.client.query(
-                    "SELECT mrr.id FROM MatchRetrievalRequests mrr, MatchRetrievalStatuses mrs WHERE mrr.retrieval_status=mrs.id AND mrs.label = $1;",
-                    ["requested"],
-                    callback);
-            },
-            function(requests, jobs_callback)
-            {
-                if(requests.rowCount > 0)
-                {
-                    console.log("fetching matches",requests.rows);
-                    dota.performAction(
-                        config,
-                        function(dota_client, callback_dota)
-                        {
-                            async.eachSeries(
-                                requests.rows,
-                                function(request_row, callback_request)
-                                {
-                                    processRequest(request_row, dota_client, callback_request); 
-                                },
-                                callback_dota);
-                        },
-                        jobs_callback);
-                }
-                else
-                    jobs_callback();
-            }
-        ],
-        function(err, results)
+function registerListener()
+{
+    var client = database.getClient();
+    client.connect(
+        function(err)
         {
-            if (err)
-                console.log(err, results);
-            locals.done();
-            //console.log("finished check_jobs");
-            setTimeout(checkJobs, check_interval);
+            if(err) {
+                return console.error('could not connect to postgres', err);
+            }
+
+            client.on('notification', processNotification);
+
+            client.query(
+                "LISTEN retrieval_watchers;",
+                [],
+                function(err, results)
+                {
+                    console.log("added retrieve listener", results);
+                });
+          //no end -- client.end();
         }
     );
 }
 
-
-function processRequest(request_row, dota_client, callback_request)
+function processNotification(msg)
 {
-    console.log("processing replay", request_row);
+    console.log("got notification", msg);
+    var parts=msg.payload.split(",");
+    if(parts.length != 2)
+    {
+        console.log("bad notification", msg);
+        return;
+    }
+    switch(parts[0])
+    {
+        case "Retrieve":
+            var request_id = parseInt(parts[1]);
+            dota.performAction(
+                config,
+                function(dota_client, callback_dota)
+                {
+                    processRequest(request_id, dota_client, callback_dota);
+                },
+                function(){console.log("finished retrieve");}
+            );
+            break;
+        default:
+            console.log("Unknown notification", msg);
+    }
+}
+
+
+function processRequest(request_id, dota_client, callback_request)
+{
+    console.log("processing replay", request_id);
     var locals = {};
-    locals.request_id = request_row.id;
+    locals.request_id = request_id;
     async.waterfall(
         [
             database.connect,
@@ -276,16 +277,16 @@ function processRequest(request_row, dota_client, callback_request)
                     console.log("dl #id for #u", results.rows[0].id, results.rows[0].requester_id);
                     locals.requester_id = results.rows[0].requester_id;
                     locals.match_id = results.rows[0].id;
-                    replay_dl.downloadMatch(dota_client, locals.match_id, callback);
+                    replay_dl.downloadMatch(dota_client, locals.match_id, config.shared+"/replays/", callback);
                 }
             },
             function(replay_file, callback)
             {
                 console.log("downloaded match to", replay_file);
-
+                var path = replay_file.substring(replay_file.indexOf('/',1));//cut off the /shared folder
                 locals.client.query(
                     "INSERT INTO ReplayFiles (file, upload_filename, processing_status, uploader_id) VALUES ($1, $2, (SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$3), $4);",
-                    [replay_file, locals.match_id, "uploaded", locals.requester_id],
+                    [path, locals.match_id, "uploaded", locals.requester_id],
                     callback);
             },
             function(results, callback)
@@ -328,7 +329,7 @@ function processRequest(request_row, dota_client, callback_request)
                         }
 
                         locals.done();
-                        callback_request(null);
+                        callback_request(null, "");
                     });
             }
             else if(err)
@@ -348,7 +349,7 @@ function processRequest(request_row, dota_client, callback_request)
                         }
 
                         locals.done();
-                        callback_request(null);
+                        callback_request(null, "");
                     });
             }
             else
@@ -356,7 +357,7 @@ function processRequest(request_row, dota_client, callback_request)
 
                 console.log("retrieved", locals.request_id);
                 locals.done();
-                callback_request(null);
+                callback_request(null, "");
             }
         }
     );

@@ -1,115 +1,137 @@
+var the_stats;
+
 $(document).ready(function(){
+    var pathname = "/api/stats?start=0&end=20";
 
-var data =[{date:10,MMR:3000,LH:3100},{date:40,MMR:3100,LH:3150},{date:50,MMR:3325,LH:2900},{date:100,MMR:2955,LH:2925},{date:120,MMR:3155,LH:2850},{date:130,MMR:3199,LH:2775},{date:160,MMR:2825,LH:2750},{date:200,MMR:3505,LH:2700}];
+    $.getJSON(pathname, function(data) {
+        the_stats = data;
+        plot_graph("MMR");
+    });
 
-var width = 1100;
-var height = 400;
-var padding = 50;
-
-
-var canvas =d3.select("#dashboard")
-            .append("svg")
-            .attr("width",width)
-            .attr("height",height);
-
-var group = canvas.append("g")
+    var width = 1100;
+    var height = 400;
+    var padding = 50;
 
 
-function plot_graph(var1,var2){
+    var canvas =d3.select("#dashboard")
+    .append("svg")
+    .attr("width",width)
+    .attr("height",height);
 
-    var var1_max = find_max(data,var1);
-    var var1_min = find_min(data,var1);
-
-    var var2_max = find_max(data,var2);
-    var var2_min = find_min(data,var2);
-
-    var horizontal_scale = var1_scale(var1_min,var1_max,width,padding);
-    var vertical_scale = var2_scale(var2_min,var2_max,height,padding);
-
-    var line =d3.svg.line()
-                .x(function(d){return horizontal_scale(d[var1]);})
-                .y(function(d){return vertical_scale(d[var2]);});
-
-    var mypath = group.selectAll("path")
-                 .data([data]);
-
-   mypath.enter()
-   .append("path")
-   .attr("fill","none")
-   .attr("stroke","black")  
-   .attr("stroke-width",6);
-
-   mypath
-      .attr("d",line);
-
-  var xAxis = d3.svg.axis()
-                  .scale(horizontal_scale)
-                  .orient("bottom");
-
-  var yAxis = d3.svg.axis()
-                  .scale(vertical_scale)
-                  .orient("left");
-
-  canvas.append("g")
-  .attr("transform", "translate(0," + (height-padding) + ")")
-    .call(xAxis);
-
-  canvas.append("g")
-    .attr("transform", "translate(" + padding + ",0)")
-    .call(yAxis);
-
-}
-
-function find_max(data,value){
-    var max_val = d3.max(data,function(d){return d[value]});
-    return max_val;
-}
-
-function find_min(data,value){
-    var max_val = d3.min(data,function(d){return d[value]});
-    return max_val;
-}
+    var path = canvas.append("path")
+                    .attr("id", "graph")
+                    .attr("fill","none")
+                    .attr("stroke","black")  
+                    .attr("stroke-width",4);
 
 
-function var1_scale(var1_min,var1_max,width,padding){
-  return d3.scale.linear()
-                  .domain([var1_min,var1_max])
-                    .range([padding,width-padding]);
-}
+    canvas.append("g")
+        .attr("id", "xAxis")
+        .attr("transform", "translate(0," + (height-padding) + ")");
 
-function var2_scale(var2_min,var2_max,height,padding){
-  return d3.scale.linear()
-                  .domain([var2_min,var2_max])
-                  .range([height-padding,padding]);
-}
+    canvas.append("g")
+        .attr("id", "yAxis")
+        .attr("transform", "translate(" + padding + ",0)");
+
+    function getValue(entry, d)
+    {
+        switch(entry)
+        {
+            case "MMR":
+                if(d["score_data"])
+                    return d["score_data"]["MMR"];
+                else
+                    return 0;
+            case "GPM":
+                return d["data"]["GPM"];
+            case "Win":
+                var indicator = (((d["match_data"]["winner"] === "radiant" && d["data"]["slot"] < 5) || (d["match_data"]["winner"] === "dire" && d["data"]["slot"] >=5 ))
+                        ? 1: 0);
+                return indicator;
+            case "nChecks":
+                return d["data"]["n-checks"];
+            case "checkDuration":
+                return d["data"]["average-check-duration"];
+            case "lasthits":
+                return d["data"]["lasthits"];
+            default:
+                return 0;
+        }
+    }
+
+    function plot_graph(entry)
+    {
+        var horizontal_scale = d3.scale.linear()
+                                .domain([1,the_stats.length])
+                                .range([padding,width-padding]);
 
 
-plot_graph("date","MMR");
+        var value_min = d3.min(the_stats,function(d){return getValue(entry, d);});
+        var value_max = d3.max(the_stats,function(d){return getValue(entry, d);});
+        var value_padding = (value_max - value_min)*0.05;
 
+        var vertical_scale = d3.scale.linear()
+                                .domain([value_min-value_padding,value_max+value_padding])
+                                .range([height-padding,padding]);
+
+        var line =d3.svg.line()
+                    .x(
+                        function(d,i)
+                        {
+                                return horizontal_scale(i+1);
+                        }
+                    )
+                    .y(
+                        function(d)
+                        {
+                            return vertical_scale(getValue(entry, d));
+                        }
+                    )
+                    .interpolate("linear");
+
+        var mypath = d3.select("#graph");
+
+        mypath.attr("d",line(the_stats));
+
+        var xAxis = d3.svg.axis()
+                        .scale(horizontal_scale)
+                        .orient("bottom");
+
+        var yAxis = d3.svg.axis()
+                        .scale(vertical_scale)
+                        .orient("left");
+
+        canvas.select("#xAxis")
+            .call(xAxis);
+        
+        canvas.select("#yAxis")
+            .transition().duration(500).ease("sin-in-out")
+            .call(yAxis);
+    }
 
     $("#last-hits-button").click(function(){
-    	 plot_graph("date","LH");
+        plot_graph("GPM");
     });
 
     $("#mmr-button").click(function(){
-       plot_graph("date","MMR");
-    });
+     plot_graph("MMR");
+ });
 
     $("#fights-button").click(function(){
-       plot_graph("date","LH");
-    });
+     plot_graph("nChecks");
+ });
 
     $("#objectives-button").click(function(){
-       plot_graph("date","MMR");
-    });
+     plot_graph("checkDuration");
+ });
 
     $("#movement-button").click(function(){
-       plot_graph("date","LH");
-    });
+     plot_graph("lasthits");
+ });
 
     $("#nom-button").click(function(){
-       plot_graph("date","MMR");
-    });
+     plot_graph("Win");
+ });
 
 
 

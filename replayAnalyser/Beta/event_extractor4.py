@@ -121,7 +121,7 @@ class Match:
                 s = ""
                 player_name = s.join(player_name_list)
                 players[int(row[1])]["name"] = player_name
-                players[int(row[1])]["steam_id"] = int(row[3])
+                players[int(row[1])]["steam_id"] = row[3]
                 # form the heroes dictionary
                 hero_name = transformHeroName(row[4])
                 players[int(row[1])]["hero"] = hero_name

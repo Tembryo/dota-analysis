@@ -37,17 +37,46 @@ router.get('/plus', function(req, res)
     res.render("pages/plus.ejs", data);
 });
 
+router.get('/user',
+    authentication.ensureAuthenticated,
+    function(req, res)
+    {
+        var data = collectTemplatingData(req);
+        if(req.query.hasOwnProperty("rate_popup"))
+            data["rate_popup"] = req.query.rate_popup;
+        else
+            data["rate_popup"] =  false;
+        res.render("pages/user.ejs", data);
+    }
+);
 
-router.get('/results/:result_id', function(req, res)
+router.get('/result', function(req, res)
 {
     var data = collectTemplatingData(req);
+    if(req.query.hasOwnProperty("example"))
+        data["example"] = req.query.example;
+    else
+        data["example"] =  0;
+    data["match_id"] = 0; //TODO fetch from db
+    data["result_id"] = -1;
     res.render("pages/result.ejs", data);
 });
 
-router.get('/user', function(req, res)
+router.get('/result/:result_id', function(req, res)
 {
     var data = collectTemplatingData(req);
-    res.render("pages/user.ejs", data);
+
+    data["result_id"] = req.params.result_id;
+    data["match_id"] = req.params.result_id; //TODO fetch from db
+    data["example"] =  null;
+    res.render("pages/result.ejs", data);
+});
+
+router.get('/match/:match_id', function(req, res)
+{
+    var data = collectTemplatingData(req);
+    data["match_id"] = req.params.match_id;
+    res.render("pages/match.ejs", data);
 });
 
 

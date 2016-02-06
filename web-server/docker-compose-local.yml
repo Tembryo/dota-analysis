@@ -37,6 +37,7 @@ analysis:
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/analysis/server-src:/source:ro
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/analysis/extractor:/extractor:ro
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/analysis/analysis:/analysis:ro
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/analysis/score:/score:ro
 
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/analysis:/storage
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/shared:/shared

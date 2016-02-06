@@ -46,7 +46,7 @@ var dlInterval = 3000;
 var match_threshold = 400000;
 crawl();
 
-var crawl_repeats = 2;
+var crawl_repeats = 0;
 var crawl_repeats_per_dl = 2;
 
 function crawl()
@@ -115,7 +115,7 @@ function fetchMore(err, final_id)
 function getApiMatches(start, cb)
 {
     var locals = {};
-    var login = steam_accs.account_list[2];
+    var login = steam_accs.account_list[Math.floor(Math.random() * (steam_accs.account_list.length))];
     async.waterfall(
         [
             database.connect,
@@ -404,7 +404,13 @@ function dlMatches(next_match, cb)
                 locals.client = client;
                 locals.done = done_client;
                 locals.client.query(
-                    "SELECT matches.matchid FROM Matches, mmrsamples where matches.matchid = mmrsamples.matchid AND  status = 'queued' GROUP BY  matches.matchid ORDER BY Count(*) DESC LIMIT 10;",
+                    "SELECT matches.matchid "+
+                    "FROM Matches, mmrsamples "+
+                    "WHERE matches.matchid = mmrsamples.matchid "+
+                        "AND  status = 'queued' "+
+                        //"AND  (mmrsamples.mmr < 2500 OR mmrsamples.mmr > 5000) "+
+                    "GROUP BY  matches.matchid "+
+                    "ORDER BY Count(*) DESC LIMIT 10;",
                     [],
                     callback);
             },

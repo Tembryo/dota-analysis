@@ -1,0 +1,2 @@
+CREATE TABLE ScoreRequests (id bigserial PRIMARY KEY, match_id bigint REFERENCES Matches(id), steam_identifier text, );
+CREATE TABLE Results (id bigserial PRIMARY KEY, data json steam_identifier text);

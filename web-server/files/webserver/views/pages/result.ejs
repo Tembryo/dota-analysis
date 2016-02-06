@@ -1,0 +1,111 @@
+<%  layout('base-template'); 
+    navigation_entries=[
+    ];
+-%>
+
+
+<link href="/static/css/results.css" rel="stylesheet">
+
+<!-- Wisdota Featurette -->
+<div id ="results-container">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <h1 class="results-page-header"> </h1>
+            </div>
+            <div class="col-md-1"></div>
+            <div class="col-md-5 text-center">
+                <div class="results-box">
+                    <img id="hero-img" src="/static/img/heroes/pictures/Earthshaker.png">
+                    <h2 class="results-header-small"></h2>
+                    <div class="barometer-container">
+                        <div class="my-block">
+                            <img id="block1" src="/static/img/logos/block1space.png" height="70px" width="70px">
+                            <p id="pblock1" class="block-text">Noob</p>
+                        </div>
+                        <div class="my-block">
+                            <img id="block2" src="/static/img/logos/block2space.png" height="70px" width="70px">
+                            <p id="pblock2" class="block-text">Ok</p>
+                        </div>
+                        <div class="my-block">
+                            <img id="block3" src="/static/img/logos/block3space.png" height="70px" width="70px">
+                            <p id="pblock3" class="block-text">Nice</p>
+                        </div>
+                        <div  class="my-block">
+                            <img id="block4" src="/static/img/logos/block4space.png" height="70px" width="70px">
+                            <p id="pblock4" class="block-text">Good</p>
+                        </div>
+                        <div class="my-block">
+                            <img id="block5" src="/static/img/logos/block5space.png" height="70px" width="70px">
+                            <p id="pblock5" class="block-text">Great</p>
+                        </div> 
+                        <div class="my-block">
+                            <img id="block6" src="/static/img/logos/block6space.png" height="70px" width="70px">
+                            <p id="pblock6" class="block-text">Godlike</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5 text-center">
+                <div class="results-box">
+                    <div style="height:27px"></div>
+                    <div>
+                        <div class="progress">
+                            <div id="skill-bar1" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:40%">
+                                Last Hits
+                            </div>
+                        </div>
+                        <div class="progress">
+                          <div id="skill-bar2" class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="50"
+                          aria-valuemin="0" aria-valuemax="100" style="width:50%">
+                            Fights
+                          </div>
+                        </div>
+                        <div class="progress">
+                            <div id="skill-bar3" class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="60"
+                                aria-valuemin="0" aria-valuemax="100" style="width:60%">
+                                Movement
+                            </div>
+                        </div>
+
+                        <div class="progress">
+                            <div id="skill-bar4" class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="70"
+                                aria-valuemin="0" aria-valuemax="100" style="width:70%">
+                                Skill
+                            </div>
+                        </div>
+                    </div>
+                    <div style="height:27px"></div>
+                    <div><a href="/match/<%=match_id%>" id="match-page" class="btn btn-success main-button">Match Analysis</a></div>
+                </div>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+    </div>
+</div>
+
+<div id="social-media-container">
+    </div class="container">    
+        <div class="row">
+            <div class="col-lg-4 col-md-4 col-sm-2"></div>
+            <div id="social-media" class="col-lg-4 col-md-4 col-sm-8 text-center">
+                <h4>Share this rating with your friends:</h4>
+                <div class="socialmedia_container center-block">
+                    <% MMR = 12345; tweet_text = "My play got scored as "+MMR+" " %>
+                    <a href="https://twitter.com/share" style="vertical-align: text-bottom" class="twitter-share-button"{count} data-text="<%=tweet_text%>" data-size="large" data-url="http://www.wisdota.com/result/<%=result_id%>" data-hashtags="wisdota,dota2">Tweet</a>
+                    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+                </div>
+                <a href="index.html" id="rate-another-player-btn" class="btn btn-default main-button">Rate Another Player </a>
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-2"></div> 
+        </div>
+
+    </div>        
+</div>
+
+
+<script type="text/javascript">
+    result_id = <%=result_id%>;
+    example = <%=example%>;
+</script>
+<script type="text/javascript" src="/static/js/results.js"></script>

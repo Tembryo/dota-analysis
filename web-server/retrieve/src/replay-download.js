@@ -18,6 +18,7 @@ var downloadAndDecompress = function(url, dest, cb) {
 
     // check for request errors
     sendReq.on('error', function (err) {
+        console.log("sendreq got error");
         fs.unlink(dest);
 
         if (cb) {
@@ -25,14 +26,33 @@ var downloadAndDecompress = function(url, dest, cb) {
         }
     });
 
+    // check for request errors
+    sendReq.on('end', function (err) {
+        console.log("sendreq got end");
+    });
+    // check for request errors
+    //sendReq.on('data', function (err) {
+    //    console.log("sendreq got data");
+    //});
+
     var decoder = bz2();
     decoder.on('error', function(err) { // Handle errors
+        console.log("decoder got error");
         fs.unlink(dest); // Delete the file async. (But we don't check the result)
     
         if (cb) {
             return cb(err.message);
         }
     });
+    // check for request errors
+    decoder.on('data', function (err) {
+        console.log("decoder got data");
+    });
+    // check for request errors
+    decoder.on('end', function (err) {
+        console.log("decoder got end");
+    });
+
 
     try
     {
@@ -47,6 +67,7 @@ var downloadAndDecompress = function(url, dest, cb) {
         file.close(cb);  // close() is async, call cb after close completes.
     });
 
+
     file.on('error', function(err) { // Handle errors
         fs.unlink(dest); // Delete the file async. (But we don't check the result)
 
@@ -58,15 +79,22 @@ var downloadAndDecompress = function(url, dest, cb) {
 
 
 //Full download procedure of a match starting from the match ID
-//Retrieves salt using a given Dota2 client, stores the downloaded/decompressed replay at shared/replays/<matchid>.dem
-function downloadMatch(client, match_id, final_callback)
+//Retrieves salt using a given Dota2 client, stores the downloaded/decompressed replay 
+function downloadMatch(client, match_id, target, final_callback)
 {   
+    var details_timeout = 2000;
+    var timeout_status = 0; 
     var file;
     async.waterfall(
         [
-            client.requestMatchDetails.bind(client, match_id),
+            function(callback){
+                client.requestMatchDetails(match_id, callback);
+                timeout_status = 0; 
+                setTimeout(function(){if(timeout_status == 0){callback("details-timeout"); timeout_status = 2;}else return;}, details_timeout);
+            },
             function(result, callback)
             {
+                timeout_status = 1;
                 if(result.result != 1)
                     callback("bad match details:", result);
 
@@ -81,12 +109,12 @@ function downloadMatch(client, match_id, final_callback)
                 }
                 else
                 {
-                    file = "/replays/"+replay_data.match_id+".dem"
+                    file = target+replay_data.match_id+".dem"
                     var replay_address = "http://replay"+replay_data.cluster+".valve.net/570/"+replay_data.match_id+"_"+replay_data.replay_salt+".dem.bz2";
 
                     console.log("Downloading from", replay_address);
-                    console.log("Storing in shared - ", file);
-                    downloadAndDecompress(replay_address, config.shared+file, callback);
+                    console.log("Storing in ", file);
+                    downloadAndDecompress(replay_address, file, callback);
                 }
             }
         ],
