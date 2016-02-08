@@ -37,6 +37,12 @@ router.get('/plus', function(req, res)
     res.render("pages/plus.ejs", data);
 });
 
+router.get('/about', function(req, res)
+{
+    var data = collectTemplatingData(req);
+    res.render("pages/faq.ejs", data);
+});
+
 router.get('/user',
     authentication.ensureAuthenticated,
     function(req, res)
@@ -75,12 +81,49 @@ router.get('/result', function(req, res)
 
 router.get('/result/:result_id', function(req, res)
 {
-    var data = collectTemplatingData(req);
 
-    data["result_id"] = req.params.result_id;
-    data["match_id"] = req.params.result_id; //TODO fetch from db
-    data["example"] =  null;
-    res.render("pages/result.ejs", data);
+    var locals = {};
+    locals.header_files = [];
+    async.waterfall(
+        [
+            database.connect,
+            function(client, done_client, callback)
+            {
+                locals.client = client;
+                locals.done = done_client;
+
+                locals.client.query("SELECT match_id FROM Results r WHERE r.id=$1;",[req.params.result_id],callback);
+            },
+            function(results, callback)
+            {
+                if(results.rowCount != 1)
+                {
+                    callback("bad row count", results);
+                }
+                else
+                {
+                    locals.match_id = results.rows[0]["match_id"];
+                    callback();
+                }
+            }
+        ],
+        function(err, results)
+        {
+            locals.done();
+            if(err)
+                console.log(err, results);
+            
+            var data = collectTemplatingData(req);
+
+                data["result_id"] = req.params.result_id;
+                data["match_id"] = locals.match_id; //TODO fetch from db
+                data["example"] =  null;
+                res.render("pages/result.ejs", data);
+
+        }
+    );
+
+    
 });
 
 router.get('/match/:match_id', function(req, res)

@@ -13,8 +13,41 @@ var check_interval_history = 60000;
 var matches_per_request = 20;
 var history_retrieve_delay = 100;
 
+resetStuff();
 registerListener();
 checkAPIHistoryData();
+
+function resetStuff()
+{
+        var locals = {};
+    async.waterfall(
+        [
+            database.connect,
+            function(client, done_client, callback)
+            {
+                locals.client = client;
+                locals.done = done_client;
+                locals.client.query(
+                    "DELETE FROM MatchRetrievalRequests mrr "+
+                    "WHERE mrr.retrieval_status = (SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label='retrieving') OR "+
+                    "mrr.retrieval_status = (SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label='requested');",
+                    [],
+                    callback);
+            },
+            function(results, callback)
+            {
+                console.log("retrieve reset:", results.rowCount)
+                callback();
+            }
+        ],
+        function(err, results)
+        {
+            if (err)
+                console.log(err, results);
+            locals.done();
+        }
+    );
+}
 
 function checkAPIHistoryData()
 {   
@@ -215,7 +248,7 @@ function registerListener()
                 [],
                 function(err, results)
                 {
-                    console.log("added retrieve listener", results);
+                    console.log("added retrieve listener");
                 });
           //no end -- client.end();
         }

@@ -9,8 +9,8 @@ var max_extraction_time = 80*1000;
 var max_analysis_time = 120*1000;
 
 var mode;
-mode = "process";
-//mode = "generate";
+//mode = "process";
+mode = "generate";
 //mode = "learn";
 
 switch(mode)

@@ -1,3 +1,5 @@
+var refresh_interval = 2000;
+
 $(document).ready(function(){
     load();
 });
@@ -43,6 +45,23 @@ function load()
 
 
 function drawTables(data) {
+
+    var n_processing = 0;
+    for(var i = 0; i < data.length; ++i)
+    {
+        if( data[i]["match_status"] ===  "requested" ||
+            data[i]["match_status"] ===  "retrieving" ||
+            data[i]["match_status"] ===  "uploaded" ||
+            data[i]["match_status"] ===  "retrieved" ||
+            data[i]["match_status"] ===  "extracting" ||
+            data[i]["match_status"] ===  "analysing")
+            n_processing ++;
+    }
+    if(n_processing > 0)
+    {
+        console.log("refreshing in ", refresh_interval);
+        setTimeout(load, refresh_interval);
+    }
 
     var large_table = d3.select("#large-match-list").selectAll(".match").data(data, function(match){
                 return match["match_id"];
@@ -204,6 +223,7 @@ function createSmallRow(data)
     var result = (data["data"]["winner"]? "Win": "Loss");
     var id_result =row.append("td");
         id_result.append("a")
+            .attr("class", "match-link")
             .attr("href", "/match/"+data["match_id"])
             .text(data["match_id"]);
         id_result.append("br");
@@ -241,6 +261,7 @@ function createLargeRow(data)
         
     row.append("td")
         .append("a")
+            .attr("class", "match-link")
             .attr("href", "/match/"+data["match_id"])
             .text(data["match_id"]);
 
@@ -280,7 +301,12 @@ function updateRow(data)
 {
     var row = d3.select(this);
 
+    var matchlink = row.select(".match-link");
+    matchlink.classed("disabled", !(data["match_status"] === "parsed"));
+
+
     var button = row.select("#match-button");
+    button.html("");
 
     switch(data["match_status"])
     {
@@ -351,7 +377,7 @@ function updateRow(data)
         case "analysing":
             button
                 .attr("class", "btn dashboard-button btn-success disabled")
-                .text("Processing");
+                .html("<div class='sp sp-circle'></div><div class='processing-text'>Processing</div>");
             break;
         case "failed":
             button
@@ -412,7 +438,8 @@ function updateRow(data)
     if (data["match_status"] === "parsed")
     {
         download_icon
-            .attr("href", "/download/"+data["match-id"]+".dem")
+            .attr("href", "/api/download/"+data["match_id"])
+            .attr("download", "")
             .attr("class", "glyphicon glyphicon-download-alt");
     }
 }

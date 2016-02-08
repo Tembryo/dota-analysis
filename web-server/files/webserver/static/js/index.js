@@ -1,5 +1,5 @@
 current_slide = 0;
-examples = [0,1,2,3,4];
+examples = [0,1,2,3,4,5];
 
 $(document).ready(function(){
 
@@ -41,8 +41,8 @@ $(document).ready(function(){
 
   $("#ratePlayerDiv").click(function(){   
     $("#progressTimer").progressTimer({
-        timeLimit: 12,
-        warningThreshold: 10,
+        timeLimit: 2,
+        warningThreshold: 1,
         baseStyle: 'progress-bar-warning',
         warningStyle: 'progress-bar-danger',
         completeStyle: 'progress-bar-info',

@@ -418,8 +418,12 @@ gui_state = {
 
     "selected-event": null,
     "visible-unit-histories": [],
-    "highlighted-unit": null
+    "highlighted-unit": null,
+
+    "content-selected": "events"
 };
+
+content_types = ["overview"];// ,"events"];, "diagram"];
 
 map_events = ["fight", "movement", "fountain-visit", "jungling", "laning", "creep-death"/*, "rotation"*/];
 
@@ -764,9 +768,9 @@ update_interval = 200; // in milliseconds
 
 function initVisualisation(){
     initTimeline();
-    initDiagram();
     initMap();
     initLegend();
+    initContent();
 
     d3.selectAll("[data-id]")
         .on("click", function(){togglePlayer(this)});
@@ -790,7 +794,7 @@ function timedUpdate()
 function updateVisualisation()
 {
     updateTimeline();
-    updateDiagram();
+    updateContent();
     updateMap();
 }
 
@@ -1619,11 +1623,13 @@ function initDiagram(){
 
             });*/
 
-    d3_elements["diagram-svg"] = d3.select("#diagram")
-                    .append("svg")
-                    .attr({ "id": "diagram-svg",
-                        "class": "svg-content",
-                        "viewBox": "-"+diagram_inset_left+" 0 "+(diagram_display_width+diagram_inset_left+diagram_inset_right)+" "+diagram_height});
+    d3_elements["diagram-svg"] = d3.select("#content")
+                    .append("div")
+                    .attr("class","svg-container")
+                        .append("svg")
+                        .attr({ "id": "diagram-svg",
+                            "class": "svg-content",
+                            "viewBox": "-"+diagram_inset_left+" 0 "+(diagram_display_width+diagram_inset_left+diagram_inset_right)+" "+diagram_height});
 
     d3_elements["diagram-background-layer"] = d3_elements["diagram-svg"].append("g").attr("id", "background-layer");
     d3_elements["diagram-background-layer"].append("svg:rect")
@@ -2295,3 +2301,214 @@ function loadSVG(file, id, callback)
 
 
 
+function initContent()
+{
+    /*
+    clearContent();
+    console.log("init",gui_state["content-selected"]);
+    switch(gui_state["content-selected"])
+    {
+        case "events":
+            initEvents();
+            break;
+        case "overview":
+            initOverview();
+            break;
+        case "diagram":
+            initDiagram();
+            break;
+    }
+
+    updateContent();
+    */
+}
+
+function clearContent()
+{
+    d3.selectAll("#content *")
+        .remove();    
+}
+
+function updateContent()
+{
+    /*
+    var content_buttons = d3.selectAll(".content-button").data(content_types);
+    
+    content_buttons.enter()
+        .append("button")
+        .each(createContentButton);
+
+    content_buttons
+        .each(updateContentButton);
+
+    switch(gui_state["content-selected"])
+    {
+        case "events":
+            updateEvents();
+            break;
+        case "overview":
+            updateOverview();
+            break;
+        case "diagram":
+            updateDiagram();
+            break;
+    }
+*/
+}
+
+function createContentButton(content)
+{
+    var button = d3.select(this);
+
+    button.attr({
+                "type":"button",
+                "class":"btn btn-default dashboard-button content-button"})
+        .text(capitalizeFirstLetter(content));
+}
+
+function updateContentButton(content)
+{
+    var button = d3.select(this);
+    if(gui_state["content-selected"] === content)
+    {
+        button
+            .classed("btn-default", false)
+            .classed("btn-info", true)
+            .on("click", function(){});
+    }
+    else
+    {
+        button
+            .classed("btn-default", true)
+            .classed("btn-info", false)
+            .on("click", function(){console.log("changed to", content);gui_state["content-selected"] = content; initContent();});
+    }
+}
+
+
+function initEvents()
+{
+    var mydiv = d3.select("#content")
+        .append("div")
+        .attr("id", "events");
+
+    var table = mydiv.append("table");
+    var header = table.append("thead")
+        .append("tr");
+    header.append("th")
+        .text("Time")
+    header.append("th")
+        .text("Event")
+
+    d3_elements["events-table"] = table.append("tbody");
+}
+
+function updateEvents()
+{
+    var events = [];
+
+    var events = d3_elements["events-table"].selectAll(".event-row").data(d3.entries(replay_data["events"]).filter(function(d){return filterEvents(d.value)})
+                        , function(event_entry){return event_entry.key;});
+
+    events.enter()
+        .append("tr")
+        .attr("class", "event-row")
+        .each(function(d){createEvent.call(this, d);});
+
+    events.order(function(a,b){return compareEventsByTime(a.value, b.value)});
+
+    events
+        .each(function(d){updateEvent.call(this, d);})
+
+    events.exit()
+        .remove();
+
+}
+
+list_events_excluded = ["laning", "movement", "jungling", "fountain-visit", "unit-selection", "creep-death"];
+function filterEvents(event)
+{
+    if(list_events_excluded.indexOf(event["type"]) != -1)
+        return false;
+    
+    if(event.hasOwnProperty("time"))
+    {
+        if( ! ((event["time"]-event_duration/2 <= gui_state["cursor-time"]) &&
+            (event["time"]+event_duration/2 > gui_state["cursor-time"])) )
+            return false;
+    }
+    else if(event.hasOwnProperty("time-start") && event.hasOwnProperty("time-end"))
+    {
+        if( ! (event["time-end"] > gui_state["cursor-time"] &&  
+            event["time-start"] <= gui_state["cursor-time"]) )
+            return false;
+
+    }
+    else
+    {
+        console.log("Corrupted event");
+        return false;
+    }
+    return true;
+}
+
+function createEvent(entry)
+{
+    var event = entry.value;
+    var row = d3.select(this);
+    var time = row.append("td")
+        .attr({"width":"20%"});
+    if(event.hasOwnProperty("time"))
+    {
+        time.text(formatTime(event["time"]));
+    }
+    else if(event.hasOwnProperty("time-start") && event.hasOwnProperty("time-end"))
+    {
+        time.text(formatTime(event["time-start"])+" until "+formatTime(event["time-end"]));
+    }
+
+    var text = row.append("td")
+                    .attr({"width":"50%"})
+                    .text(JSON.stringify(event));
+
+}
+
+function updateEvent(entry)
+{
+    
+}
+
+function initOverview()
+{
+    var mydiv = d3.select("#content")
+        .append("div")
+        .attr("id", "overview");
+
+    d3_elements["overview-table"] = mydiv.append("table");
+
+    var rows = d3_elements["overview-table"].selectAll(".overview-row").data(replay_data["header"]["players"], function(d,i){return i;});
+
+    rows.enter()
+        .append("tr")
+        .attr("class", "event-row")
+        .each(function(d){createOverviewRow.call(this, d);});
+}
+
+function createOverviewRow(d)
+{
+    var row = d3.select(this);
+    row.append("td")
+        .text(d["name"]);
+    row.append("td")
+        .text(d["hero"]);
+}
+
+function updateOverview()
+{
+}
+
+
+
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}

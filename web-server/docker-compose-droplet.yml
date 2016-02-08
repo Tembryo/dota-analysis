@@ -38,6 +38,7 @@ analysis:
     - /usr/local/dota-analysis/web-server/analysis/server-src:/source:ro
     - /usr/local/dota-analysis/web-server/analysis/extractor:/extractor:ro
     - /usr/local/dota-analysis/web-server/analysis/analysis:/analysis:ro
+    - /usr/local/dota-analysis/web-server/analysis/score:/score:ro
 
     - /usr/local/dota-analysis/web-server/storage/analysis:/storage
     - /usr/local/dota-analysis/web-server/storage/shared:/shared

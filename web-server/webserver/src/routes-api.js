@@ -80,6 +80,54 @@ router.route('/matches')
         }
     );
 
+router.route('/results')
+    .get(function(req, res) 
+        {
+            var match_id = 0;
+            if(req.query.hasOwnProperty("matchid"))
+            {
+                match_id= parseInt(req.query.matchid);
+            }
+            else
+            {
+                res.json([]);
+                return;
+            }
+
+            var locals = {};
+            async.waterfall(
+                [
+                    database.connect,
+                    function(client, done_client, callback)
+                    {
+                        locals.client = client;
+                        locals.done = done_client;
+                        console.log(match_id);
+                        locals.client.query("SELECT r.data as score_data, ps.data as player_data "+
+                            "FROM Results r, PlayerStats ps WHERE r.match_id=$1 AND ps.match_id=r.match_id AND ps.steam_identifier = r.steam_identifier;",[match_id],callback);
+                    },
+                    function(results, callback)
+                    {
+                           callback(null, results.rows);
+                    }
+                ],
+                function(err, result)
+                {
+                    locals.done();
+                    //console.log(result);
+                    if(err)
+                    {
+                        console.log("error retrieving scores for "+match_id);
+                        console.log(err);
+                        
+                        res.json({});
+                    }
+                    else
+                        res.json(result);
+                }
+            );
+        }
+    );
 
 router.route('/result/:result_id')
     .get(function(req, res) 
@@ -595,6 +643,63 @@ router.route("/stats")
             /*var exampledata =[{date:10,MMR:3000,LH:3100},{date:40,MMR:3100,LH:3150},{date:50,MMR:3325,LH:2900},{date:100,MMR:2955,LH:2925},{date:120,MMR:3155,LH:2850},{date:130,MMR:3199,LH:2775},{date:160,MMR:2825,LH:2750},{date:200,MMR:3505,LH:2700}];
 
             res.json(exampledata);*/
+        }
+    );
+
+router.route("/download/:match_id")
+    .get(authentication.ensureAuthenticated,
+        function(req, res)
+        {
+            var match_id = req.params.match_id;
+            var locals = {};
+            async.waterfall(
+                [
+                    database.connect,
+                    function(client, done_client, callback)
+                    {
+                        locals.client = client;
+                        locals.done = done_client;
+
+                        locals.client.query("SELECT file FROM ReplayFiles rf WHERE rf.match_id=$1;",
+                            [match_id],callback);
+                    },
+                    function(results, callback)
+                    {
+                        if(results.rowCount != 1)
+                        {
+                            callback("couldnt find", results);
+                        }    
+                        else
+                        {
+                            callback(null, results.rows[0]["file"]);
+                        }
+                    },
+                    function(result, callback)
+                    {
+                        res.download(
+                            config.shared+result,
+                            match_id+".dem",
+                            callback);
+                    }
+                ],
+                function(err)
+                {
+                    locals.done();
+                    if(err)
+                    {
+                        console.log("download err ", err);
+                        var error_result = {
+                            "result": "error",
+                            "message": err
+                            };
+                        res.json(error_result);
+                    }
+                    else
+                    {
+                        console.log("download success",match_id);
+                    }
+                }
+            );
         }
     );
 

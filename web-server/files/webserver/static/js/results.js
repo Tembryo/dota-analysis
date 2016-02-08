@@ -77,7 +77,7 @@ var pictures =
 	"rubick":               "/static/img/heroes/pictures/Rubick.png",
 	"sand_king":            "/static/img/heroes/pictures/Sand King.png",
 	"shadow_demon":         "/static/img/heroes/pictures/Shadow Demon.png",
-	"shadow_shaman":        "/static/img/heroes/pictures/Shadow Shaman.png",
+	"shadow_shaman":        "/static/img/heroes/pictures/Shadow_Shaman.png",
 	"shredder":             "/static/img/heroes/pictures/Shredder.png",
 	"silencer":             "/static/img/heroes/pictures/Silencer.png",
 	"skeleton_king":        "/static/img/heroes/pictures/Wraith_King.png",
@@ -86,7 +86,7 @@ var pictures =
 	"slark":                "/static/img/heroes/pictures/Slark.png",
 	"sniper":               "/static/img/heroes/pictures/Sniper.png",
 	"spectre":              "/static/img/heroes/pictures/Spectre.png", 
-	"spirit_breaker":       "/static/img/heroes/pictures/Spirit Breaker.png",
+	"spirit_breaker":       "/static/img/heroes/pictures/Spirit_Breaker.png",
 	"storm_spirit":         "/static/img/heroes/pictures/Storm_Spirit.png",
 	"sven":                 "/static/img/heroes/pictures/Sven.png",
 	"techies":              "/static/img/heroes/pictures/Techies.png",
@@ -112,6 +112,144 @@ var pictures =
 	"witch_doctor":         "/static/img/heroes/pictures/Witch_Doctor.png",
 	"zuus":                 "/static/img/heroes/pictures/Zeus.png"
 };
+
+
+var names =
+{
+	"abaddon":              "Abaddon",
+	"alchemist":            "Alchemist",
+	"ancient_apparition":   "Ancient Apparition",
+	"antimage":             "Anti-Mage",
+    "arc_warden":           "Arc Warden",
+	"axe":                  "Axe",
+	"bane":                 "Bane",
+	"batrider":             "Batrider",
+	"beastmaster":          "Beastmaster",
+	"bloodseeker":          "Bloodseeker",
+	"bounty_hunter":        "Bounty Hunter",
+	"brewmaster":           "Brewmaster",
+	"bristleback":          "Bristleback",
+	"broodmother":          "Broodmother",
+	"centaur":              "Centaur Warrunner",
+	"chaos_knight":         "Chaos Knight",
+    "chen":                 "Chen",
+    "clinkz":               "Clinkz",
+	"crystal_maiden":       "Crystal Maiden",
+	"dark_seer":            "Dark Seer",
+	"dazzle":               "Dazzle",
+	"death_prophet":        "Death Prophet",
+	"disruptor":            "Disruptor",
+	"doom_bringer":         "Doom Bringer",
+	"dragon_knight":        "Dragon Knight",
+	"drow_ranger":          "Drow Ranger",
+	"earthshaker":          "Earthshaker",
+    "elder_titan":          "Elder Titan",
+    "eart_spirit":          "Earth Spirit",
+	"ember_spirit":         "Ember Spirit",
+	"enchantress":          "Enchantress",
+	"enigma":               "Enigma",
+	"furion":               "Nature's Prophet",
+	"faceless_void":        "Faceless Void",
+	"gyrocopter":           "Gyrocopter", 
+	"huskar":               "Huskar",
+	"invoker":              "Invoker",
+    "jakiro":               "Jakiro",
+    "juggernaut":           "Juggernaut",
+	"keeper_of_the_light":  "Keeper of the Light",
+    "kunkka":               "Kunkka",
+    "legion_commander":     "Legion Commander",
+	"leshrac":              "Leshrac",
+ 	"lich":                 "Lich",
+	"life_stealer":         "Life Stealer",
+	"lina":                 "Lina",
+	"lion":                 "Lion",
+	"lone_druid":           "Lone Druid",
+    "luna":                 "Luna",
+    "lycan":                "Lycanthrope",
+	"magnataur":            "Magnus",
+	"medusa":               "Medusa",
+	"meepo":                "Meepo",
+	"mirana":               "Mirana",
+    "morphling":            "Morphling",
+    "naga_siren":           "Naga Siren",
+	"necrolyte":            "Necrolyte",
+	"nevermore":            "Shadow Fiend",
+	"night_stalker":        "Night Stalker",
+	"nyx_assassin":         "Nyx Assassin",
+    "obsidian_destroyer":   "Outworld Devourer",
+	"ogre_magi":            "Ogre Magi",
+	"omniknight":           "Omniknight",
+	"oracle":               "Oracle",
+	"phantom_assassin":     "Phantom Assassin",
+	"phantom_lancer":       "Phantom Lancer",
+	"phoenix":              "Phoenix",
+	"puck":                 "Puck",
+	"pudge":                "Pudge",
+	"pugna":                "Pugna",
+	"queenofpain":          "Queen Of Pain",
+	"rattletrap":           "Clockwerk",
+	"razor":                "Razor",
+	"riki":                 "Riki",
+	"rubick":               "Rubick",
+	"sand_king":            "Sand King",
+	"shadow_demon":         "Shadow Demon",
+	"shadow_shaman":        "Shadow Shaman",
+	"shredder":             "Timbersaw",
+	"silencer":             "Silencer",
+	"skeleton_king":        "Wraith King",
+	"skywrath_mage":        "Skywrath Mage",
+	"slardar":              "Slardar",
+	"slark":                "Slark",
+	"sniper":               "Sniper",
+	"spectre":              "Spectre", 
+	"spirit_breaker":       "Spirit Breaker",
+	"storm_spirit":         "Storm Spirit",
+	"sven":                 "Sven",
+	"techies":              "Techies",
+	"templar_assassin":     "Templar Assassin",
+	"terrorblade":          "Terrorblade",
+	"tidehunter":           "Tidehunter",
+	"tinker":               "Tinker",
+	"tiny":                 "Tiny",
+	"treant":               "Treant",
+    "troll_warlord":        "Troll Warlord",
+	"tusk":                 "Tusk",
+	"undying":              "Undying",
+	"vengefulspirit":       "Vengeful Spirit",
+	"venomancer":           "Venomancer",
+	"viper":                "Viper", 
+	"visage":               "Visage",
+	"ursa":                 "Ursa",
+	"warlock":              "Warlock",
+	"weaver":               "Weaver",
+	"windrunner":           "Windranger",
+	"winter_wyvern":        "Winter Wyvern",
+    "wisp":                 "Wisp",
+	"witch_doctor":         "Witch Doctor",
+	"zuus":                 "Zeus"
+};
+
+function blockMap(rating)
+{
+	var category = -1;
+	if(rating>= 6000)
+		category = 6;
+	else if(rating >= 4300 && rating < 6000)
+		category = 5;
+	else if(rating >= 3000 && rating < 4300)
+		category = 4;
+	else if(rating >= 2000 && rating < 3000)
+		category = 3;
+	else if(rating >= 1000 && rating < 2000)
+		category = 2;
+	else if(rating < 1000)
+		category = 1;
+	else
+	{
+		console.log("not happening");
+	}
+	return category;
+}
 
 $(document).ready(function(){	
 	var pathname;
@@ -140,18 +278,21 @@ $(document).ready(function(){
 	{
 		pathname = "/api/result/"+result_id;
 		$.getJSON(pathname, function(json) {
-	    	$("h1").text(json["user"] + ": " +json["player_data"]["steamid"])
-	    	$(".results-header-small").text(json["score_data"]["MMR"])
+	    	$("h1").text(names[json["player_data"]["hero"]])
+	    	$(".results-header-small").text("Match Rating: "+Math.floor(json["score_data"]["MMR"]))
 			$("#hero-img").attr("src",pictures[json["player_data"]["hero"]])
-			$("#skill-bar1").attr("valuenow",String(json["last_hits"]))
-			$("#skill-bar1").attr("style","width:"+ String(json["last_hits"] + "%"))
-			$("#skill-bar2").attr("valuenow",String(json["fights"]))
-			$("#skill-bar2").attr("style","width:"+ String(json["fights"] + "%"))
-			$("#skill-bar3").attr("valuenow",String(json["movement"]))
-			$("#skill-bar3").attr("style","width:"+ String(json["movement"] + "%"))
-			$("#skill-bar4").attr("valuenow",String(json["skill"]))
-			$("#skill-bar4").attr("style","width:"+ String(json["skill"] + "%"))
-			var category = json["category"];
+			$("#skill-bar1").attr("valuenow",50)
+			$("#skill-bar1").attr("style","width:"+50+"%")
+			$("#skill-bar2").attr("valuenow",50)
+			$("#skill-bar2").attr("style","width:"+50+ "%")
+			$("#skill-bar3").attr("valuenow",50)
+			$("#skill-bar3").attr("style","width:"+50+ "%")
+			$("#skill-bar4").attr("valuenow",50)
+			$("#skill-bar4").attr("style","width:"+50+ "%")
+			
+			$("#match-page").attr("href","/match/"+match_id)
+
+			var category = blockMap(json["score_data"]["MMR"]);
 			var url_str = "block" + String(category) + "selected";
 			var id_str = "#block" + String(category);
 			$(id_str).attr("src","/static/img/logos/" + url_str + ".png")

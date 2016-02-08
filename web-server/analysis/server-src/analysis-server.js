@@ -13,8 +13,43 @@ var check_interval = 5000;
 var max_extraction_time = 120000;
 var max_analysis_time = 120000;
 var max_score_time = 5000;
-registerListeners();
 
+registerListeners();
+resetStuff();
+
+
+function resetStuff()
+{
+        var locals = {};
+    async.waterfall(
+        [
+            database.connect,
+            function(client, done_client, callback)
+            {
+                locals.client = client;
+                locals.done = done_client;
+                locals.client.query(
+                    "UPDATE Replayfiles r "+
+                    "SET processing_status =(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label='uploaded') "+
+                    "WHERE r.processing_status = (SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label='extracting') OR "+
+                        "r.processing_status = (SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label='analysing');",
+                    [],
+                    callback);
+            },
+            function(results, callback)
+            {
+                console.log("analyse reset:", results.rowCount)
+                callback();
+            }
+        ],
+        function(err, results)
+        {
+            if (err)
+                console.log(err, results);
+            locals.done();
+        }
+    );
+}
 function registerListeners()
 {
     var client = database.getClient();

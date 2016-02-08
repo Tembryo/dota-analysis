@@ -44,8 +44,8 @@ $(document).ready(function(){
     canvas.append("text")
         .attr("class", "y label")
         .attr("id", "y-axis-label")
-        .attr("text-anchor", "end")
-        .attr("transform", "translate("+(padding+10)+", "+(padding/2)+") rotate(-90)")
+        .attr("text-anchor", "start")
+        .attr("transform", "translate("+(padding/2)+", "+(padding-10)+")")
         .text("rating");
 
     function getValue(entry, d)
