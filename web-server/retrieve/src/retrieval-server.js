@@ -123,6 +123,7 @@ function updateUserHistory(user_row, dota_client, callback_request)
     locals.user_new_last_match = locals.user_last_match;
     locals.user_min_match_checked = Number.MAX_VALUE;
     locals.dota_client = dota_client;
+    console.log("history", user_row, locals.user_min_match_checked);
     async.waterfall(
         [
             database.connect,
@@ -175,9 +176,10 @@ function processMatchHistory(history, locals, callback)
             locals.user_new_last_match = Math.max(locals.user_new_last_match, match["match_id"]["low"]);
 
             locals.user_min_match_checked = Math.min(locals.user_min_match_checked, match["match_id"]["low"]);
-
+            console.log(match["match_id"]);
             if(match["match_id"]["low"] > locals.user_last_match)
             {           
+                console.log("inserting matchhist");
                 locals.client.query(
                     "INSERT INTO UserMatchHistory (user_id, match_id, data) VALUES ($1, $2, $3);",
                     [locals.user_id, match["match_id"]["low"], match],
