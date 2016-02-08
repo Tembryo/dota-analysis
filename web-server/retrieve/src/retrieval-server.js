@@ -84,7 +84,7 @@ function checkAPIHistoryData()
                         jobs_callback);
                 }
                 else
-                    jobs_callback();
+                    jobs_callback(null, "no users to update");
             },
             function(results, callback)
             {
