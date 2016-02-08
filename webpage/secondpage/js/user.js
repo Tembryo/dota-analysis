@@ -1,9 +1,9 @@
 $(document).ready(function(){
 
-var data =[{date:10,MMR:3000,LH:3100},{date:40,MMR:3100,LH:3150},{date:50,MMR:3325,LH:2900},{date:100,MMR:2955,LH:2925},{date:120,MMR:3155,LH:2850},{date:130,MMR:3199,LH:2775},{date:160,MMR:2825,LH:2750},{date:200,MMR:3505,LH:2700}];
+var data =[{date:10,MMR:6200,LH:5100},{date:20,MMR:6275,LH:3150},{date:30,MMR:6250,LH:2900},{date:40,MMR:6300,LH:2925},{date:50,MMR:6325,LH:2850},{date:60,MMR:6400,LH:2775},{date:70,MMR:6475,LH:2750},{date:80,MMR:6425,LH:2700},{date:90,MMR:6450,LH:2700},{date:100,MMR:6475,LH:2700}];
 
-var width = 1100;
-var height = 400;
+var width = 800;
+var height = 500;
 var padding = 50;
 
 
