@@ -1,6 +1,6 @@
 import json
-from sklearn.feature_extraction import DictVectorizer
-from sklearn import preprocessing
+#from sklearn.feature_extraction import DictVectorizer
+#from sklearn import preprocessing
 import pickle
 import sys
 import csv

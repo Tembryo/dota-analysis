@@ -47,7 +47,7 @@ var match_threshold = 400000;
 crawl();
 
 var crawl_repeats = 0;
-var crawl_repeats_per_dl = 2;
+var crawl_repeats_per_dl = 3;
 
 function crawl()
 {
@@ -408,7 +408,7 @@ function dlMatches(next_match, cb)
                     "FROM Matches, mmrsamples "+
                     "WHERE matches.matchid = mmrsamples.matchid "+
                         "AND  status = 'queued' "+
-                        //"AND  (mmrsamples.mmr < 2500 OR mmrsamples.mmr > 5000) "+
+                        "AND  (mmrsamples.mmr < 2000 OR mmrsamples.mmr > 5000) "+//
                     "GROUP BY  matches.matchid "+
                     "ORDER BY Count(*) DESC LIMIT 10;",
                     [],
@@ -423,6 +423,7 @@ function dlMatches(next_match, cb)
                     {
                         var next_login = getLogin();
                         iterateLogin();
+                        console.log(next_login.steam_user, next_login.steam_pw);
                         fetchMatch(match_row["matchid"], next_login, locals, callback_match); 
                     },
                     function(){

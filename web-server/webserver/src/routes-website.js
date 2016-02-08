@@ -42,10 +42,21 @@ router.get('/user',
     function(req, res)
     {
         var data = collectTemplatingData(req);
-        if(req.query.hasOwnProperty("rate_popup"))
-            data["rate_popup"] = req.query.rate_popup;
+        if(req.query.hasOwnProperty("start") && req.query.hasOwnProperty("end"))
+        {
+            data["start"] =  parseInt(req.query["start"]);
+            data["range"] =  parseInt(req.query["end"]) - parseInt(req.query["start"]);
+        }
+        else if(req.query.hasOwnProperty("start"))
+        {
+            data["start"] =  req.query["start"];
+            data["range"] =  5;
+        }
         else
-            data["rate_popup"] =  false;
+        {
+            data["start"] =  0;
+            data["range"] =  5;
+        }
         res.render("pages/user.ejs", data);
     }
 );

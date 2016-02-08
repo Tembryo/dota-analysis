@@ -184,6 +184,13 @@ function processReplay(replay_id, callback_replay)
             function(results, callback)
             {
                 parseStatsFile(locals, callback);
+            },
+            function(results, callback)
+            {
+                locals.client.query(
+                    "INSERT INTO ScoreRequests (match_id) VALUES ($1);",
+                    [locals.match_id],
+                    callback);
             }
         ],
         function(err, results)
@@ -297,7 +304,7 @@ function runScoreRequest(scoring_id, callback_scored)
                 locals.done = done_client;
                 console.log("scsoring id ", scoring_id);
                 locals.client.query(
-                    "SELECT sr.id, m.stats_file, sr.steam_identifier, sr.match_id FROM ScoreRequests sr, Matches m WHERE m.id = sr.match_id AND sr.id=$1;",
+                    "SELECT sr.id, m.stats_file, sr.match_id FROM ScoreRequests sr, Matches m WHERE m.id = sr.match_id AND sr.id=$1;",
                     [scoring_id],
                     callback);
             },
@@ -310,7 +317,6 @@ function runScoreRequest(scoring_id, callback_scored)
                 }
                 locals.request_id = results.rows[0]["id"];
                 locals.match_id = results.rows[0]["match_id"];
-                locals.steam_id = results.rows[0]["steam_identifier"];
                 var filepath = results.rows[0]["stats_file"];
                 fs.readFile(filepath, 'utf8', callback);
             },

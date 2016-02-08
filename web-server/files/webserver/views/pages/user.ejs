@@ -8,8 +8,7 @@
 <!--User Dasboard -->
 <section id="user-dashboard text-center">
     <div class="container-fluid">
-        <h2>Overview </h2>
-        <div id="dashboard">
+        <div id="dashboard" style= "padding-top: 50px;">
             <!-- SVG element in here -->
         </div>
         <div class="row">
@@ -29,41 +28,58 @@
 
 <section id="user-container" class="container content-section">
     <div class="container big-table">
-      <h2>Match List</h2>
+        <h2>Match List</h2>
         <table class="table">
             <thead>
-              <tr>
-                <th><a style="color:black">Match ID</a></th>
-                <th><a style="color:black">Date</a></th>
-                <th><a style="color:black">Time</a></th>
-                <th><a style="color:black">Hero</a></th>
-                <th><a style="color:black">Duration</a></th>
-                <th><a style="color:black">Result</a></th>
-                <th><a style="color:black">Button</a></th>
-                <th></th>
-              </tr>
+                <tr>
+                    <th><a style="color:black">Match ID</a></th>
+                    <th><a style="color:black">Date</a></th>
+                    <th><a style="color:black">Time</a></th>
+                    <th><a style="color:black">Hero</a></th>
+                    <th><a style="color:black">Duration</a></th>
+                    <th><a style="color:black">Result</a></th>
+                    <th><a style="color:black">Button</a></th>
+                    <th width="40px"></th>
+                </tr>
             </thead>
             <tbody id ="large-match-list">
 
             </tbody>
-      </table>
+            <tfoot>
+                <tr>
+                    <td colspan="7" style="text-align:center">
+                        <a id="scroll-left" class="glyphicon glyphicon-chevron-left"></a>
+                        <span id="range">1 - 5</span>
+                        <a id="scroll-right" class="glyphicon glyphicon-chevron-right"></a>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
     </div>
 
     <div class="container small-table">
         <h2>Match List</h2>
         <table class="table">
-        <thead>
-          <tr>
-            <th>ID/Result</th>
-            <th>Date/Time</th>
-            <th>Hero</th>
-            <th>Button</th>
-            <th></th>
-          </tr>
-        </thead>
+            <thead>
+                <tr>
+                    <th>ID/Result</th>
+                    <th>Date/Time</th>
+                    <th>Hero</th>
+                    <th>Button</th>
+                    <th width="40px"></th>
+                </tr>
+            </thead>
             <tbody id="small-match-list">
-
             </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="5" style="text-align:center">
+                        <a id="scroll-left" class="glyphicon glyphicon-chevron-left"></a>
+                        <span id="range">1 - 5</span>
+                        <a id="scroll-right" class="glyphicon glyphicon-chevron-right"></a>
+                    </td>
+                </tr>
+            </tfoot>
         </table>
     </div>
 </section>
@@ -85,6 +101,11 @@
 </div>
 
 <script src="/static/js/jquery.progressTimer.js"></script>
+
+<script type="text/javascript">
+    var start = <%=start%>;
+    var range = <%=range%>;
+</script>
 
 <script type="text/javascript" src="/static/js/user.js"></script>
 <script type="text/javascript" src="/static/js/matchlist.js"></script>

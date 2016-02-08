@@ -5,6 +5,8 @@ SELECT count(*), n_samples  FROM (SELECT matches.matchid, count(*) as n_samples 
 
 select count(*), status from matches group by status;
 
+select count(*), status from matches, mmrsamples where matches.matchid=mmrsamples.matchid group by status;
+
 SELECT count(*), floor(mmr/500)*500 as mmrgroup from matches, mmrsamples where matches.matchid=mmrsamples.matchid  AND matches.status='queued' group by mmrgroup ORDER BY mmrgroup DESC;
 
 

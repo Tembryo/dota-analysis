@@ -4,12 +4,13 @@ $(document).ready(function(){
     var pathname = "/api/stats?start=0&end=20";
 
     $.getJSON(pathname, function(data) {
-        the_stats = data;
+        the_stats = data.filter(
+            function(d){return d["score_data"];});
         plot_graph("MMR");
     });
 
-    var width = 1100;
-    var height = 400;
+    var width = 810;
+    var height = 350;
     var padding = 50;
 
 
@@ -29,9 +30,23 @@ $(document).ready(function(){
         .attr("id", "xAxis")
         .attr("transform", "translate(0," + (height-padding) + ")");
 
+    canvas.append("text")
+        .attr("class", "x label")
+        .attr("text-anchor", "end")
+        .attr("x", width-padding/2)
+        .attr("y", height - padding-10)
+        .text("match nr");
+
     canvas.append("g")
         .attr("id", "yAxis")
         .attr("transform", "translate(" + padding + ",0)");
+
+    canvas.append("text")
+        .attr("class", "y label")
+        .attr("id", "y-axis-label")
+        .attr("text-anchor", "end")
+        .attr("transform", "translate("+(padding+10)+", "+(padding/2)+") rotate(-90)")
+        .text("rating");
 
     function getValue(entry, d)
     {
@@ -107,6 +122,9 @@ $(document).ready(function(){
         canvas.select("#yAxis")
             .transition().duration(500).ease("sin-in-out")
             .call(yAxis);
+
+        canvas.select("#y-axis-label")
+            .text(entry);
     }
 
     $("#last-hits-button").click(function(){

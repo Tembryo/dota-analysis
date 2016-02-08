@@ -290,13 +290,13 @@ def heroPositions(match):
                 if (absolute_time >= pregame_start_time) and (absolute_time <= match_end_time):
                     t = absolute_time - match_start_time
                     t_vec_hifi.append(t)
+                    if (i % sample_step_size==0):
+                            t_vec.append(t)
                     for key in heroes:
                         v = [float(row["{}X".format(heroes[key]["index"])]),float(row["{}Y".format(heroes[key]["index"])])]
                         v_mat_hifi[key].append(v)
-                    if (i % sample_step_size==0):
-                            t_vec.append(t)
-                            for key in heroes:
-                                v_mat[key].append(v)
+                        if (i % sample_step_size==0):
+                            v_mat[key].append(v)
 
     state = [v_mat,t_vec]
     state_hifi = [v_mat_hifi,t_vec_hifi]
@@ -326,7 +326,7 @@ def heroTrajectories(match,state,hero_deaths,number_of_kills,number_of_deaths):
         death_time_list = [i for i in hero_deaths[key] if (i < state[1][-1])]
         death_time_list.append(state[1][-1]) #append the final timestamp on t_vec - everybody dies in the end!
         # handle the first hero trajectory where there is no initial period where the hero is in death limbo
-        samples_list =[{"t":t,"v":state[0][key][j]} for j, t in enumerate(state[1]) if (t <= death_time_list[0])]
+        samples_list =[{"t":t,"v":state[0][key][j]} for j, t in enumerate(state[1]) if len(death_time_list)==0 or (t <= death_time_list[0])]
         trajectory = {"time-start":samples_list[0]["t"],"time-end":samples_list[-1]["t"],"timeseries":{"format":"samples","samples":samples_list}}    
         tmp_list.append(trajectory)
 

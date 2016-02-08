@@ -57,10 +57,12 @@ function checkAPIHistoryData()
             {
                 //auto-request matches for plus users.
                 console.log("results", results);
-                locals.client.query(
+                /*locals.client.query(
                     "INSERT INTO MatchRetrievalRequests(id, retrieval_status, requester_id) (SELECT umh.match_id, mrs.id, MAX(umh.user_id) FROM UserMatchHistory umh, UserStatuses us, UserStatusTypes ust, MatchRetrievalStatuses mrs WHERE umh.user_id=us.user_id AND us.statustype_id=ust.id  AND ust.label=$1 AND mrs.label=$2 AND NOT EXISTS (SELECT id FROM Matches m WHERE m.id=umh.match_id) AND NOT EXISTS (SELECT id FROM MatchRetrievalRequests mrr2 WHERE mrr2.id=umh.match_id) AND to_timestamp((umh.data->>'start_time')::int) > current_timestamp - interval '7 days' GROUP BY umh.match_id, mrs.id);",
                     ["plus", "requested"],
-                    callback);
+                    callback);*/
+                //disabled auto retrieve
+                callback(null, -1);
             },
             function(results, callback)
             {

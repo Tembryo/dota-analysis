@@ -107,7 +107,7 @@ router.route('/result/:result_id')
                 function(err, result)
                 {
                     locals.done();
-                    console.log(result);
+                    //console.log(result);
                     if(err)
                     {
                         console.log("error retrieving result "+req.params.match_id);
@@ -359,6 +359,7 @@ router.route("/retrieve/:match_id")
             );
         }
     );
+
 router.route("/score/:match_id")
     .get(authentication.ensureAuthenticated,
         function(req, res)
@@ -381,8 +382,8 @@ router.route("/score/:match_id")
                             callback("already exists");
                         else
                         {
-                            locals.client.query("INSERT INTO ScoreRequests(match_id, steam_identifier) VALUES ($1, (SELECT u.steam_identifier FROM Users u where u.id=$2));",
-                            [req.params.match_id, req.user["id"]],callback);
+                            locals.client.query("INSERT INTO ScoreRequests(match_id) VALUES ($1) RETURNING id;",
+                            [req.params.match_id],callback);
                         }
                     },
                     function(results, callback)
@@ -390,7 +391,7 @@ router.route("/score/:match_id")
                         if(results.rowCount != 1)
                             callack("inserting request failed", results);
                         else
-                            callback();
+                            callback(null, results.rows[0]["id"]);
                     }
                 ],
                 function(err, results)
@@ -409,7 +410,63 @@ router.route("/score/:match_id")
                     else
                     {
                         var success_result = {
-                            "result": "success"
+                            "result": "success",
+                            "id": results
+                            };
+                        res.json(success_result);
+                    }
+                }
+            );
+        }
+    );
+
+router.route("/score_result/:request_id")
+    .get(authentication.ensureAuthenticated,
+        function(req, res)
+        {
+            var locals = {};
+            async.waterfall(
+                [
+                    database.connect,
+                    function(client, done_client, callback)
+                    {
+                        locals.client = client;
+                        locals.done = done_client;
+
+                        locals.client.query("SELECT r.id FROM Results r, ScoreRequests sr, Users u WHERE sr.match_id=r.match_id AND u.steam_identifier= r.steam_identifier AND sr.id=$1 AND u.id=$2;",
+                            [req.params.request_id, req.user["id"]],callback);
+                    },
+                    function(results, callback)
+                    {
+                        if(results.rowCount != 1)
+                        {
+                            callback("couldnt find", results);
+                        }    
+                        else
+                        {
+                            callback(null, results.rows[0]["id"]);
+                        }
+                    }
+                ],
+                function(err, results)
+                {
+                    locals.done();
+                    if(err)
+                    {
+                        console.log(err, results);
+                        var error_result = {
+                            "result": "error",
+                            "message": err,
+                            "info": results
+                            };
+                        res.json(error_result);
+                    }
+                    else
+                    {
+                        console.log("found score res",results);
+                        var success_result = {
+                            "result": "success",
+                            "id": results
                             };
                         res.json(success_result);
                     }

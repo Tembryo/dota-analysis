@@ -1423,12 +1423,14 @@ function getEntityPosition(entity_id)
 
 function getEntityPositionAtTime(entity_id, time)
 {
+    //console.log("getting pos", entity_id);
     var entity = replay_data["entities"][entity_id];
+    //console.log("unit", entity["unit"]);
     var current_time = time;
     var segment_id = getUnitPositionSegment(entity);
-
+    //console.log("segments ", entity["position"].length, "segid", segment_id);
     if(segment_id >= 0)
-    {//console.log("getting pos "+entity_id+" "+current_time+" s"+segment_id);
+    {   //console.log("getting pos "+entity_id+" "+current_time+" s"+segment_id);
         var position = getTimeseriesValue(entity["position"][segment_id]["timeseries"], current_time);
         return position;
     }
@@ -1503,6 +1505,7 @@ function updateMapUnit(entry)
     var group = d3.select(this);
 
     var position = getEntityPosition(entry.key);
+    //console.log("pos ", position);
     var coordinates;
     if(position)
         coordinates = gamePositionToCoordinates(position);
