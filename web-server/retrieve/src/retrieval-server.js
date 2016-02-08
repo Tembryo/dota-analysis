@@ -154,7 +154,7 @@ function updateUserHistory(user_row, dota_client, callback_request)
                 if(results.rowCount!=1)
                     callback("setting new last match failed", results);
                 else
-                    callback();
+                    callback(null, "done");
             }
         ],
         function(err, results)
