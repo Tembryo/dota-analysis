@@ -6,7 +6,7 @@ var child_process   = require("child_process"),
 var config          = require("./config.js"),
     database          = require("./database.js");
 
-var concurrent_parse = require("semaphore")(1);
+var concurrent_parse = require("semaphore")(3);
 var concurrent_score = require("semaphore")(5);
 
 var check_interval = 5000;
@@ -96,9 +96,11 @@ function processNotification(msg)
     {
         case "Analyse":
             var replay_id = parseInt(parts[1]);
+            console.log("trying to analyse ",replay_id);
             concurrent_parse.take(
                 function(){
-                    processReplay(replay_id, function(){console.log("finished analysing"); concurrent_parse.leave();});
+                    console.log("got analyse ",replay_id);
+                    processReplay(replay_id, function(){console.log("finished analysing", replay_id); concurrent_parse.leave();});
 
                 });
             break;
@@ -144,7 +146,8 @@ function processReplay(replay_id, callback_replay)
                     child_process.execFile(
                         "java", 
                         ["-jar", "/extractor/extractor.jar", config.shared+results.rows[0].file, config.storage+"/"],
-                        {"timeout":max_extraction_time},
+                        {   "timeout":max_extraction_time,
+                            "killSignal": 'SIGKILL'},
                         callback);
                 }
             },
