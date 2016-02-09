@@ -16,7 +16,7 @@ function load()
             d3.selectAll("#scroll-right")
                 .classed("disabled", false)
                 .on("click", function (){start+= range; load()});
-        }   
+        }
         else
         {
             d3.selectAll("#scroll-right")
@@ -93,6 +93,14 @@ function drawTables(data) {
 
     small_table.exit()
         .remove();
+
+    if(data.length == 0)
+    {
+        d3.select("#user-container")
+            .append("div")
+                .attr("id", "notification-empty")
+                .text("Your match history seems to be empty, have you played games recently?")
+    }
 }
 
 var icon_pictures = {
