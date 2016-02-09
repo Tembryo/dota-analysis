@@ -1,4 +1,3 @@
-current_slide = 0;
 examples = [0,1,2,3,4,5];
 
 $(document).ready(function(){
@@ -31,12 +30,22 @@ $(document).ready(function(){
 
   });
 
+  $('.slick-slider').on('click', '.slick-slide', function (e) {
+    e.stopPropagation();
+    var index = $(this).data("slick-index");
+    console.log("clicked ",index, $('.slick-slider').slick('slickCurrentSlide'))
+
+    var offset = ($('.slick-slider').slick('slickGetOption', "slidesToShow")-1) /2;
+
+    $('.slick-slider').slick('slickGoTo', index-offset);
+  });
 
 
   $('.slider').on('afterChange', function(event, slick, currentSlide, nextSlide){
     var elSlide = $(slick.$slides[currentSlide]);
-    console.log(currentSlide)
-    current_slide = currentSlide; 
+    console.log("changed to",currentSlide)
+    var offset = ($('.slick-slider').slick('slickGetOption', "slidesToShow")-1) /2;
+    current_slide = (currentSlide + offset)%examples.length; 
   });
 
   $("#ratePlayerDiv").click(function(){   
@@ -47,7 +56,10 @@ $(document).ready(function(){
         warningStyle: 'progress-bar-danger',
         completeStyle: 'progress-bar-info',
         onFinish: function() {
-            window.location.replace("/result?example="+current_slide)
+            var offset = ($('.slick-slider').slick('slickGetOption', "slidesToShow")-1) /2;
+            var current_slide = $('.slick-slider').slick('slickCurrentSlide'); 
+
+            window.location.replace("/result?example="+(current_slide+offset)%examples.length);
         }
     });  
   });

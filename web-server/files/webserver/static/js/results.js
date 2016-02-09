@@ -268,10 +268,15 @@ $(document).ready(function(){
 			$("#skill-bar3").attr("style","width:"+ String(json["movement"] + "%"))
 			$("#skill-bar4").attr("valuenow",String(json["skill"]))
 			$("#skill-bar4").attr("style","width:"+ String(json["skill"] + "%"))
-			var category = json["category"];
+			var category =  blockMap(json["MMR"]);
 			var url_str = "block" + String(category) + "selected";
 			var id_str = "#block" + String(category);
 			$(id_str).attr("src","/static/img/logos/" + url_str + ".png")
+
+			$("#match-page").attr("href","#")
+				.on("click", function(){alert("Just an example")});
+
+			$("#coming-soon").remove();
 		});
 	}
 	else
