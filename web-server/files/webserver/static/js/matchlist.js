@@ -100,13 +100,13 @@ function drawTables(data) {
             .append("tr")
                 .append("td")
                     .attr("colspan", 8)
-                    .text("Your match history seems to be empty, have you played games recently?");
+                    .html("Your match history seems to be empty, have you played games recently?<hr/>If you are a new user, it might take a few seconds to load your matches. Please refresh.");
 
         d3.select("#small-match-list")
             .append("tr")
                 .append("td")
                     .attr("colspan", 5)
-                    .text("Your match history seems to be empty, have you played games recently?");
+                    .html("Your match history seems to be empty, have you played games recently?<hr/>If you are a new user, it might take a few seconds to load your matches. Please refresh.");
     }
 }
 

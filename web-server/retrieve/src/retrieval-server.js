@@ -179,7 +179,7 @@ function processMatchHistory(history, locals, callback)
             //console.log(match["match_id"]);
             if(match["match_id"]["low"] > locals.user_last_match)
             {           
-                console.log("inserting matchhist");
+                console.log("inserting matchhist", match["match_id"]["low"]);
                 locals.client.query(
                     "INSERT INTO UserMatchHistory (user_id, match_id, data) VALUES ($1, $2, $3);",
                     [locals.user_id, match["match_id"]["low"], match],
@@ -252,6 +252,14 @@ function registerListener()
                 {
                     console.log("added retrieve listener");
                 });
+
+            client.query(
+                "LISTEN newuser_watchers;",
+                [],
+                function(err, results)
+                {
+                    console.log("added user listener");
+                });
           //no end -- client.end();
         }
     );
@@ -277,6 +285,51 @@ function processNotification(msg)
                     processRequest(request_id, dota_client, callback_dota);
                 },
                 function(){console.log("finished retrieve");}
+            );
+            break;
+        case "User":
+            var user_id = parseInt(parts[1]);
+            var locals = {};
+            async.waterfall(
+                [
+                    database.connect,
+                    function(client, done_client, callback)
+                    {
+                        locals.client = client;
+                        locals.done = done_client;
+                        locals.client.query(
+                            "SELECT u.id, u.steam_identifier, u.last_match FROM Users u WHERE u.id=$1;",
+                            [user_id],
+                            callback);
+                    },
+                    function(users, callback)
+                    {
+                        console.log("updating notified user", users.rows);
+                        if(users.rowCount != 1)
+                        {
+                            callback("bad user count", users);
+                        }
+                        else
+                        {
+                            dota.performAction(
+                                config,
+                                function(dota_client, callback_dota)
+                                {
+                                    updateUserHistory(users.rows[0], dota_client, callback_dota); 
+                                },
+                                function(err, results)
+                                {
+                                    callback(err, results);
+                                }
+                            );
+                        }
+                    }
+                ],
+                function(err, results)
+                {
+                    locals.done();
+                    console.log("finished notified user", user_id);
+                }
             );
             break;
         default:
