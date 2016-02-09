@@ -1,0 +1,6 @@
+db dump:
+
+
+pg_dump postgresql://wisdota:the-database-elephant@172.17.0.3/wisdota --schema-only > ~/db_tables.sql
+
+pg_dump postgresql://wisdota:the-database-elephant@172.17.0.3/wisdota -D -a -t processingstatuses -t matchretrievalstatuses -t verificationactiontypes -t userstatustypes -t eventtypes -f eventpropertynames> ~/db_tables.sql
