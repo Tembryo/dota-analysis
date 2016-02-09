@@ -9,7 +9,7 @@ var config      = require("./config.js"),
     dota        = require("./dota.js");
 
 var check_interval = 5000;
-var check_interval_history = 60000;
+var check_interval_history = 60*1000*5;
 var matches_per_request = 20;
 var history_retrieve_delay = 100;
 
@@ -89,7 +89,7 @@ function checkAPIHistoryData()
             function(results, callback)
             {
                 //auto-request matches for plus users.
-                console.log("results", results);
+                //console.log("results", results);
                 /*locals.client.query(
                     "INSERT INTO MatchRetrievalRequests(id, retrieval_status, requester_id) (SELECT umh.match_id, mrs.id, MAX(umh.user_id) FROM UserMatchHistory umh, UserStatuses us, UserStatusTypes ust, MatchRetrievalStatuses mrs WHERE umh.user_id=us.user_id AND us.statustype_id=ust.id  AND ust.label=$1 AND mrs.label=$2 AND NOT EXISTS (SELECT id FROM Matches m WHERE m.id=umh.match_id) AND NOT EXISTS (SELECT id FROM MatchRetrievalRequests mrr2 WHERE mrr2.id=umh.match_id) AND to_timestamp((umh.data->>'start_time')::int) > current_timestamp - interval '7 days' GROUP BY umh.match_id, mrs.id);",
                     ["plus", "requested"],
@@ -123,7 +123,7 @@ function updateUserHistory(user_row, dota_client, callback_request)
     locals.user_new_last_match = locals.user_last_match;
     locals.user_min_match_checked = Number.MAX_VALUE;
     locals.dota_client = dota_client;
-    console.log("history", user_row, locals.user_min_match_checked);
+    //console.log("history", user_row, locals.user_min_match_checked);
     async.waterfall(
         [
             database.connect,
@@ -176,7 +176,7 @@ function processMatchHistory(history, locals, callback)
             locals.user_new_last_match = Math.max(locals.user_new_last_match, match["match_id"]["low"]);
 
             locals.user_min_match_checked = Math.min(locals.user_min_match_checked, match["match_id"]["low"]);
-            console.log(match["match_id"]);
+            //console.log(match["match_id"]);
             if(match["match_id"]["low"] > locals.user_last_match)
             {           
                 console.log("inserting matchhist");
