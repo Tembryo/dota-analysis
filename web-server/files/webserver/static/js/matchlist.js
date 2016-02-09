@@ -96,10 +96,17 @@ function drawTables(data) {
 
     if(data.length == 0)
     {
-        d3.select("#user-container")
-            .append("div")
-                .attr("id", "notification-empty")
-                .text("Your match history seems to be empty, have you played games recently?")
+        d3.select("#large-match-list")
+            .append("tr")
+                .append("td")
+                    .attr("colspan", 8)
+                    .text("Your match history seems to be empty, have you played games recently?");
+
+        d3.select("#small-match-list")
+            .append("tr")
+                .append("td")
+                    .attr("colspan", 5)
+                    .text("Your match history seems to be empty, have you played games recently?");
     }
 }
 
