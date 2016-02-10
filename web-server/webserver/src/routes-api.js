@@ -692,7 +692,6 @@ router.route("/download/:match_id")
                             "result": "error",
                             "message": err
                             };
-                        res.json(error_result);
                     }
                     else
                     {
