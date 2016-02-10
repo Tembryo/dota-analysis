@@ -392,7 +392,7 @@ function updateRow(data)
         case "analysing":
             button
                 .attr("class", "btn dashboard-button btn-success disabled")
-                .html("<div class='sp sp-circle'></div><div class='processing-text'>Processing</div>");
+                .html("<div class='sp sp-circle'></div><div class='processing-text'>Processing, ~1 min</div>");
             break;
         case "failed":
             button
@@ -402,7 +402,7 @@ function updateRow(data)
         case "unavailable":
             button
                 .attr("class", "btn dashboard-button btn-default disabled")
-                .text("Not available");
+                .text("Data unavailable");
             break;
         case "untried":
             if((Date.now()/1000) - data["data"]["start_time"] < 10*24*60*60 )
@@ -438,7 +438,7 @@ function updateRow(data)
             {
                 button
                     .attr("class", "btn dashboard-button btn-default disabled")
-                    .text("Not available");
+                    .text("Data unavailable");
             }  
             break;
         default:
