@@ -94,9 +94,17 @@
             <div id="social-media" class="col-lg-4 col-md-4 col-sm-8 text-center">
                 <h4>Share this rating with your friends:</h4>
                 <div class="socialmedia_container center-block">
-                    <% MMR = 12345; tweet_text = "My play got scored as "+MMR+" " %>
-                    <a href="https://twitter.com/share" style="vertical-align: text-bottom" class="twitter-share-button"{count} data-text="<%=tweet_text%>" data-size="large" data-url="http://www.wisdota.com/result/<%=result_id%>" data-hashtags="wisdota,dota2">Tweet</a>
+
+                    <div class="fb-send socialmediabutton" data-href="http://wisdota.com"></div>
+                    <% tweet_text = "Rate your play on Wisdota! " %>
+                    <a href="https://twitter.com/share" class="twitter-share-button"{count} data-text="<%=tweet_text%>" data-url="http://www.wisdota.com/" data-hashtags="wisdota,dota2">Tweet</a>
                     <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+                     <a href="mailto:?subject=Ready to turn pro?&body=Let Artificial Intelligence rate your Dota play! http://wisdota.com" class="mailLink socialmediabutton hidden-xs">
+                     <img src="/static/img/email.svg" width="61px" height="20px">
+                     </a>
+
+                    <div class="fb-share-button" data-href="http://wisdota.com" data-layout="button_count"></div>
+
                 </div>
                 <!--<a href="index.html" id="rate-another-player-btn" class="btn btn-default main-button">Rate Another Player </a>-->
             </div>

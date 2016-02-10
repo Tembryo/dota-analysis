@@ -238,6 +238,7 @@ $(document).ready(function(){
 		{
 			pairs.push({"radiant": null, "dire": null});
 		}
+		var avg_imr = 0;
 		for(var i = 0; i < json.length; ++i)
 		{
 			var player = json[i];
@@ -252,7 +253,10 @@ $(document).ready(function(){
 				team = "dire";
 			}
 			pairs[row_id][team] = player;
+
+			avg_imr += player["score_data"]["MMR"];
 		}
+		avg_imr /=json.length;
 
 	    var small_table = d3.select("#players-table").selectAll(".score-row").data(pairs, function(pair,i){
 	                return i;
@@ -262,6 +266,9 @@ $(document).ready(function(){
 	        .append("tr")
 	        .attr("class", "score-row")
 	        .each(createRow);
+
+	    d3.select("#average-imr")
+	    	.text(Math.floor(avg_imr));
 	});
 	
 });
