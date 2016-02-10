@@ -229,81 +229,72 @@ var names =
 	"zuus":                 "Zeus"
 };
 
-function blockMap(rating)
-{
-	var category = -1;
-	if(rating>= 6000)
-		category = 6;
-	else if(rating >= 4300 && rating < 6000)
-		category = 5;
-	else if(rating >= 3000 && rating < 4300)
-		category = 4;
-	else if(rating >= 2000 && rating < 3000)
-		category = 3;
-	else if(rating >= 1000 && rating < 2000)
-		category = 2;
-	else if(rating < 1000)
-		category = 1;
-	else
-	{
-		console.log("not happening");
-	}
-	return category;
-}
-
 $(document).ready(function(){	
 	var pathname;
-	if (result_id < 0)
-	{
-		pathname = "/static/data/example_results/example"+example+".json";
-		$.getJSON(pathname, function(json) {
-	    	$("h1").text(json["user"] + ": " +json["id"])
-	    	$(".results-header-small").text("IMR: "+json["MMR"])
-			$("#hero-img").attr("src",pictures[json["hero"]])
-			$("#skill-bar1").attr("valuenow",String(json["last_hits"]))
-			$("#skill-bar1").attr("style","width:"+ String(json["last_hits"] + "%"))
-			$("#skill-bar2").attr("valuenow",String(json["fights"]))
-			$("#skill-bar2").attr("style","width:"+ String(json["fights"] + "%"))
-			$("#skill-bar3").attr("valuenow",String(json["movement"]))
-			$("#skill-bar3").attr("style","width:"+ String(json["movement"] + "%"))
-			$("#skill-bar4").attr("valuenow",String(json["skill"]))
-			$("#skill-bar4").attr("style","width:"+ String(json["skill"] + "%"))
-			var category =  blockMap(json["MMR"]);
-			var url_str = "block" + String(category) + "selected";
-			var id_str = "#block" + String(category);
-			$(id_str).attr("src","/static/img/logos/" + url_str + ".png")
+	pathname = "/api/results?matchid="+match_id;
+	$.getJSON(pathname, function(json) {
+		var pairs = [];
+		for(var i = 0; i < 5; ++i)
+		{
+			pairs.push({"radiant": null, "dire": null});
+		}
+		for(var i = 0; i < json.length; ++i)
+		{
+			var player = json[i];
+			var row_id = player["player_data"]["slot"] % 5;
+			var team;
+			if(player["player_data"]["slot"] < 5)
+			{
+				team = "radiant";
+			}
+			else 
+			{
+				team = "dire";
+			}
+			pairs[row_id][team] = player;
+		}
 
-			$("#match-page").attr("href","#")
-				.on("click", function(){alert("Just an example")});
+	    var small_table = d3.select("#players-table").selectAll(".score-row").data(pairs, function(pair,i){
+	                return i;
+	            });
 
-			$("#coming-soon").remove();
-		});
-	}
-	else
-	{
-		pathname = "/api/result/"+result_id;
-		$.getJSON(pathname, function(json) {
-	    	$("h1").text(names[json["player_data"]["hero"]])
-	    	$(".results-header-small").text("IMR: "+Math.floor(json["score_data"]["MMR"]))
-			$("#hero-img").attr("src",pictures[json["player_data"]["hero"]])
-			$("#skill-bar1").attr("valuenow",50)
-			$("#skill-bar1").attr("style","width:"+50+"%")
-			$("#skill-bar2").attr("valuenow",50)
-			$("#skill-bar2").attr("style","width:"+50+ "%")
-			$("#skill-bar3").attr("valuenow",50)
-			$("#skill-bar3").attr("style","width:"+50+ "%")
-			$("#skill-bar4").attr("valuenow",50)
-			$("#skill-bar4").attr("style","width:"+50+ "%")
-			
-			$("#match-page").attr("href","/match/"+match_id)
-			$("#scoreboard-page").attr("href","/scoreboard/"+match_id)
-
-			var category = blockMap(json["score_data"]["MMR"]);
-			var url_str = "block" + String(category) + "selected";
-			var id_str = "#block" + String(category);
-			$(id_str).attr("src","/static/img/logos/" + url_str + ".png")
-		});
-	}
-
+	    small_table.enter()
+	        .append("tr")
+	        .attr("class", "score-row")
+	        .each(createRow);
+	});
 	
 });
+
+function createRow(pair)
+{
+    var row = d3.select(this);
+
+    row.append("td")
+        .append("div")
+            .attr("class","image-thumbnail")
+            .append("img")
+                .attr("src", pictures[pair["radiant"]["player_data"]["hero"]])
+                .attr("style", "height:37px");
+
+    row.append("td")
+        .text(names[[pair["radiant"]["player_data"]["hero"]]]);
+
+    row.append("td")
+        .text(Math.floor(pair["radiant"]["score_data"]["MMR"]));
+
+    row.append("td")
+
+    row.append("td")
+        .append("div")
+            .attr("class","image-thumbnail")
+            .append("img")
+                .attr("src", pictures[pair["dire"]["player_data"]["hero"]])
+                .attr("style", "height:37px");
+
+    row.append("td")
+        .text(names[[pair["dire"]["player_data"]["hero"]]]);
+
+    row.append("td")
+        .text(Math.floor(pair["dire"]["score_data"]["MMR"]));
+}

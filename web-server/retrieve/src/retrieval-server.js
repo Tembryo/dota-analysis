@@ -6,12 +6,39 @@ var async       = require("async");
 var config      = require("./config.js"),
     database    = require("./database.js"),
     replay_dl   = require("./replay-download.js"),
-    dota        = require("./dota.js");
+    dota        = require("./dota.js"),
+    steam_accs  = require("./steam-accs.js");
 
 var check_interval = 5000;
 var check_interval_history = 60*1000*5;
 var matches_per_request = 20;
 var history_retrieve_delay = 100;
+
+var current_acc = 0;
+var current_account_i = 0;
+
+function getLogin()
+{
+    if(current_acc < steam_accs.account_list.length)
+        return steam_accs.account_list[current_acc];
+    else
+    {
+        //just loop the accounts
+        current_acc = 0;
+        return steam_accs.account_list[current_acc];
+        //return null;
+    } 
+}
+
+function iterateAccount()
+{
+    console.log("done with acc", current_acc, current_account_i);
+    current_acc ++;
+    current_account_i = 0;
+}
+
+
+
 
 resetStuff();
 registerListener();
@@ -278,14 +305,8 @@ function processNotification(msg)
     {
         case "Retrieve":
             var request_id = parseInt(parts[1]);
-            dota.performAction(
-                config,
-                function(dota_client, callback_dota)
-                {
-                    processRequest(request_id, dota_client, callback_dota);
-                },
-                function(){console.log("finished retrieve");}
-            );
+            processRequest(request_id, function(){console.log("finished retrieve reqid", request_id);});
+ 
             break;
         case "User":
             var user_id = parseInt(parts[1]);
@@ -338,7 +359,7 @@ function processNotification(msg)
 }
 
 
-function processRequest(request_id, dota_client, callback_request)
+function processRequest(request_id, callback_request)
 {
     console.log("processing replay", request_id);
     var locals = {};
@@ -367,7 +388,9 @@ function processRequest(request_id, dota_client, callback_request)
                     console.log("dl #id for #u", results.rows[0].id, results.rows[0].requester_id);
                     locals.requester_id = results.rows[0].requester_id;
                     locals.match_id = results.rows[0].id;
-                    replay_dl.downloadMatch(dota_client, locals.match_id, config.shared+"/replays/", callback);
+                    locals.store_path = config.shared+"/replays/";
+
+                    fetchMatch(locals, callback); 
                 }
             },
             function(replay_file, callback)
@@ -451,4 +474,49 @@ function processRequest(request_id, dota_client, callback_request)
             }
         }
     );
+}
+
+
+
+function fetchMatch(locals, callback)
+{
+    var next_login = getLogin();
+
+    async.waterfall(
+        [
+            function(callback)
+            {
+                dota.performAction(
+                    next_login,
+                    function(dota_client, callback_dl)
+                    {
+                        console.log("before dl");
+                        replay_dl.downloadMatch(dota_client, locals.match_id, locals.store_path, callback_dl);
+                    },
+                    callback);
+            }
+        ],
+        function(err, results)
+        {
+            if(err == "details-timeout")
+            {
+                //got timed out, retry with next account fordetails
+                iterateAccount();
+                if(getLogin() == null)
+                    callback("no accounts left");
+                else
+                {
+                    fetchMatch(locals, callback);
+                }
+            }
+            else if(err)
+            {
+                locals.client.query(
+                    "UPDATE Matches SET status = 'faileddl' WHERE matchid = $1;",
+                    [match_id],
+                    callback);
+            }
+            else
+                callback(null, results);
+        });
 }

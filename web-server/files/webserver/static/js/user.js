@@ -6,6 +6,7 @@ $(document).ready(function(){
     $.getJSON(pathname, function(data) {
         the_stats = data.filter(
             function(d){return d["score_data"];});
+        the_stats = the_stats.reverse();
         plot_graph("IMR");
     });
 
@@ -106,7 +107,7 @@ $(document).ready(function(){
 
         var mypath = d3.select("#graph");
 
-        mypath.attr("d",line(the_stats.reverse()));
+        mypath.attr("d",line(the_stats));
 
         var xAxis = d3.svg.axis()
                         .scale(horizontal_scale)
