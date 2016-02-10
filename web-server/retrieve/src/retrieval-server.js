@@ -513,7 +513,7 @@ function fetchMatch(locals, callback)
             {
                 locals.client.query(
                     "UPDATE Matches SET status = 'faileddl' WHERE matchid = $1;",
-                    [match_id],
+                    [locals.match_id],
                     callback);
             }
             else
