@@ -54,12 +54,13 @@ function resetStuff()
             {
                 locals.client = client;
                 locals.done = done_client;
-                locals.client.query(
+                /*locals.client.query(
                     "DELETE FROM MatchRetrievalRequests mrr "+
                     "WHERE mrr.retrieval_status = (SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label='retrieving') OR "+
                     "mrr.retrieval_status = (SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label='requested');",
                     [],
-                    callback);
+                    callback);*/
+                callback("dont need cleanup");
             },
             function(results, callback)
             {
