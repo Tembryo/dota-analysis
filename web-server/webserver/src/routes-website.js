@@ -17,7 +17,8 @@ router.use(function(req, res, next)
             {
                 locals.client = client;
                 locals.done = done_client;
-                var user = "IP_"+req.ip;
+                var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+                var user = "IP_"+ip;
                 if(req.user)
                     user = req.user["id"];
                 var data = {
@@ -168,6 +169,14 @@ router.get('/match/:match_id', function(req, res)
     var data = collectTemplatingData(req);
     data["match_id"] = req.params.match_id;
     res.render("pages/match.ejs", data);
+});
+
+
+router.get('/scoreboard/:match_id', function(req, res)
+{
+    var data = collectTemplatingData(req);
+    data["match_id"] = req.params.match_id;
+    res.render("pages/scoreboard.ejs", data);
 });
 
 
