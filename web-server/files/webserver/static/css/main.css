@@ -112,6 +112,7 @@ button.slick-next {
 
 .socialmedia_container{
 	height: 20px;
+	width: 300px;
 }
 
 @media screen and (min-width: 993px) {
@@ -130,4 +131,13 @@ button.slick-next {
 	.slider {
 		width: 275px;
 	}
+}
+
+
+.socialmediabutton, iframe, .fb-share-button{
+    float:left;
+    margin-right: 7px;
+    margin-bottom: 20px;
+    width: 65px;
+    /*background-color: red;*/
 }
