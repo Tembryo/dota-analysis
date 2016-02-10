@@ -17,7 +17,7 @@ router.use(function(req, res, next)
             {
                 locals.client = client;
                 locals.done = done_client;
-                var user = "anonymous";
+                var user = "IP_"+req.ip;
                 if(req.user)
                     user = req.user["id"];
                 var data = {

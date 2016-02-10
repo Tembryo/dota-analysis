@@ -6,7 +6,7 @@ $(document).ready(function(){
     $.getJSON(pathname, function(data) {
         the_stats = data.filter(
             function(d){return d["score_data"];});
-        plot_graph("MMR");
+        plot_graph("IMR");
     });
 
     var width = 810;
@@ -106,11 +106,12 @@ $(document).ready(function(){
 
         var mypath = d3.select("#graph");
 
-        mypath.attr("d",line(the_stats));
+        mypath.attr("d",line(the_stats.reverse()));
 
         var xAxis = d3.svg.axis()
                         .scale(horizontal_scale)
-                        .orient("bottom");
+                        .orient("bottom")
+                        .tickFormat(function(d){return Math.floor(d);});
 
         var yAxis = d3.svg.axis()
                         .scale(vertical_scale)

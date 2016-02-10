@@ -258,7 +258,7 @@ $(document).ready(function(){
 		pathname = "/static/data/example_results/example"+example+".json";
 		$.getJSON(pathname, function(json) {
 	    	$("h1").text(json["user"] + ": " +json["id"])
-	    	$(".results-header-small").text(json["MMR"])
+	    	$(".results-header-small").text("IMR: "+json["MMR"])
 			$("#hero-img").attr("src",pictures[json["hero"]])
 			$("#skill-bar1").attr("valuenow",String(json["last_hits"]))
 			$("#skill-bar1").attr("style","width:"+ String(json["last_hits"] + "%"))
@@ -284,7 +284,7 @@ $(document).ready(function(){
 		pathname = "/api/result/"+result_id;
 		$.getJSON(pathname, function(json) {
 	    	$("h1").text(names[json["player_data"]["hero"]])
-	    	$(".results-header-small").text("Match Rating: "+Math.floor(json["score_data"]["MMR"]))
+	    	$(".results-header-small").text("IMR: "+Math.floor(json["score_data"]["MMR"]))
 			$("#hero-img").attr("src",pictures[json["player_data"]["hero"]])
 			$("#skill-bar1").attr("valuenow",50)
 			$("#skill-bar1").attr("style","width:"+50+"%")
