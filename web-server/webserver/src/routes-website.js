@@ -9,8 +9,45 @@ var router = express.Router();
 
 router.use(function(req, res, next)
 {
-    //place for middleware
-    next(); // make sure we go to the next routes and don't stop here
+    var locals = {};
+    async.waterfall(
+        [
+            database.connect,
+            function(client, done_client, callback)
+            {
+                locals.client = client;
+                locals.done = done_client;
+                var user = "anonymous";
+                if(req.user)
+                    user = req.user["id"];
+                var data = {
+                    "page": req.path,
+                    "user": user
+                }
+
+                locals.client.query("INSERT INTO events(event_type, time, data) VALUES ((SELECT id FROM EventTypes WHERE label=$1),now(), $2);",["ViewPage", data],callback);
+            },
+            function(results, callback)
+            {
+                if(results.rowCount != 1)
+                {
+                    callback("event insert failed", results);
+                }
+                else
+                {
+                    callback();
+                }
+            }
+        ],
+        function(err, results)
+        {
+            locals.done();
+            if(err)
+                console.log(err, results);
+            next();
+        }
+    );
+ // make sure we go to the next routes and don't stop here
 });
 
 function collectTemplatingData(req)

@@ -100,13 +100,13 @@ function drawTables(data) {
             .append("tr")
                 .append("td")
                     .attr("colspan", 8)
-                    .text("Your match history seems to be empty, have you played games recently?");
+                    .html("Your match history seems to be empty, have you played games recently?<hr/>If you are a new user, it might take a few seconds to load your matches. Please refresh.");
 
         d3.select("#small-match-list")
             .append("tr")
                 .append("td")
                     .attr("colspan", 5)
-                    .text("Your match history seems to be empty, have you played games recently?");
+                    .html("Your match history seems to be empty, have you played games recently?<hr/>If you are a new user, it might take a few seconds to load your matches. Please refresh.");
     }
 }
 
@@ -140,8 +140,8 @@ var icon_pictures = {
     "7":          "/static/img/heroes/pictures/Earthshaker.png",
     "103":          "/static/img/heroes/pictures/Elder_Titan.png",
     "107":          "/static/img/heroes/pictures/Earth_Spirit.png",
-    "106":         "/static/img/heroes/pictures/Enchantress.png",
-    "58":          "/static/img/heroes/pictures/Ember_Spirit.png",
+    "58":         "/static/img/heroes/pictures/Enchantress.png",
+    "106":          "/static/img/heroes/pictures/Ember_Spirit.png",
     "33":               "/static/img/heroes/pictures/Enigma.png",
     "53":               "/static/img/heroes/pictures/Furion.png",
     "41":        "/static/img/heroes/pictures/Faceless Void.png",
@@ -392,7 +392,7 @@ function updateRow(data)
         case "analysing":
             button
                 .attr("class", "btn dashboard-button btn-success disabled")
-                .html("<div class='sp sp-circle'></div><div class='processing-text'>Processing</div>");
+                .html("<div class='sp sp-circle'></div><div class='processing-text'>Processing, ~1 min</div>");
             break;
         case "failed":
             button
@@ -402,7 +402,7 @@ function updateRow(data)
         case "unavailable":
             button
                 .attr("class", "btn dashboard-button btn-default disabled")
-                .text("Not available");
+                .text("Data unavailable");
             break;
         case "untried":
             if((Date.now()/1000) - data["data"]["start_time"] < 10*24*60*60 )
@@ -438,7 +438,7 @@ function updateRow(data)
             {
                 button
                     .attr("class", "btn dashboard-button btn-default disabled")
-                    .text("Not available");
+                    .text("Data unavailable");
             }  
             break;
         default:
