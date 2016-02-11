@@ -30,7 +30,7 @@ router.get('/', function(req, res) {
 //Match Data Serving
 // =============================================================================
 
-router.route('/matches')
+router.route('/match-header')
     // get all the matches
     .get(function(req, res)
         {
@@ -44,7 +44,17 @@ router.route('/matches')
                         locals.client = client;
                         locals.done = done_client;
 
-                        locals.client.query("SELECT header_file, label FROM Matches;",[],callback);
+                        var restriction_string = "";
+                        if(req.query.hasOwnProperty("matchid"))
+                        {
+                            match_id= parseInt(req.query.matchid);
+                            locals.client.query("SELECT header_file, label FROM Matches WHERE id=$1;",[match_id],callback);
+                        }
+                        else
+                        {
+                            locals.client.query("SELECT header_file, label FROM Matches;",[],callback);
+                        }
+
                     },
                     function(results, callback)
                     {

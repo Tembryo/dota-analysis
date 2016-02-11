@@ -230,48 +230,64 @@ var names =
 };
 
 $(document).ready(function(){	
-	var pathname;
-	pathname = "/api/results?matchid="+match_id;
-	$.getJSON(pathname, function(json) {
-		var pairs = [];
-		for(var i = 0; i < 5; ++i)
-		{
-			pairs.push({"radiant": null, "dire": null});
-		}
-		var avg_imr = 0;
-		for(var i = 0; i < json.length; ++i)
-		{
-			var player = json[i];
-			var row_id = player["player_data"]["slot"] % 5;
-			var team;
-			if(player["player_data"]["slot"] < 5)
-			{
-				team = "radiant";
-			}
-			else 
-			{
-				team = "dire";
-			}
-			pairs[row_id][team] = player;
+	var data = {};
+	var results_path = "/api/results?matchid="+match_id;
+	var header_path = "/api/match-header?matchid="+match_id;
+	$.getJSON(results_path, function(json_results) {
+		data["results"] = json_results;
+		$.getJSON(header_path, function(json_header) {
+			data["header"] = json_header[0];
 
-			avg_imr += player["score_data"]["MMR"];
-		}
-		avg_imr /=json.length;
-
-	    var small_table = d3.select("#players-table").selectAll(".score-row").data(pairs, function(pair,i){
-	                return i;
-	            });
-
-	    small_table.enter()
-	        .append("tr")
-	        .attr("class", "score-row")
-	        .each(createRow);
-
-	    d3.select("#average-imr")
-	    	.text(Math.floor(avg_imr));
+			drawScoreboard(data);
+		});
 	});
 	
 });
+
+function drawScoreboard(data)
+{
+	var pairs = [];
+	for(var i = 0; i < 5; ++i)
+	{
+		pairs.push({"radiant": null, "dire": null});
+	}
+	var avg_imr = 0;
+	for(var i = 0; i < data["results"].length; ++i)
+	{
+		var player = {};
+		player["score"] = data["results"][i];
+		player["header"] = data["header"]["players"][i];
+
+		var slot = player["score"]["player_data"]["slot"];
+		var row_id =  slot % 5;
+		var team;
+		if(slot < 5)
+		{
+			team = "radiant";
+		}
+		else 
+		{
+			team = "dire";
+		}
+		pairs[row_id][team] = player;
+
+		avg_imr += player["score"]["score_data"]["MMR"];
+	}
+	avg_imr /= data["results"].length;
+
+    var small_table = d3.select("#players-table").selectAll(".score-row").data(pairs, function(pair,i){
+                return i;
+            });
+
+    small_table.enter()
+        .append("tr")
+        .attr("class", "score-row")
+        .each(createRow);
+
+    d3.select("#average-imr")
+    	.text(Math.floor(avg_imr));
+}
+
 
 function createRow(pair)
 {
@@ -281,14 +297,14 @@ function createRow(pair)
         .append("div")
             .attr("class","image-thumbnail")
             .append("img")
-                .attr("src", pictures[pair["radiant"]["player_data"]["hero"]])
+                .attr("src", pictures[pair["radiant"]["score"]["player_data"]["hero"]])
                 .attr("style", "height:37px");
 
     row.append("td")
-        .text(names[[pair["radiant"]["player_data"]["hero"]]]);
+        .text(pair["radiant"]["header"]["name"]);
 
     row.append("td")
-        .text(Math.floor(pair["radiant"]["score_data"]["MMR"]));
+        .text(Math.floor(pair["radiant"]["score"]["score_data"]["MMR"]));
 
     row.append("td")
 
@@ -296,12 +312,12 @@ function createRow(pair)
         .append("div")
             .attr("class","image-thumbnail")
             .append("img")
-                .attr("src", pictures[pair["dire"]["player_data"]["hero"]])
+                .attr("src", pictures[pair["dire"]["score"]["player_data"]["hero"]])
                 .attr("style", "height:37px");
 
     row.append("td")
-        .text(names[[pair["dire"]["player_data"]["hero"]]]);
+        .text(pair["dire"]["header"]["name"]);
 
     row.append("td")
-        .text(Math.floor(pair["dire"]["score_data"]["MMR"]));
+        .text(Math.floor(pair["dire"]["score"]["score_data"]["MMR"]));
 }
