@@ -1,0 +1,682 @@
+[
+  {
+    "match_id": "2143043735",
+    "data": {
+      "GPM": 377,
+      "XPM": 503,
+      "average-check-duration": 1.2586689298115077,
+      "creeps-missed": 0,
+      "denies": 1,
+      "denies-with-exp": 1,
+      "hero": "zuus",
+      "initation-score": 0.5453349820470174,
+      "lane-creeps": 144,
+      "lasthits": 178,
+      "n-checks": 63,
+      "neutrals": 16,
+      "num-of-deaths": 4,
+      "num-of-fights": 30,
+      "num-of-kills": 16,
+      "steamid": "76561198019532009",
+      "time-visible": 1057.0703430175781,
+      "time-visible-first10": 307.8581848144531,
+      "slot": 9
+    },
+    "match_data": {
+      "creeps-killed": 3092,
+      "creeps-lasthit": 1443,
+      "duration": 2562,
+      "duration-all": 2652,
+      "winner": "dire"
+    },
+    "score_data": {
+      "MMR": 3559.182537029747
+    }
+  },
+  {
+    "match_id": "2140836439",
+    "data": {
+      "GPM": 174,
+      "XPM": 398,
+      "average-check-duration": 1.413538266534675,
+      "creeps-missed": 0,
+      "denies": 3,
+      "denies-with-exp": 2,
+      "hero": "shadow_shaman",
+      "initation-score": 0.16192056034145594,
+      "lane-creeps": 101,
+      "lasthits": 151,
+      "n-checks": 146,
+      "neutrals": 19,
+      "num-of-deaths": 14,
+      "num-of-fights": 48,
+      "num-of-kills": 2,
+      "steamid": "76561198019532009",
+      "time-visible": 1811.87353515625,
+      "time-visible-first10": 239.474853515625,
+      "slot": 9
+    },
+    "match_data": {
+      "creeps-killed": 6769,
+      "creeps-lasthit": 3362,
+      "duration": 4053,
+      "duration-all": 4143,
+      "winner": "dire"
+    },
+    "score_data": {
+      "MMR": 3680.819932708712
+    }
+  },
+  {
+    "match_id": "2140781447",
+    "data": {
+      "GPM": 184,
+      "XPM": 326,
+      "average-check-duration": 1.4387159471387991,
+      "creeps-missed": 0,
+      "denies": 3,
+      "denies-with-exp": 2,
+      "hero": "earthshaker",
+      "initation-score": 0.11788481166145275,
+      "lane-creeps": 50,
+      "lasthits": 72,
+      "n-checks": 77,
+      "neutrals": 19,
+      "num-of-deaths": 7,
+      "num-of-fights": 27,
+      "num-of-kills": 3,
+      "steamid": "76561198019532009",
+      "time-visible": 916.6585693359375,
+      "time-visible-first10": 163.0230712890625,
+      "slot": 1
+    },
+    "match_data": {
+      "creeps-killed": 2522,
+      "creeps-lasthit": 1258,
+      "duration": 2134,
+      "duration-all": 2224,
+      "winner": "radiant"
+    },
+    "score_data": {
+      "MMR": 3970.706881335912
+    }
+  },
+  {
+    "match_id": "2140669091",
+    "data": {
+      "GPM": 272,
+      "XPM": 415,
+      "average-check-duration": 0.9154227120535714,
+      "creeps-missed": 0,
+      "denies": 0,
+      "denies-with-exp": 0,
+      "hero": "dazzle",
+      "initation-score": 0.2826643416160972,
+      "lane-creeps": 0,
+      "lasthits": 0,
+      "n-checks": 49,
+      "neutrals": 0,
+      "num-of-deaths": 2,
+      "num-of-fights": 20,
+      "num-of-kills": 3,
+      "steamid": "76561198019532009",
+      "time-visible": 844.793701171875,
+      "time-visible-first10": 349.4743347167969,
+      "slot": 5
+    },
+    "match_data": {
+      "creeps-killed": 2213,
+      "creeps-lasthit": 1073,
+      "duration": 1737,
+      "duration-all": 1827,
+      "winner": "dire"
+    },
+    "score_data": {
+      "MMR": 3782.9608246815096
+    }
+  },
+  {
+    "match_id": "2138693101",
+    "data": {
+      "GPM": 133,
+      "XPM": 348,
+      "average-check-duration": 1.1771240234375004,
+      "creeps-missed": 0,
+      "denies": 0,
+      "denies-with-exp": 0,
+      "hero": "lich",
+      "initation-score": 0.14348877343893193,
+      "lane-creeps": 16,
+      "lasthits": 23,
+      "n-checks": 90,
+      "neutrals": 0,
+      "num-of-deaths": 7,
+      "num-of-fights": 42,
+      "num-of-kills": 7,
+      "steamid": "76561198019532009",
+      "time-visible": 1183.2333984375,
+      "time-visible-first10": 157.13058471679688,
+      "slot": 7
+    },
+    "match_data": {
+      "creeps-killed": 3961,
+      "creeps-lasthit": 1834,
+      "duration": 3106,
+      "duration-all": 3196,
+      "winner": "dire"
+    },
+    "score_data": {
+      "MMR": 3545.9042243034496
+    }
+  },
+  {
+    "match_id": "2138639554",
+    "data": {
+      "GPM": 181,
+      "XPM": 381,
+      "average-check-duration": 1.4768288352272727,
+      "creeps-missed": 0,
+      "denies": 0,
+      "denies-with-exp": 0,
+      "hero": "dazzle",
+      "initation-score": 0.06991473173291356,
+      "lane-creeps": 47,
+      "lasthits": 53,
+      "n-checks": 99,
+      "neutrals": 2,
+      "num-of-deaths": 8,
+      "num-of-fights": 33,
+      "num-of-kills": 4,
+      "steamid": "76561198019532009",
+      "time-visible": 1017.2410888671875,
+      "time-visible-first10": 179.2364501953125,
+      "slot": 5
+    },
+    "match_data": {
+      "creeps-killed": 3120,
+      "creeps-lasthit": 1336,
+      "duration": 2625,
+      "duration-all": 2715,
+      "winner": "radiant"
+    },
+    "score_data": {
+      "MMR": 3348.1193123348667
+    }
+  },
+  {
+    "match_id": "2138606575",
+    "data": {
+      "GPM": 278,
+      "XPM": 438,
+      "average-check-duration": 0.5661477481617644,
+      "creeps-missed": 0,
+      "denies": 2,
+      "denies-with-exp": 2,
+      "hero": "lion",
+      "initation-score": 0.5422241088589386,
+      "lane-creeps": 12,
+      "lasthits": 30,
+      "n-checks": 85,
+      "neutrals": 11,
+      "num-of-deaths": 3,
+      "num-of-fights": 15,
+      "num-of-kills": 3,
+      "steamid": "76561198019532009",
+      "time-visible": 689.5953369140625,
+      "time-visible-first10": 115.9849853515625,
+      "slot": 8
+    },
+    "match_data": {
+      "creeps-killed": 2335,
+      "creeps-lasthit": 1180,
+      "duration": 1850,
+      "duration-all": 1940,
+      "winner": "dire"
+    },
+    "score_data": {
+      "MMR": 3956.4497925311985
+    }
+  },
+  {
+    "match_id": "2136484126",
+    "data": {
+      "GPM": 218,
+      "XPM": 316,
+      "average-check-duration": 1.5220031738281246,
+      "creeps-missed": 0,
+      "denies": 3,
+      "denies-with-exp": 3,
+      "hero": "shadow_shaman",
+      "initation-score": 0.2376068376068376,
+      "lane-creeps": 53,
+      "lasthits": 86,
+      "n-checks": 112,
+      "neutrals": 26,
+      "num-of-deaths": 10,
+      "num-of-fights": 30,
+      "num-of-kills": 4,
+      "steamid": "76561198019532009",
+      "time-visible": 1183.1531982421875,
+      "time-visible-first10": 302.7392272949219,
+      "slot": 3
+    },
+    "match_data": {
+      "creeps-killed": 3282,
+      "creeps-lasthit": 1529,
+      "duration": 2594,
+      "duration-all": 2684,
+      "winner": "radiant"
+    },
+    "score_data": {
+      "MMR": 3754.359069436545
+    }
+  },
+  {
+    "match_id": "2136425611",
+    "data": {
+      "GPM": 219,
+      "XPM": 417,
+      "average-check-duration": 1.438654621755044,
+      "creeps-missed": 0,
+      "denies": 0,
+      "denies-with-exp": 0,
+      "hero": "witch_doctor",
+      "initation-score": 0.09762010523872425,
+      "lane-creeps": 24,
+      "lasthits": 48,
+      "n-checks": 127,
+      "neutrals": 19,
+      "num-of-deaths": 7,
+      "num-of-fights": 28,
+      "num-of-kills": 0,
+      "steamid": "76561198019532009",
+      "time-visible": 917.0671691894531,
+      "time-visible-first10": 195.61892700195312,
+      "slot": 5
+    },
+    "match_data": {
+      "creeps-killed": 2927,
+      "creeps-lasthit": 1459,
+      "duration": 2296,
+      "duration-all": 2386,
+      "winner": "dire"
+    },
+    "score_data": {
+      "MMR": 4102.1861710418425
+    }
+  },
+  {
+    "match_id": "2136354355",
+    "data": {
+      "GPM": 195,
+      "XPM": 356,
+      "average-check-duration": 1.9722836143092108,
+      "creeps-missed": 0,
+      "denies": 7,
+      "denies-with-exp": 6,
+      "hero": "disruptor",
+      "initation-score": 0.0718600610506831,
+      "lane-creeps": 33,
+      "lasthits": 42,
+      "n-checks": 95,
+      "neutrals": 1,
+      "num-of-deaths": 11,
+      "num-of-fights": 37,
+      "num-of-kills": 7,
+      "steamid": "76561198019532009",
+      "time-visible": 1193.325927734375,
+      "time-visible-first10": 287.9428405761719,
+      "slot": 0
+    },
+    "match_data": {
+      "creeps-killed": 3830,
+      "creeps-lasthit": 1298,
+      "duration": 3034,
+      "duration-all": 3124,
+      "winner": "radiant"
+    },
+    "score_data": {
+      "MMR": 2590.7481847608055
+    }
+  },
+  {
+    "match_id": "2136302112",
+    "data": {
+      "GPM": 178,
+      "XPM": 280,
+      "average-check-duration": 1.2423800998263892,
+      "creeps-missed": 0,
+      "denies": 0,
+      "denies-with-exp": 0,
+      "hero": "witch_doctor",
+      "initation-score": 0.05,
+      "lane-creeps": 31,
+      "lasthits": 39,
+      "n-checks": 90,
+      "neutrals": 6,
+      "num-of-deaths": 5,
+      "num-of-fights": 20,
+      "num-of-kills": 0,
+      "steamid": "76561198019532009",
+      "time-visible": 863.9389953613281,
+      "time-visible-first10": 239.85012817382812,
+      "slot": 4
+    },
+    "match_data": {
+      "creeps-killed": 2741,
+      "creeps-lasthit": 1244,
+      "duration": 2258,
+      "duration-all": 2348,
+      "winner": "radiant"
+    },
+    "score_data": {
+      "MMR": 3586.4935415859172
+    }
+  },
+  {
+    "match_id": "2136268427",
+    "data": {
+      "GPM": 220,
+      "XPM": 325,
+      "average-check-duration": 0.9750018452489099,
+      "creeps-missed": 0,
+      "denies": 1,
+      "denies-with-exp": 0,
+      "hero": "oracle",
+      "initation-score": 0.2715104365599192,
+      "lane-creeps": 7,
+      "lasthits": 9,
+      "n-checks": 43,
+      "neutrals": 1,
+      "num-of-deaths": 1,
+      "num-of-fights": 11,
+      "num-of-kills": 1,
+      "steamid": "76561198019532009",
+      "time-visible": 821.1655578613281,
+      "time-visible-first10": 304.8589172363281,
+      "slot": 4
+    },
+    "match_data": {
+      "creeps-killed": 2263,
+      "creeps-lasthit": 1159,
+      "duration": 1903,
+      "duration-all": 1993,
+      "winner": "radiant"
+    },
+    "score_data": {
+      "MMR": 3629.881731494496
+    }
+  },
+  {
+    "match_id": "2136226238",
+    "data": {
+      "GPM": 159,
+      "XPM": 292,
+      "average-check-duration": 1.217502170138889,
+      "creeps-missed": 0,
+      "denies": 1,
+      "denies-with-exp": 0,
+      "hero": "shadow_shaman",
+      "initation-score": 0.037455914522537534,
+      "lane-creeps": 44,
+      "lasthits": 51,
+      "n-checks": 90,
+      "neutrals": 3,
+      "num-of-deaths": 8,
+      "num-of-fights": 22,
+      "num-of-kills": 2,
+      "steamid": "76561198019532009",
+      "time-visible": 911.801025390625,
+      "time-visible-first10": 214.31271362304688,
+      "slot": 9
+    },
+    "match_data": {
+      "creeps-killed": 3035,
+      "creeps-lasthit": 1474,
+      "duration": 2460,
+      "duration-all": 2550,
+      "winner": "radiant"
+    },
+    "score_data": {
+      "MMR": 3693.08652667993
+    }
+  },
+  {
+    "match_id": "2136180946",
+    "data": {
+      "GPM": 286,
+      "XPM": 386,
+      "average-check-duration": 1.0066196986607148,
+      "creeps-missed": 0,
+      "denies": 0,
+      "denies-with-exp": 0,
+      "hero": "bane",
+      "initation-score": 0.30045380060949395,
+      "lane-creeps": 7,
+      "lasthits": 12,
+      "n-checks": 70,
+      "neutrals": 3,
+      "num-of-deaths": 2,
+      "num-of-fights": 23,
+      "num-of-kills": 1,
+      "steamid": "76561198019532009",
+      "time-visible": 772.9414367675781,
+      "time-visible-first10": 277.704345703125,
+      "slot": 4
+    },
+    "match_data": {
+      "creeps-killed": 2360,
+      "creeps-lasthit": 1148,
+      "duration": 2007,
+      "duration-all": 2097,
+      "winner": "radiant"
+    },
+    "score_data": {
+      "MMR": 3909.768327645717
+    }
+  },
+  {
+    "match_id": "2136140642",
+    "data": {
+      "GPM": 14,
+      "XPM": 170,
+      "average-check-duration": 1.4051085904113243,
+      "creeps-missed": 0,
+      "denies": 4,
+      "denies-with-exp": 3,
+      "hero": "lion",
+      "initation-score": 0.1111111111111111,
+      "lane-creeps": 12,
+      "lasthits": 18,
+      "n-checks": 117,
+      "neutrals": 4,
+      "num-of-deaths": 11,
+      "num-of-fights": 27,
+      "num-of-kills": 2,
+      "steamid": "76561198019532009",
+      "time-visible": 689.4836730957031,
+      "time-visible-first10": 269.6031494140625,
+      "slot": 8
+    },
+    "match_data": {
+      "creeps-killed": 2005,
+      "creeps-lasthit": 1048,
+      "duration": 1755,
+      "duration-all": 1845,
+      "winner": "radiant"
+    },
+    "score_data": {
+      "MMR": 4615.946159096208
+    }
+  },
+  {
+    "match_id": "2136017549",
+    "data": {
+      "GPM": 33,
+      "XPM": 143,
+      "average-check-duration": 1.5191724053744609,
+      "creeps-missed": 0,
+      "denies": 1,
+      "denies-with-exp": 1,
+      "hero": "lina",
+      "initation-score": 0.15789473684210525,
+      "lane-creeps": 20,
+      "lasthits": 26,
+      "n-checks": 116,
+      "neutrals": 5,
+      "num-of-deaths": 9,
+      "num-of-fights": 19,
+      "num-of-kills": 1,
+      "steamid": "76561198019532009",
+      "time-visible": 612.0870666503906,
+      "time-visible-first10": 228.2008056640625,
+      "slot": 8
+    },
+    "match_data": {
+      "creeps-killed": 2335,
+      "creeps-lasthit": 1015,
+      "duration": 2111,
+      "duration-all": 2201,
+      "winner": "radiant"
+    },
+    "score_data": {
+      "MMR": 3619.156350618918
+    }
+  },
+  {
+    "match_id": "2135932155",
+    "data": {
+      "GPM": 55,
+      "XPM": 266,
+      "average-check-duration": 1.5563128745719175,
+      "creeps-missed": 0,
+      "denies": 1,
+      "denies-with-exp": 0,
+      "hero": "dazzle",
+      "initation-score": 0.13701923076923078,
+      "lane-creeps": 21,
+      "lasthits": 27,
+      "n-checks": 73,
+      "neutrals": 0,
+      "num-of-deaths": 9,
+      "num-of-fights": 26,
+      "num-of-kills": 2,
+      "steamid": "76561198019532009",
+      "time-visible": 954.434326171875,
+      "time-visible-first10": 240.75436401367188,
+      "slot": 6
+    },
+    "match_data": {
+      "creeps-killed": 3432,
+      "creeps-lasthit": 1846,
+      "duration": 2619,
+      "duration-all": 2709,
+      "winner": "radiant"
+    },
+    "score_data": {
+      "MMR": 3851.3050593896346
+    }
+  },
+  {
+    "match_id": "2135822973",
+    "data": {
+      "GPM": 150,
+      "XPM": 291,
+      "average-check-duration": 1.1710623127140414,
+      "creeps-missed": 0,
+      "denies": 1,
+      "denies-with-exp": 1,
+      "hero": "rubick",
+      "initation-score": -0.07374172593059466,
+      "lane-creeps": 75,
+      "lasthits": 86,
+      "n-checks": 146,
+      "neutrals": 5,
+      "num-of-deaths": 6,
+      "num-of-fights": 31,
+      "num-of-kills": 5,
+      "steamid": "76561198019532009",
+      "time-visible": 948.053466796875,
+      "time-visible-first10": 275.5252380371094,
+      "slot": 4
+    },
+    "match_data": {
+      "creeps-killed": 3651,
+      "creeps-lasthit": 1512,
+      "duration": 2747,
+      "duration-all": 2837,
+      "winner": "dire"
+    },
+    "score_data": {
+      "MMR": 3547.6130444238743
+    }
+  },
+  {
+    "match_id": "2135677951",
+    "data": {
+      "GPM": 186,
+      "XPM": 331,
+      "average-check-duration": 1.5392725489161034,
+      "creeps-missed": 0,
+      "denies": 1,
+      "denies-with-exp": 1,
+      "hero": "disruptor",
+      "initation-score": 0.26480343371289755,
+      "lane-creeps": 14,
+      "lasthits": 20,
+      "n-checks": 111,
+      "neutrals": 3,
+      "num-of-deaths": 9,
+      "num-of-fights": 35,
+      "num-of-kills": 2,
+      "steamid": "76561198019532009",
+      "time-visible": 1257.7311096191406,
+      "time-visible-first10": 316.611328125,
+      "slot": 3
+    },
+    "match_data": {
+      "creeps-killed": 3140,
+      "creeps-lasthit": 1285,
+      "duration": 2678,
+      "duration-all": 2768,
+      "winner": "radiant"
+    },
+    "score_data": {
+      "MMR": 3336.185730226412
+    }
+  },
+  {
+    "match_id": "2135517514",
+    "data": {
+      "GPM": 147,
+      "XPM": 457,
+      "average-check-duration": 1.3757687130489857,
+      "creeps-missed": 0,
+      "denies": 1,
+      "denies-with-exp": 0,
+      "hero": "rubick",
+      "initation-score": 0.19561383406725358,
+      "lane-creeps": 39,
+      "lasthits": 49,
+      "n-checks": 148,
+      "neutrals": 3,
+      "num-of-deaths": 10,
+      "num-of-fights": 38,
+      "num-of-kills": 2,
+      "steamid": "76561198019532009",
+      "time-visible": 924.698974609375,
+      "time-visible-first10": 156.57492065429688,
+      "slot": 5
+    },
+    "match_data": {
+      "creeps-killed": 3595,
+      "creeps-lasthit": 1754,
+      "duration": 2914,
+      "duration-all": 3004,
+      "winner": "radiant"
+    },
+    "score_data": {
+      "MMR": 3755.7785981011702
+    }
+  }
+]

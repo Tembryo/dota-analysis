@@ -23,9 +23,15 @@ function load()
                 .classed("disabled", true)
                 .on("click", null);
         }    
-       d3.selectAll("#range")
-            .text((start+1)+" - "+(start+data.length));
-
+        if(data.length > 0)
+        {
+            d3.selectAll("#range")
+                .text((start+1)+" - "+(start+data.length));   
+        }
+        else{
+            d3.selectAll("#range")
+                .text("");   
+        }
         drawTables(data);
     });
 
@@ -96,17 +102,20 @@ function drawTables(data) {
 
     if(data.length == 0)
     {
+        var info_text = "Your match history is empty. If you are a new user, it might take a while to load your matches. Please refresh.";
         d3.select("#large-match-list")
             .append("tr")
+            .attr("class", "match")
                 .append("td")
                     .attr("colspan", 8)
-                    .html("Your match history seems to be empty, have you played games recently?<hr/>If you are a new user, it might take a few seconds to load your matches. Please refresh.");
+                    .html(info_text);
 
         d3.select("#small-match-list")
             .append("tr")
+                .attr("class", "match")
                 .append("td")
                     .attr("colspan", 5)
-                    .html("Your match history seems to be empty, have you played games recently?<hr/>If you are a new user, it might take a few seconds to load your matches. Please refresh.");
+                    .html(info_text);
     }
 }
 
@@ -321,6 +330,7 @@ function updateRow(data)
 
 
     var button = row.select("#match-button");
+    button.
     button.html("");
 
     switch(data["match_status"])

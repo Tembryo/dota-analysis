@@ -1,4 +1,6 @@
 var the_stats;
+var is_example;
+
 var width = 810;
 var height = 350;
 var padding = 50;
@@ -9,10 +11,28 @@ $(document).ready(function(){
     var pathname = "/api/stats?start=0&end=20";
 
     $.getJSON(pathname, function(data) {
-        the_stats = data.filter(
+        if(data.length == 0)
+        {
+            var example_path = "/static/data/example_results/example_stats.json";
+            is_example = true;
+            $.getJSON(example_path, function(data) {
+               the_stats = data.filter(
+                    function(d){return d["score_data"];}
+                );
+                the_stats = the_stats.reverse();
+                plot_graph("IMR"); 
+                setTimeout(function(){alert("Seems like you are visiting for the first time. We will show some example data for now, while we fetch your match history.");}, 500);
+            });
+
+
+        }
+        else{
+            is_example = false;
+           the_stats = data.filter(
             function(d){return d["score_data"];});
-        the_stats = the_stats.reverse();
-        plot_graph("MMR");
+            the_stats = the_stats.reverse();
+            plot_graph("IMR"); 
+        }
     });
 
     canvas=d3.select("#dashboard")
@@ -56,7 +76,7 @@ $(document).ready(function(){
     });
 
     $("#mmr-button").click(function(){
-         plot_graph("MMR");
+         plot_graph("IMR");
      });
 
     $("#fights-button").click(function(){
@@ -85,7 +105,7 @@ function getValue(entry, d)
 {
     switch(entry)
     {
-        case "MMR":
+        case "IMR":
             if(d["score_data"])
                 return d["score_data"]["MMR"];
             else
@@ -110,13 +130,13 @@ function getValue(entry, d)
 function plot_graph(entry)
 {
     var horizontal_scale = d3.scale.linear()
-                            .domain([1,the_stats.length])
+                            .domain([0,the_stats.length+1])
                             .range([padding,width-padding]);
 
 
     var value_min = d3.min(the_stats,function(d){return getValue(entry, d);});
     var value_max = d3.max(the_stats,function(d){return getValue(entry, d);});
-    var value_padding = (value_max - value_min)*0.05;
+    var value_padding = Math.max((value_max - value_min)*0.05, value_min*0.05);
 
     var vertical_scale = d3.scale.linear()
                             .domain([value_min-value_padding,value_max+value_padding])
@@ -139,7 +159,15 @@ function plot_graph(entry)
 
     var mypath = d3.select("#graph");
 
-    mypath.attr("d",line(the_stats));
+    if(the_stats.length > 1)
+        mypath.attr("d",line(the_stats));
+    else if(the_stats.length == 1)
+    {
+        var vertical_center = (vertical_scale.range()[0]+vertical_scale.range()[1]) /2;
+        mypath.attr("d","M "+horizontal_scale.range()[0]+" "+vertical_center+" L "+horizontal_scale.range()[1]+" "+vertical_center);
+    }
+    else
+        console.log("shouldn't happen");
 
     var xAxis = d3.svg.axis()
                     .scale(horizontal_scale)
