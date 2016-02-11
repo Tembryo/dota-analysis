@@ -44,23 +44,26 @@
             </div>
         </div>
   
-<div class="socialmedia_container center-block">
+        <div class="row">
+            <div class="socialmedia_container center-block">
 
-    <div class="fb-send socialmediabutton" data-href="http://wisdota.com"></div>
+                <div class="fb-send socialmediabutton" data-href="http://wisdota.com"></div>
 
-    <% tweet_text = "Rate your play on Wisdota! " %>
-    <a href="https://twitter.com/share" class="twitter-share-button"{count} data-text="<%=tweet_text%>" data-url="http://www.wisdota.com/" data-hashtags="wisdota,dota2">
-        Tweet
-    </a>
-    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+                <% tweet_text = "Rate your play on Wisdota! " %>
+                <a href="https://twitter.com/share" class="twitter-share-button"{count} data-text="<%=tweet_text%>" data-url="http://www.wisdota.com/" data-hashtags="wisdota,dota2">
+                    Tweet
+                </a>
+                <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
 
-     <a href="mailto:?subject=Ready to turn pro?&body=Let Artificial Intelligence rate your Dota play! http://wisdota.com" class="mailLink socialmediabutton hidden-xs">
-        <img src="/static/img/email.svg" width="61px" height="20px">
-     </a>
+                 <a href="mailto:?subject=Ready to turn pro?&body=Let Artificial Intelligence rate your Dota play! http://wisdota.com" class="mailLink socialmediabutton hidden-xs">
+                    <img src="/static/img/email.svg" width="61px" height="20px">
+                 </a>
 
-    <div class="fb-share-button" data-href="http://wisdota.com" data-layout="button_count"></div>
+                <div class="fb-share-button" data-href="http://wisdota.com" data-layout="button_count"></div>
+            </div>
+        </div>
+    </div>
 </div>
-
 <script type="text/javascript">
     match_id = <%=match_id%>;
 </script>

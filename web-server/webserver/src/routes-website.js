@@ -18,12 +18,14 @@ router.use(function(req, res, next)
                 locals.client = client;
                 locals.done = done_client;
                 var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-                var user = "IP_"+ip;
+                var user = null;
                 if(req.user)
                     user = req.user["id"];
+
                 var data = {
                     "page": req.path,
-                    "user": user
+                    "user": user,
+                    "ip": ip
                 }
 
                 locals.client.query("INSERT INTO events(event_type, time, data) VALUES ((SELECT id FROM EventTypes WHERE label=$1),now(), $2);",["ViewPage", data],callback);
