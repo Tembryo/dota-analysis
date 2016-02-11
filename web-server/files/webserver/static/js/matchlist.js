@@ -330,7 +330,6 @@ function updateRow(data)
 
 
     var button = row.select("#match-button");
-    button.
     button.html("");
 
     switch(data["match_status"])
