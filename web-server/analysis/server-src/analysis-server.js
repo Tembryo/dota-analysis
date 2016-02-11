@@ -146,8 +146,7 @@ function processReplay(replay_id, callback_replay)
                     child_process.execFile(
                         "java", 
                         ["-jar", "/extractor/extractor.jar", config.shared+results.rows[0].file, config.storage+"/"],
-                        {   "timeout":max_extraction_time,
-                            "killSignal": 'SIGKILL'},
+                        {"timeout":max_extraction_time },
                         callback);
                 }
             },
