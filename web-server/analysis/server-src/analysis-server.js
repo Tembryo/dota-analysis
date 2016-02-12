@@ -14,13 +14,18 @@ var max_extraction_time = 180000;
 var max_analysis_time = 60000;
 var max_score_time = 20000;
 
-registerListeners();
-resetStuff();
+async.series(
+    [
+        registerListeners,
+        resetStuff
+    ]
+);
 
 
-function resetStuff()
+
+function resetStuff(callback)
 {
-        var locals = {};
+    var locals = {};
     async.waterfall(
         [
             database.connect,
@@ -31,8 +36,9 @@ function resetStuff()
                 locals.client.query(
                     "UPDATE Replayfiles r "+
                     "SET processing_status =(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label='uploaded') "+
-                    "WHERE r.processing_status = (SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label='extracting') OR "+
-                        "r.processing_status = (SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label='analysing');",
+                    "WHERE r.processing_status = (SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label='uploaded') OR "+
+                        "r.processing_status = (SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label='analysing') OR "+
+                        "r.processing_status = (SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label='extracting');",
                     [],
                     callback);
             },
@@ -47,10 +53,11 @@ function resetStuff()
             if (err)
                 console.log(err, results);
             locals.done();
+            callback();
         }
     );
 }
-function registerListeners()
+function registerListeners(callback)
 {
     var client = database.getClient();
     client.connect(
@@ -79,6 +86,7 @@ function registerListeners()
                         console.log("added score listener");
                 });
           //no end -- client.end();
+          callback();
         }
     );
 }
