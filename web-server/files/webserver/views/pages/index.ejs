@@ -79,9 +79,16 @@
     <div class="container">
         <div class ="row">
             <hr class="featurette-divider">
-            <div class="col-lg-12 text-center">          
+            <div class="col-lg-10 col-lg-offset-1 text-center">          
                 <h2 class="features-heading">IMR</h2>
-                <p class="lead">Wisdota estimates your IMR (Individual Match Rating), which is a measure of your performance in a single match. Your IMR only depends on how well you as an individual played and not whether your team won or lost. Since it is not averaged over all of your games it allows you to track your performance from match to match more accurately than MMR. </p>
+                <p class="lead">
+                    Wisdota estimates your IMR (Individual Match Rating) for each match that you play. For example, an IMR of 4k means that you played at roughly the level of a 4k MMR player in that particular match.
+                </p>
+                <p class="lead">
+                    Wisdota has learnt a model of how players of different skill levels play from large data set of publically available replay files. When it rates your IMR it compares the features in your replay file to the features of players at different skill levels in order to arrive at a score.
+                </p>
+                    <p class="lead"> Your IMR for each match only depends on your individual performance, and not whether your team won or lost. It is calculated independently for each match, whereas your MMR reflects your performance averaged over all of your games.
+                </p>
             </div>
         </div>
         <div class ="row">
