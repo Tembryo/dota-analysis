@@ -1,6 +1,9 @@
 // retrieve - server.js
 var async       = require("async");
 
+var retrieve_concurrency =  require("semaphore")(3);
+    //Only one dota client, so the history updates are sequential anyway - no sema needed
+
 
 
 var config      = require("./config.js"),
@@ -37,14 +40,17 @@ function iterateAccount()
     current_account_i = 0;
 }
 
+//THIS IS MAIN
+async.series(
+    [
+        registerListeners,
+        resetStuff,
+        startHistoryRefresh
+    ]
+);
 
 
-
-resetStuff();
-registerListener();
-checkAPIHistoryData();
-
-function resetStuff()
+function resetStuff(callback)
 {
         var locals = {};
     async.waterfall(
@@ -54,13 +60,13 @@ function resetStuff()
             {
                 locals.client = client;
                 locals.done = done_client;
-                /*locals.client.query(
-                    "DELETE FROM MatchRetrievalRequests mrr "+
-                    "WHERE mrr.retrieval_status = (SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label='retrieving') OR "+
-                    "mrr.retrieval_status = (SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label='requested');",
+                locals.client.query(
+                    "UPDATE MatchRetrievalRequests "+
+                    "SET retrieval_status = (SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label='requested') "+
+                    "WHERE retrieval_status = (SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label='retrieving') OR "+
+                        "retrieval_status = (SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label='requested');",
                     [],
-                    callback);*/
-                callback("dont need cleanup");
+                    callback);
             },
             function(results, callback)
             {
@@ -73,8 +79,14 @@ function resetStuff()
             if (err)
                 console.log(err, results);
             locals.done();
+            callback(err, results);
         }
     );
+}
+
+function startHistoryRefresh(callback){
+    checkAPIHistoryData();
+    callback();
 }
 
 function checkAPIHistoryData()
@@ -134,7 +146,9 @@ function checkAPIHistoryData()
         function(err, results)
         {
             if (err)
-                console.log(err, results);
+            {
+
+            }    console.log(err, results);
             locals.done();
             //console.log("finished check_jobs");
             setTimeout(checkAPIHistoryData, check_interval_history);
@@ -261,7 +275,7 @@ function processMatchHistory(history, locals, callback)
 
 
 
-function registerListener()
+function registerListeners(callback)
 {
     var client = database.getClient();
     client.connect(
@@ -288,6 +302,8 @@ function registerListener()
                 {
                     console.log("added user listener");
                 });
+
+            callback();
           //no end -- client.end();
         }
     );
@@ -306,8 +322,10 @@ function processNotification(msg)
     {
         case "Retrieve":
             var request_id = parseInt(parts[1]);
-            processRequest(request_id, function(){console.log("finished retrieve reqid", request_id);});
- 
+            retrieve_concurrency.take(
+                function(){
+                    processRequest(request_id, function(){console.log("finished retrieve reqid", request_id);retrieve_concurrency.leave()});
+                });
             break;
         case "User":
             var user_id = parseInt(parts[1]);
@@ -323,6 +341,10 @@ function processNotification(msg)
                             "SELECT u.id, u.steam_identifier, u.last_match FROM Users u WHERE u.id=$1;",
                             [user_id],
                             callback);
+                    },
+                    function(results, callback){
+                        locals.done();
+                        callback(null, results)
                     },
                     function(users, callback)
                     {
@@ -349,7 +371,6 @@ function processNotification(msg)
                 ],
                 function(err, results)
                 {
-                    locals.done();
                     console.log("finished notified user", user_id);
                 }
             );
@@ -489,12 +510,16 @@ function fetchMatch(locals, callback)
             {
                 dota.performAction(
                     next_login,
-                    function(dota_client, callback_dl)
+                    function(dota_client, callback_dota)
                     {
                         console.log("before dl");
-                        replay_dl.downloadMatch(dota_client, locals.match_id, locals.store_path, callback_dl);
+                        replay_dl.getReplayData(dota_client, locals.match_id, callback_dota);
                     },
                     callback);
+            },
+            function(replay_data, callback)
+            {
+                replay_dl.downloadMatch(replay_data, locals.store_path, callback);
             }
         ],
         function(err, results)
@@ -510,14 +535,7 @@ function fetchMatch(locals, callback)
                     fetchMatch(locals, callback);
                 }
             }
-            else if(err)
-            {
-                locals.client.query(
-                    "UPDATE Matches SET status = 'faileddl' WHERE matchid = $1;",
-                    [locals.match_id],
-                    callback);
-            }
             else
-                callback(null, results);
+                callback(err, results);
         });
 }
