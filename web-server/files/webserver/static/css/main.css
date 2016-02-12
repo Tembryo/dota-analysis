@@ -91,16 +91,25 @@ button.slick-next {
 
 .mugshot-match-info {
 	font-size: 20px;
-	margin-bottom: 10px;
+	margin: 0 auto;
 }
 
 
 .user-name {
-	color: white;
+
 	position: absolute;
-	bottom: 70px;
-	left:36px;
-	font-size: 30px
+	bottom: 56px;
+	font-size: 30px;
+
+	left: 0;
+    width: 100%;
+
+	color: white;
+    text-shadow:
+	    -1px -1px 0 #000,
+	    1px -1px 0 #000,
+	    -1px 1px 0 #000,
+	    1px 1px 0 #000;  
 }
 
 .slick-prev:before {

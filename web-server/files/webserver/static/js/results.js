@@ -78,7 +78,7 @@ var pictures =
 	"sand_king":            "/static/img/heroes/pictures/Sand_King.png",
 	"shadow_demon":         "/static/img/heroes/pictures/Shadow_Demon.png",
 	"shadow_shaman":        "/static/img/heroes/pictures/Shadow_Shaman.png",
-	"shredder":             "/static/img/heroes/pictures/Shredder.png",
+	"shredder":             "/static/img/heroes/pictures/Tibersaw.png",
 	"silencer":             "/static/img/heroes/pictures/Silencer.png",
 	"skeleton_king":        "/static/img/heroes/pictures/Wraith_King.png",
 	"skywrath_mage":        "/static/img/heroes/pictures/Skywrath_Mage.png",
@@ -274,6 +274,9 @@ $(document).ready(function(){
 			$(id_str).attr("src","/static/img/logos/" + url_str + ".png")
 
 			$("#match-page").attr("href","#")
+				.on("click", function(){alert("Just an example")});
+
+			$("#scoreboard-page").attr("href","#")
 				.on("click", function(){alert("Just an example")});
 
 			$("#coming-soon").remove();
