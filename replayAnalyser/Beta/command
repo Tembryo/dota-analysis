@@ -9,3 +9,7 @@ python event_extractor4.py 2116851412 /home/fischerq/Documents/Wisdota/output/21
 python event_extractor4.py 2116915009 /home/fischerq/Documents/Wisdota/output/2116915009 /home/fischerq/Documents/Wisdota/flogames/analysis2.json /home/fischerq/Documents/Wisdota/flogames/header2.json /home/fischerq/Documents/Wisdota/flogames/stats2.json > log.txt
 
 python event_extractor4.py 2116969424 /home/fischerq/Documents/Wisdota/output/2116969424 /home/fischerq/Documents/Wisdota/flogames/analysis1.json /home/fischerq/Documents/Wisdota/flogames/header3.json /home/fischerq/Documents/Wisdota/flogames/stats3.json > log.txt
+
+python event_extractor4.py 2142531843 /home/fischerq/Documents/Wisdota/output/2142531843 /home/fischerq/Documents/Wisdota/hannesana.json /home/fischerq/Documents/Wisdota/hanneshead.json /home/fischerq/Documents/Wisdota/hannesstats.json > log.txt
+
+python event_extractor4.py 2143170030 /home/fischerq/Documents/Wisdota/output/2143170030 /home/fischerq/Documents/Wisdota/2143170030a.json /home/fischerq/Documents/Wisdota/2143170030h.json /home/fischerq/Documents/Wisdota/2143170030s.json > log.txt

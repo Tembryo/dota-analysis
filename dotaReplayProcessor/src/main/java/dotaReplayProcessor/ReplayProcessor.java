@@ -544,7 +544,7 @@ public class ReplayProcessor {
     
 	@UsesEntities
     @OnMessage(CDOTAUserMsg_OverheadEvent.class)
-    public void onAllChatS2(Context ctx, CDOTAUserMsg_OverheadEvent ohe) {
+    public void onOverheadEvent(Context ctx, CDOTAUserMsg_OverheadEvent ohe) {
 	   	 double time = 0;
 	     Entity grp = ctx.getProcessor(Entities.class).getByDtName("CDOTAGamerulesProxy");
 			if (grp != null) {
@@ -552,10 +552,25 @@ public class ReplayProcessor {
 	 		time = t;
 	     }
 		
+		Entity src_player = ctx.getProcessor(Entities.class).getByIndex(ohe.getSourcePlayerEntindex());
+		long src_handle = -1;
+		if(src_player != null)
+			src_handle = src_player.getHandle();
+		
+		Entity target_ent = ctx.getProcessor(Entities.class).getByIndex(ohe.getTargetEntindex());
+		long target_handle = -1;
+		if(target_ent != null)
+			target_handle = target_ent.getHandle();
+
+		Entity target_player_ent = ctx.getProcessor(Entities.class).getByIndex(ohe.getTargetPlayerEntindex());
+		long target_player_handle = -1;
+		if(target_player_ent != null)
+			target_player_handle = target_player_ent.getHandle();
+		
     	output.writeEvent(time, ohe.getMessageType().toString()+","+ohe.getValue()+","+
-    				ctx.getProcessor(Entities.class).getByIndex(ohe.getSourcePlayerEntindex()).getHandle()+","+
-    				ctx.getProcessor(Entities.class).getByIndex(ohe.getTargetEntindex()).getHandle()+","+
-    				ctx.getProcessor(Entities.class).getByIndex(ohe.getTargetPlayerEntindex()).getHandle());
+    			src_handle+","+
+    			target_handle+","+
+    			target_player_handle);
     	
     				
     }

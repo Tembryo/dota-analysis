@@ -11,7 +11,7 @@ var concurrent_score = require("semaphore")(5);
 
 var check_interval = 5000;
 var max_extraction_time = 180000;
-var max_analysis_time = 12000;
+var max_analysis_time = 60000;
 var max_score_time = 20000;
 
 registerListeners();
@@ -234,6 +234,7 @@ function processReplay(replay_id, callback_replay)
         {
             if(err)
             {
+                console.log("analysis error", arguments);
                 locals.client.query(
                     "UPDATE ReplayFiles rf SET processing_status=(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$2) WHERE rf.id=$1;",
                     [locals.replayfile_id, "failed"],
