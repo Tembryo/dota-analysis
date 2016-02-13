@@ -213,22 +213,28 @@ function processMatchHistory(history, locals, callback)
     async.eachSeries(
         history["matches"],
         function (match, callback_foreach) {
-            //console.log(JSON.stringify(match));
+            //console.log("history doing m ",JSON.stringify(match));
 
-            locals.user_new_last_match = Math.max(locals.user_new_last_match, match["match_id"]["low"]);
+            //cast matchid to unsigned int!
+            var fixed_match_id = match["match_id"]["low"]>>>0;
 
-            locals.user_min_match_checked = Math.min(locals.user_min_match_checked, match["match_id"]["low"]);
+            locals.user_new_last_match = Math.max(locals.user_new_last_match, fixed_match_id);
+
+            locals.user_min_match_checked = Math.min(locals.user_min_match_checked, fixed_match_id);
+
+            //console.log("fixed", fixed_match_id);
             //console.log(match["match_id"]);
-            if(match["match_id"]["low"] > locals.user_last_match)
+            if(fixed_match_id > locals.user_last_match)
             {           
-                console.log("inserting matchhist", match["match_id"]["low"]);
+                console.log("inserting matchhist", fixed_match_id);
                 locals.client.query(
                     "INSERT INTO UserMatchHistory (user_id, match_id, data) VALUES ($1, $2, $3);",
-                    [locals.user_id, match["match_id"]["low"], match],
+                    [locals.user_id, fixed_match_id, match],
                     callback_foreach);
             }
             else
             {
+                //console.log("nope old");
                 callback_foreach();
             }
         },
