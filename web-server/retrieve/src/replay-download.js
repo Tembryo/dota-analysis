@@ -6,6 +6,11 @@ var async       = require("async"),
 var config          = require("./config.js");
 
 var downloadAndDecompress = function(url, dest, cb) {
+    //TODO clean this up
+    // errors dont get propagated, an error in the decoder will appear after the the file got closed -> after final callback was written
+    //probably  wait for both cbs, then return?
+
+
     var file = fs.createWriteStream(dest);
     var sendReq = request.get(url);
 
@@ -39,7 +44,7 @@ var downloadAndDecompress = function(url, dest, cb) {
     decoder.on('error', function(err) { // Handle errors
         console.log("decoder got error");
         fs.unlink(dest); // Delete the file async. (But we don't check the result)
-    
+        
         if (cb) {
             return cb(err.message);
         }
@@ -100,7 +105,7 @@ function getReplayData(client, match_id, final_callback)
 
                 var replay_data = {
                     "cluster": result.match.cluster,
-                    "match_id": result.match.match_id.low,
+                    "match_id": (result.match.match_id.low >>>0),
                     "replay_salt": result.match.replay_salt
                 };
                 if(result.match.replay_state != 0)

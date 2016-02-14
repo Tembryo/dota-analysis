@@ -92,6 +92,7 @@ passport.use(
             console.log("id "+steam_id);
 
             var locals = {};
+            locals["old"] = false;
             async.waterfall(
                 [
                     database.connect,
@@ -126,28 +127,55 @@ passport.use(
                         else
                         {
     						console.log("accepting old user");  
-                            var user = results.rows[0];
-                            callback("found_old", user);
+                            locals.user = results.rows[0];
+                            locals["old"] = true;
+                            callback(null, locals.user);
                         }
                     },
                     function(results, callback)
                     {
-                        console.log("inserted, got ", results);
-                        var user = results.rows[0];
-                        callback(null, user);
+                        if(!locals["old"])
+                        {
+                            if(results.rowCount != 1)
+                            {
+                                console.log("weird user create write", results);
+                                callback("bad db result");
+                                return;
+                            }
+                            console.log("inserted, got ", results);
+                            locals.user = results.rows[0];
+                        }
+
+                        var data = {
+                            "user": locals["user"]["id"]
+                        }
+
+                        locals.client.query("INSERT INTO events(event_type, time, data) VALUES ((SELECT id FROM EventTypes WHERE label=$1),now(), $2);",["LogIn", data],callback);
+                    },
+                    function(results, callback)
+                    {
+                        if(results.rowCount != 1)
+                        {
+                            console.log("weird login event write", results);
+                            callback("bad db result");
+                        }
+                        else
+                        {
+                            callback();
+                        }
                     }
                 ],
-                function(err, user)
+                function(err, result)
                 {
                     locals.done();
 
                     if (!(err === "found_old") && err)
                     {
-                         console.log(err);
+                         console.log(err, result);
                         done(err);
                     }
                     else
-                        done(null, user); 
+                        done(null, locals["user"]); 
                 }
             );
     	}

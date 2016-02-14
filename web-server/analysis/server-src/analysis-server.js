@@ -10,8 +10,8 @@ var concurrent_parse = require("semaphore")(3);
 var concurrent_score = require("semaphore")(5);
 
 var check_interval = 5000;
-var max_extraction_time = 180000;
-var max_analysis_time = 60000;
+var max_extraction_time = 300000;
+var max_analysis_time = 120000;
 var max_score_time = 20000;
 
 async.series(

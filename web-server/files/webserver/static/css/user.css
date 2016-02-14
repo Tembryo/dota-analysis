@@ -6,9 +6,9 @@ h2 {
 	padding-top: 40px;
 }
 
-svg {
-	display: block;
-	margin: auto;
+
+#dashboard {
+    padding-top: 30vmin;
 }
 
 .dashboard-button {
@@ -28,7 +28,7 @@ svg {
 	line-height:100px;
 	text-align:center;
 	text-decoration:none;
-	}
+}
 
 #red-circle {
 	background:#d9534f;
@@ -122,4 +122,14 @@ svg {
 {
     pointer-events: none;
     color: #333;
+}
+
+.tick
+{
+    font-size: 22px;
+}
+
+.label
+{
+   font-size: 22px; 
 }

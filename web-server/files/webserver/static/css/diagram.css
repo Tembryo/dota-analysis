@@ -88,12 +88,6 @@
 }
 
 
-.svg-container {
-    margin: 5px;
-    width: 100%;
-    padding-top:100%;
-    position: relative;
-}
 
 #timeline {
     /*background-color:#d0d0d0;*/
@@ -116,17 +110,7 @@
     padding-top:6vmin;
 }
 
-.svg-content { 
-    /*background-color:#d0d0d0;*/
-    width: 100%;
-    height: 100%;
-    preserveAspectRatio: xMidYMid meet;
-    display:inline-block;
-    position: absolute;
-    top:0;
-    left:0;
-    z-index: 1;
-}
+
 
 .svg-content-overlay { 
     width: 100%;

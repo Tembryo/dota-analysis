@@ -18,7 +18,9 @@ import skadistats.clarity.wire.common.proto.Demo.CGameInfo.CDotaGameInfo;
 import skadistats.clarity.wire.common.proto.Demo.CGameInfo.CDotaGameInfo.CPlayerInfo;
 
 public class Main {
-
+	public static long getUnsignedInt(int x) {
+	    return x & 0x00000000ffffffffL;
+	}
 	public static void main(String[] args) {
 		 long tStart = System.currentTimeMillis();
 		
@@ -26,10 +28,11 @@ public class Main {
 		String filename_replay = args[0];
 		String directory_out = args[1];
 		
-		int matchid= -1;
+		long matchid= -1;
 		
 		try {
-			matchid = Clarity.infoForFile(filename_replay).getGameInfo().getDota().getMatchId();
+			matchid = getUnsignedInt(Clarity.infoForFile(filename_replay).getGameInfo().getDota().getMatchId());
+			
 			directory_out += matchid+"/";
 			boolean success = (new File(directory_out)).mkdirs();
 			if (!success) {
