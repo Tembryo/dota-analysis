@@ -286,7 +286,7 @@ function trainModel()
 {
     child_process.execFile(
         "python",
-        ["/learn/learn.py", "/files/data.csv", "/files/model.json"],
+        ["/learn/learn.py", "/files/data.csv", "/files/model.p"],
         {},
         function (stdout, stderr)
         {
