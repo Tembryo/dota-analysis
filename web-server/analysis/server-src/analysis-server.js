@@ -387,7 +387,7 @@ function runScoreRequest(scoring_id, callback_scored)
             function(callback){
                 child_process.execFile(
                     "python",
-                    ["/score/score.py", "/score/model.json", locals.sample_filename],
+                    ["/score/score.py", "/score/model.p", locals.sample_filename],
                     {"timeout":max_score_time},
                     callback);
             },
