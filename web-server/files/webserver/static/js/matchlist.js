@@ -401,7 +401,7 @@ function updateRow(data)
         case "analysing":
             button
                 .attr("class", "btn dashboard-button btn-success disabled")
-                .html("<div class='sp sp-circle'></div><div class='processing-text'>Processing, ~1 min</div>");
+                .html("<div class='sp sp-circle'></div><div class='processing-text'>Processing</div>");
             break;
         case "failed":
             button
