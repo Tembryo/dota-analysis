@@ -1,65 +1,56 @@
-<!-- Navigation -->
-<nav id="mainNav" class="navbar navbar-default navbar-fixed-top">
-    <div class="container-fluid">
-        <!-- Brand and toggle get grouped for better mobile display -->
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand page-scroll" href="/">Wisdota</a>
-        </div>
+<nav id="mainNav" class="navbar navbar-default" role="navigation">
+  <div class="navbar-header">
+    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
 
-        <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <ul class="nav navbar-nav navbar-right">
+  </div>
+  <div class="navbar-collapse collapse">
+    <ul class="nav navbar-nav">
+      <li class="navbar-left"><a class="navbar-brand page-scroll" href="/">Wisdota</a></li>
+      <li class="active"><a class="announcement" href="#">Server is under heavy load, parsing will take a while. Thank you for your patience.</a></li>
 
 
-
-                <% 
-                    for(var i=0; i<navigation_entries.length; i++) 
-                    {
-                %>
-                         <li>
-                            <a class="page-scroll" href="<%=navigation_entries[i]["link"]%>">
-                                <%=navigation_entries[i]["label"]%>
-                            </a>
-                        </li>
-                <% 
-                    }
-                %>
-                <li>
-                    <a class="page-scroll" href="/plus">Plus</a>
-                </li>
-                 <%   
-                    if(!user) 
-                    {
-                %>
-                        <li>
-                            <a class="page-scroll" href="/auth/steam"> <img id="steam-logo-small" src="/static/img/logos/steam.png" height="20px" alt="Steam signin"/>Sign In</a>
-                        </li>
-                <% 
-                    }
-                    else
-                    {
-                %>
-                        <li>
-                            <a class="page-scroll" href="/user">
-                                <%= user["name"] %>
-                            </a>
-                        <li>
-                            <a href="/auth/logout" class="glyphicon glyphicon-log-out" aria-hidden="true">
-                            </a>
-                        </li>
-                <%
-                    }
-                %>
-
-            </ul>
-        </div>
-        <!-- /.navbar-collapse -->
-    </div>
-    <!-- /.container-fluid -->
+<% 
+    for(var i=0; i<navigation_entries.length; i++) 
+    {
+%>
+         <li class="navbar-right">
+            <a class="page-scroll" href="<%=navigation_entries[i]["link"]%>">
+                <%=navigation_entries[i]["label"]%>
+            </a>
+        </li>
+<% 
+    }
+%>
+<li class="navbar-right">
+    <a class="page-scroll" href="/plus">Plus</a>
+</li>
+ <%   
+    if(!user) 
+    {
+%>
+        <li class="navbar-right">
+            <a class="page-scroll" href="/auth/steam"> <img id="steam-logo-small" src="/static/img/logos/steam.png" height="20px" alt="Steam signin"/>Sign In</a>
+        </li>
+<% 
+    }
+    else
+    {
+%>
+        <li class="navbar-right">
+            <a class="page-scroll" href="/user">
+                <%= user["name"] %>
+            </a>
+        <li class="navbar-right">
+            <a href="/auth/logout" class="glyphicon glyphicon-log-out" aria-hidden="true">
+            </a>
+        </li>
+<%
+    }
+%>
+    </ul>
+  </div>
 </nav>
