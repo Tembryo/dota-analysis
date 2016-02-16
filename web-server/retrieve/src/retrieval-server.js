@@ -13,7 +13,7 @@ var config      = require("./config.js"),
     steam_accs  = require("./steam-accs.js");
 
 var check_interval = 5000;
-var check_interval_history = 60*1000*5;
+var check_interval_history = 60*1000*10;
 var matches_per_request = 20;
 var history_retrieve_delay = 100;
 
