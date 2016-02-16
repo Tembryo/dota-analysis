@@ -6,8 +6,8 @@ var child_process   = require("child_process"),
 var config          = require("./config.js"),
     database          = require("./database.js");
 
-var concurrent_parse = require("semaphore")(3);
-var concurrent_score = require("semaphore")(5);
+var concurrent_parse = require("semaphore")(7);
+var concurrent_score = require("semaphore")(20);
 
 var check_interval = 5000;
 var max_extraction_time = 300000;
