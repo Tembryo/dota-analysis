@@ -271,7 +271,7 @@ function drawScoreboard(data)
 		}
 		pairs[row_id][team] = player;
 
-		avg_imr += player["score"]["score_data"]["MMR"];
+		avg_imr += player["score"]["score_data"]["IMR"];
 	}
 	avg_imr /= data["results"].length;
 
@@ -304,7 +304,7 @@ function createRow(pair)
         .text(pair["radiant"]["header"]["name"]);
 
     row.append("td")
-        .text(Math.floor(pair["radiant"]["score"]["score_data"]["MMR"]));
+        .text(Math.floor(pair["radiant"]["score"]["score_data"]["IMR"]));
 
     row.append("td")
 
@@ -319,5 +319,5 @@ function createRow(pair)
         .text(pair["dire"]["header"]["name"]);
 
     row.append("td")
-        .text(Math.floor(pair["dire"]["score"]["score_data"]["MMR"]));
+        .text(Math.floor(pair["dire"]["score"]["score_data"]["IMR"]));
 }

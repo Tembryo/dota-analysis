@@ -1,8 +1,10 @@
-.results-box {
-	height: 340px;
-	width: 440px;
-	margin-left: auto;
-	margin-right: auto;
+.progress-row
+{
+    padding: 0;
+}
+.top-row
+{
+    margin-bottom: 20px;
 }
 
 #rate-another-player-btn {

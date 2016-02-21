@@ -1,5 +1,6 @@
 // retrieve - server.js
 var async       = require("async");
+var shortid = require("shortid");
 
 var retrieve_concurrency =  require("semaphore")(3);
     //Only one dota client, so the history updates are sequential anyway - no sema needed
@@ -19,25 +20,26 @@ var history_retrieve_delay = 100;
 
 var current_acc = 0;
 var current_account_i = 0;
+var account_loop_stop = 0;
+
+function markAccountStart()
+{
+    account_loop_stop = current_acc;
+}
 
 function getLogin()
 {
-    if(current_acc < steam_accs.account_list.length)
-        return steam_accs.account_list[current_acc];
-    else
-    {
-        //just loop the accounts
-        current_acc = 0;
-        return steam_accs.account_list[current_acc];
-        //return null;
-    } 
+    return steam_accs.account_list[current_acc];
 }
 
 function iterateAccount()
 {
     console.log("done with acc", current_acc, current_account_i);
-    current_acc ++;
+    current_acc = (current_acc+1) % steam_accs.account_list.length;
     current_account_i = 0;
+    if(current_acc == account_loop_stop)
+        return false;
+    else return true;
 }
 
 //THIS IS MAIN
@@ -106,7 +108,7 @@ function checkAPIHistoryData()
             },
             function(users, jobs_callback)
             {
-                console.log("updating user histories");
+                console.log("updating user histories", users.rowCount);
                 if(users.rowCount > 0)
                 {
                     dota.performAction(
@@ -279,29 +281,38 @@ function processMatchHistory(history, locals, callback)
         });
 }
 
-
+var listener_client;
+var my_identifier;
 
 function registerListeners(callback)
 {
-    var client = database.getClient();
-    client.connect(
+    listener_client = database.getClient();
+    listener_client.connect(
         function(err)
         {
             if(err) {
                 return console.error('could not connect to postgres', err);
             }
 
-            client.on('notification', processNotification);
+            listener_client.on('notification', processNotification);
 
-            client.query(
-                "LISTEN retrieval_watchers;",
+            my_identifier = shortid.generate();
+            listener_client.query(
+                "LISTEN \""+my_identifier+"\";",
                 [],
                 function(err, results)
                 {
-                    console.log("added retrieve listener");
+                    console.log("added listener on own channel");
+                    listener_client.query(
+                        "SELECT pg_notify('scheduler', 'RegisterService,Retrieve,'||$1);",
+                        [my_identifier],
+                        function(){
+                            console.log("Registered retriever as ", my_identifier);
+                            }
+                        );
                 });
 
-            client.query(
+            listener_client.query(
                 "LISTEN newuser_watchers;",
                 [],
                 function(err, results)
@@ -310,7 +321,7 @@ function registerListeners(callback)
                 });
 
             callback();
-          //no end -- client.end();
+          //no end -- listener_client.end();
         }
     );
 }
@@ -319,13 +330,16 @@ function processNotification(msg)
 {
     console.log("got notification", msg);
     var parts=msg.payload.split(",");
-    if(parts.length != 2)
+    if(parts.length < 1)
     {
         console.log("bad notification", msg);
         return;
     }
     switch(parts[0])
     {
+        case "RetrieveResponse":
+            //Sent by myself
+            break;
         case "Retrieve":
             var request_id = parseInt(parts[1]);
             retrieve_concurrency.take(
@@ -413,35 +427,19 @@ function processRequest(request_id, callback_request)
                     callback("bad update result", results);
                 else
                 {
-                    console.log("dl #id for #u", results.rows[0].id, results.rows[0].requester_id);
-                    locals.requester_id = results.rows[0].requester_id;
+                    console.log("getting details #id for #u", results.rows[0].id, results.rows[0].requester_id);
                     locals.match_id = results.rows[0].id;
-                    locals.store_path = config.shared+"/replays/";
-
-                    fetchMatch(locals, callback); 
+                    markAccountStart();
+                    fetchMatchDetails(locals, callback); 
                 }
             },
-            function(replay_file, callback)
+            function(replay_data, callback)
             {
-                console.log("downloaded match to", replay_file);
-                var path = replay_file.substring(replay_file.indexOf('/',1));//cut off the /shared folder
+                console.log("inserted replayfile");
                 locals.client.query(
-                    "INSERT INTO ReplayFiles (file, upload_filename, processing_status, uploader_id) VALUES ($1, $2, (SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$3), $4);",
-                    [path, locals.match_id, "uploaded", locals.requester_id],
+                    "UPDATE MatchRetrievalRequests mrr SET data=$2, retrieval_status=(SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label=$3) WHERE mrr.id=$1;",
+                    [locals.request_id, replay_data, "download"],
                     callback);
-            },
-            function(results, callback)
-            {
-                if(results.rowCount!=1)
-                    callback("inserting replayfile failed", results);
-                else
-                {
-                    console.log("inserted replayfile");
-                    locals.client.query(
-                        "UPDATE MatchRetrievalRequests mrr SET retrieval_status=(SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label=$2) WHERE mrr.id=$1 RETURNING mrr.id;",
-                        [locals.request_id, "retrieved"],
-                        callback);
-                }
             },
             function(results, callback)
             {
@@ -468,10 +466,20 @@ function processRequest(request_id, callback_request)
                         {
                             console.log("put request as unavailable", locals.request_id, err, results);
                         }
-
-                        locals.done();
-                        callback_request(null, "");
+                        locals.client.query("SELECT pg_notify($1, 'RetrieveResponse,finished,'||$2);",[my_identifier, locals.request_id],
+                            function(){
+                                locals.done();
+                                callback_request(null, "");
+                            })
                     });
+            }
+            else if(err === "no-capacity-left")
+            {
+                locals.client.query("NOTIFY $1, 'RetrieveResponse,no-capacity,$2';",[my_identifier, locals.request_id],
+                            function(){
+                                locals.done();
+                                callback_request(null, "");
+                            })
             }
             else if(err)
             {
@@ -488,17 +496,21 @@ function processRequest(request_id, callback_request)
                         {
                             console.log("put request as failed", locals.request_id, err, results);
                         }
-
-                        locals.done();
-                        callback_request(null, "");
+                        locals.client.query("SELECT pg_notify($1, 'RetrieveResponse,finished,'||$2);",[my_identifier, locals.request_id],
+                            function(){
+                                locals.done();
+                                callback_request(null, "");
+                            })
                     });
             }
             else
             {
-
-                console.log("retrieved", locals.request_id);
-                locals.done();
-                callback_request(null, "");
+                console.log("put replay data for", locals.request_id);
+                locals.client.query("SELECT pg_notify($1, 'RetrieveResponse,finished,'||$2);",[my_identifier, locals.request_id],
+                            function(){
+                                locals.done();
+                                callback_request(null, "");
+                            });
             }
         }
     );
@@ -506,7 +518,7 @@ function processRequest(request_id, callback_request)
 
 
 
-function fetchMatch(locals, callback)
+function fetchMatchDetails(locals, callback)
 {
     var next_login = getLogin();
 
@@ -522,10 +534,6 @@ function fetchMatch(locals, callback)
                         replay_dl.getReplayData(dota_client, locals.match_id, callback_dota);
                     },
                     callback);
-            },
-            function(replay_data, callback)
-            {
-                replay_dl.downloadMatch(replay_data, locals.store_path, callback);
             }
         ],
         function(err, results)
@@ -533,13 +541,14 @@ function fetchMatch(locals, callback)
             if(err == "details-timeout")
             {
                 //got timed out, retry with next account fordetails
-                iterateAccount();
-                if(getLogin() == null)
-                    callback("no accounts left");
-                else
+                ;
+                if(iterateAccount())
                 {
                     fetchMatch(locals, callback);
                 }
+                else
+                    callback("no-capacity-left");
+                
             }
             else
                 callback(err, results);

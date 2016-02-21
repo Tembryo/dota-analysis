@@ -12,12 +12,16 @@ def main():
         model = pickle.load(model_file)
 
         with open(samples_filename) as sample_file:
-            (steamids, X) = model.load(sample_file)
+            (steamids, X) = model.load(model.importCSV(sample_file))
 
             y_predicted = model.predict(X)
 
             for i in range(len(steamids)):
-                score_result = {"steamid": steamids[i], "data": {"MMR": y_predicted[i]}}
+                score = {}
+                for aspect in y_predicted:
+                    score[aspect] = y_predicted[aspect][i]
+                score["MMR"] = score["All"]
+                score_result = {"steamid": steamids[i], "data": score}
                 print json.dumps(score_result)
 
 

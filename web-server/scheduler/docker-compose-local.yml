@@ -1,0 +1,8 @@
+schedule:
+  build: .
+  volumes:
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/schedule:/storage
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/shared:/shared
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/schedule/src:/source:ro
+  external_links:
+    - postgres-container:POSTGRES_IP

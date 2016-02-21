@@ -78,7 +78,7 @@ var pictures =
 	"sand_king":            "/static/img/heroes/pictures/Sand_King.png",
 	"shadow_demon":         "/static/img/heroes/pictures/Shadow_Demon.png",
 	"shadow_shaman":        "/static/img/heroes/pictures/Shadow_Shaman.png",
-	"shredder":             "/static/img/heroes/pictures/Tibersaw.png",
+	"shredder":             "/static/img/heroes/pictures/Timbersaw.png",
 	"silencer":             "/static/img/heroes/pictures/Silencer.png",
 	"skeleton_king":        "/static/img/heroes/pictures/Wraith_King.png",
 	"skywrath_mage":        "/static/img/heroes/pictures/Skywrath_Mage.png",
@@ -251,6 +251,12 @@ function blockMap(rating)
 	return category;
 }
 
+function bar_map(value, main_value)
+{
+	var k = 0.001;
+	return 100/(1+Math.exp(-k*(value-main_value)));
+}
+
 $(document).ready(function(){	
 	var pathname;
 	if (result_id < 0)
@@ -287,21 +293,22 @@ $(document).ready(function(){
 		pathname = "/api/result/"+result_id;
 		$.getJSON(pathname, function(json) {
 	    	$("h1").text(names[json["player_data"]["hero"]])
-	    	$(".results-header-small").text("IMR: "+Math.floor(json["score_data"]["MMR"]))
+	    	$(".results-header-small").text("IMR: "+Math.floor(json["score_data"]["IMR"]))
 			$("#hero-img").attr("src",pictures[json["player_data"]["hero"]])
 			$("#skill-bar1").attr("valuenow",50)
-			$("#skill-bar1").attr("style","width:"+50+"%")
+			$("#skill-bar1").attr("style","width:"+0+"%")
 			$("#skill-bar2").attr("valuenow",50)
-			$("#skill-bar2").attr("style","width:"+50+ "%")
+			$("#skill-bar2").attr("style","width:"+0+ "%")
 			$("#skill-bar3").attr("valuenow",50)
-			$("#skill-bar3").attr("style","width:"+50+ "%")
-			$("#skill-bar4").attr("valuenow",50)
-			$("#skill-bar4").attr("style","width:"+50+ "%")
+			$("#skill-bar3").attr("style","width:"+0+ "%")
+			$("#skill-bar4").attr("valuenow",json["score_data"]["mechanics"])
+			$("#skill-bar4").attr("style","width:"+bar_map(json["score_data"]["mechanics"], json["score_data"]["IMR"])+ "%")
+							.html(Math.floor(json["score_data"]["mechanics"]));
 			
 			$("#match-page").attr("href","/match/"+match_id)
 			$("#scoreboard-page").attr("href","/scoreboard/"+match_id)
 
-			var category = blockMap(json["score_data"]["MMR"]);
+			var category = blockMap(json["score_data"]["IMR"]);
 			var url_str = "block" + String(category) + "selected";
 			var id_str = "#block" + String(category);
 			$(id_str).attr("src","/static/img/logos/" + url_str + ".png")

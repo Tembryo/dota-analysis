@@ -39,7 +39,7 @@ $(document).ready(function(){
     canvas=d3.select("#dashboard")
     .append("svg")
     .attr("class", "svg-content")
-    .attr("viewBox", "0 0 "+width+" "+height);
+    .attr("viewBox", "-30 0 "+(width+20)+" "+height);
 
     var path = canvas.append("path")
                     .attr("id", "graph")
@@ -70,17 +70,17 @@ $(document).ready(function(){
         .attr("transform", "translate("+(padding/2)+", "+(padding-10)+")")
         .text("rating");
 
-    
+     $("#imr-button").click(function(){
+        entry = "IMR";
+         plot_graph();
+     });   
 
-    $("#last-hits-button").click(function(){
-        entry = "GPM";
+    $("#mechanics-button").click(function(){
+        entry = "mechanics";
         plot_graph();
     });
 
-    $("#mmr-button").click(function(){
-        entry = "IMR";
-         plot_graph();
-     });
+
 
     $("#fights-button").click(function(){
         entry = "checksPM";
@@ -97,8 +97,8 @@ $(document).ready(function(){
          plot_graph();
      });
 
-    $("#nom-button").click(function(){
-        entry = "Win";
+    $("#mmr-button").click(function(){
+        entry = "MMR";
          plot_graph();
      });
 
@@ -114,7 +114,7 @@ function getValue(entry, d)
     {
         case "IMR":
             if(d["score_data"])
-                return d["score_data"]["MMR"];
+                return d["score_data"]["IMR"];
             else
                 return 0;
         case "GPM":
@@ -129,6 +129,10 @@ function getValue(entry, d)
             return d["data"]["average-check-duration"];
         case "lasthits":
             return d["data"]["lasthits"];
+        case "mechanics":
+            return d["score_data"]["mechanics"];
+        case "MMR":
+            return d["score_data"]["MMR"]; 
         default:
             return 0;
     }

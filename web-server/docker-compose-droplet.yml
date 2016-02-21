@@ -34,6 +34,14 @@ webserver:
     VERSION: "droplet"
   links:
     - postgres:POSTGRES_IP
+scheduler:
+  build: scheduler
+  volumes:
+    - /usr/local/dota-analysis/web-server/storage/scheduler:/storage
+    - /usr/local/dota-analysis/web-server/storage/shared:/shared
+    - /usr/local/dota-analysis/web-server/scheduler/src:/source:ro
+  links:
+    - postgres:POSTGRES_IP
 analysis:
   build: analysis
   volumes:
@@ -53,5 +61,13 @@ retrieve:
     - /usr/local/dota-analysis/web-server/storage/retrieve:/storage
     - /usr/local/dota-analysis/web-server/storage/shared:/shared
     - /usr/local/dota-analysis/web-server/retrieve/src:/source:ro
+  links:
+    - postgres:POSTGRES_IP
+download:
+  build: download
+  volumes:
+    - /usr/local/dota-analysis/web-server/storage/download:/storage
+    - /usr/local/dota-analysis/web-server/storage/shared:/shared
+    - /usr/local/dota-analysis/web-server/download/src:/source:ro
   links:
     - postgres:POSTGRES_IP

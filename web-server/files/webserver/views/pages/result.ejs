@@ -47,42 +47,62 @@
                 </div>
             </div>
             <div class="col-md-5 text-center">
-                <div id="coming-soon">
-                    coming soon
+                <div class="row top-row">
+                    <div class="col-xs-4 col-xs-offset-2 text-center">
+                        <a href="/scoreboard/<%=match_id%>" id="scoreboard-page" class="btn btn-success main-button">IMR Scoreboard</a>
+                    </div>
+                    <div class="col-xs-4 text-center">
+                        <a href="/match/<%=match_id%>" id="match-page" class="btn btn-success main-button">Match Review</a>
+                    </div>
                 </div>
-                <div class="results-box">
-                    <div style="height:27px"></div>
-                    <div>
-                        <div class="progress">
-                            <div id="skill-bar1" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:40%">
-                                Farming
-                            </div>
-                        </div>
-                        <div class="progress">
-                          <div id="skill-bar2" class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="50"
-                          aria-valuemin="0" aria-valuemax="100" style="width:50%">
-                                Fighting
-                          </div>
-                        </div>
-                        <div class="progress">
-                            <div id="skill-bar3" class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="60"
-                                aria-valuemin="0" aria-valuemax="100" style="width:60%">
-                                Movement
-                            </div>
-                        </div>
 
-                        <div class="progress">
-                            <div id="skill-bar4" class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="70"
-                                aria-valuemin="0" aria-valuemax="100" style="width:70%">
-                                Interface Control
-                            </div>
+                <div class="row">
+                    <div class="col-xs-4 text-center">
+                        <!--Farming-->
+                    </div>
+                    <div class="col-xs-8 text-center progress progress-row">
+                        <div id="skill-bar1" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:40%">
+
                         </div>
                     </div>
-                    <div style="height:27px"></div>
-                    <div><a href="/scoreboard/<%=match_id%>" id="scoreboard-page" class="btn btn-success main-button">IMR Scoreboard</a> <a href="/match/<%=match_id%>" id="match-page" class="btn btn-success main-button">Match Review</a></div>
                 </div>
+
+                <div class="row">
+                    <div class="col-xs-4 text-center">
+                        <!--Fighting-->
+                    </div>
+                    <div class="col-xs-8 text-center progress progress-row">
+                        <div id="skill-bar2" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:40%">
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-4 text-center">
+                        <!--Movement-->
+                    </div>
+                    <div class="col-xs-8 text-center progress progress-row">
+                        <div id="skill-bar3" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:40%">
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-4 text-center">
+                        Interface Controls
+                    </div>
+                    <div class="col-xs-8 text-center progress progress-row">
+                        <div id="skill-bar4" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:40%">
+
+                        </div>
+                    </div>
+                </div>
+
             </div>
-            <div class="col-md-1"></div>
+        </div>
+        <div class="col-md-1"></div>
         </div>
     </div>
 </div>
