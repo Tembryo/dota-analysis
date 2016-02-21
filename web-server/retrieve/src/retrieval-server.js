@@ -544,7 +544,7 @@ function fetchMatchDetails(locals, callback)
                 ;
                 if(iterateAccount())
                 {
-                    fetchMatch(locals, callback);
+                    fetchMatchDetails(locals, callback);
                 }
                 else
                     callback("no-capacity-left");
