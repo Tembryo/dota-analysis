@@ -167,8 +167,9 @@ function scheduleRetrieve(request_id)
     if(server_nr < 0)
     {
         setTimeout(function(){scheduleRetrieve(request_id)}, 1000);
+        return;
     }
-    var server = registeredServers["Retrieve"][];
+    var server = registeredServers["Retrieve"][server_nr];
     listener_client.query("SELECT pg_notify($1, 'Retrieve,'||$2);",[server["identifier"], request_id],
         function(){
             var request = { "tried": 0}
