@@ -163,7 +163,12 @@ function scheduleRetrieve(request_id)
         console.log("Trying to retrieve, but no servers ");
         return;
     }
-    var server = registeredServers["Retrieve"][chooseRetrieveServer()];
+    var server_nr = chooseRetrieveServer();
+    if(server_nr < 0)
+    {
+        setTimeout(function(){scheduleRetrieve(request_id)}, 1000);
+    }
+    var server = registeredServers["Retrieve"][];
     listener_client.query("SELECT pg_notify($1, 'Retrieve,'||$2);",[server["identifier"], request_id],
         function(){
             var request = { "tried": 0}
@@ -304,8 +309,11 @@ function scheduleHistoryUpdate(range, callback)
         callback("no servers");
     }
 
-    var server = registeredServers["Retrieve"][chooseRetrieveServer()];
-    registeredServers["Retrieve"][chooseRetrieveServer()]["busy"] = true;
+    var server_nr = chooseRetrieveServer();
+    if (server_nr < 0)
+        setTimeout(function(){scheduleHistoryUpdate(range, callback);}, 1000);
+    var server = registeredServers["Retrieve"][server_nr];
+    registeredServers["Retrieve"][server_nr]["busy"] = true;
     listener_client.query("SELECT pg_notify($1, 'UpdateHistory,'||$2||','||$3);",[server["identifier"], range[0], range[1]],
         function(){
             var request = { "callback": callback}
@@ -336,5 +344,5 @@ function findServerNr(service, identifier)
         }
     }
     console.log("couldnt find server identifier", service, identifier);
-    return 0;//still return something valid
+    return -1;
 }
