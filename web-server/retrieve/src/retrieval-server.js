@@ -14,7 +14,6 @@ var config      = require("./config.js"),
     steam_accs  = require("./steam-accs.js");
 
 var check_interval = 5000;
-var check_interval_history = 60*1000*10;
 var matches_per_request = 20;
 var history_retrieve_delay = 100;
 
@@ -50,6 +49,153 @@ async.series(
         startHistoryRefresh
     ]
 );
+
+var listener_client;
+var my_identifier;
+
+function registerListeners(callback)
+{
+    listener_client = database.getClient();
+    listener_client.connect(
+        function(err)
+        {
+            if(err) {
+                return console.error('could not connect to postgres', err);
+            }
+
+            listener_client.on('notification', processNotification);
+
+            my_identifier = shortid.generate();
+            listener_client.query(
+                "LISTEN \""+my_identifier+"\";",
+                [],
+                function(err, results)
+                {
+                    console.log("added listener on own channel");
+                    listener_client.query(
+                        "SELECT pg_notify('scheduler', 'RegisterService,Retrieve,'||$1);",
+                        [my_identifier],
+                        function(){
+                            console.log("Registered retriever as ", my_identifier);
+                            }
+                        );
+                });
+
+            listener_client.query(
+                "LISTEN scheduler_broadcast;",
+                [],
+                function(err, results)
+                {
+                    console.log("added scheduler_broadcast listener");
+                });
+
+            listener_client.query(
+                "LISTEN newuser_watchers;",
+                [],
+                function(err, results)
+                {
+                    console.log("added user listener");
+                });
+
+            callback();
+          //no end -- listener_client.end();
+        }
+    );
+}
+
+function processNotification(msg)
+{
+    console.log("got notification", msg);
+    var parts=msg.payload.split(",");
+    if(parts.length < 1)
+    {
+        console.log("bad notification", msg);
+        return;
+    }
+    switch(parts[0])
+    {
+        case "RetrieveResponse":
+            //Sent by myself
+            break;
+        case "UpdateHistoryResponse":
+            //Sent by myself
+            break;
+        case "Retrieve":
+            var request_id = parseInt(parts[1]);
+            retrieve_concurrency.take(
+                function(){
+                    processRequest(request_id, function(){console.log("finished retrieve reqid", request_id);retrieve_concurrency.leave()});
+                });
+            break;
+        case "SchedulerReset":
+            listener_client.query(
+                        "SELECT pg_notify('scheduler', 'RegisterService,Retrieve,'||$1);",
+                        [my_identifier],
+                        function(){
+                            console.log("re-registered retriever as ", my_identifier);
+                            }
+                        );
+            break;
+
+        case "UpdateHistory":
+            var interval = [ parseInt(parts[1]), parseInt(parts[2])];
+            checkAPIHistoryData(interval);
+            break;
+        case "User":
+            var user_id = parseInt(parts[1]);
+            var locals = {};
+            async.waterfall(
+                [
+                    database.connect,
+                    function(client, done_client, callback)
+                    {
+                        locals.client = client;
+                        locals.done = done_client;
+                        locals.client.query(
+                            "SELECT u.id, u.steam_identifier, u.last_match FROM Users u WHERE u.id=$1;",
+                            [user_id],
+                            callback);
+                    },
+                    function(results, callback){
+                        locals.done();
+                        callback(null, results)
+                    },
+                    function(users, callback)
+                    {
+                        console.log("updating notified user", users.rows);
+                        if(users.rowCount != 1)
+                        {
+                            callback("bad user count", users);
+                        }
+                        else
+                        {
+                            dota.performAction(
+                                config,
+                                function(dota_client, callback_dota)
+                                {
+                                    updateUserHistory(users.rows[0], dota_client, callback_dota); 
+                                },
+                                function(err, results)
+                                {
+                                    callback(err, results);
+                                }
+                            );
+                        }
+                    }
+                ],
+                function(err, results)
+                {
+                    console.log("finished notified user", user_id);
+                }
+            );
+            break;
+        default:
+            console.log("Unknown notification", msg);
+    }
+}
+
+
+
 
 
 function resetStuff(callback)
@@ -87,11 +233,11 @@ function resetStuff(callback)
 }
 
 function startHistoryRefresh(callback){
-    checkAPIHistoryData();
+    //checkAPIHistoryData();
     callback();
 }
 
-function checkAPIHistoryData()
+function checkAPIHistoryData(user_id_range)
 {   
     var locals = {};
     async.waterfall(
@@ -102,8 +248,8 @@ function checkAPIHistoryData()
                 locals.client = client;
                 locals.done = done_client;
                 locals.client.query(
-                    "SELECT u.id, u.steam_identifier, u.last_match FROM Users u;",
-                    [],
+                    "SELECT u.id, u.steam_identifier, u.last_match FROM Users u WHERE u.id >= $1 AND u.id <= $2;",
+                    [user_id_range[0], user_id_range[1]],
                     callback);
             },
             function(users, jobs_callback)
@@ -142,18 +288,32 @@ function checkAPIHistoryData()
             function(results, callback)
             {
                 console.log("auto request added:", results.rowCount)
-                callback();
-            }
+                locals.client.query("SELECT pg_notify($1, 'UpdateHistoryResponse,finished,'||$2||','||$3);",[my_identifier, user_id_range[0], user_id_range[1]],
+                            function(){
+                                callback(null, "");
+                            });
+            },
+
         ],
         function(err, results)
         {
             if (err)
             {
+                locals.client.query("SELECT pg_notify($1, 'UpdateHistoryResponse,failed,'||$2);",[my_identifier, JSON.dumps(results)],
+                            function(){
+                                locals.done();
 
-            }    console.log(err, results);
-            locals.done();
-            //console.log("finished check_jobs");
-            setTimeout(checkAPIHistoryData, check_interval_history);
+                                console.log("history update failed", err, results, user_id_range);
+                            });
+            }
+            else
+            {
+                console.log(err, results);
+                locals.done();
+                //console.log("finished check_jobs");
+            }
+
+
         }
     );
 }
@@ -279,125 +439,6 @@ function processMatchHistory(history, locals, callback)
             }
             
         });
-}
-
-var listener_client;
-var my_identifier;
-
-function registerListeners(callback)
-{
-    listener_client = database.getClient();
-    listener_client.connect(
-        function(err)
-        {
-            if(err) {
-                return console.error('could not connect to postgres', err);
-            }
-
-            listener_client.on('notification', processNotification);
-
-            my_identifier = shortid.generate();
-            listener_client.query(
-                "LISTEN \""+my_identifier+"\";",
-                [],
-                function(err, results)
-                {
-                    console.log("added listener on own channel");
-                    listener_client.query(
-                        "SELECT pg_notify('scheduler', 'RegisterService,Retrieve,'||$1);",
-                        [my_identifier],
-                        function(){
-                            console.log("Registered retriever as ", my_identifier);
-                            }
-                        );
-                });
-
-            listener_client.query(
-                "LISTEN newuser_watchers;",
-                [],
-                function(err, results)
-                {
-                    console.log("added user listener");
-                });
-
-            callback();
-          //no end -- listener_client.end();
-        }
-    );
-}
-
-function processNotification(msg)
-{
-    console.log("got notification", msg);
-    var parts=msg.payload.split(",");
-    if(parts.length < 1)
-    {
-        console.log("bad notification", msg);
-        return;
-    }
-    switch(parts[0])
-    {
-        case "RetrieveResponse":
-            //Sent by myself
-            break;
-        case "Retrieve":
-            var request_id = parseInt(parts[1]);
-            retrieve_concurrency.take(
-                function(){
-                    processRequest(request_id, function(){console.log("finished retrieve reqid", request_id);retrieve_concurrency.leave()});
-                });
-            break;
-        case "User":
-            var user_id = parseInt(parts[1]);
-            var locals = {};
-            async.waterfall(
-                [
-                    database.connect,
-                    function(client, done_client, callback)
-                    {
-                        locals.client = client;
-                        locals.done = done_client;
-                        locals.client.query(
-                            "SELECT u.id, u.steam_identifier, u.last_match FROM Users u WHERE u.id=$1;",
-                            [user_id],
-                            callback);
-                    },
-                    function(results, callback){
-                        locals.done();
-                        callback(null, results)
-                    },
-                    function(users, callback)
-                    {
-                        console.log("updating notified user", users.rows);
-                        if(users.rowCount != 1)
-                        {
-                            callback("bad user count", users);
-                        }
-                        else
-                        {
-                            dota.performAction(
-                                config,
-                                function(dota_client, callback_dota)
-                                {
-                                    updateUserHistory(users.rows[0], dota_client, callback_dota); 
-                                },
-                                function(err, results)
-                                {
-                                    callback(err, results);
-                                }
-                            );
-                        }
-                    }
-                ],
-                function(err, results)
-                {
-                    console.log("finished notified user", user_id);
-                }
-            );
-            break;
-        default:
-            console.log("Unknown notification", msg);
-    }
 }
 
 

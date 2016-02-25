@@ -15,6 +15,7 @@ async.series(
     [
         initialise,
         registerListeners,
+        startTasks
     ]
 );
 
@@ -27,7 +28,6 @@ function initialise(callback)
 
     callback();
 }
-
 
 
 function registerListeners(callback)
@@ -48,6 +48,13 @@ function registerListeners(callback)
                 function(err, results)
                 {
                     console.log("added scheduler listener");
+                    listener_client.query(
+                        "SELECT pg_notify('scheduler_broadcast', 'SchedulerReset');",
+                        [],
+                        function(){
+                            console.log("broadcasted reset");
+                            }
+                        );
                 });
 
             listener_client.query(
@@ -62,6 +69,20 @@ function registerListeners(callback)
         }
     );
 }
+
+
+var check_interval_history = 60*1000*10;
+
+function startTasks(callback)
+{
+    setTimeout(function()
+        {
+            updateAllHistories();
+
+        },1000);
+    callback();
+}
+
 
 function processNotification(msg)
 {
@@ -118,6 +139,7 @@ function registerService(type, identifier)
     {
         var server = {}
         server["identifier"] = identifier;
+        server["busy"] = false;
 
         registeredServers[type].push(server);
 
@@ -141,7 +163,7 @@ function scheduleRetrieve(request_id)
         console.log("Trying to retrieve, but no servers ");
         return;
     }
-    var server = registeredServers["Retrieve"][0];
+    var server = registeredServers["Retrieve"][chooseRetrieveServer()];
     listener_client.query("SELECT pg_notify($1, 'Retrieve,'||$2);",[server["identifier"], request_id],
         function(){
             var request = { "tried": 0}
@@ -154,8 +176,10 @@ function processResponse(server_identifier, msg_parts)
     switch(msg_parts[0])
     {
         case "Retrieve":
+        case "UpdateHistory":
             //Sent by myself
             break;
+
         case "RetrieveResponse":
             if(msg_parts[1] == "finished")
             {
@@ -169,7 +193,8 @@ function processResponse(server_identifier, msg_parts)
                 {
                     request["tried"] += 1;
                     console.log("trying next server to retrieve", request["tried"]);
-                    var server = registeredServers["Retrieve"][request["tried"]];
+                    var next_server_nr = (findServerNr("Retrieve", server_identifier) +1 ) % registeredServers["Retrieve"].length;
+                    var server = registeredServers["Retrieve"][next_server_nr];
                     listener_client.query("SELECT pg_notify($1, 'Retrieve,'||$2);",[server["identifier"], request_id],
                         function(){
                             retrieve_requests[msg_parts[2]] = request;
@@ -186,7 +211,130 @@ function processResponse(server_identifier, msg_parts)
                 console.log("bad response:", server_identifier, msg_parts)
             }
             break;
+
+        case "UpdateHistoryResponse":
+            if(msg_parts[1] == "finished")
+            {
+                console.log("updated history", msg_parts[2], msg_parts[3])
+            }
+            else if(msg_parts[1] == "failed")
+            {
+                console.log("failed to updated history, errors: ", msg_parts[2], msg_parts[3])
+            }
+            registeredServers["Retrieve"][findServerNr("Retrieve", server_identifier)]["busy"] = false;
+            history_requests[server_identifier]["callback"]();
+            break;
         default:
-            console.log("unnkown response:", server_identifier, msg_parts)
+            console.log("unknown response:", server_identifier, msg_parts)
     }
+}
+
+
+var history_job_size = 50;
+
+
+function updateAllHistories()
+{
+
+    var locals = {};
+    async.waterfall(
+        [
+            database.connect,
+            function(client, done_client, callback)
+            {
+                locals.client = client;
+                locals.done = done_client;
+                locals.client.query(
+                    "SELECT MIN(u.id) as min, MAX(u.id) as max FROM Users u;",
+                    [],
+                    callback);
+            },
+            function(results, callback)
+            {
+                if(results.rowCount == 1)
+                {
+                    console.log("user range", results.rows[0]["min"], results.rows[0]["max"]);
+                    //TODO
+                    var ranges = [];
+                    var start =  results.rows[0]["min"];
+                    var end = Math.min(start + history_job_size, results.rows[0]["max"]);
+
+                    while(start < results.rows[0]["max"])
+                    {
+                        ranges.push([start, end]);
+                        start = end+1;
+                        end = Math.min(end + history_job_size, results.rows[0]["max"]);
+                    }
+
+                    async.eachSeries(
+                                ranges,
+                                function(range_row, callback_request)
+                                {
+                                    scheduleHistoryUpdate(range_row, callback_request); 
+                                },
+                                function(err, results){callback();});
+                }
+                else
+                    callback("db call failure",results);
+            }
+        ],
+        function(err, results)
+        {
+            if (err)
+            {
+                console.log("failure", err, results, user_id_range);
+            }
+            else
+            {
+                locals.done();
+            }
+
+            setTimeout(updateAllHistories, check_interval_history);
+        }
+    );
+}
+
+var history_requests = {};
+
+function scheduleHistoryUpdate(range, callback)
+{
+    if(registeredServers["Retrieve"].length < 1)
+    {
+        console.log("Trying to retrieve, but no servers ");
+        callback("no servers");
+    }
+
+    var server = registeredServers["Retrieve"][chooseRetrieveServer()];
+    registeredServers["Retrieve"][chooseRetrieveServer()]["busy"] = true;
+    listener_client.query("SELECT pg_notify($1, 'UpdateHistory,'||$2||','||$3);",[server["identifier"], range[0], range[1]],
+        function(){
+            var request = { "callback": callback}
+            history_requests[server["identifier"]] = request;
+        });
+}
+
+function chooseRetrieveServer()
+{
+    for(var i = 0; i < registeredServers["Retrieve"].length; ++i)
+    {
+        if(!registeredServers["Retrieve"][i]["busy"])
+        {
+            return i;
+        }
+    }
+
+    return 0;//if all are busy, just take first one
+}
+
+function findServerNr(service, identifier)
+{
+    for(var i = 0; i < registeredServers[service].length; ++i)
+    {
+        if(registeredServers[service][i]["identifier"]===identifier)
+        {
+            return i;
+        }
+    }
+    console.log("couldnt find server identifier", service, identifier);
+    return 0;//still return something valid
 }
