@@ -307,7 +307,8 @@ function scheduleHistoryUpdate(range, callback)
     if(registeredServers["Retrieve"].length < 1)
     {
         console.log("Trying to retrieve, but no servers ");
-        callback("no servers");
+        setTimeout(function(){scheduleHistoryUpdate(range, callback);}, 1000);
+        return;
     }
 
     var server_nr = chooseRetrieveServer();
