@@ -312,7 +312,10 @@ function scheduleHistoryUpdate(range, callback)
 
     var server_nr = chooseRetrieveServer();
     if (server_nr < 0)
+    {
         setTimeout(function(){scheduleHistoryUpdate(range, callback);}, 1000);
+            return;
+    }
     var server = registeredServers["Retrieve"][server_nr];
     registeredServers["Retrieve"][server_nr]["busy"] = true;
     listener_client.query("SELECT pg_notify($1, 'UpdateHistory,'||$2||','||$3);",[server["identifier"], range[0], range[1]],
