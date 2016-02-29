@@ -299,7 +299,7 @@ function checkAPIHistoryData(user_id_range)
         {
             if (err)
             {
-                locals.client.query("SELECT pg_notify($1, 'UpdateHistoryResponse,failed,'||$2);",[my_identifier, JSON.dumps(results)],
+                locals.client.query("SELECT pg_notify($1, 'UpdateHistoryResponse,failed,'||$2);",[my_identifier,err],
                             function(){
                                 locals.done();
 
