@@ -53,6 +53,9 @@ async.series(
 var listener_client;
 var my_identifier;
 
+
+var retry_interval = 5000;
+
 function registerListeners(callback)
 {
     listener_client = database.getClient();
@@ -60,7 +63,10 @@ function registerListeners(callback)
         function(err)
         {
             if(err) {
-                return console.error('could not connect to postgres', err);
+                console.log('could not connect to postgres', err);
+                console.log("retrying in", retry_interval);
+                setTimeout(function(){ registerListeners(callback);}, retry_interval);
+                return;
             }
 
             listener_client.on('notification', processNotification);
@@ -109,7 +115,7 @@ function catchListenerError(err, result)
     console.log("listener err", err, result);
     listener_client.end()
 
-    registerListeners(function (){console.log("reset listener");});
+    registerListeners(function (err){console.log("reset listener", err);});
 }
 
 function processNotification(msg)
