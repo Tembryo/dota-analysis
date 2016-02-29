@@ -64,6 +64,7 @@ function registerListeners(callback)
             }
 
             listener_client.on('notification', processNotification);
+            listener_client.on('error', catchListenerError);
 
             my_identifier = shortid.generate();
             listener_client.query(
@@ -101,6 +102,14 @@ function registerListeners(callback)
           //no end -- listener_client.end();
         }
     );
+}
+
+function catchListenerError(err, result)
+{
+    console.log("listener err", err, result);
+    listener_client.end()
+
+    registerListeners(function (){console.log("reset listener");});
 }
 
 function processNotification(msg)
