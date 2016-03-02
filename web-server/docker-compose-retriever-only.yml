@@ -1,0 +1,6 @@
+retrieve:
+  build: retrieve
+  volumes:
+    - /usr/local/dota-analysis/web-server/storage/retrieve:/storage
+    - /usr/local/dota-analysis/web-server/storage/shared:/shared
+    - /usr/local/dota-analysis/web-server/retrieve/src:/source:ro

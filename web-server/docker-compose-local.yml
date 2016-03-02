@@ -31,6 +31,14 @@ webserver:
     VIRTUAL_PORT: "42000"
   links:
     - postgres:POSTGRES_IP
+scheduler:
+  build: scheduler
+  volumes:
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/scheduler:/storage
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/shared:/shared
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/scheduler/src:/source:ro
+  links:
+    - postgres:POSTGRES_IP
 analysis:
   build: analysis
   volumes:
@@ -50,5 +58,13 @@ retrieve:
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/retrieve:/storage
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/shared:/shared
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/retrieve/src:/source:ro
+  links:
+    - postgres:POSTGRES_IP
+download:
+  build: download
+  volumes:
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/download:/storage
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/shared:/shared
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/download/src:/source:ro
   links:
     - postgres:POSTGRES_IP

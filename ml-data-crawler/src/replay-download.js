@@ -100,7 +100,7 @@ function downloadMatch(client, match_id, target, final_callback)
 
                 var replay_data = {
                     "cluster": result.match.cluster,
-                    "match_id": result.match.match_id.low,
+                    "match_id": (result.match.match_id.low>>>0),
                     "replay_salt": result.match.replay_salt
                 };
                 if(result.match.replay_state != 0)

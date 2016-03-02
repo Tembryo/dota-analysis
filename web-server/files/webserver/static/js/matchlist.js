@@ -57,6 +57,7 @@ function drawTables(data) {
     {
         if( data[i]["match_status"] ===  "requested" ||
             data[i]["match_status"] ===  "retrieving" ||
+            data[i]["match_status"] ===  "download" ||
             data[i]["match_status"] ===  "uploaded" ||
             data[i]["match_status"] ===  "retrieved" ||
             data[i]["match_status"] ===  "extracting" ||
@@ -395,6 +396,7 @@ function updateRow(data)
             break;
         case "requested":
         case "retrieving":
+        case "download":
         case "uploaded":
         case "retrieved":
         case "extracting":

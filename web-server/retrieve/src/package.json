@@ -10,7 +10,8 @@
         "async": "^1.5.0",
         "steam": "^1.4.0",
         "dota2": "git://github.com/RJacksonm1/node-dota2.git",
-        "semaphore": "^1.0.3"
+        "semaphore": "^1.0.3",
+        "shortid": "^2.2.4"
     }
 }
 

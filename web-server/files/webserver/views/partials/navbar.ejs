@@ -10,25 +10,12 @@
   <div class="navbar-collapse collapse">
     <ul class="nav navbar-nav">
       <li class="navbar-left"><a class="navbar-brand page-scroll" href="/">Wisdota</a></li>
-      <li class="active"><a class="announcement" href="#">Server is under heavy load, parsing will take a while. Thank you for your patience.</a></li>
+      <!--<li class="active"><a class="announcement" href="#">Ran into a replay download limit put by Valve, new matches should be available tomorrow morning. Apologies for the inconvenience.</a></li>-->
+      <!--<li class="active"><a class="announcement" href="#">Server under high load, parsing might take a while. Apologies for the inconvenience.</a></li>-->
 
 
-<% 
-    for(var i=0; i<navigation_entries.length; i++) 
-    {
-%>
-         <li class="navbar-right">
-            <a class="page-scroll" href="<%=navigation_entries[i]["link"]%>">
-                <%=navigation_entries[i]["label"]%>
-            </a>
-        </li>
-<% 
-    }
-%>
-<li class="navbar-right">
-    <a class="page-scroll" href="/plus">Plus</a>
-</li>
- <%   
+
+<%   
     if(!user) 
     {
 %>
@@ -41,14 +28,33 @@
     {
 %>
         <li class="navbar-right">
-            <a class="page-scroll" href="/user">
-                <%= user["name"] %>
-            </a>
-        <li class="navbar-right">
             <a href="/auth/logout" class="glyphicon glyphicon-log-out" aria-hidden="true">
             </a>
         </li>
+        <li class="navbar-right">
+            <a class="page-scroll" href="/user">
+                <%= user["name"] %>
+            </a>
+
 <%
+    }
+%>
+
+<li class="navbar-right">
+    <a class="page-scroll" href="/plus">Plus</a>
+</li>
+ 
+
+ <% 
+    for(var i=0; i<navigation_entries.length; i++) 
+    {
+%>
+         <li class="navbar-right">
+            <a class="page-scroll" href="<%=navigation_entries[i]["link"]%>">
+                <%=navigation_entries[i]["label"]%>
+            </a>
+        </li>
+<% 
     }
 %>
     </ul>
