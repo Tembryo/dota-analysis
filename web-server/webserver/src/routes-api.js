@@ -5,8 +5,10 @@ var	express			= require("express"),
     fs_extra        = require('fs-extra'),
     shortid         = require('shortid');
 
-var	authentication = require("./routes-auth.js"),
+var	authentication  = require("./routes-auth.js"),
     config			= require("./config.js");
+
+var communication   = require("/shared-code/communication.js");
 
 var database        = require("./database.js");
 
@@ -23,7 +25,7 @@ router.use(function(req, res, next) {
 
 // test route to make sure everything is working (accessed at GET http://localhost:8080/api)
 router.get('/', function(req, res) {
-    res.json({ message: 'wisdota api - base' });   
+    res.json({ "message": 'wisdota api - base' });   
 });
 
 
@@ -551,6 +553,19 @@ router.route("/history")
                     n_matches = end - start;
                 }
             }
+            
+            var refresh_message = 
+                {
+                    "message": "RefreshHistory",
+                    "id": req.user["id"]
+                };
+
+            communication.publish("match_history", refresh_message,
+                function()
+                {
+                    console.log("requested history refresh");
+                });
+
 
             async.waterfall(
                 [
