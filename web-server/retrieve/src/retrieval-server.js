@@ -1,10 +1,8 @@
 var database        = require("/shared-code/database.js"),
-    communication   = require("/shared-code/communication.js"),
-    utils           = require("/shared-code/utils.js");
+    services   = require("/shared-code/services.js");
 
 // retrieve - server.js
 var async       = require("async");
-var shortid = require("shortid");
 
 var retrieve_concurrency =  require("semaphore")(3);
     //Only one dota client, so the history updates are sequential anyway - no sema needed
@@ -45,70 +43,22 @@ function iterateAccount()
     else return true;
 }
 
-var subscriber = null;
-var my_identifier;
-
 var retry_interval = 5000;
-
+var service = null;
 //THIS IS MAIN
 async.series(
     [
-        registerListeners
+        function(callback)
+        {
+            service = new services.Service("Retrieve", handleRetrieveServerMsg, callback);
+        },
+        function(callback)
+        {
+            console.log("Retrieve service started");
+        }
     ]
 );
 
-
-function registerListeners(final_callback)
-{
-    async.series(
-        [
-            function(callback){
-                subscriber = new communication.Subscriber(callback);
-            },
-            function(callback){
-                my_identifier = utils.safe_generate();
-                subscriber.listen(my_identifier, handleRetrieveServerMsg);
-                subscriber.listen("scheduler_broadcast", handleSchedulerMsg);
-                callback();
-            },
-            function(callback)
-            {
-                var registration_message = {
-                    "message": "RegisterService",
-                    "type": "Retrieve",
-                    "identifier": my_identifier
-                };
-
-                communication.publish("scheduler", registration_message);
-                callback();
-            }
-        ],
-        final_callback
-    );
-}
-
-function handleSchedulerMsg(channel, message)
-{
-    switch(message["message"])
-    {
-        case "SchedulerReset":
-            
-            var new_message = {
-                    "message": "RegisterService",
-                    "type": "Retrieve",
-                    "identifier": my_identifier
-                };
-            communication.publish("scheduler", new_message,
-                function()
-                {
-                    console.log("re-registered retriever as ", my_identifier);
-                });
-            break;
-        default:
-            console.log("unknown scheduler message", message);
-            break;
-    }
-}
 
 function handleRetrieveServerMsg(channel, message)
 {
@@ -134,30 +84,6 @@ function handleRetrieveServerMsg(channel, message)
 
         case "UpdateHistory":
             checkAPIHistoryData(message);
-            break;
-    }
-}
-
-
-function handleSchedulerMsg(channel, message)
-{
-    switch(message["message"])
-    {
-        case "SchedulerReset":
-            
-            var new_message = {
-                    "message": "RegisterService",
-                    "type": "Retrieve",
-                    "identifier": my_identifier
-                };
-            communication.publish("scheduler", new_message,
-                function()
-                {
-                    console.log("re-registered retriever as ", my_identifier);
-                });
-            break;
-        default:
-            console.log("unknown scheduler message", message);
             break;
     }
 }
@@ -219,7 +145,7 @@ function checkAPIHistoryData(message)
                     "result": "finished",
                     "job": message["job"]
                 };
-                communication.publish(my_identifier, finished_message, callback);
+                service.send(finished_message, callback);
             },
 
         ],
@@ -233,7 +159,7 @@ function checkAPIHistoryData(message)
                     "result": "failed",
                     "job": message["job"]
                 };
-                communication.publish(my_identifier, finished_message);
+                service.send(finished_message);
             }
             else
             {
@@ -447,7 +373,7 @@ function processRequest(message, callback_request)
                                 "result": "finished",
                                 "job": message["job"]
                             };
-                        communication.publish(my_identifier, finished_message,
+                        send.send(finished_message,
                             function(){
                                 locals.done();
                                 callback_request(null, "");
@@ -464,7 +390,7 @@ function processRequest(message, callback_request)
                         "result": "no-capacity",
                         "job": message["job"]
                     };
-                communication.publish(my_identifier, finished_message,
+                service.send(finished_message,
                     function(){
                         locals.done();
                         callback_request(null, "");
@@ -493,7 +419,7 @@ function processRequest(message, callback_request)
                                 "result": "finished",
                                 "job": message["job"]
                             };
-                        communication.publish(my_identifier, finished_message,
+                        service.send(finished_message,
                             function(){
                                 locals.done();
                                 callback_request(null, "");
@@ -511,7 +437,7 @@ function processRequest(message, callback_request)
                         "result": "finished",
                         "job": message["job"]
                     };
-                communication.publish(my_identifier, finished_message,
+                service.send(finished_message,
                     function(){
                         locals.done();
                         callback_request(null, "");

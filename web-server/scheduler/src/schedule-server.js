@@ -10,7 +10,11 @@ var servers = {};
 var servers_by_type = {};
 
 var subscriber = null;
-var serviceHandlers = {"Retrieve": handleRetrieveServerMsg};
+var serviceHandlers =
+    {
+        "Retrieve": handleRetrieveServerMsg,
+        "Download": handleDownloadServerMsg
+    };
 //TODO introduce sema for queue
 var jobs_queue = {};
 
@@ -115,6 +119,7 @@ function registerListeners(final_callback)
                 subscriber.listen("scheduler",          handleSchedulerMsg);
                 subscriber.listen("retrieval_watchers", handleRetrievalMsg);
                 subscriber.listen("newuser_watchers",   handleNewUserMsg);
+                subscriber.listen("download_watchers",  handleDownloadMsg);
                 subscriber.listen("match_history",      handleMatchHistoryMsg);
                 callback();
             },
@@ -183,6 +188,24 @@ function handleNewUserMsg(channel, message)
                 createTemporaryJob(job_data, function(job_id){
                         jobs_queue[job_id]["callback"] = function(){};
                     });
+            break;
+        default:
+            console.log("Unknown retrieve message", message);
+            break;
+    }
+}
+
+function handleDownloadMsg(channel, message)
+{
+    switch(message["message"])
+    {
+        case "Download":
+                console.log("requesting new user history");
+                var job_data = {
+                        "message":      "Download",
+                        "id":  message["id"]
+                    };
+                createJob(job_data);
             break;
         default:
             console.log("Unknown retrieve message", message);
@@ -284,6 +307,42 @@ function handleRetrieveServerMsg(server_identifier, message) //channel name is t
             break;
     }
 }
+
+
+function handleDownloadServerMsg(server_identifier, message) //channel name is the server identifier
+{
+    if(("job" in message) && !(message["job"] in jobs_queue))
+    {
+        console.log("couldnt find download job", message);
+        return;
+    }
+
+    switch(message["message"])
+    {
+        case "Download":
+            //Sent by myself
+            break;
+
+        case "DownloadResponse":
+            var job =  jobs_queue[message["job"]]; 
+            switch(message["result"])
+            {
+                case "finished":
+                    console.log("finished download", message["job"]);
+                    break;
+                case "failed":
+                    console.log("failed download", job);
+                    break;
+            }
+            closeJob(message["job"]);
+            servers[server_identifier]["busy"] = false;
+            break;
+        default:
+            console.log("unknown response:", server_identifier, message);
+            break;
+    }
+}
+
 
 function registerService(type, identifier)
 {
@@ -399,7 +458,7 @@ function runScheduler()
 function schedulerTick()
 {
     //Make async
-    console.log("scheduler tick, ", Object.keys(jobs_queue).length, " jobs in queue");
+    //console.log("scheduler tick, ", Object.keys(jobs_queue).length, " jobs in queue");
     for(var job_id in jobs_queue)
     {
         if(jobs_queue[job_id]["state"] === "open")
@@ -407,7 +466,7 @@ function schedulerTick()
             scheduleJob(job_id);
         }
     }
-    console.log(jobs_queue);
+    //console.log("Jobs queue", jobs_queue);
 }
 
 function scheduleJob(job_id)
@@ -422,6 +481,9 @@ function scheduleJob(job_id)
             break;
         case "UpdateHistory":
             server_identifier = chooseRetrieveServer(false);
+            break;
+        case "Download":
+            server_identifier = chooseDownloadServer();
             break;
         default:
             console.log("unknown job scheduled", job_id, job);
@@ -460,6 +522,24 @@ function chooseRetrieveServer(capacity_required)
         if(
             !servers[server_identifier]["busy"] && 
             (!capacity_required || servers[server_identifier]["over-capacity-timeout"] < Date.now() )
+            )
+        {
+            console.log("OK");
+            return server_identifier;
+        }
+    }
+
+    return null;
+}
+
+function chooseDownloadServer()
+{
+    for(var i = 0; i < servers_by_type["Download"].length; ++i)
+    {
+        var server_identifier = servers_by_type["Download"][i];
+        console.log("checking server", server_identifier, servers[server_identifier]);
+        if(
+            !servers[server_identifier]["busy"]
             )
         {
             console.log("OK");

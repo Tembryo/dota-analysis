@@ -13,7 +13,6 @@ var downloadAndDecompress = function(url, dest, cb) {
 
     var file = fs.createWriteStream(dest);
     var sendReq = request.get(url);
-
     // verify response code
     sendReq.on('response', function(response) {
         if (response.statusCode !== 200) {
@@ -50,9 +49,9 @@ var downloadAndDecompress = function(url, dest, cb) {
         }
     });
     // check for request errors
-    decoder.on('data', function (err) {
+    /*decoder.on('data', function (err) {
         console.log("decoder got data");
-    });
+    });*/
     // check for request errors
     decoder.on('end', function (err) {
         console.log("decoder got end");
@@ -69,6 +68,7 @@ var downloadAndDecompress = function(url, dest, cb) {
     }
     
     file.on('finish', function() {
+        console.log("finished writing, closing file", new Date());
         file.close(cb);  // close() is async, call cb after close completes.
     });
 
@@ -94,8 +94,7 @@ function downloadMatch(replay_data, target, callback)
     var file = target+replay_data.match_id+".dem"
     var replay_address = "http://replay"+replay_data.cluster+".valve.net/570/"+replay_data.match_id+"_"+replay_data.replay_salt+".dem.bz2";
 
-    console.log("Downloading from", replay_address);
-    console.log("Storing in ", file);
+    console.log("Downloading from", replay_address, " into ", file, new Date());
     downloadAndDecompress(replay_address, file, function(){callback(null, file);});
 }
 

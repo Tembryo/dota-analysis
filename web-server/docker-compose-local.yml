@@ -69,5 +69,6 @@ download:
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/download:/storage
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/shared:/shared
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/download/src:/source:ro
+    - /home/fischerq/Documents/Wisdota/dota-analysis/shared-code:/shared-code:ro
   links:
     - postgres:POSTGRES_IP

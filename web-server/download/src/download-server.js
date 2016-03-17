@@ -1,73 +1,66 @@
 var     replay_dl   = require("./replay-download.js");
-var config      = require("./config.js"),
-    database    = require("./database.js");
+var config      = require("./config.js");
+
+var database        = require("/shared-code/database.js"),
+    services   = require("/shared-code/services.js");
 
 var async       = require("async");
 
 var download_concurrency =  require("semaphore")(3);
 
+var re_register_timeout = 1000;
+//THIS IS MAIN
+
+var service = null;
 //THIS IS MAIN
 async.series(
     [
-        registerListeners
+        function(callback)
+        {
+            service = new services.Service("Download", handleDownloadServerMsg, callback);
+        },
+        function(callback)
+        {
+            console.log("Download service started");
+        }
     ]
 );
 
 
-function registerListeners(callback)
+function handleDownloadServerMsg(channel, message)
 {
-    var client = database.getClient();
-    client.connect(
-        function(err)
-        {
-            if(err) {
-                return console.error('could not connect to postgres', err);
-            }
-
-            client.on('notification', processNotification);
-
-            client.query(
-                "LISTEN download_watchers;",
-                [],
-                function(err, results)
-                {
-                    console.log("added download listener");
-                });
-            callback();
-          //no end -- client.end();
-        }
-    );
-}
-
-function processNotification(msg)
-{
-    console.log("got notification", msg);
-    var parts=msg.payload.split(",");
-    if(parts.length != 2)
+    switch(message["message"])
     {
-        console.log("bad notification", msg);
-        return;
-    }
-    switch(parts[0])
-    {
+        case "DownloadResponse":
+            //Sent by myself
+            break;
+
         case "Download":
-            var request_id = parseInt(parts[1]);
             download_concurrency.take(
                 function(){
-                    downloadMatch(request_id, function(){console.log("finished retrieve reqid", request_id);download_concurrency.leave()});
-                });
+                    downloadMatch(message,
+                        function()
+                        {
+                            console.log("finished download", message["id"]);
+                            download_concurrency.leave()
+                        }
+                    );
+                }
+            );
             break;
-        default:
-            console.log("Unknown notification", msg);
+
+        case "UpdateHistory":
+            checkAPIHistoryData(message);
+            break;
     }
 }
 
 
-function downloadMatch(request_id, callback_request)
+function downloadMatch(message, callback_request)
 {
-    console.log("processing replay", request_id);
+    console.log("processing replay", message["id"]);
     var locals = {};
-    locals.request_id = request_id;
+    locals.request_id = message["id"];
     async.waterfall(
         [
             database.connect,
@@ -145,6 +138,14 @@ function downloadMatch(request_id, callback_request)
                         }
 
                         locals.done();
+                        var finished_message = 
+                            {
+                                "message":"DownloadResponse",
+                                "result": "failed",
+                                "job": message["job"]
+                            };
+                        service.send(finished_message);
+
                         callback_request(null, "");
                     });
             }
@@ -153,6 +154,14 @@ function downloadMatch(request_id, callback_request)
 
                 console.log("downloaded", locals.request_id);
                 locals.done();
+
+                var finished_message = 
+                    {
+                        "message":"DownloadResponse",
+                        "result": "finished",
+                        "job": message["job"]
+                    };
+                service.send(finished_message);
                 callback_request(null, "");
             }
         }
