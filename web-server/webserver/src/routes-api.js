@@ -640,7 +640,8 @@ router.route("/stats")
                         locals.client.query("SELECT ps.match_id, ps.data, ms.data AS match_data, "+
                                                 "COALESCE("+
                                                     "(SELECT r.data FROM Results r WHERE r.match_id = ps.match_id AND r.steam_identifier = u.steam_identifier),"+
-                                                    "'null'::json) AS score_data "+
+                                                    "'null'::json) AS score_data, "+
+                                                "(SELECT r.id FROM Results r WHERE r.match_id = ps.match_id AND r.steam_identifier = u.steam_identifier) AS result_id "+
                                             "FROM PlayerStats ps, Users u, MatchStats ms, UserMatchHistory umh "+
                                             "WHERE ps.steam_identifier = u.steam_identifier "+
                                                 "AND u.id = $1 "+

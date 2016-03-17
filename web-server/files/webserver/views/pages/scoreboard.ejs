@@ -19,25 +19,41 @@
             </div>
         </div>
         <div class="row">
+            <div class="col-xs-12" id="board-settings">
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select metric
+                    <span class="caret"></span></button>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" id="select-imr">IMR</a></li>
+                        <li><a href="#" id="select-mechanics">Mechanics</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="row">
             <div class="col-xs-12 text-center">
             <table class="table">
                 <thead>
                     <tr>
-                        <th><a style="color:black">Radiant</a></th>
-                        <th><a style="color:black">Hero</a></th>
-                        <th><a style="color:black">IMR</a></th>
-                        <th></th>
-                        <th><a style="color:black">Dire</a></th>
-                        <th><a style="color:black">Hero</a></th>
-                        <th><a style="color:black">IMR</a></th>
+                        <th width="10%"><a style="color:black">Radiant</a></th>
+                        <th width="25%"><a style="color:black">Player</a></th>
+                        <th width="10%"><a style="color:black"><span class="value-label">IMR</span></a></th>
+                        <th width="10%"></th>
+                        <th width="10%"><a style="color:black">Dire</a></th>
+                        <th width="25%"><a style="color:black">Player</a></th>
+                        <th width="10%"><a style="color:black"><span class="value-label">IMR</span></a></th>
                     </tr>
                 </thead>
                 <tbody id="players-table">
                 </tbody>
                 <tfoot>
                     <tr>
-                        <th colspan="7" style="text-align:center"><a style="color:black">Average IMR:</a><span id="average-imr"></span></th>
-
+                        <th colspan="7">
+                            <div class="row">
+                                <div class="col-xs-6 text-center" ><span style="color:black">Radiant <span class="value-label">IMR</span>:</span><span id="radiant-average-value"></span></div>
+                                <div class="col-xs-6 text-center"><span style="color:black">Dire <span class="value-label">IMR</span>:</span><span id="dire-average-value"></span></div>
+                            </div>
+                        </th>
                     </tr>
                 </tfoot>
             </table>

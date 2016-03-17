@@ -141,6 +141,14 @@ function getValue(entry, d)
 var x_scale;
 var y_scale;
 
+function indicesRange(array) {
+    var foo = [];
+    for (var i = 0; i < array.length; i++) {
+        foo.push(i);
+    }
+    return foo;
+}
+
 function plot_graph()
 {
     x_scale = d3.scale.linear()
@@ -202,7 +210,9 @@ function plot_graph()
     canvas.select("#y-axis-label")
         .text(entry);
 
-    var icons = canvas.selectAll(".hero-bubble").data(the_stats, function(d){return d["match_id"];});
+    var data_range = indicesRange(the_stats);
+    console.log(data_range);
+    var icons = canvas.selectAll(".hero-bubble").data(data_range, function(d){return the_stats[d]["match_id"];});
 
     icons.enter()
         .append("g")
@@ -333,9 +343,30 @@ var icon_images = {
 var icon_size = 48;
 var color = "black";
 
-function createHeroBubble(d,i)
+function createHeroBubble(d)
 {
+    var entry = the_stats[d];
     var group = d3.select(this);
+
+    group.append("svg:circle")
+        .attr({
+            "id": "bubble"+d,
+            "cx": 0,
+            "cy": 0,
+            "r": icon_size*0.75,
+            "fill": color,
+            "opacity": 0
+            });
+
+    group.append("svg:image")
+        .attr({
+            "xlink:href": icon_images[entry["data"]["hero"]],
+            "x": -0.5*icon_size,
+            "y": -0.5*icon_size,
+            "width": icon_size,
+            "height": icon_size,
+            "pointer-events": "none"
+            });
 
     group.append("svg:circle")
         .attr({
@@ -344,30 +375,46 @@ function createHeroBubble(d,i)
             "r": icon_size*0.75,
             "fill": color,
             "opacity": 0
-            });
-        //.on("click", onBubbleClick)
-        //.on("mouseover", onBubbleMouseover)
-        //.on("mouseout", onBubbleMouseout);
-
-    group.append("svg:image")
-        .attr({
-            "xlink:href": icon_images[d["data"]["hero"]],
-            "x": -0.5*icon_size,
-            "y": -0.5*icon_size,
-            "width": icon_size,
-            "height": icon_size,
-            "pointer-events": "none"
-            });
+            })
+        .on("click", onBubbleClick)
+        .on("mouseover", onBubbleMouseover)
+        .on("mouseout", onBubbleMouseout);
 
 }
 
-function updateHeroBubble(d,i)
+function updateHeroBubble(d)
 {
     var group = d3.select(this);
 
-    var x = x_scale(i+1);
-    var y = y_scale(getValue(entry, d));
+    var x = x_scale(d+1);
+    var y = y_scale(getValue(entry, the_stats[d]));
 
     group.attr("transform", "translate("+x+", "+y+")");
 
+}
+
+function onBubbleClick(d)
+{
+    console.log("hi");
+    var bubble = d3.select("#bubble"+d);
+    console.log(bubble);
+    bubble.attr("opacity", 0.7);
+
+    document.location.href = "/result/"+the_stats[d]["result_id"];
+}
+
+function onBubbleMouseover(d)
+{
+    console.log("hi2");
+    var bubble = d3.select("#bubble"+d);
+        console.log(bubble);
+    bubble.attr("opacity", 0.5);
+}
+
+function onBubbleMouseout(d)
+{
+    console.log("hi3");
+    var bubble = d3.select("#bubble"+d);
+        console.log(bubble);
+    bubble.attr("opacity", 0);
 }

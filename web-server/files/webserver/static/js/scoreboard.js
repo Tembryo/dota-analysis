@@ -229,8 +229,29 @@ var names =
 	"zuus":                 "Zeus"
 };
 
+var entry = "IMR";
+
+function getValue(entry, d)
+{
+    switch(entry)
+    {
+        case "IMR":
+            if(d["score_data"])
+                return d["score_data"]["IMR"];
+            else
+                return 0;
+        case "Mechanics":
+            return d["score_data"]["mechanics"];
+        case "MMR":
+            return d["score_data"]["MMR"]; 
+        default:
+            return 0;
+    }
+}
+
+var data = {};
 $(document).ready(function(){	
-	var data = {};
+
 	var results_path = "/api/results?matchid="+match_id;
 	var header_path = "/api/match-header?matchid="+match_id;
 	$.getJSON(results_path, function(json_results) {
@@ -242,6 +263,16 @@ $(document).ready(function(){
 		});
 	});
 	
+    $('#select-imr').click(function(e) {
+        entry = "IMR";
+        drawScoreboard(data);
+        e.preventDefault();// prevent the default anchor functionality
+    });
+    $('#select-mechanics').click(function(e) {
+        entry = "Mechanics";
+        drawScoreboard(data);
+        e.preventDefault();// prevent the default anchor functionality
+    });
 });
 
 function drawScoreboard(data)
@@ -251,7 +282,9 @@ function drawScoreboard(data)
 	{
 		pairs.push({"radiant": null, "dire": null});
 	}
-	var avg_imr = 0;
+	var avg_value = 0;
+    var radiant_avg_value = 0;
+    var dire_avg_value = 0;
 	for(var i = 0; i < data["results"].length; ++i)
 	{
 		var player = {};
@@ -264,16 +297,18 @@ function drawScoreboard(data)
 		if(slot < 5)
 		{
 			team = "radiant";
+            radiant_avg_value += getValue(entry, player["score"]);
 		}
 		else 
 		{
 			team = "dire";
+            dire_avg_value += getValue(entry, player["score"]);
 		}
 		pairs[row_id][team] = player;
 
-		avg_imr += player["score"]["score_data"]["IMR"];
 	}
-	avg_imr /= data["results"].length;
+    radiant_avg_value /= data["results"].length/2;
+    dire_avg_value /= data["results"].length/2;
 
     var small_table = d3.select("#players-table").selectAll(".score-row").data(pairs, function(pair,i){
                 return i;
@@ -284,8 +319,16 @@ function drawScoreboard(data)
         .attr("class", "score-row")
         .each(createRow);
 
-    d3.select("#average-imr")
-    	.text(Math.floor(avg_imr));
+    small_table.each(updateRow);
+
+    d3.selectAll(".value-label")
+        .text(entry);
+
+    d3.select("#radiant-average-value")
+        .text(Math.floor(radiant_avg_value));
+
+    d3.select("#dire-average-value")
+        .text(Math.floor(dire_avg_value));
 }
 
 
@@ -304,7 +347,7 @@ function createRow(pair)
         .text(pair["radiant"]["header"]["name"]);
 
     row.append("td")
-        .text(Math.floor(pair["radiant"]["score"]["score_data"]["IMR"]));
+        .attr("id","radiant-value");
 
     row.append("td")
 
@@ -319,5 +362,14 @@ function createRow(pair)
         .text(pair["dire"]["header"]["name"]);
 
     row.append("td")
-        .text(Math.floor(pair["dire"]["score"]["score_data"]["IMR"]));
+        .attr("id","dire-value");
+}
+
+function updateRow(pair)
+{
+    var row = d3.select(this);
+
+    row.select("#radiant-value").text(Math.floor(getValue(entry, pair["radiant"]["score"])));
+    row.select("#dire-value").text(Math.floor(getValue(entry, pair["dire"]["score"])));
+
 }
