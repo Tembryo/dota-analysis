@@ -61,8 +61,16 @@ function drawTables(data) {
             data[i]["match_status"] ===  "uploaded" ||
             data[i]["match_status"] ===  "retrieved" ||
             data[i]["match_status"] ===  "extracting" ||
-            data[i]["match_status"] ===  "analysing")
+            data[i]["match_status"] ===  "analysing" ||
+            data[i]["match_status"] ===  "parsed" ||
+            data[i]["match_status"] ===  "scoring")
             n_processing ++;
+        else if(data[i]["match_status"] === "scored")
+        {}
+        else
+        {
+            console.log("unknown match status", data[i]["match_status"]);
+        }
     }
     if(n_processing > 0)
     {
@@ -327,7 +335,7 @@ function updateRow(data)
     var row = d3.select(this);
 
     var matchlink = row.select(".match-link");
-    matchlink.classed("disabled", !(data["match_status"] === "parsed"));
+    matchlink.classed("disabled", !(data["match_status"] === "scored"));
 
 
     var button = row.select("#match-button");
@@ -335,7 +343,7 @@ function updateRow(data)
 
     switch(data["match_status"])
     {
-        case "parsed":
+        case "scored":
             if(data["result_id"]>=0)
             {
                 button
@@ -401,6 +409,7 @@ function updateRow(data)
         case "retrieved":
         case "extracting":
         case "analysing":
+        case "parsed":
             button
                 .attr("class", "btn dashboard-button btn-success disabled")
                 .html("<div class='sp sp-circle'></div><div class='processing-text'>Processing</div>");
@@ -461,7 +470,9 @@ function updateRow(data)
 
     var download_icon = row.select("#download-icon");
 
-    if (data["match_status"] === "parsed")
+    if (data["match_status"] === "parsed" ||
+        data["match_status"] === "scoring" ||
+        data["match_status"] === "scored")
     {
         download_icon
             .attr("href", "/api/download/"+data["match_id"])

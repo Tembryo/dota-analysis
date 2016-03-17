@@ -580,6 +580,7 @@ router.route("/history")
                                                 "(SELECT r.id FROM Results r, Users u WHERE r.steam_identifier = u.steam_identifier AND r.match_id = umh.match_id AND u.id = $1),"+
                                                 "-1) AS result_id, "+
                                                 "COALESCE("+
+                                                    "(SELECT TEXT('scored') FROM Results r, Users u WHERE r.steam_identifier = u.steam_identifier AND r.match_id = umh.match_id AND u.id = $1), "+
                                                     "(SELECT TEXT('parsed') FROM Matches m WHERE m.id=umh.match_id), "+
                                                     "(SELECT ps.label FROM ReplayFiles rf, ProcessingStatuses ps WHERE rf.match_id=umh.match_id AND rf.processing_status = ps.id),"+
                                                     "(SELECT mrs.label FROM MatchRetrievalRequests mrr, MatchRetrievalStatuses mrs WHERE mrr.retrieval_status = mrs.id AND mrr.id=umh.match_id),"+

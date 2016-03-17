@@ -60,7 +60,7 @@ async.series(
 );
 
 
-function handleRetrieveServerMsg(channel, message)
+function handleRetrieveServerMsg(server_identifier, message)
 {
     //console.log("got message", channel, message);
     switch(message["message"])
@@ -84,6 +84,9 @@ function handleRetrieveServerMsg(channel, message)
 
         case "UpdateHistory":
             checkAPIHistoryData(message);
+            break;
+        default:
+            console.log("unknown message:", server_identifier, message);
             break;
     }
 }

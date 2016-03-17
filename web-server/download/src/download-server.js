@@ -6,8 +6,6 @@ var database        = require("/shared-code/database.js"),
 
 var async       = require("async");
 
-var download_concurrency =  require("semaphore")(3);
-
 var re_register_timeout = 1000;
 //THIS IS MAIN
 
@@ -27,7 +25,7 @@ async.series(
 );
 
 
-function handleDownloadServerMsg(channel, message)
+function handleDownloadServerMsg(server_identifier, message)
 {
     switch(message["message"])
     {
@@ -36,21 +34,19 @@ function handleDownloadServerMsg(channel, message)
             break;
 
         case "Download":
-            download_concurrency.take(
-                function(){
-                    downloadMatch(message,
-                        function()
-                        {
-                            console.log("finished download", message["id"]);
-                            download_concurrency.leave()
-                        }
-                    );
+            downloadMatch(message,
+                function()
+                {
+                    console.log("finished download", message["id"]);
                 }
             );
             break;
 
         case "UpdateHistory":
             checkAPIHistoryData(message);
+            break;
+        default:
+            console.log("unknown message:", server_identifier, message);
             break;
     }
 }

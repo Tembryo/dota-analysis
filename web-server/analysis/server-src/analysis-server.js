@@ -3,129 +3,59 @@ var child_process   = require("child_process"),
     fs              = require("fs"),
     async           = require("async");
 
-var config          = require("./config.js"),
-    database          = require("./database.js");
+var config          = require("./config.js");
 
-var concurrent_parse = require("semaphore")(7);
-var concurrent_score = require("semaphore")(20);
+var database        = require("/shared-code/database.js"),
+    services        = require("/shared-code/services.js");
 
 var check_interval = 5000;
 var max_extraction_time = 300000;
 var max_analysis_time = 120000;
 var max_score_time = 20000;
 
+var service = null;
+//THIS IS MAIN
 async.series(
     [
-        registerListeners,
-        resetStuff
+        function(callback)
+        {
+            service = new services.Service("Analysis", handleAnalysisServerMsg, callback);
+        },
+        function(callback)
+        {
+            console.log("Analyse service started");
+        }
     ]
 );
 
 
-
-function resetStuff(callback)
+function handleAnalysisServerMsg(server_identifier, message)
 {
-    var locals = {};
-    async.waterfall(
-        [
-            database.connect,
-            function(client, done_client, callback)
-            {
-                locals.client = client;
-                locals.done = done_client;
-                locals.client.query(
-                    "UPDATE Replayfiles r "+
-                    "SET processing_status =(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label='uploaded') "+
-                    "WHERE r.processing_status = (SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label='uploaded') OR "+
-                        "r.processing_status = (SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label='analysing') OR "+
-                        "r.processing_status = (SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label='extracting');",
-                    [],
-                    callback);
-            },
-            function(results, callback)
-            {
-                console.log("analyse reset:", results.rowCount)
-                callback();
-            }
-        ],
-        function(err, results)
-        {
-            if (err)
-                console.log(err, results);
-            locals.done();
-            callback();
-        }
-    );
-}
-function registerListeners(callback)
-{
-    var client = database.getClient();
-    client.connect(
-        function(err)
-        {
-            if(err) {
-                return console.error('could not connect to postgres', err);
-            }
-
-            client.on('notification', processNotification);
-
-            client.query(
-                "LISTEN replay_watchers;",
-                [],
-                function(err, results)
-                {
-                    if(!err)
-                        console.log("added analyse listener");
-                });
-            client.query(
-                "LISTEN score_watchers;",
-                [],
-                function(err, results)
-                {
-                    if(!err)
-                        console.log("added score listener");
-                });
-          //no end -- client.end();
-          callback();
-        }
-    );
-}
-
-function processNotification(msg)
-{
-    console.log("got notification", msg);
-    var parts=msg.payload.split(",");
-    if(parts.length != 2)
+    switch(message["message"])
     {
-        console.log("bad notification", msg);
-        return;
-    }
-    switch(parts[0])
-    {
-        case "Analyse":
-            var replay_id = parseInt(parts[1]);
-            console.log("trying to analyse ",replay_id);
-            concurrent_parse.take(
-                function(){
-                    console.log("got analyse ",replay_id);
-                    processReplay(replay_id, function(){console.log("finished analysing", replay_id); concurrent_parse.leave();});
-
-                });
+        case "AnalyseResponse":
+            //Sent by myself
             break;
-        case "Score":
-            var scoring_id = parseInt(parts[1]);
-            concurrent_score.take(
-                function(){
-                    runScoreRequest(scoring_id,function(){console.log("finished scoring"); concurrent_score.leave();});
+
+        case "Analyse":
+            var replay_id = message["id"];
+            console.log("trying to analyse ",replay_id);
+            processReplay(message,
+                function()
+                {
+                    console.log("finished analysing", replay_id);
                 });
             break;
         default:
-            console.log("Unknown notification", msg);
+            console.log("unknown message:", server_identifier, message);
+            break;
     }
 }
 
-function processReplay(replay_id, callback_replay)
+
+function processReplay(message, callback_replay)
 {
+    var replay_id = message["id"];
     console.log("processing replay", replay_id);
     var locals = {};
     locals.replayfile_id = replay_id;
@@ -234,9 +164,56 @@ function processReplay(replay_id, callback_replay)
             function(results, callback)
             {
                 locals.client.query(
-                    "INSERT INTO ScoreRequests (match_id) VALUES ($1);",
+                    "DELETE FROM Results r WHERE r.match_id=$1;",
                     [locals.match_id],
                     callback);
+            },
+            function(results, callback)
+            {
+                fs.readFile(locals.stats_file, 'utf8', callback);
+            },
+            function (statsfile, callback) {
+                var match = JSON.parse(statsfile);
+                locals.sample_filename = "/storage/samples"+locals.match_id+".csv";
+                locals.csv_file = fs.createWriteStream(locals.sample_filename);
+                writeSample(locals.csv_file, sampleHeader());
+                locals.csv_file.on("close", function(){console.log("finished writing samples");callback();});
+
+                for(var slot = 0; slot < 10; slot++)
+                {
+                    if(!match["player-stats"].hasOwnProperty(slot))
+                        continue;
+                    locals.csv_file.write("\n");
+                    var fullsample = {"label": match["player-stats"][slot]["steamid"], "data": createSampleData(match, slot)};
+                    writeSample(locals.csv_file,fullsample);
+                }
+                locals.csv_file.end();
+            },
+            function(callback){
+                child_process.execFile(
+                    "python",
+                    ["/score/score.py", "/score/model.p", locals.sample_filename],
+                    {"timeout":max_score_time},
+                    callback);
+            },
+            function(stdout, stderr, callback){
+                console.log("after scoring:", stdout);
+                console.log("----------------------");
+                var out = stdout.split("\n");
+                async.each(out, function(score_line, callback)
+                {
+                    if(score_line.length == 0)
+                    {
+                        callback();
+                        return;
+                    }    
+                    var score_result = JSON.parse(score_line);
+                    locals.client.query(
+                        "INSERT INTO Results (match_id, steam_identifier, data) VALUES($1, $2, $3)",
+                        [locals.match_id, score_result["steamid"], score_result["data"]],
+                        callback);
+                },
+                callback);
             }
         ],
         function(err, results)
@@ -251,12 +228,32 @@ function processReplay(replay_id, callback_replay)
                     {
                         console.log("put replayfile as failed", locals.replayfile_id, err);
                         locals.done();
+                        var failed_message  =
+                            {
+                                "message": "AnalyseResponse",
+                                "result": "failed",
+                                "job": message["job"]
+                            };
+                        service.send(finished_message,
+                            function(err, results){
+                                callback();
+                            });
+
                         callback_replay(null);
                     });
             }
             else
             {
                 console.log("fin~", locals.replayfile_id, locals.match_id);
+
+                var finished_message  =
+                {
+                    "message": "AnalyseResponse",
+                    "result": "finished",
+                    "job": message["job"]
+                };
+                service.send(finished_message);
+
                 locals.done();
                 callback_replay(null);
             }
@@ -336,90 +333,6 @@ function parseStatsFile(locals, callback)
             callback(err, results);
         }
         
-    );
-}
-
-function runScoreRequest(scoring_id, callback_scored)
-{
-    var locals = {};
-    async.waterfall(
-        [
-            database.connect,
-            function(client, done_client, callback)
-            {
-                locals.client = client;
-                locals.done = done_client;
-                console.log("scsoring id ", scoring_id);
-                locals.client.query(
-                    "SELECT sr.id, m.stats_file, sr.match_id FROM ScoreRequests sr, Matches m WHERE m.id = sr.match_id AND sr.id=$1;",
-                    [scoring_id],
-                    callback);
-            },
-            function(results, callback)
-            {
-                if(results.rowCount != 1)
-                {
-                    callback("bad scorereq select", results);
-                    return;
-                }
-                locals.request_id = results.rows[0]["id"];
-                locals.match_id = results.rows[0]["match_id"];
-                var filepath = results.rows[0]["stats_file"];
-                fs.readFile(filepath, 'utf8', callback);
-            },
-            function (statsfile, callback) {
-                var match = JSON.parse(statsfile);
-                locals.sample_filename = "/storage/samples"+locals.match_id+".csv";
-                locals.csv_file = fs.createWriteStream(locals.sample_filename);
-                writeSample(locals.csv_file, sampleHeader());
-                locals.csv_file.on("close", function(){console.log("finished writing samples");callback();});
-
-                for(var slot = 0; slot < 10; slot++)
-                {
-                    if(!match["player-stats"].hasOwnProperty(slot))
-                        continue;
-                    locals.csv_file.write("\n");
-                    var fullsample = {"label": match["player-stats"][slot]["steamid"], "data": createSampleData(match, slot)};
-                    writeSample(locals.csv_file,fullsample);
-                }
-                locals.csv_file.end();
-            },
-            function(callback){
-                child_process.execFile(
-                    "python",
-                    ["/score/score.py", "/score/model.p", locals.sample_filename],
-                    {"timeout":max_score_time},
-                    callback);
-            },
-            function(stdout, stderr, callback){
-                console.log("after scoring:", stdout);
-                console.log("----------------------");
-                var out = stdout.split("\n");
-                async.each(out, function(score_line, callback)
-                {
-                    if(score_line.length == 0)
-                    {
-                        callback();
-                        return;
-                    }    
-                    var score_result = JSON.parse(score_line);
-                    locals.client.query(
-                        "INSERT INTO Results (match_id, steam_identifier, data) VALUES($1, $2, $3)",
-                        [locals.match_id, score_result["steamid"], score_result["data"]],
-                        callback);
-                },
-                callback);
-            }
-        ],
-        function(err, results)
-        {
-            if (err)
-                console.log(err, results);
-            locals.done();
-            //console.log("finished check_jobs");
-            //setTimeout(checkJobs, check_interval);
-            callback_scored();
-        }
     );
 }
 

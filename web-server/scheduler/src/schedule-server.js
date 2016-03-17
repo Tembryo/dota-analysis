@@ -13,7 +13,8 @@ var subscriber = null;
 var serviceHandlers =
     {
         "Retrieve": handleRetrieveServerMsg,
-        "Download": handleDownloadServerMsg
+        "Download": handleDownloadServerMsg,
+        "Analysis": handleAnalysisServerMsg
     };
 //TODO introduce sema for queue
 var jobs_queue = {};
@@ -120,7 +121,10 @@ function registerListeners(final_callback)
                 subscriber.listen("retrieval_watchers", handleRetrievalMsg);
                 subscriber.listen("newuser_watchers",   handleNewUserMsg);
                 subscriber.listen("download_watchers",  handleDownloadMsg);
+                subscriber.listen("replay_watchers",    handleReplayMsg);
                 subscriber.listen("match_history",      handleMatchHistoryMsg);
+
+                //clean up score_watchers
                 callback();
             },
             function(callback)
@@ -190,7 +194,7 @@ function handleNewUserMsg(channel, message)
                     });
             break;
         default:
-            console.log("Unknown retrieve message", message);
+            console.log("Unknown new user message", message);
             break;
     }
 }
@@ -208,7 +212,26 @@ function handleDownloadMsg(channel, message)
                 createJob(job_data);
             break;
         default:
-            console.log("Unknown retrieve message", message);
+            console.log("Unknown download message", message);
+            break;
+    }
+}
+
+
+function handleReplayMsg(channel, message)
+{
+    switch(message["message"])
+    {
+        case "Analyse":
+                console.log("new replay file -  analysing");
+                var job_data = {
+                        "message":      "Analyse",
+                        "id":  message["id"]
+                    };
+                createJob(job_data);
+            break;
+        default:
+            console.log("Unknown replay message", message);
             break;
     }
 }
@@ -332,6 +355,40 @@ function handleDownloadServerMsg(server_identifier, message) //channel name is t
                     break;
                 case "failed":
                     console.log("failed download", job);
+                    break;
+            }
+            closeJob(message["job"]);
+            servers[server_identifier]["busy"] = false;
+            break;
+        default:
+            console.log("unknown response:", server_identifier, message);
+            break;
+    }
+}
+
+function handleAnalysisServerMsg(server_identifier, message) //channel name is the server identifier
+{
+    if(("job" in message) && !(message["job"] in jobs_queue))
+    {
+        console.log("couldnt find download job", message);
+        return;
+    }
+
+    switch(message["message"])
+    {
+        case "Analyse":
+            //Sent by myself
+            break;
+
+        case "AnalyseResponse":
+            var job =  jobs_queue[message["job"]]; 
+            switch(message["result"])
+            {
+                case "finished":
+                    console.log("finished analysis", message["job"]);
+                    break;
+                case "failed":
+                    console.log("failed analysis", job);
                     break;
             }
             closeJob(message["job"]);
@@ -485,6 +542,9 @@ function scheduleJob(job_id)
         case "Download":
             server_identifier = chooseDownloadServer();
             break;
+        case "Analyse":
+            server_identifier = chooseAnalysisServer();
+            break;
         default:
             console.log("unknown job scheduled", job_id, job);
             return;
@@ -549,6 +609,25 @@ function chooseDownloadServer()
 
     return null;
 }
+
+function chooseAnalysisServer()
+{
+    for(var i = 0; i < servers_by_type["Analysis"].length; ++i)
+    {
+        var server_identifier = servers_by_type["Analysis"][i];
+        console.log("checking server", server_identifier, servers[server_identifier]);
+        if(
+            !servers[server_identifier]["busy"]
+            )
+        {
+            console.log("OK");
+            return server_identifier;
+        }
+    }
+
+    return null;
+}
+
 
 
 function createTemporaryJob(data, callback)

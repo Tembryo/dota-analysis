@@ -41,6 +41,7 @@ function Service(service_type, service_handler, final_callback) {
 
 Service.prototype._handleSchedulerMsg =  function(channel, message)
 {
+    var self = this;
     switch(message["message"])
     {
         case "SchedulerReset":
@@ -53,7 +54,7 @@ Service.prototype._handleSchedulerMsg =  function(channel, message)
             communication.publish("scheduler", new_message,
                 function()
                 {
-                    console.log("re-registered retriever as ", this._identifier);
+                    console.log("re-registered retriever as ", self._identifier);
                 });
             break;
         default:
