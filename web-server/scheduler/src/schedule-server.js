@@ -5,6 +5,7 @@ var config          = require("./config.js"),
 var async           = require("async");
 var shortid         = require("shortid");
 
+var job_queue_block = require('semaphore')(1);
 
 var servers = {};
 var servers_by_type = {};
@@ -370,7 +371,7 @@ function handleAnalysisServerMsg(server_identifier, message) //channel name is t
 {
     if(("job" in message) && !(message["job"] in jobs_queue))
     {
-        console.log("couldnt find download job", message);
+        console.log("couldnt find analysis job", message);
         return;
     }
 
@@ -516,17 +517,33 @@ function schedulerTick()
 {
     //Make async
     //console.log("scheduler tick, ", Object.keys(jobs_queue).length, " jobs in queue");
-    for(var job_id in jobs_queue)
-    {
-        if(jobs_queue[job_id]["state"] === "open")
+    job_queue_block.take(
+        function()
         {
-            scheduleJob(job_id);
+            async.eachSeries(
+                Object.keys(jobs_queue),
+                function(job_id, callback)
+                {
+                    if(jobs_queue[job_id]["state"] === "open")
+                    {
+                        scheduleJob(job_id, callback);
+                    }
+                    else
+                    {
+                        callback();
+                    }
+                },
+                function()
+                {
+                    job_queue_block.leave();
+                }
+            );
         }
-    }
+    );
     //console.log("Jobs queue", jobs_queue);
 }
 
-function scheduleJob(job_id)
+function scheduleJob(job_id, callback)
 {
     var server_identifier = null;
 
@@ -563,12 +580,13 @@ function scheduleJob(job_id)
                 job["state"] = "in-progress";
                 jobs_queue[job_id] = job;
                 servers[server_identifier]["busy"] = true;
+                callback();
             });
     }
     else
     {
         console.log("no server available for ",job_id, "delaying");
-        return;
+        callback();
     }
 }
 

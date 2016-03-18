@@ -1,8 +1,9 @@
-var     replay_dl   = require("./replay-download.js");
+var replay_dl   = require("./replay-download.js");
 var config      = require("./config.js");
 
-var database        = require("/shared-code/database.js"),
-    services   = require("/shared-code/services.js");
+var database    = require("/shared-code/database.js"),
+    services    = require("/shared-code/services.js"),
+    storage     = require("/shared-code/storage.js");
 
 var async       = require("async");
 
@@ -87,11 +88,15 @@ function downloadMatch(message, callback_request)
             },
             function(replay_file, callback)
             {
-                console.log("downloaded match to", replay_file);
-                var path = replay_file.substring(replay_file.indexOf('/',1));//cut off the /shared folder
+                console.log("finished dl to ", replay_file)
+                storage.store("replays/"+locals.match_id+".dem.bz2",callback);
+            },
+            function(store_path, callback)
+            {
+                console.log("stored match at ", store_path);
                 locals.client.query(
                     "INSERT INTO ReplayFiles (file, upload_filename, processing_status, uploader_id) VALUES ($1, $2, (SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$3), $4);",
-                    [path, locals.match_id, "uploaded", locals.requester_id],
+                    [store_path, locals.match_id, "uploaded", locals.requester_id],
                     callback);
             },
             function(results, callback)

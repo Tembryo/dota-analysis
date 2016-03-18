@@ -1,0 +1,1 @@
+ALTER TABLE Matches DROP COLUMN stats_file;

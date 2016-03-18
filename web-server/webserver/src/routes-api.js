@@ -8,7 +8,8 @@ var	express			= require("express"),
 var	authentication  = require("./routes-auth.js"),
     config			= require("./config.js");
 
-var communication   = require("/shared-code/communication.js");
+var communication   = require("/shared-code/communication.js"),
+    storage         = require("/shared-code/storage.js");
 
 var database        = require("./database.js");
 
@@ -64,19 +65,31 @@ router.route('/match-header')
                             results.rows,
                             function(row, callback_file)
                             {
-                                fs.readFile(row.header_file,'utf-8',function(err,json){
-                                    if (err) callback_file(err);
-                                    else
-                                    {
-                                        console.log("load "+row.header_file);
-                                        var header = JSON.parse(json);
-                                        if(row.label)
-                                            header["label"] = row.label;
-                                        locals.header_files.push(header);
-                                        console.log("added header json to list "+row.header_file);
-                                        callback_file(null);
-                                    }
-                                });
+                                async.waterfall(
+                                    [
+                                        function (callback)
+                                        {
+                                            console.log("retrievign header");
+                                            storage.retrieve(row.header_file, callback);
+                                        },
+                                        function(local_path, callback)
+                                        {
+                                            console.log("reading header");
+                                            fs.readFile(local_path,'utf-8', callback);
+                                        },
+                                        function(json, callback)
+                                        {
+                                            console.log("load "+row.header_file);
+                                            var header = JSON.parse(json);
+                                            if(row.label)
+                                                header["label"] = row.label;
+                                            locals.header_files.push(header);
+                                            console.log("added header json to list "+row.header_file);
+                                            callback(null);
+                                        }
+                                    ],
+                                    callback_file
+                                );
                             },
                             callback);
                     }
@@ -202,7 +215,11 @@ router.route('/match/:match_id')
                         if(results.rowCount != 1)
                             callback("bad result selecting file ", results);
                         else
-                           fs.readFile(results.rows[0].file, 'utf-8',callback);
+                           storage.retrieve(results.rows[0].file, callback);
+                    },
+                    function(filename, callback)
+                    {
+                       fs.readFile(filename, 'utf-8',callback);
                     },
                     function(json, callback)
                     {

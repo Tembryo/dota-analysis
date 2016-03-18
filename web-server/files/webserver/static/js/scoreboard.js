@@ -28,7 +28,7 @@ var pictures =
 	"drow_ranger":          "/static/img/heroes/pictures/Drow_Ranger.png",
 	"earthshaker":          "/static/img/heroes/pictures/Earthshaker.png",
     "elder_titan":          "/static/img/heroes/pictures/Elder_Titan.png",
-    "eart_spirit":          "/static/img/heroes/pictures/Earth_Spirit.png",
+    "earth_spirit":          "/static/img/heroes/pictures/Earth_Spirit.png",
 	"ember_spirit":         "/static/img/heroes/pictures/Ember_Spirit.png",
 	"enchantress":          "/static/img/heroes/pictures/Enchantress.png",
 	"enigma":               "/static/img/heroes/pictures/Enigma.png",

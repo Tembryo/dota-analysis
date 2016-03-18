@@ -6,7 +6,8 @@
     "dependencies": {
         "pg": "^4.4.3",
         "async": "^1.5.0",
-        "semaphore": "^1.0.3"
+        "semaphore": "^1.0.3",
+        "unbzip2-stream": "^1.0.8"
     }
 }
 

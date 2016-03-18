@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "wisdota-dev-project",
+  "private_key_id": "820d99a224a488fdc8b2d3804d563a34c03ca3dd",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCAUYLioc7T1GAM\nCBa8BuW8aDqrw704bARQ6OMnauMSTBtJf113t+5uXa1BqbCbAElPDuFaU/1+rN2A\nkBOxYSwoq052cGlbjzlGwCkmHjBHkCrpMtgD7XBRyAViMD9Dw+ZlUvzqE4RlgjqM\n8VZ/lEJyAFMwcot+/F7pq7aOCHXd77CwxekZNHglPHwPSOB5v9Hj2tIqw6OGr557\njd+spsgPgvHKzZDpXkGq+NMCMBbIKq1bNki+bGmsmlP0/8wQSsIIZNWQoP22YoHl\nNINvr5n47JX2wyO24vsVMfxRLwsh/sn76XciFsqKemhik8mVW6mZ+cfd7TqEI6y/\nmFYDh7s5AgMBAAECggEAV9TzbSNqig51i+bBgQSLnjIN7uJ1k7hEIAm46pM8SJr1\nlpJqrPamar8OR8LaEs7YXxgFYqnY+ytiFo0IHcMw0cmoVGPPig94GhiQUfoZ+/IP\nnT3jJJUS67epD7OMqlreSn7KhYLEfiLs5uqO1ZbrAFN+ncvZ9hrS8MlLlN7vpvBg\nvcxlqjRmuEX6Hbn0u8IWIhxvZgSDQUHo2u7VK1QskM14fuuMV4GXGearmFpK3fG3\nWhZpqEL+elcj/0jKN4UtmGMvtIX66Wct1DBOJAoJcbqkXvzOghdZWj7TKMt10UNN\n7imCS600Un7nl3mQaLioaZzEIukaKMec/X2jM5Z/PQKBgQC9HBnYSkmvY8Rh+cmk\nyZsfWspVksyQKy/24+QCBIXdr0M3R7ziXTfbSvjKKsmEVYALkG8O6hxvkz/RbWb8\nSYs8a46tQ3Zeuohf020UvE/2bTTSlhU2Jyz4rx43dtpwY/g5v1Bf/mNY+bhJZcO9\nm3IBpewNQBw0nNuI9cKvwznZFwKBgQCttL/Eu8yPw5rvDQiQX1kRrXQG5/C48M9E\n5/oIskAb/aLAMB9qS09gctVyoiVO5UFRTJpWgIQk3o8SsRG5S63r7RSoTlIwdWZq\nY6XIjrlEQWXnmzlhqRWG2XeT+3RqjNmGRSCLLgtijAU3DQNoi0rUhwH1FBaDlZXA\n0LgUJSogLwKBgQCLsp+Q/MfUDbI74kdIOTojfnErp+b/tTeYfZ6osuik69yOkKsC\n2XPyxj5lMhhtbq/JWyf/b4gUEEW7ksLaKgX2W0opykU+EzO8/jV9dOLpGqFD02TV\n/TimeM6skFsrXV44YpCgaQ7A4rB1X/yqK5ObjhODclGjuCAg29O2/VPVfwKBgDAu\nTGrDNHBD7zuTP+bbq5btp5sqxmhl0vfn6EB1QLcC2Ru5vVz8Wp4D/BR5ySNjD4T/\nXGfV6dFYMhMbLjFZPnqMHgi5AK8UQT4NObSxcc3u3dcqBPaDscbflv1i592OB9/o\nWKiCMwI4mFG2uFVNHYppkC9sTPpeiVUcD5L25AJdAoGBAJoM9s52fRna3zo37Ydk\ntXfrO67R8xH/A3zZMuUeBRDzwUlQKI5SWEzjMYVIhOnJo9d3eM60b2JzqGQ+Zvt5\nfV1EJVujVnTFzj9hkUaT5sg0LxDBnmMiQn4kq+9gOneh3T9MF07lMUFBxjEdNQuj\nMTFWDrhTypt0cM38WcboWlcs\n-----END PRIVATE KEY-----\n",
+  "client_email": "dev-account@wisdota-dev-project.iam.gserviceaccount.com",
+  "client_id": "111815964943126281863",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/dev-account%40wisdota-dev-project.iam.gserviceaccount.com"
+}

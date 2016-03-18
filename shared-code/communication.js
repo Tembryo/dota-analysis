@@ -27,9 +27,16 @@ Subscriber.prototype._processNotification = function(notification)
     if(notification.channel in this._channels)
     {
         //Decode and call handler
-        var message = decode(notification.payload);
-        //console.log("received message", notification.channel, message);
-        this._channels[notification.channel](notification.channel, message);
+        try
+        {
+            var message = decode(notification.payload);
+            //console.log("received message", notification.channel, message);
+            this._channels[notification.channel](notification.channel, message);
+        }
+        catch(e)
+        {
+            console.log("error parsing message", notification, e);
+        } 
     }
     else
     {

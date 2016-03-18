@@ -1,17 +1,22 @@
 // analysis - server.js
 var child_process   = require("child_process"),
     fs              = require("fs"),
-    async           = require("async");
+    async           = require("async"), 
+    bz2             = require('unbzip2-stream');
 
 var config          = require("./config.js");
 
 var database        = require("/shared-code/database.js"),
-    services        = require("/shared-code/services.js");
+    services        = require("/shared-code/services.js"),
+    storage         = require("/shared-code/storage.js");
 
 var check_interval = 5000;
 var max_extraction_time = 300000;
 var max_analysis_time = 120000;
 var max_score_time = 20000;
+
+
+
 
 var service = null;
 //THIS IS MAIN
@@ -76,18 +81,52 @@ function processReplay(message, callback_replay)
             {
                 if(results.rowCount != 1)
                 {
-                    callback("Setting replayfile as processing failed", results);
+                    callback("Setting replayfile as extracting failed", results);
                 }
                 else
                 {
-                    console.log("starting java");
-                    child_process.execFile(
-                        "java", 
-                        ["-jar", "/extractor/extractor.jar", config.shared+results.rows[0].file, config.storage+"/"],
-                        {"timeout":max_extraction_time,
-                            "killSignal": "SIGKILL" },
-                        callback);
+                    storage.retrieve(results.rows[0].file, callback);
                 }
+            },
+            function(local_filename, callback)
+            {
+                var bzip_extension =  ".bz2";
+                if(local_filename.substr(-bzip_extension.length) === bzip_extension)
+                {
+                    var decompressed_filename = config.storage+"/"+locals.replayfile_id+".dem";
+                    var out_file =  fs.createWriteStream(decompressed_filename);
+
+                    out_file.on('finish', function() {
+                        console.log("finished decompresssing, closing file", new Date());
+                        out_file.close(function(){callback(null, decompressed_filename);});  // close() is async, call cb after close completes.
+                    });
+
+
+                    out_file.on('error', function(err) { // Handle errors
+                        fs.unlink(decompressed_filename); // Delete the file async. (But we don't check the result)
+
+                        if (callback) {
+                            return callback(err.message);
+                        }
+                    });
+
+                    fs.createReadStream(local_filename).pipe(bz2()).pipe(out_file);
+                }
+                else
+                {
+                    callback(null, local_filename);
+                }
+            },
+            function(extracted_filename, callback)
+            {
+                locals.extracted_filename = extracted_filename;
+                console.log("starting java, file", extracted_filename);
+                child_process.execFile(
+                    "java", 
+                    ["-jar", "/extractor/extractor.jar", extracted_filename, config.storage+"/"],
+                    {"timeout":max_extraction_time,
+                        "killSignal": "SIGKILL" },
+                    callback);
             },
             function (stdout, stderr, callback) 
             {
@@ -114,12 +153,12 @@ function processReplay(message, callback_replay)
                     return;
                 }
                 locals.match_dir = config.storage+"/"+locals.match_id;
-                locals.analysis_file = config.shared+"/matches/"+locals.match_id+".json";
-                locals.header_file = config.shared+"/match_headers/"+locals.match_id+".json";
-                locals.stats_file = config.shared+"/match_stats/"+locals.match_id+".json";
+                locals.analysis_file = "matches/"+locals.match_id+".json";
+                locals.header_file = "match_headers/"+locals.match_id+".json";
+                locals.stats_file = "match_stats/"+locals.match_id+".json";
                 child_process.execFile(
                     "python",
-                    ["/analysis/analysis.py", locals.match_id, locals.match_dir, locals.analysis_file, locals.header_file, locals.stats_file],
+                    ["/analysis/analysis.py", locals.match_id, locals.match_dir, config.shared+"/"+locals.analysis_file, config.shared+"/"+locals.header_file, config.shared+"/"+locals.stats_file],
                     {"timeout":max_analysis_time},
                     callback);
             },
@@ -127,6 +166,17 @@ function processReplay(message, callback_replay)
             {
                 console.log('pystdout: ' + stdout);
                 console.log('pystderr: ' + stderr);
+
+                storage.store(locals.analysis_file,callback);
+            },
+            function(store_path, callback)
+            {
+                locals.analysis_file = store_path;
+                storage.store(locals.header_file,callback);
+            },
+           function(store_path, callback)
+            {
+                locals.header_file = store_path;
                 locals.client.query(
                     "SELECT id FROM Matches WHERE id=$1;",
                     [locals.match_id],
@@ -138,15 +188,15 @@ function processReplay(message, callback_replay)
                 if(results.rowCount != 0)
                 {
                     locals.client.query(
-                        "UPDATE Matches m SET label=$2, file=$3, header_file=$4, stats_file=$5, replayfile_id=$6 WHERE m.id=$1;",
-                        [locals.match_id, "", locals.analysis_file, locals.header_file, locals.stats_file, locals.replayfile_id],
+                        "UPDATE Matches m SET label=$2, file=$3, header_file=$4, replayfile_id=$5 WHERE m.id=$1;",
+                        [locals.match_id, "", locals.analysis_file, locals.header_file, locals.replayfile_id],
                         callback
                     );
                 }
                 else{
                     locals.client.query(
-                        "INSERT INTO Matches(id, label, file, header_file, stats_file, replayfile_id) VALUES ($1, $2, $3, $4, $5, $6);",
-                        [locals.match_id, "", locals.analysis_file, locals.header_file, locals.stats_file, locals.replayfile_id],
+                        "INSERT INTO Matches(id, label, file, header_file, replayfile_id) VALUES ($1, $2, $3, $4, $5);",
+                        [locals.match_id, "", locals.analysis_file, locals.header_file, locals.replayfile_id],
                         callback);
                 }
             },
@@ -170,7 +220,9 @@ function processReplay(message, callback_replay)
             },
             function(results, callback)
             {
-                fs.readFile(locals.stats_file, 'utf8', callback);
+                var stats_filename = config.shared+"/"+locals.stats_file;
+                console.log("stats at", stats_filename);
+                fs.readFile(stats_filename, 'utf8', callback);
             },
             function (statsfile, callback) {
                 var match = JSON.parse(statsfile);
@@ -214,6 +266,15 @@ function processReplay(message, callback_replay)
                         callback);
                 },
                 callback);
+            },
+            function(callback)
+            {
+                fs.unlink(locals.extracted_filename, callback);
+            }
+            ,
+            function(callback)
+            {
+                fs.unlink(locals.sample_filename, callback);
             }
         ],
         function(err, results)
@@ -234,10 +295,7 @@ function processReplay(message, callback_replay)
                                 "result": "failed",
                                 "job": message["job"]
                             };
-                        service.send(finished_message,
-                            function(err, results){
-                                callback();
-                            });
+                        service.send(failed_message);
 
                         callback_replay(null);
                     });
@@ -268,7 +326,7 @@ function parseStatsFile(locals, callback)
         [
             function(callback)
             {       
-                fs.readFile(locals.stats_file, 'utf8', callback);
+                fs.readFile(config.shared+"/"+locals.stats_file, 'utf8', callback);
             },
             function (statsfile, callback)
             {
