@@ -1,0 +1,11 @@
+FROM node:5
+
+COPY retrieve/src /source
+COPY shared-code /shared-code
+WORKDIR /shared-code
+RUN npm install
+WORKDIR /source
+RUN npm install
+
+
+CMD ["node", "retrieval-server.js"]

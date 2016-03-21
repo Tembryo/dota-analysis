@@ -26,7 +26,7 @@ webserver:
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/webserver:/storage
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/shared:/shared
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/files/webserver:/files:ro
-    - /home/fischerq/Documents/Wisdota/dota-analysis/shared-code:/shared-code:ro
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/shared-code:/shared-code:ro
   environment:
     VIRTUAL_HOST: "localhost"
     VIRTUAL_PORT: "42000"
@@ -38,7 +38,7 @@ scheduler:
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/scheduler:/storage
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/shared:/shared
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/scheduler/src:/source:ro
-    - /home/fischerq/Documents/Wisdota/dota-analysis/shared-code:/shared-code:ro
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/shared-code:/shared-code:ro
   links:
     - postgres:POSTGRES_IP
 analysis:
@@ -48,7 +48,7 @@ analysis:
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/analysis/extractor:/extractor:ro
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/analysis/analysis:/analysis:ro
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/analysis/score:/score:ro
-    - /home/fischerq/Documents/Wisdota/dota-analysis/shared-code:/shared-code:ro
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/shared-code:/shared-code:ro
 
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/analysis:/storage
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/shared:/shared
@@ -61,7 +61,7 @@ retrieve:
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/retrieve:/storage
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/shared:/shared
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/retrieve/src:/source:ro
-    - /home/fischerq/Documents/Wisdota/dota-analysis/shared-code:/shared-code:ro
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/shared-code:/shared-code:ro
   links:
     - postgres:POSTGRES_IP
 download:
@@ -70,6 +70,6 @@ download:
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/download:/storage
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/shared:/shared
     - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/download/src:/source:ro
-    - /home/fischerq/Documents/Wisdota/dota-analysis/shared-code:/shared-code:ro
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/shared-code:/shared-code:ro
   links:
     - postgres:POSTGRES_IP

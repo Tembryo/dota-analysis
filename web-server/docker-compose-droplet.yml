@@ -15,17 +15,16 @@ postgres:
     - "5432:5432"
   environment:
     POSTGRES_USER: "wisdota"
-    POSTGRES_PASSWORD: "xxx"
+    POSTGRES_PASSWORD: "the-database-elephant"
     PGDATA: "/postgres/data"
   volumes:
     - /usr/local/dota-analysis/web-server/storage/postgres:/postgres
 webserver:
-  build: webserver
+  build: .
+  dockerfile: webserver/Dockerfile-deploy
   expose:
     - "42000"
   volumes:
-    - /usr/local/dota-analysis/web-server/webserver/src:/source:ro
-    - /usr/local/dota-analysis/shared-code:/shared-code:ro
     - /usr/local/dota-analysis/web-server/storage/webserver:/storage
     - /usr/local/dota-analysis/web-server/storage/shared:/shared
     - /usr/local/dota-analysis/web-server/files/webserver:/files:ro
@@ -36,43 +35,34 @@ webserver:
   links:
     - postgres:POSTGRES_IP
 scheduler:
-  build: scheduler
+  build: .
+  dockerfile: scheduler/Dockerfile-deploy
   volumes:
     - /usr/local/dota-analysis/web-server/storage/scheduler:/storage
     - /usr/local/dota-analysis/web-server/storage/shared:/shared
-    - /usr/local/dota-analysis/web-server/scheduler/src:/source:ro
-    - /usr/local/dota-analysis/shared-code:/shared-code:ro
   links:
     - postgres:POSTGRES_IP
 analysis:
-  build: analysis
+  build: .
+  dockerfile: analysis/Dockerfile-deploy
   volumes:
-    - /usr/local/dota-analysis/web-server/analysis/server-src:/source:ro
-    - /usr/local/dota-analysis/shared-code:/shared-code:ro
-    - /usr/local/dota-analysis/web-server/analysis/extractor:/extractor:ro
-    - /usr/local/dota-analysis/web-server/analysis/analysis:/analysis:ro
-    - /usr/local/dota-analysis/web-server/analysis/score:/score:ro
-
     - /usr/local/dota-analysis/web-server/storage/analysis:/storage
     - /usr/local/dota-analysis/web-server/storage/shared:/shared
-    - /usr/local/dota-analysis/web-server/files/analysis:/files:ro
   links:
     - postgres:POSTGRES_IP
 retrieve:
-  build: retrieve
+  build: .
+  dockerfile: retrieve/Dockerfile-deploy
   volumes:
     - /usr/local/dota-analysis/web-server/storage/retrieve:/storage
     - /usr/local/dota-analysis/web-server/storage/shared:/shared
-    - /usr/local/dota-analysis/web-server/retrieve/src:/source:ro
-    - /usr/local/dota-analysis/shared-code:/shared-code:ro
   links:
     - postgres:POSTGRES_IP
 download:
-  build: download
+  build: .
+  dockerfile: download/Dockerfile-deploy
   volumes:
     - /usr/local/dota-analysis/web-server/storage/download:/storage
     - /usr/local/dota-analysis/web-server/storage/shared:/shared
-    - /usr/local/dota-analysis/web-server/download/src:/source:ro
-    - /usr/local/dota-analysis/shared-code:/shared-code:ro
   links:
     - postgres:POSTGRES_IP

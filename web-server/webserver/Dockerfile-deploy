@@ -1,0 +1,14 @@
+FROM node:5
+
+COPY webserver/src /source
+COPY shared-code /shared-code
+WORKDIR /shared-code
+RUN npm install
+WORKDIR /source
+RUN npm install
+
+# expose port of the server
+EXPOSE 42000
+
+# start node with the index.js file of our hello-world application
+CMD ["node", "server.js"]
