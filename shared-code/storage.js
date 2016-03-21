@@ -7,11 +7,11 @@ var config  = require("./config.js");
 // global basis (see Authentication section above).
 
 var gcs = gcloud.storage({
-  projectId: 'wisdota-dev-project',
+  projectId: 'wisdota',
   keyFilename: __dirname+'/Wisdota-Dev-820d99a224a4.json'
 });
 
-var bucket = gcs.bucket('wisdota-dev-storage');
+var bucket = gcs.bucket('wisdota-storage');
 
 
 function retrieveFile(filename, callback)

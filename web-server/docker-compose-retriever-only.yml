@@ -4,3 +4,4 @@ retrieve:
     - /usr/local/dota-analysis/web-server/storage/retrieve:/storage
     - /usr/local/dota-analysis/web-server/storage/shared:/shared
     - /usr/local/dota-analysis/web-server/retrieve/src:/source:ro
+    - /usr/local/dota-analysis/shared-code:/shared-code:ro
