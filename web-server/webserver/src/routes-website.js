@@ -2,8 +2,9 @@ var express = require('express'),
     async = require('async');
 
 var authentication = require("./routes-auth.js"),
-    config = require("./config.js"),
-    database = require("./database.js");
+    config = require("./config.js");
+
+var database = require("/shared-code/database.js");
 
 var router = express.Router();
 
@@ -12,11 +13,8 @@ router.use(function(req, res, next)
     var locals = {};
     async.waterfall(
         [
-            database.connect,
-            function(client, done_client, callback)
+            function(callback)
             {
-                locals.client = client;
-                locals.done = done_client;
                 var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
                 var user = null;
                 if(req.user)
@@ -28,7 +26,7 @@ router.use(function(req, res, next)
                     "ip": ip
                 }
 
-                locals.client.query("INSERT INTO events(event_type, time, data) VALUES ((SELECT id FROM EventTypes WHERE label=$1),now(), $2);",["ViewPage", data],callback);
+                database.query("INSERT INTO events(event_type, time, data) VALUES ((SELECT id FROM EventTypes WHERE label=$1),now(), $2);",["ViewPage", data],callback);
             },
             function(results, callback)
             {
@@ -44,7 +42,6 @@ router.use(function(req, res, next)
         ],
         function(err, results)
         {
-            locals.done();
             if(err)
                 console.log(err, results);
             next();
@@ -123,17 +120,10 @@ router.get('/result/:result_id', function(req, res)
 {
 
     var locals = {};
-    locals.header_files = [];
     async.waterfall(
         [
-            database.connect,
-            function(client, done_client, callback)
-            {
-                locals.client = client;
-                locals.done = done_client;
-
-                locals.client.query("SELECT match_id FROM Results r WHERE r.id=$1;",[req.params.result_id],callback);
-            },
+            database.generateQueryFunction(
+                "SELECT match_id FROM Results r WHERE r.id=$1;",[req.params.result_id]),
             function(results, callback)
             {
                 if(results.rowCount != 1)
@@ -149,7 +139,6 @@ router.get('/result/:result_id', function(req, res)
         ],
         function(err, results)
         {
-            locals.done();
             if(err)
                 console.log(err, results);
             
@@ -180,6 +169,17 @@ router.get('/scoreboard/:match_id', function(req, res)
     data["match_id"] = req.params.match_id;
     res.render("pages/scoreboard.ejs", data);
 });
+
+router.get('/admin',
+    authentication.ensureAuthenticated,
+    authentication.ensureAdmin,
+    function(req, res)
+    {
+        var data = collectTemplatingData(req);
+
+        res.render("pages/admin.ejs", data);
+    }
+);
 
 
 exports.router = router;

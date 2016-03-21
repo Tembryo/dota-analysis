@@ -60,18 +60,9 @@ function downloadMatch(message, callback_request)
     locals.request_id = message["id"];
     async.waterfall(
         [
-            database.connect,
-            function(client, done_client, callback)
-            {
-                console.log("got db client");
-                locals.client = client;
-                locals.done = done_client;
-
-                locals.client.query(
-                    "SELECT requester_id, data FROM MatchRetrievalRequests mrr WHERE mrr.id=$1;",
-                    [locals.request_id],
-                    callback);
-            },
+            database.generateQueryFunction(
+                "SELECT requester_id, data FROM MatchRetrievalRequests mrr WHERE mrr.id=$1;",
+                [locals.request_id]),
             function(results, callback)
             {
                 if(results.rowCount!=1)
@@ -94,7 +85,7 @@ function downloadMatch(message, callback_request)
             function(store_path, callback)
             {
                 console.log("stored match at ", store_path);
-                locals.client.query(
+                database.query(
                     "INSERT INTO ReplayFiles (file, upload_filename, processing_status, uploader_id) VALUES ($1, $2, (SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$3), $4);",
                     [store_path, locals.match_id, "uploaded", locals.requester_id],
                     callback);
@@ -106,7 +97,7 @@ function downloadMatch(message, callback_request)
                 else
                 {
                     console.log("inserted replayfile");
-                    locals.client.query(
+                    database.query(
                         "UPDATE MatchRetrievalRequests mrr SET retrieval_status=(SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label=$2) WHERE mrr.id=$1 RETURNING mrr.id;",
                         [locals.request_id, "retrieved"],
                         callback);
@@ -124,7 +115,7 @@ function downloadMatch(message, callback_request)
         {
             if(err)
             {
-                locals.client.query(
+                database.query(
                     "UPDATE MatchRetrievalRequests mrr SET retrieval_status=(SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label=$2) WHERE mrr.id=$1 RETURNING mrr.id;",
                     [locals.request_id, "failed"],
                     function(err2, results2)
@@ -138,7 +129,6 @@ function downloadMatch(message, callback_request)
                             console.log("put request as failed from download", locals.request_id, err, results);
                         }
 
-                        locals.done();
                         var finished_message = 
                             {
                                 "message":"DownloadResponse",
@@ -152,9 +142,7 @@ function downloadMatch(message, callback_request)
             }
             else
             {
-
                 console.log("downloaded", locals.request_id);
-                locals.done();
 
                 var finished_message = 
                     {

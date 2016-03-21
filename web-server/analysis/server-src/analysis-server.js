@@ -66,17 +66,9 @@ function processReplay(message, callback_replay)
     locals.replayfile_id = replay_id;
     async.waterfall(
         [
-            database.connect,
-            function(client, done_client, callback)
-            {
-                locals.client = client;
-                locals.done = done_client;
-
-                locals.client.query(
-                    "UPDATE ReplayFiles rf SET processing_status=(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$2) WHERE rf.id=$1 RETURNING rf.file;",
-                    [locals.replayfile_id, "extracting"],
-                    callback);
-            },
+            database.generateQueryFunction(
+                "UPDATE ReplayFiles rf SET processing_status=(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$2) WHERE rf.id=$1 RETURNING rf.file;",
+                [locals.replayfile_id, "extracting"]),
             function(results, callback)
             {
                 if(results.rowCount != 1)
@@ -139,7 +131,7 @@ function processReplay(message, callback_replay)
                 }
                 else
                 {
-                    locals.client.query(
+                    database.query(
                         "UPDATE ReplayFiles rf SET match_id=$2, processing_status=(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$3) WHERE rf.id=$1;",
                         [locals.replayfile_id, locals.match_id, "analysing"],
                         callback);
@@ -177,7 +169,7 @@ function processReplay(message, callback_replay)
            function(store_path, callback)
             {
                 locals.header_file = store_path;
-                locals.client.query(
+                database.query(
                     "SELECT id FROM Matches WHERE id=$1;",
                     [locals.match_id],
                     callback);
@@ -187,14 +179,14 @@ function processReplay(message, callback_replay)
 
                 if(results.rowCount != 0)
                 {
-                    locals.client.query(
+                    database.query(
                         "UPDATE Matches m SET label=$2, file=$3, header_file=$4, replayfile_id=$5 WHERE m.id=$1;",
                         [locals.match_id, "", locals.analysis_file, locals.header_file, locals.replayfile_id],
                         callback
                     );
                 }
                 else{
-                    locals.client.query(
+                    database.query(
                         "INSERT INTO Matches(id, label, file, header_file, replayfile_id) VALUES ($1, $2, $3, $4, $5);",
                         [locals.match_id, "", locals.analysis_file, locals.header_file, locals.replayfile_id],
                         callback);
@@ -202,7 +194,7 @@ function processReplay(message, callback_replay)
             },
             function(results, callback)
             {
-                locals.client.query(
+                database.query(
                     "UPDATE ReplayFiles rf SET processing_status=(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$2) WHERE rf.id=$1;",
                     [locals.replayfile_id, "registered"],
                     callback);
@@ -213,7 +205,7 @@ function processReplay(message, callback_replay)
             },
             function(results, callback)
             {
-                locals.client.query(
+                database.query(
                     "DELETE FROM Results r WHERE r.match_id=$1;",
                     [locals.match_id],
                     callback);
@@ -260,7 +252,7 @@ function processReplay(message, callback_replay)
                         return;
                     }    
                     var score_result = JSON.parse(score_line);
-                    locals.client.query(
+                    database.query(
                         "INSERT INTO Results (match_id, steam_identifier, data) VALUES($1, $2, $3)",
                         [locals.match_id, score_result["steamid"], score_result["data"]],
                         callback);
@@ -282,13 +274,12 @@ function processReplay(message, callback_replay)
             if(err)
             {
                 console.log("analysis error", arguments);
-                locals.client.query(
+                database.query(
                     "UPDATE ReplayFiles rf SET processing_status=(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$2) WHERE rf.id=$1;",
                     [locals.replayfile_id, "failed"],
                     function()
                     {
                         console.log("put replayfile as failed", locals.replayfile_id, err);
-                        locals.done();
                         var failed_message  =
                             {
                                 "message": "AnalyseResponse",
@@ -312,7 +303,6 @@ function processReplay(message, callback_replay)
                 };
                 service.send(finished_message);
 
-                locals.done();
                 callback_replay(null);
             }
         }
@@ -335,21 +325,21 @@ function parseStatsFile(locals, callback)
             },
             function(callback)
             {
-                locals.client.query(
+                database.query(
                     "DELETE FROM MatchStats ms WHERE ms.id = $1;",
                     [locals.match_id],
                     callback);
             },
             function(results, callback)
             {
-                locals.client.query(
+                database.query(
                     "DELETE FROM PlayerStats ps WHERE ps.match_id = $1;",
                     [locals.match_id],
                     callback);
             },
             function(results, callback)
             {
-                locals.client.query(
+                database.query(
                     "INSERT INTO MatchStats(id, data) VALUES($1, $2);",
                     [locals.match_id, locals.stats["match-stats"]],
                     callback);
@@ -369,10 +359,10 @@ function parseStatsFile(locals, callback)
                         {
                             var ps = locals.stats["player-stats"][slot];
                             ps["slot"] = slot;
-                            locals.client.query(
-                            "INSERT INTO PlayerStats(match_id, steam_identifier, data) VALUES($1, $2, $3);",
-                            [locals.match_id, ps["steamid"], ps],
-                            callback_player);
+                            database.query(
+                                "INSERT INTO PlayerStats(match_id, steam_identifier, data) VALUES($1, $2, $3);",
+                                [locals.match_id, ps["steamid"], ps],
+                                callback_player);
                         }
                         else
                         {

@@ -114,17 +114,8 @@ function publish(channel, message, final_callback)
     var locals = {};
     async.waterfall(
         [
-            database.connect,
-            function(client, done_client, callback)
-            {
-                locals.client = client;
-                locals.done = done_client;
-
-                locals.client.query(
-                    "SELECT pg_notify($1, $2);",
-                    [channel, encode(message)],
-                    callback);
-            }
+            database.generateQueryFunction("SELECT pg_notify($1, $2);",
+                    [channel, encode(message)])
         ],
         function(err, results)
         {
@@ -136,7 +127,6 @@ function publish(channel, message, final_callback)
             {
                 //console.log("published", channel, message);
             }
-            locals.done();
             
             if(final_callback)
                 final_callback(err, results);

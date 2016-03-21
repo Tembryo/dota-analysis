@@ -9,6 +9,7 @@ var entry = "IMR";
 var canvas;
 
 $(document).ready(function(){
+    console.log("history ",window.history.state);
 
     var pathname = "/api/stats?start=0&end=20";
     entry = "IMR";

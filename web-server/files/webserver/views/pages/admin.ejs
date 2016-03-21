@@ -1,0 +1,62 @@
+<% title="Admin Panel ";
+    navigation_entries=[
+    ];
+    layout("base-template") -%>
+
+<div class="container" >
+    <div class ="row">
+        <div class="col-xs-12 text-center">
+            <h1>Wisdota admin panel</h1>
+        </div>
+        <div class="col-xs-8 col-xs-offset-2">
+            <ul class="nav nav-tabs">
+                <li>
+                    <a data-toggle="tab" href="#users">Users</a>
+                </li>
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">Tables<span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a data-toggle="tab" href="#retrieval-statuses">Retrieval statuses</a></li>
+                        <li><a data-toggle="tab" href="#processing-statuses">Processing statuses</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-8 col-xs-offset-2">
+            <div class="tab-content">
+                <div id="users" class="tab-pane fade">
+                    <h3>Users</h3>
+                    <p>Number of signed up steam accounts: <span style="font-weight: bold;" id="users-nr"></span></p>
+                </div>
+                <div id="retrieval-statuses" class="tab-pane fade">
+                    <h3>Retrieval requests overview</h3>
+                    <table class="table" id="retrieval-statuses-table">
+                       <thead>
+                            <tr>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="processing-statuses" class="tab-pane fade">
+                    <h3>Replay files overview</h3>
+                    <table class="table" id="processing-statuses-table">
+                       <thead>
+                            <tr>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" style="margin: 0 0 100px 0">
+    </div>
+</div>
+
+<script type="text/javascript" src="/static/js/admin.js"></script>

@@ -53,16 +53,9 @@ function loadQueue(callback)
     var locals = {};
     async.waterfall(
         [
-            database.connect,
-            function(client, done_client, callback)
-            {
-                locals.client = client;
-                locals.done = done_client;
-                locals.client.query(
-                    "SELECT id, data from Jobs WHERE finished IS NULL;",
-                    [],
-                    callback);
-            },
+            database.generateQueryFunction(
+                "SELECT id, data from Jobs WHERE finished IS NULL;",
+                []),
             function(results, callback)
             {
                 console.log("Rerunning queue of ", results.rowCount);
@@ -82,7 +75,6 @@ function loadQueue(callback)
         {
             if (err)
                 console.log(err, results);
-            locals.done();
             callback(err, results);
         }
     );
@@ -245,13 +237,13 @@ function handleMatchHistoryMsg(channel, message)
     switch(message["message"])
     {
         case "RefreshHistory":
-                console.log("requesting user history refresh");
+                //console.log("requesting user history refresh");
                 if(message["id"] in user_last_refresh)
                 {
                     var new_time = Date.now();
                     if(new_time - user_last_refresh[message["id"]] < min_refresh_interval)
                     {
-                       console.log("refresh declined");
+                       //console.log("refresh declined");
                        break;
                     }
                     else
@@ -444,16 +436,7 @@ function updateAllHistories()
     var locals = {};
     async.waterfall(
         [
-            database.connect,
-            function(client, done_client, callback)
-            {
-                locals.client = client;
-                locals.done = done_client;
-                locals.client.query(
-                    "SELECT MIN(u.id) as min, MAX(u.id) as max FROM Users u;",
-                    [],
-                    callback);
-            },
+            database.generateQueryFunction("SELECT MIN(u.id) as min, MAX(u.id) as max FROM Users u;",[]),
             function(results, callback)
             {
                 if(results.rowCount == 1)
@@ -495,10 +478,6 @@ function updateAllHistories()
             if (err)
             {
                 console.log("failure", err, results, user_id_range);
-            }
-            else
-            {
-                locals.done();
             }
 
             setTimeout(updateAllHistories, check_interval_history);
@@ -670,19 +649,9 @@ function createJob(data, id, callback_job)
     }
     else
     {
-        var locals = {};
         async.waterfall(
             [
-                database.connect,
-                function(client, done_client, callback)
-                {
-                    locals.client = client;
-                    locals.done = done_client;
-                    locals.client.query(
-                        "INSERT INTO Jobs(started, data) VALUES(now(),$1) RETURNING id;",
-                        [data],
-                        callback);
-                },
+                database.generateQueryFunction("INSERT INTO Jobs(started, data) VALUES(now(),$1) RETURNING id;", [data]),
                 function(results, callback)
                 {
                     if(results.rowCount == 1)
@@ -710,7 +679,6 @@ function createJob(data, id, callback_job)
                     if(callback_job)
                         callback_job(job_id);
                 }
-                locals.done();
             }
         );   
     }
@@ -723,19 +691,9 @@ function closeTemporaryJob(job_id)
 
 function closeJob(job_id)
 {
-    var locals = {};
     async.waterfall(
         [
-            database.connect,
-            function(client, done_client, callback)
-            {
-                locals.client = client;
-                locals.done = done_client;
-                locals.client.query(
-                    "UPDATE Jobs SET finished = now() WHERE id=$1;",
-                    [job_id],
-                    callback);
-            },
+            database.generateQueryFunction("UPDATE Jobs SET finished = now() WHERE id=$1;",[job_id]),
             function(results, callback)
             {
                 if(results.rowCount == 1)
@@ -758,7 +716,6 @@ function closeJob(job_id)
                 delete jobs_queue[job_id];
             }
 
-            locals.done();
         }
     );
 }

@@ -5,8 +5,9 @@ var	express		= require('express'),
 var shortid         = require('shortid');
 
 var	config		= require("./config.js"),
-    steam_auth = require("./steam-strategy.js"),
-    database = require('./database.js');
+    steam_auth = require("./steam-strategy.js");
+
+var database = require("/shared-code/database.js");
 
 // Passport session setup.
 //   To support persistent login sessions, Passport needs to be able to
@@ -31,22 +32,15 @@ passport.deserializeUser(
 
         async.waterfall(
             [
-                database.connect,
-                function(client, client_done, callback)
-                {
-                    locals.client = client;
-                    locals.done = client_done;
-                    locals.client.query(
+                database.generateQueryFunction(
                         "SELECT u.id, u.name FROM Users u WHERE u.id = $1;",
-                        [locals.user_id],
-                        callback);
-                },
+                        [locals.user_id]),
                 function(results, callback)
                 {
                     if(results.rowCount <1)
                         callback("Couldn't find user");
                     locals.user = results.rows[0];
-                    locals.client.query(
+                    database.query(
                         "SELECT json_agg(ust.label) as statuses FROM UserStatuses us, UserStatusTypes ust WHERE us.user_id=$1 AND us.statustype_id=ust.id;",
                         [locals.user_id],
                         callback);
@@ -66,7 +60,6 @@ passport.deserializeUser(
             {
                 if (err)
                     console.log(err);
-                locals.done();
 			    done(err, locals.user);
             }
         );
@@ -95,14 +88,8 @@ passport.use(
             locals["old"] = false;
             async.waterfall(
                 [
-                    database.connect,
-                    function(client, done_client, callback)
-                    {
-                        locals.client = client;
-                        locals.done = done_client;
-
-                        locals.client.query("SELECT id, name FROM Users WHERE steam_identifier = $1;",[steam_id],callback);
-                    },
+                    database.generateQueryFunction(
+                        "SELECT id, name FROM Users WHERE steam_identifier = $1;",[steam_id]),
                     function(results, callback)
                     {
                         if(results.rowCount == 0)
@@ -120,7 +107,7 @@ passport.use(
                                 if(err)
                                     callback(err);
                                 else
-                                    locals.client.query("INSERT INTO Users(name, steam_identifier, steam_object, email) VALUES ($1, $2, $3, $4) RETURNING id, name;",[profile["displayName"], profile["id"], profile["_json"], "unknown"],callback);
+                                    database.query("INSERT INTO Users(name, steam_identifier, steam_object, email) VALUES ($1, $2, $3, $4) RETURNING id, name;",[profile["displayName"], profile["id"], profile["_json"], "unknown"],callback);
                             });
                             
                         }
@@ -150,7 +137,7 @@ passport.use(
                             "user": locals["user"]["id"]
                         }
 
-                        locals.client.query("INSERT INTO events(event_type, time, data) VALUES ((SELECT id FROM EventTypes WHERE label=$1),now(), $2);",["LogIn", data],callback);
+                        database.query("INSERT INTO events(event_type, time, data) VALUES ((SELECT id FROM EventTypes WHERE label=$1),now(), $2);",["LogIn", data],callback);
                     },
                     function(results, callback)
                     {
@@ -167,7 +154,6 @@ passport.use(
                 ],
                 function(err, result)
                 {
-                    locals.done();
 
                     if (!(err === "found_old") && err)
                     {
@@ -244,21 +230,11 @@ function ensureAuthenticated(req, res, next) {
 //restrict access to admin accounts
 function ensureAdmin(req, res, next)
 {
-    var locals = {};
-    locals.user = {};
     async.waterfall(
         [
-            database.connect,
-            function(client, done, callback)
-            {
-                locals.client = client;
-                locals.done = done;
-
-                locals.client.query(
+            database.generateQueryFunction(
                     "SELECT us.user_id FROM UserStatuses us, UserStatusTypes ust WHERE us.user_id=$1 AND us.statustype_id=ust.id And ust.label=$2",
-                    [req.user["id"], "admin"],
-                    callback);
-            },
+                    [req.user["id"], "admin"]),
             function(results, callback)
             {
                 //allow access if admin entry found 
@@ -267,7 +243,6 @@ function ensureAdmin(req, res, next)
         ],
         function(err, result)
         {
-            locals.done();
             if(result)
             {
                 next();

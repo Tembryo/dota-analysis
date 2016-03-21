@@ -1,5 +1,5 @@
 var database        = require("/shared-code/database.js"),
-    services   = require("/shared-code/services.js");
+    services        = require("/shared-code/services.js");
 
 // retrieve - server.js
 var async       = require("async");
@@ -93,19 +93,11 @@ function handleRetrieveServerMsg(server_identifier, message)
 
 function checkAPIHistoryData(message)
 {   
-    var locals = {};
     async.waterfall(
         [
-            database.connect,
-            function(client, done_client, callback)
-            {
-                locals.client = client;
-                locals.done = done_client;
-                locals.client.query(
+            database.generateQueryFunction(
                     "SELECT u.id, u.steam_identifier, u.last_match FROM Users u WHERE u.id >= $1 AND u.id <= $2;",
-                    [message["range-start"], message["range-end"]],
-                    callback);
-            },
+                    [message["range-start"], message["range-end"]]),
             function(users, jobs_callback)
             {
                 console.log("updating user histories", users.rowCount);
@@ -166,7 +158,6 @@ function checkAPIHistoryData(message)
             }
             else
             {
-                locals.done();
                 //console.log("finished check_jobs");
             }
 
@@ -187,12 +178,8 @@ function updateUserHistory(user_row, dota_client, callback_request)
     //console.log("history", user_row, locals.user_min_match_checked);
     async.waterfall(
         [
-            database.connect,
-            function(client, done_client, callback)
+            function(callback)
             {
-                locals.client = client;
-                locals.done = done_client;
-
                 dota_client.requestPlayerMatchHistory(
                     locals.user_account_id,
                     {
@@ -206,7 +193,7 @@ function updateUserHistory(user_row, dota_client, callback_request)
             },
             function(callback)
             {
-                locals.client.query(
+                database.query(
                         "UPDATE Users u SET last_match=$2 WHERE u.id=$1;",
                         [locals.user_id, locals.user_new_last_match],
                         callback);
@@ -221,7 +208,6 @@ function updateUserHistory(user_row, dota_client, callback_request)
         ],
         function(err, results)
         {
-            locals.done();
             callback_request(err, results);
         }
     );
@@ -246,7 +232,7 @@ function processMatchHistory(history, locals, callback)
             if(fixed_match_id > locals.user_last_match)
             {           
                 console.log("inserting matchhist", fixed_match_id);
-                locals.client.query(
+                database.query(
                     "INSERT INTO UserMatchHistory (user_id, match_id, data) VALUES ($1, $2, $3);",
                     [locals.user_id, fixed_match_id, match],
                     function(err, results)
@@ -311,18 +297,9 @@ function processRequest(message, callback_request)
     locals.request_id = message["id"];
     async.waterfall(
         [
-            database.connect,
-            function(client, done_client, callback)
-            {
-                console.log("got db client");
-                locals.client = client;
-                locals.done = done_client;
-
-                locals.client.query(
+            database.generateQueryFunction(
                     "UPDATE MatchRetrievalRequests mrr SET retrieval_status=(SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label=$2) WHERE mrr.id=$1 RETURNING mrr.id, mrr.requester_id;",
-                    [locals.request_id, "retrieving"],
-                    callback);
-            },
+                    [locals.request_id, "retrieving"]),
             function(results, callback)
             {
                 console.log("set to retrieving");
@@ -339,7 +316,7 @@ function processRequest(message, callback_request)
             function(replay_data, callback)
             {
                 console.log("inserted replayfile");
-                locals.client.query(
+                database.query(
                     "UPDATE MatchRetrievalRequests mrr SET data=$2, retrieval_status=(SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label=$3) WHERE mrr.id=$1;",
                     [locals.request_id, replay_data, "download"],
                     callback);
@@ -356,7 +333,7 @@ function processRequest(message, callback_request)
         {
             if(err === "bad replay state" && results == 2)
             {
-                locals.client.query(
+                database.query(
                     "UPDATE MatchRetrievalRequests mrr SET retrieval_status=(SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label=$2) WHERE mrr.id=$1 RETURNING mrr.id;",
                     [locals.request_id, "unavailable"],
                     function(err2, results2)
@@ -378,7 +355,6 @@ function processRequest(message, callback_request)
                             };
                         send.send(finished_message,
                             function(){
-                                locals.done();
                                 callback_request(null, "");
                             }
                         );
@@ -395,14 +371,13 @@ function processRequest(message, callback_request)
                     };
                 service.send(finished_message,
                     function(){
-                        locals.done();
                         callback_request(null, "");
                     }
                 );
             }
             else if(err)
             {
-                locals.client.query(
+                database.query(
                     "UPDATE MatchRetrievalRequests mrr SET retrieval_status=(SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label=$2) WHERE mrr.id=$1 RETURNING mrr.id;",
                     [locals.request_id, "failed"],
                     function(err2, results2)
@@ -424,7 +399,6 @@ function processRequest(message, callback_request)
                             };
                         service.send(finished_message,
                             function(){
-                                locals.done();
                                 callback_request(null, "");
                             }
                         );
@@ -442,7 +416,6 @@ function processRequest(message, callback_request)
                     };
                 service.send(finished_message,
                     function(){
-                        locals.done();
                         callback_request(null, "");
                     }
                 );
