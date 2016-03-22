@@ -201,8 +201,6 @@ router.route('/match/:match_id')
                 ],
                 function(err, result)
                 {
-                    locals.done();
-
                     if(err)
                     {
                         console.log("error retrieving match "+req.params.match_id);
