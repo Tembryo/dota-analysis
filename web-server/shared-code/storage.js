@@ -5,13 +5,26 @@ var config  = require("./config.js");
 
 // Authenticating on a per-API-basis. You don't need to do this if you auth on a
 // global basis (see Authentication section above).
+if(process.env.VERSION === "DEV")
+{
+    var gcs = gcloud.storage({
+      projectId: 'wisdota-dev-project',
+      keyFilename: __dirname+'/Wisdota-Dev-820d99a224a4.json'
+    });
 
-var gcs = gcloud.storage({
-  projectId: 'wisdota',
-  keyFilename: __dirname+'/Wisdota-Dev-820d99a224a4.json'
-});
+    var bucket = gcs.bucket('wisdota-dev-storage');
 
-var bucket = gcs.bucket('wisdota-storage');
+}
+else    
+{
+    var gcs = gcloud.storage({
+      projectId: 'wisdota-main',
+      keyFilename: __dirname+'/Wisdota-Dev-820d99a224a4.json'
+    });
+
+    var bucket = gcs.bucket('wisdota-storage');
+
+}
 
 
 function retrieveFile(filename, callback)
