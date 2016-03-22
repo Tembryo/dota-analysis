@@ -20,8 +20,7 @@ postgres:
   volumes:
     - /usr/local/dota-analysis/web-server/storage/postgres:/postgres
 webserver:
-  build: .
-  dockerfile: webserver/Dockerfile-deploy
+  image: tembryo/wisdota-webserver
   expose:
     - "42000"
   volumes:
@@ -35,32 +34,28 @@ webserver:
   links:
     - postgres:POSTGRES_IP
 scheduler:
-  build: .
-  dockerfile: scheduler/Dockerfile-deploy
+  image: tembryo/wisdota-scheduler
   volumes:
     - /usr/local/dota-analysis/web-server/storage/scheduler:/storage
     - /usr/local/dota-analysis/web-server/storage/shared:/shared
   links:
     - postgres:POSTGRES_IP
 analysis:
-  build: .
-  dockerfile: analysis/Dockerfile-deploy
+  image: tembryo/wisdota-analysis
   volumes:
     - /usr/local/dota-analysis/web-server/storage/analysis:/storage
     - /usr/local/dota-analysis/web-server/storage/shared:/shared
   links:
     - postgres:POSTGRES_IP
 retrieve:
-  build: .
-  dockerfile: retrieve/Dockerfile-deploy
+  image: tembryo/wisdota-retrieve
   volumes:
     - /usr/local/dota-analysis/web-server/storage/retrieve:/storage
     - /usr/local/dota-analysis/web-server/storage/shared:/shared
   links:
     - postgres:POSTGRES_IP
 download:
-  build: .
-  dockerfile: download/Dockerfile-deploy
+  image: tembryo/wisdota-download
   volumes:
     - /usr/local/dota-analysis/web-server/storage/download:/storage
     - /usr/local/dota-analysis/web-server/storage/shared:/shared
