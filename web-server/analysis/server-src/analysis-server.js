@@ -112,13 +112,19 @@ function processReplay(message, callback_replay)
             function(extracted_filename, callback)
             {
                 locals.extracted_filename = extracted_filename;
-                console.log("starting java, file", extracted_filename);
-                child_process.execFile(
-                    "java", 
-                    ["-jar", "/extractor/extractor.jar", extracted_filename, config.storage+"/"],
-                    {"timeout":max_extraction_time,
-                        "killSignal": "SIGKILL" },
-                    callback);
+                try {
+                    fs.accessSync(extracted_filename, fs.F_OK);
+                    console.log("starting java, file", extracted_filename);
+                    child_process.execFile(
+                        "java", 
+                        ["-jar", "/extractor/extractor.jar", extracted_filename, config.storage+"/"],
+                        {"timeout":max_extraction_time,
+                            "killSignal": "SIGKILL" },
+                        callback);
+                } catch (e) {
+                    callback("extracted file doesnt exist? "+extracted_filename);
+                }
+
             },
             function (stdout, stderr, callback) 
             {
