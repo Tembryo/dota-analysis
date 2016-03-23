@@ -20,9 +20,27 @@ var steam_account_callback = function(){};
 var steam_account = null;
 var account_stop_id = null;
 
-function markAccountStart()
+function markAccountStart(callback)
 {
-    account_stop_id = steam_account["id"];
+    if(steam_account == null)
+    {
+        steam_account_callback = function(){
+            console.log("callbacked for marking login ", steam_account);
+            account_stop_id = steam_account["id"];
+            callback();
+        }
+        var account_request = 
+            {
+                "message":"GetSteamAccount"
+            };
+        service.send(account_request);
+    }
+    else
+    {
+        console.log("marking login ", steam_account);
+        account_stop_id = steam_account["id"];
+        callback();
+    }
 }
 
 function getLogin(callback)
@@ -348,9 +366,16 @@ function processRequest(message, callback_request)
     locals.request_id = message["id"];
     async.waterfall(
         [
-            database.generateQueryFunction(
+            function(callback)
+            {
+                markAccountStart(callback);
+            },
+            function(callback)
+            {
+                database.query(
                     "UPDATE MatchRetrievalRequests mrr SET retrieval_status=(SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label=$2) WHERE mrr.id=$1 RETURNING mrr.id, mrr.requester_id;",
-                    [locals.request_id, "retrieving"]),
+                    [locals.request_id, "retrieving"], callback);
+            },
             function(results, callback)
             {
                 console.log("set to retrieving");
@@ -360,7 +385,7 @@ function processRequest(message, callback_request)
                 {
                     console.log("getting details #id for #u", results.rows[0].id, results.rows[0].requester_id);
                     locals.match_id = results.rows[0].id;
-                    markAccountStart();
+
                     fetchMatchDetails(locals, callback); 
                 }
             },
