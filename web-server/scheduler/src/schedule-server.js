@@ -54,7 +54,6 @@ function initialise(callback)
                 []),
             function(results, callback)
             {
-                console.log("result steamaccs", results);
                 for(var i = 0; i < results.rowCount; ++i)
                 {
 
@@ -66,7 +65,6 @@ function initialise(callback)
                     });
                 }
                 next_steam_account = 0;
-                console.log("got steam accs", steam_accounts);
                 callback();
             }
         ],
@@ -162,6 +160,7 @@ function handleSchedulerMsg(channel, message)
     {
         case "RegisterService":
             registerService(message["type"], message["identifier"]);
+            schedulerTick();
 
             break;
         case "UnregisterService":
@@ -313,15 +312,15 @@ function handleRetrieveServerMsg(server_identifier, message) //channel name is t
             break;
 
         case "RetrieveResponse":
-            servers[server_identifier]["busy"] = false;
             switch(message["result"])
             {
                 case "finished":
-                    closeJob(message["job"]);
+                    closeJob(server_identifier, message["job"]);
                     console.log("finished retrieve", message);
                     break;
                 case "no-capacity":
                     servers[server_identifier]["over-capacity-timeout"] = Date.now() + retrieve_capacity_block;
+                    servers[server_identifier]["busy"] = false;
                     jobs_queue[message["job"]]["state"] = "open"; //rertry this job somewhere else
                     schedulerTick();
                     break;
@@ -342,8 +341,7 @@ function handleRetrieveServerMsg(server_identifier, message) //channel name is t
                     console.log("failed to updated history", job);
                     break;
             }
-            closeTemporaryJob(message["job"]);
-            servers[server_identifier]["busy"] = false;
+            closeTemporaryJob(server_identifier, message["job"]);
             job["callback"]();//made a copy, so this works after cleaning up the job
             break;
 
@@ -372,7 +370,7 @@ function handleRetrieveServerMsg(server_identifier, message) //channel name is t
             steam_accounts[next_steam_account]["used-by"] = server_identifier;
             communication.publish(server_identifier, steam_acc_message);
             break;
-            
+
         default:
             console.log("unknown response:", server_identifier, message);
             break;
@@ -405,8 +403,7 @@ function handleDownloadServerMsg(server_identifier, message) //channel name is t
                     console.log("failed download", job);
                     break;
             }
-            closeJob(message["job"]);
-            servers[server_identifier]["busy"] = false;
+            closeJob(server_identifier, message["job"]);
             break;
         default:
             console.log("unknown response:", server_identifier, message);
@@ -439,8 +436,8 @@ function handleAnalysisServerMsg(server_identifier, message) //channel name is t
                     console.log("failed analysis", job);
                     break;
             }
-            closeJob(message["job"]);
-            servers[server_identifier]["busy"] = false;
+            closeJob(server_identifier, message["job"]);
+
             break;
         default:
             console.log("unknown response:", server_identifier, message);
@@ -550,10 +547,24 @@ function runScheduler()
 function schedulerTick()
 {
     //Make async
-    //console.log("scheduler tick, ", Object.keys(jobs_queue).length, " jobs in queue");
+
     job_queue_block.take(
         function()
         {
+            var time =  new Date();
+           console.log(time.toDateString() ,time.toTimeString(),time.getUTCMilliseconds(), "scheduler tick, ", Object.keys(jobs_queue).length, " jobs in queue");
+            for(type in servers_by_type)
+            {
+                console.log("\t",type, "servers");
+                for(var i = 0; i < servers_by_type[type].length; ++i)
+                {
+                    var server_log_obj = servers[servers_by_type[type][i]];
+                    if("over-capacity-timeout" in server_log_obj)
+                        server_log_obj["over-capacity-timeout"] = new Date(server_log_obj["over-capacity-timeout"]);
+                    console.log("\t\t", servers_by_type[type][i], JSON.stringify(server_log_obj));
+                }
+            }
+
             async.eachSeries(
                 Object.keys(jobs_queue),
                 function(job_id, callback)
@@ -600,10 +611,11 @@ function scheduleJob(job_id, callback)
             console.log("unknown job scheduled", job_id, job);
             return;
     }
-    console.log("assigned job ", job_id, " to ", server_identifier);
-    
+
     if(server_identifier)
     {
+        console.log("assigned ", job["data"]["message"], "job ", job_id, " to ", server_identifier);
+    
         //dispatch message to server to handle job
         var message = job["data"];
         message["job"] = job_id;
@@ -619,7 +631,7 @@ function scheduleJob(job_id, callback)
     }
     else
     {
-        console.log("no server available for ",job_id, "delaying");
+        //console.log("no server available for ",job_id, "delaying");
         callback();
     }
 }
@@ -630,7 +642,7 @@ function chooseRetrieveServer(capacity_required)
     for(var i = 0; i < servers_by_type["Retrieve"].length; ++i)
     {
         var server_identifier = servers_by_type["Retrieve"][i];
-        console.log("checking server", server_identifier, servers[server_identifier]);
+        //console.log("checking server", server_identifier, servers[server_identifier]);
         if(
             !servers[server_identifier]["busy"] && 
             (!capacity_required || servers[server_identifier]["over-capacity-timeout"] < Date.now() )
@@ -649,7 +661,7 @@ function chooseDownloadServer()
     for(var i = 0; i < servers_by_type["Download"].length; ++i)
     {
         var server_identifier = servers_by_type["Download"][i];
-        console.log("checking server", server_identifier, servers[server_identifier]);
+        //console.log("checking server", server_identifier, servers[server_identifier]);
         if(
             !servers[server_identifier]["busy"]
             )
@@ -696,11 +708,17 @@ function createJob(data, id, callback_job)
 
     if(id)
     {
-        jobs_queue[id] = job;
-        schedulerTick();
+        job_queue_block.take(
+            function()
+            {
+                jobs_queue[id] = job;
 
-        if(callback_job)
-            callback_job(id); // pass back id
+                job_queue_block.leave();
+                schedulerTick();
+
+                if(callback_job)
+                    callback_job(id); // pass back id
+            });
     }
     else
     {
@@ -727,24 +745,37 @@ function createJob(data, id, callback_job)
                 else 
                 {
                     var job_id = results;
-                    jobs_queue[job_id] = job;
+                    job_queue_block.take(
+                        function()
+                        {
+                            jobs_queue[job_id] = job;
+                            job_queue_block.leave();
                     
-                    schedulerTick();
-                    
-                    if(callback_job)
-                        callback_job(job_id);
+                            schedulerTick();
+                            
+                            if(callback_job)
+                                callback_job(job_id);
+                        });
                 }
             }
         );   
     }
 }
 
-function closeTemporaryJob(job_id)
+function closeTemporaryJob(server_identifier, job_id)
 {
-    delete jobs_queue[job_id];
+    job_queue_block.take(
+        function()
+        {
+            delete jobs_queue[job_id];
+            servers[server_identifier]["busy"] = false;
+            job_queue_block.leave();
+
+            schedulerTick();
+        });
 }
 
-function closeJob(job_id)
+function closeJob(server_identifier, job_id)
 {
     async.waterfall(
         [
@@ -768,7 +799,15 @@ function closeJob(job_id)
             }
             else
             {
-                delete jobs_queue[job_id];
+                job_queue_block.take(
+                    function()
+                    {
+                        delete jobs_queue[job_id];
+                        servers[server_identifier]["busy"] = false;
+                        job_queue_block.leave();
+
+                        schedulerTick();
+                    });
             }
 
         }
