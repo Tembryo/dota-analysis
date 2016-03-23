@@ -19,7 +19,7 @@ else
 {
     var gcs = gcloud.storage({
       projectId: 'wisdota-main',
-      keyFilename: __dirname+'/Wisdota-Dev-820d99a224a4.json'
+      keyFilename: __dirname+'/Wisdota-d2340f642e7f.json'
     });
 
     var bucket = gcs.bucket('wisdota-storage');

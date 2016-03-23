@@ -8,39 +8,60 @@ var retrieve_concurrency =  require("semaphore")(3);
     //Only one dota client, so the history updates are sequential anyway - no sema needed
 
 
-
-var config      = require("./config.js"),
-
-    replay_dl   = require("./replay-download.js"),
-    dota        = require("./dota.js"),
-    steam_accs  = require("./steam-accs.js");
+var replay_dl   = require("./replay-download.js"),
+    dota        = require("./dota.js");
 
 var check_interval = 5000;
 var matches_per_request = 20;
 var history_retrieve_delay = 100;
 
-var current_acc = 0;
-var current_account_i = 0;
-var account_loop_stop = 0;
+
+var steam_account_callback = function(){};
+var steam_account = null;
+var account_stop_id = null;
 
 function markAccountStart()
 {
-    account_loop_stop = current_acc;
+    account_stop_id = steam_account["id"];
 }
 
-function getLogin()
+function getLogin(callback)
 {
-    return steam_accs.account_list[current_acc];
+    if(steam_account == null)
+    {
+        steam_account_callback = function(){
+            console.log("callbacked login ", steam_account);
+            callback(null, steam_account);
+        }
+        var account_request = 
+            {
+                "message":"GetSteamAccount"
+            };
+        service.send(account_request);
+    }
+    else
+    {
+        console.log("giving out login ", steam_account);
+        callback(null, steam_account);
+    }
 }
 
-function iterateAccount()
+function iterateAccount(callback)
 {
-    console.log("done with acc", current_acc, current_account_i);
-    current_acc = (current_acc+1) % steam_accs.account_list.length;
-    current_account_i = 0;
-    if(current_acc == account_loop_stop)
-        return false;
-    else return true;
+    console.log("iterating account");
+
+    steam_account_callback = function(){
+        if(account_stop_id === steam_account["id"])
+            callback(false);
+        else
+            callback(true);
+    };
+
+    var account_request = 
+        {
+            "message":"GetSteamAccount"
+        };
+    service.send(account_request);
 }
 
 var retry_interval = 5000;
@@ -55,6 +76,14 @@ async.series(
         function(callback)
         {
             console.log("Retrieve service started");
+        },
+        function(callback)
+        {
+            var account_request = 
+                {
+                    "message":"GetSteamAccount"
+                };
+            service.send(account_request, callback);    
         }
     ]
 );
@@ -67,6 +96,7 @@ function handleRetrieveServerMsg(server_identifier, message)
     {
         case "RetrieveResponse":
         case "UpdateHistoryResponse":
+        case "GetSteamAccount":
             //Sent by myself
             break;
 
@@ -85,6 +115,16 @@ function handleRetrieveServerMsg(server_identifier, message)
         case "UpdateHistory":
             checkAPIHistoryData(message);
             break;
+
+        case "SteamAccount":
+            steam_account = 
+            {
+                "id": message["id"],
+                "steam_user": message["name"],
+                "steam_pw": message["password"]
+            };
+            steam_account_callback();
+            break;
         default:
             console.log("unknown message:", server_identifier, message);
             break;
@@ -93,18 +133,29 @@ function handleRetrieveServerMsg(server_identifier, message)
 
 function checkAPIHistoryData(message)
 {   
+    locals =  {};
     async.waterfall(
         [
-            database.generateQueryFunction(
+            function(callback)
+            {
+                getLogin(callback);
+            },
+            function(login, callback)
+            {
+                locals.login = login;
+                console.log("got login", locals.login );
+                database.query(
                     "SELECT u.id, u.steam_identifier, u.last_match FROM Users u WHERE u.id >= $1 AND u.id <= $2;",
-                    [message["range-start"], message["range-end"]]),
+                    [message["range-start"], message["range-end"]],
+                    callback);
+            },
             function(users, jobs_callback)
             {
                 console.log("updating user histories", users.rowCount);
                 if(users.rowCount > 0)
                 {
                     dota.performAction(
-                        config,
+                        locals.login,
                         function(dota_client, callback_dota)
                         {
                             async.eachSeries(
@@ -238,7 +289,7 @@ function processMatchHistory(history, locals, callback)
                     function(err, results)
                         {
                             if(err)
-                                console.log("inserting matchhist failed", user_id, match_id, err, results);
+                                console.log("inserting matchhist failed", locals.user_id, fixed_match_id, err, results);
                             callback_foreach();
                         });
             }
@@ -353,7 +404,7 @@ function processRequest(message, callback_request)
                                 "result": "finished",
                                 "job": message["job"]
                             };
-                        send.send(finished_message,
+                        service.send(finished_message,
                             function(){
                                 callback_request(null, "");
                             }
@@ -428,14 +479,16 @@ function processRequest(message, callback_request)
 
 function fetchMatchDetails(locals, callback)
 {
-    var next_login = getLogin();
-
     async.waterfall(
         [
             function(callback)
             {
+                getLogin(callback);
+            },
+            function(login, callback)
+            {
                 dota.performAction(
-                    next_login,
+                    login,
                     function(dota_client, callback_dota)
                     {
                         console.log("before dl");
@@ -449,14 +502,16 @@ function fetchMatchDetails(locals, callback)
             if(err == "details-timeout")
             {
                 //got timed out, retry with next account for details
-                ;
-                if(iterateAccount())
-                {
-                    fetchMatchDetails(locals, callback);
-                }
-                else
-                    callback("no-capacity-left");
-                
+                iterateAccount(
+                    function(result)
+                    {
+                        if(result)
+                        {
+                            fetchMatchDetails(locals, callback);
+                        }
+                        else
+                            callback("no-capacity-left");
+                    });                
             }
             else
                 callback(err, results);

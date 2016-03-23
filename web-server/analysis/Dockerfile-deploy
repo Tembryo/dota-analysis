@@ -98,14 +98,17 @@ RUN pip install -U scikit-learn
 
 ####################       Install sources.       ####################
 
-# make the src folder available in the docker image as volume
-COPY analysis/server-src /source
 COPY shared-code /shared-code
+WORKDIR /shared-code
+RUN npm install
+
+# make the src folder available in the docker image as volume
+
+
+COPY analysis/server-src /source
 COPY analysis/extractor /extractor
 COPY analysis/analysis /analysis
 COPY analysis/score /score
-WORKDIR /shared-code
-RUN npm install
 WORKDIR /source
 RUN npm install
 

@@ -1,0 +1,22 @@
+INSERT INTO SteamAccounts(name, password) VALUES
+('wisdota_bot_1','crawley-the-bot-1'),
+('wisdota_bot_2','crawley-the-bot-2'),
+('wisdota_bot_3','crawley-the-bot-3'),
+('wisdota_bot_4','crawley-the-bot-4'),
+('wisdota_bot_5','crawley-the-bot-5'),
+('wisdota_bot_6','crawley-the-bot-6'),
+('wisdota_bot_7','crawley-the-bot-7'),
+('wisdota_bot_8','crawley-the-bot-8'),
+('wisdota_bot_9','crawley-the-bot-9'),
+('wisdota_bot_10','crawley-the-bot-10'),
+('wisdota_bot_11','crawley-the-bot-11'),
+('wisdota_bot_12','crawley-the-bot-12'),
+('wisdota_bot_13','crawley-the-bot-13'),
+('wisdota_bot_14','crawley-the-bot-14'),
+('wisdota_bot_15','crawley-the-bot-15'),
+('wisdota_bot_16','crawley-the-bot-16'),
+('wisdota_bot_17','crawley-the-bot-17'),
+('wisdota_bot_18','crawley-the-bot-18'),
+('wisdota_bot_19','crawley-the-bot-19'),
+('wisdota_bot_20','crawley-the-bot-20')
+;

@@ -27,6 +27,9 @@ var retrieve_requests = {};
 
 var retry_delay = 1000;
 
+var steam_accounts = [];
+var next_steam_account = 0;
+
 //THIS IS MAIN
 async.series(
     [
@@ -43,8 +46,31 @@ function initialise(callback)
     {
         servers_by_type[service] = [];
     }
+    //init steam accounts
+    async.waterfall(
+        [
+            database.generateQueryFunction(
+                "SELECT id, name, password from SteamAccounts;",
+                []),
+            function(results, callback)
+            {
+                console.log("result steamaccs", results);
+                for(var i = 0; i < results.rowCount; ++i)
+                {
 
-    callback();
+                    steam_accounts.push(
+                    {
+                        "name": results.rows[i]["name"],
+                        "password": results.rows[i]["password"],
+                        "used-by": null 
+                    });
+                }
+                next_steam_account = 0;
+                console.log("got steam accs", steam_accounts);
+                callback();
+            }
+        ],
+        callback);
 }
 
 
@@ -136,6 +162,7 @@ function handleSchedulerMsg(channel, message)
     {
         case "RegisterService":
             registerService(message["type"], message["identifier"]);
+
             break;
         case "UnregisterService":
             console.log("Unregistering not supported yet", message);
@@ -281,6 +308,7 @@ function handleRetrieveServerMsg(server_identifier, message) //channel name is t
     {
         case "Retrieve":
         case "UpdateHistory":
+        case "SteamAccount":
             //Sent by myself
             break;
 
@@ -298,7 +326,7 @@ function handleRetrieveServerMsg(server_identifier, message) //channel name is t
                     schedulerTick();
                     break;
                 default:
-                    console.log("bad retrieve response:", server_identifier, msg_parts);
+                    console.log("bad retrieve response:", server_identifier, message);
                     break;
             }
             break;
@@ -318,8 +346,35 @@ function handleRetrieveServerMsg(server_identifier, message) //channel name is t
             servers[server_identifier]["busy"] = false;
             job["callback"]();//made a copy, so this works after cleaning up the job
             break;
+
+        case "GetSteamAccount":
+            //free old acc
+            for(var i = 0; i < steam_accounts.length; ++i)
+            {
+                if(steam_accounts[i]["used-by"] === server_identifier)
+                    steam_accounts[i]["used-by"] = null;
+            }
+
+            //iterate account
+            next_steam_account = (next_steam_account+1)%steam_accounts.length;
+            while(steam_accounts[next_steam_account]["used-by"] != null)
+            {
+                next_steam_account = (next_steam_account+1)%steam_accounts.length;
+            }
+
+            var steam_acc_message = 
+                {
+                    "message": "SteamAccount",
+                    "id": next_steam_account,
+                    "name": steam_accounts[next_steam_account]["name"],
+                    "password": steam_accounts[next_steam_account]["password"]
+                };
+            steam_accounts[next_steam_account]["used-by"] = server_identifier;
+            communication.publish(server_identifier, steam_acc_message);
+            break;
+            
         default:
-            console.log("unknown response:", server_identifier, msg_parts);
+            console.log("unknown response:", server_identifier, message);
             break;
     }
 }

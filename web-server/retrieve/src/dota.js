@@ -39,7 +39,7 @@ function performDotaAction(login_data, main_call, callback_final)
                             });
 
                         steamClient.on('loggedOff', function(){ callback("steamClient logged off"); });
-
+                        console.log("logging in using:", login_data);
                         steamUser.logOn({
                             account_name: login_data.steam_user,
                             password: login_data.steam_pw

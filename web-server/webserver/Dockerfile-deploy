@@ -1,9 +1,10 @@
 FROM node:5
 
-COPY webserver/src /source
 COPY shared-code /shared-code
 WORKDIR /shared-code
 RUN npm install
+
+COPY webserver/src /source
 WORKDIR /source
 RUN npm install
 
