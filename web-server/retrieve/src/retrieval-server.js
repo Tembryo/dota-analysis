@@ -89,7 +89,11 @@ async.series(
     [
         function(callback)
         {
-            service = new services.Service("Retrieve", handleRetrieveServerMsg, callback);
+            service = new services.Service("Retrieve", handleRetrieveServerMsg, callback,
+                function()
+                {
+                    iterateAccount(function(){});
+                });
         },
         function(callback)
         {

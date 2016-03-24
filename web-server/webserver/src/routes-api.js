@@ -548,7 +548,7 @@ router.route("/history")
             communication.publish("match_history", refresh_message,
                 function()
                 {
-                    console.log("requested history refresh");
+                    //console.log("requested history refresh");
                 });
 
 

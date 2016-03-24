@@ -3,10 +3,10 @@ var communication   = require("/shared-code/communication.js"),
 
 var async       = require("async");
 
-function Service(service_type, service_handler, final_callback) {
+function Service(service_type, service_handler, final_callback, register_callback) {
     this._type = service_type;
     this._identifier = utils.safe_generate();
-
+    this._register_callback = register_callback;
     var self = this;
     async.series(
         [
@@ -31,7 +31,7 @@ function Service(service_type, service_handler, final_callback) {
                     "identifier": self._identifier
                 };
 
-                communication.publish("scheduler", registration_message);
+                communication.publish("scheduler", registration_message, self._register_callback);
                 callback();
             }
         ],
@@ -55,6 +55,9 @@ Service.prototype._handleSchedulerMsg =  function(channel, message)
                 function()
                 {
                     console.log("re-registered retriever as ", self._identifier);
+                    if(self._register_callback)
+                        self._register_callback();
+
                 });
             break;
         default:

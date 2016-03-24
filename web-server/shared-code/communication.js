@@ -68,7 +68,7 @@ Subscriber.prototype.open = function (opened_callback) {
 
             self._client.on('error', function(error)
                 {
-                    self.listener_client.end();
+                    self._client.end();
                     setTimeout(function()
                         {
                             self.open(callback);

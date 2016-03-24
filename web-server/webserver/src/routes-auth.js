@@ -227,6 +227,16 @@ function ensureAuthenticated(req, res, next) {
     }
 }
 
+
+//mirrored from routes-website, maybe pull out
+function collectTemplatingData(req)
+{
+    var data = {};
+    data["user"] = req.user;
+
+    return data;
+}
+
 //restrict access to admin accounts
 function ensureAdmin(req, res, next)
 {
@@ -248,7 +258,10 @@ function ensureAdmin(req, res, next)
                 next();
             }
             else
+            {
+                var data = collectTemplatingData(req);
                 res.render("pages/no-permission.ejs", data);
+            }
         }
     );
 };

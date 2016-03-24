@@ -102,7 +102,18 @@ function processReplay(message, callback_replay)
                         }
                     });
 
-                    fs.createReadStream(local_filename).pipe(bz2()).pipe(out_file);
+                    var decompress = bz2();
+                    decompress.on('error', function(err) { // Handle errors
+                        console.log("decompress error", err);
+                        out_file.end();
+                        fs.unlink(decompressed_filename); // Delete the file async. (But we don't check the result)
+
+                        if (callback) {
+                            return callback(err.message);
+                        }
+                    });
+
+                    fs.createReadStream(local_filename).pipe(decompress).pipe(out_file);
                 }
                 else
                 {

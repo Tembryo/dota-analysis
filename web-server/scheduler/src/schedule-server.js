@@ -552,7 +552,7 @@ function schedulerTick()
         function()
         {
             var time =  new Date();
-           console.log(time.toDateString() ,time.toTimeString(),time.getUTCMilliseconds(), "scheduler tick, ", Object.keys(jobs_queue).length, " jobs in queue");
+           /*console.log(time.toDateString() ,time.toTimeString(),time.getUTCMilliseconds(), "scheduler tick, ", Object.keys(jobs_queue).length, " jobs in queue");
             for(type in servers_by_type)
             {
                 console.log("\t",type, "servers");
@@ -563,7 +563,7 @@ function schedulerTick()
                         server_log_obj["over-capacity-timeout"] = new Date(server_log_obj["over-capacity-timeout"]);
                     console.log("\t\t", servers_by_type[type][i], JSON.stringify(server_log_obj));
                 }
-            }
+            }*/
 
             async.eachSeries(
                 Object.keys(jobs_queue),
@@ -679,7 +679,7 @@ function chooseAnalysisServer()
     for(var i = 0; i < servers_by_type["Analysis"].length; ++i)
     {
         var server_identifier = servers_by_type["Analysis"][i];
-        console.log("checking server", server_identifier, servers[server_identifier]);
+        //console.log("checking server", server_identifier, servers[server_identifier]);
         if(
             !servers[server_identifier]["busy"]
             )
@@ -705,9 +705,10 @@ function createJob(data, id, callback_job)
     job ["time"] = Date.now();
     job ["state"] = "open";
     job ["data"] = data;
-
-    if(id)
+    console.log("creating job", id, data);
+    if(id != null)
     {
+        console.log("only queued");
         job_queue_block.take(
             function()
             {
@@ -722,6 +723,7 @@ function createJob(data, id, callback_job)
     }
     else
     {
+        console.log("putting into db");
         async.waterfall(
             [
                 database.generateQueryFunction("INSERT INTO Jobs(started, data) VALUES(now(),$1) RETURNING id;", [data]),

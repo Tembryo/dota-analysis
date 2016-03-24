@@ -26,7 +26,6 @@ webserver:
   volumes:
     - /usr/local/dota-analysis/web-server/storage/webserver:/storage
     - /usr/local/dota-analysis/web-server/storage/shared:/shared
-    - /usr/local/dota-analysis/web-server/files/webserver:/files:ro
   environment:
     VIRTUAL_HOST: "wisdota.com,www.wisdota.com"
     VIRTUAL_PORT: "42000"

@@ -8,6 +8,8 @@ COPY webserver/src /source
 WORKDIR /source
 RUN npm install
 
+COPY files/webserver /files
+
 # expose port of the server
 EXPOSE 42000
 
