@@ -202,7 +202,7 @@ function handleNewUserMsg(channel, message)
     switch(message["message"])
     {
         case "User":
-                console.log("requesting new user history");
+                //console.log("requesting new user history");
                 var job_data = {
                         "message":      "UpdateHistory",
                         "range-start":  message["id"],
@@ -223,7 +223,7 @@ function handleDownloadMsg(channel, message)
     switch(message["message"])
     {
         case "Download":
-                console.log("requesting new user history");
+                //console.log("requesting new user history");
                 var job_data = {
                         "message":      "Download",
                         "id":  message["id"]

@@ -145,11 +145,21 @@ router.route('/results')
 router.route('/result/:result_id')
     .get(function(req, res) 
         {
+            var result_id = 0;
+            if(req.params.hasOwnProperty("result_id"))
+            {
+                result_id= parseInt(req.params.result_id);
+            }
+            else
+            {
+                res.json({});
+                return;
+            }
             async.waterfall(
                 [
                     database.generateQueryFunction(
                         "SELECT r.data as score_data, ps.data as player_data FROM Results r, PlayerStats ps "+
-                            "WHERE r.id=$1 AND ps.match_id=r.match_id AND ps.steam_identifier = r.steam_identifier;",[req.params.result_id]),
+                            "WHERE r.id=$1 AND ps.match_id=r.match_id AND ps.steam_identifier = r.steam_identifier;",[result_id]),
                     function(results, callback)
                     {
                         //console.log("fetched file", results);
@@ -439,7 +449,7 @@ router.route('/admin-stats/:query')
                 query_string = "SELECT COUNT(*) FROM Users;";
                 break;
             case "retrieval-statuses":
-                query_string = "SELECT COUNT(*) as n, mrs.label as status FROM MatchRetrievalRequests mrr, MatchRetrievalStatuses mrs  WHERE mrr.retrieval_status =  mrs.id GROUP BY mrs.label;";
+                query_string = "SELECT COUNT(*) as n, mrr.retrieval_status as status_id, mrs.label as status FROM MatchRetrievalRequests mrr, MatchRetrievalStatuses mrs  WHERE mrr.retrieval_status =  mrs.id GROUP BY mrs.label, mrr.retrieval_status;";
                 break;
             case "processing-statuses":
                 query_string = "SELECT COUNT(*) as n, ps.label as status FROM Replayfiles rf, ProcessingStatuses ps  WHERE rf.processing_status =  ps.id GROUP BY ps.label;";

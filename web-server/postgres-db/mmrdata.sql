@@ -1,0 +1,2 @@
+CREATE TABLE MatchDetails (matchid bigint PRIMARY KEY, data json);
+CREATE TABLE MMRdata (matchid bigint, player_steamid text, slot smallint ,solo_mmr int, group_mmr int, PRIMARY KEY(matchid,player_steamid));

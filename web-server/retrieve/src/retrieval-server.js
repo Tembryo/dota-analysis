@@ -393,6 +393,13 @@ function processRequest(message, callback_request)
                     fetchMatchDetails(locals, callback); 
                 }
             },
+            function(response, callback)
+            {
+                //console.log("got details response:\n",response);
+                locals.matchdetails = response["match_details"];
+                locals.mmrs = response["mmrs"];
+                callback(null, response["replay_data"]);
+            },
             function(replay_data, callback)
             {
                 console.log("inserted replayfile");
@@ -406,7 +413,32 @@ function processRequest(message, callback_request)
                 if(results.rowCount!=1)
                     callback("setting status failed", results);
                 else
-                    callback();
+                {
+                    database.query(
+                    "INSERT INTO MatchDetails(matchid, data) VALUES ($1,$2);",
+                    [locals.match_id, locals.matchdetails],
+                    callback);
+                }
+            },
+            function(results, callback)
+            {
+                if(results.rowCount!=1)
+                    callback("inserting details failed", results);
+                else
+                {
+                    //console.log("got mmrs", locals.mmrs)
+                    async.each(
+                        locals.mmrs,
+                        function(mmr, callback)
+                        {
+                            //console.log("inserting ", mmr);
+                            database.query(
+                                "INSERT INTO MMRdata(matchid, player_steamid, slot, solo_mmr, group_mmr) VALUES ($1,$2, $3, $4, $5);",
+                                [locals.match_id, mmr["steamid"], mmr["slot"], mmr["solo_mmr"], mmr["group_mmr"]],
+                                callback);
+                        },
+                        callback);
+                }
             }
         ],
         function(err, results)
@@ -504,7 +536,11 @@ function processRequest(message, callback_request)
     );
 }
 
-
+function saveMMRs(locals, player, callback)
+{
+    //TODO
+     callback();
+}
 
 function fetchMatchDetails(locals, callback)
 {

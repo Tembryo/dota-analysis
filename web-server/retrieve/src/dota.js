@@ -76,7 +76,7 @@ function performDotaAction(login_data, main_call, callback_final)
                     }
                 ],
                 function(err, result){
-                    console.log("Dota action finished", err, result);
+                    //console.log("Dota action finished", err, result);
                     dota_semaphore.leave();
                     callback_final(err, result);
                 }
