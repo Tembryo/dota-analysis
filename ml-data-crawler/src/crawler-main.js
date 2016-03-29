@@ -263,7 +263,7 @@ function checkLeavers(start_seq_num, locals, callback_matches)
                                 callback();
                                 return;
                             }    
-                            async.eachSeries(
+                            async.each(
                             match["players"],
                             function(player, callback_player)
                             {
@@ -408,7 +408,7 @@ function dlMatches(next_match, cb)
                     "FROM Matches, mmrsamples "+
                     "WHERE matches.matchid = mmrsamples.matchid "+
                         "AND  status = 'queued' "+
-                        "AND  (mmrsamples.mmr < 2000 OR mmrsamples.mmr > 5000) "+//
+                        "AND  ( mmrsamples.mmr > 5000) "+//mmrsamples.mmr < 1000 OR
                     "GROUP BY  matches.matchid "+
                     "ORDER BY Count(*) DESC LIMIT 10;",
                     [],

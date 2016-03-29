@@ -1,0 +1,6 @@
+crawler:
+  build: .
+  volumes:
+    - /home/fischerq/Documents/Wisdota/dota-analysis/dota-spammer/src:/source:ro
+    - /home/fischerq/Documents/Wisdota/dota-analysis/shared-code:/shared-code:ro
+    - /home/fischerq/Documents/Wisdota/dota-analysis/dota-spammer/files:/files

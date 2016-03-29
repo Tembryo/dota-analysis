@@ -65,7 +65,8 @@ function drawTables(data) {
             data[i]["match_status"] ===  "parsed" ||
             data[i]["match_status"] ===  "scoring")
             n_processing ++;
-        else if(data[i]["match_status"] === "scored")
+        else if(data[i]["match_status"] === "scored" ||
+                data[i]["match_status"] === "untried")
         {}
         else
         {

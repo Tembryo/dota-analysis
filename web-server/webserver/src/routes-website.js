@@ -182,4 +182,11 @@ router.get('/admin',
 );
 
 
+router.get('/confirm-newsletter/:verification_code', function(req, res)
+{
+    var data = collectTemplatingData(req);
+    data["code"] = req.params.verification_code;
+    res.render("pages/confirm-newsletter.ejs", data);
+});
+
 exports.router = router;

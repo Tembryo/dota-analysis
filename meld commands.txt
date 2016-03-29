@@ -1,0 +1,2 @@
+meld ~/Documents/Alice/src/alice/ ~/Documents/Wisdota/Alice/src/alice/
+meld ~/Documents/Alice/proto/ ~/Documents/Wisdota/Alice/proto/

@@ -3,9 +3,11 @@ var child_process   = require("child_process"),
     fs              = require("fs");
 
 var config          = require("./config.js"),
-    database          = require("./database.js");
+    database        = require("./database.js"),
+    samples         =  require("./samples.js");
 
-var max_extraction_time = 80*1000;
+var simulatenous_processes = require("semaphore")(3);
+var max_extraction_time = 180*1000;
 var max_analysis_time = 120*1000;
 
 var mode;
@@ -26,7 +28,7 @@ switch(mode)
         break;
 }
 
-var repeat_delay = 1*1000;
+var repeat_delay = 30*1000;
 
 function analyseMatches()
 {
@@ -45,7 +47,19 @@ function analyseMatches()
             },
             function(results, callback)
             {
-                async.eachSeries(results.rows, analyseMatch, callback);
+                async.each(results.rows,
+                    function(row, callback){
+                        simulatenous_processes.take(
+                            function()
+                            {
+                                analyseMatch(row, 
+                                function(){
+                                    simulatenous_processes.leave();
+                                    callback();
+                                });
+                            }
+                        );
+                    }, callback);
             }
         ],
         function(err)
@@ -160,7 +174,9 @@ function gatherData()
             {
                 var filename = "/files/data.csv";
                 locals.csv_file = fs.createWriteStream(filename);
-                writeSample(locals.csv_file, sampleHeader());
+                var header = samples.header();
+                header["label"] = "MMR";
+                samples.writeSample(locals.csv_file, header);
                 locals.csv_file.on("close", function(){console.log("finished writing");callback();});
                 async.eachSeries(results.rows, gatherMatchData.bind(this, locals.csv_file), function(){console.log("done iterating"); locals.csv_file.end();});
             }
@@ -191,8 +207,8 @@ function gatherMatchData(file, row, callback)
         {
             file.write("\n");
             var sample = row["samples"][row_i];
-            var fullsample = {"label": sample["f1"], "data": createSampleData(match, sample["f2"])};
-            writeSample(file,fullsample);
+            var fullsample = {"label": sample["f1"], "data": samples.createSampleData(match, sample["f2"])};
+            samples.writeSample(file,fullsample);
         }
         callback();
     });
@@ -205,91 +221,20 @@ function gatherMatchData(file, row, callback)
         return 0;
   }
 
-function sampleHeader()
-{
-    var header = {  "label":"MMR", 
-                    "data": [   "hero",
-                                "win",
-                                "durationMins",
-                                "GPM",
-                                "XPM",
-                                "fraction-creeps-lasthit",
-                                "fraction-lasthits",
-                                "checks-per-minute",
-                                "average-check-duration",
-                                "time-fraction-visible",
-                                "kills",
-                                "deaths",
-                                "fightsPerMin",
-                                "initiation-score"]};
-    return header;
-}
-
-function createSampleData(match, slot)
-{
-    var id;
-    if(slot < 128)
-        id = slot;
-    else
-        id = slot - 128 + 5;
-    var match_stats = match["match-stats"];
-    if(!match["player-stats"].hasOwnProperty(id))
-        return [];
-    var player_stats = match["player-stats"][id];
-    var win = 0;
-    if( (match_stats["winner"] === "radiant" && slot < 128) ||
-        (match_stats["winner"] === "dire" && slot >= 128))
-        win = 1;
-    //console.log(match, match["player-stats"],id, match["player-stats"][id], player_stats);
-
-    var durationMins =  (match_stats["duration"] /60);
-    var fractionCreepsLasthit =  (match_stats["creeps-lasthit"] /match_stats["creeps-killed"]);
-    var fractionLasthits =  (player_stats["lasthits"] /match_stats["creeps-lasthit"]);
-    var checksPerMin = player_stats["n-checks"] / durationMins;
-    var timeFractionVisible = player_stats["time-visible"] / durationMins;
-    var fightsPerMin =  (player_stats["num-of-fights"] /durationMins);  
-    var features =  [   player_stats["hero"],
-                        win,
-                        durationMins.toFixed(3),
-                        player_stats["GPM"],
-                        player_stats["XPM"],
-                        fractionCreepsLasthit,
-                        fractionLasthits,
-                        checksPerMin,
-                        player_stats["average-check-duration"],
-                        timeFractionVisible,
-                        player_stats["num-of-kills"],
-                        player_stats["num-of-deaths"],
-                        fightsPerMin,
-                        player_stats["initation-score"]
-                        ];
-    return features;    
-}
-
-function writeSample(file, sample)
-{
-    if(sample.length == 0)
-        return;
-    var line = "";
-    line += sample["label"]+",";
-    for(var feature_i = 0; feature_i < sample["data"].length; feature_i ++)
-    {
-        line += sample["data"][feature_i];
-        if(feature_i +1 < sample["data"].length )
-            line += ",";
-    }
-    file.write(line)
-}
-
 
 function trainModel()
 {
-    child_process.execFile(
+    console.log("starting train")
+    var proc =child_process.execFile(
         "python",
-        ["/learn/learn.py", "/files/data.csv", "/files/model.p"],
+        ["/learn/learn.py", "/files/data.csv", "/files/"],
         {},
         function (stdout, stderr)
         {
-            console.log("done", stdout, stderr);
-        }).stdout.pipe(process.stdout);
+            console.log("done training");
+            //console.log(stdout,"err", stderr);
+        });
+    proc.stdout.pipe(process.stdout);
+
+    proc.stderr.pipe(process.stderr);
 }

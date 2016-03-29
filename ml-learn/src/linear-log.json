@@ -1,0 +1,58 @@
+{
+    "coefficients": {
+        "GPM": 226.23896017166177,
+        "XPM": -243.2483394047744,
+        "average-check-duration": -147.25855571503286,
+        "checks-per-minute": 256.5949872772675,
+        "deaths": -16.401458504712387,
+        "durationMins": -36.103158777845884,
+        "fightsPerMin": 212.87942716768012,
+        "fraction-creeps-lasthit": 350.6580240593523,
+        "fraction-lasthits": 61.66927300694206,
+        "initiation-score": 51.714966798303635,
+        "kills": -57.66366514021596,
+        "time-fraction-visible": -31.154712641889752,
+        "win": -29.505320594156345
+    },
+    "evaluation": {
+        "R2": 0.32549717217024032,
+        "expected_variance": 0.32596888194702889,
+        "mean absolute": 680.64902520207204,
+        "mean sqared": 752158.82394320006,
+        "median absolute": 557.19742959302175
+    },
+    "intercept": 3559.4234650642834,
+    "scaling": {
+        "mean": {
+            "GPM": 275.90909791233344,
+            "XPM": 447.17779832062246,
+            "average-check-duration": 2.3122497372445174,
+            "checks-per-minute": 2.273836197355395,
+            "deaths": 7.927047222864186,
+            "durationMins": 41.34932046837715,
+            "fightsPerMin": 0.8872628710340303,
+            "fraction-creeps-lasthit": 0.43960537248130677,
+            "fraction-lasthits": 0.1018812263107163,
+            "initiation-score": 53.77997333854403,
+            "kills": 7.482551421308066,
+            "time-fraction-visible": 28.859292203470147,
+            "win": 0.5053539788922271
+        },
+        "std": {
+            "GPM": 151.10660211468323,
+            "XPM": 141.99020681269675,
+            "average-check-duration": 1.7206279230922676,
+            "checks-per-minute": 1.501707034726643,
+            "deaths": 4.041536837356186,
+            "durationMins": 10.074702851262755,
+            "fightsPerMin": 0.21839994089067455,
+            "fraction-creeps-lasthit": 0.05085513093624568,
+            "fraction-lasthits": 0.06694737288599428,
+            "initiation-score": 194.22588863302573,
+            "kills": 5.746106608149315,
+            "time-fraction-visible": 5.677699835310085,
+            "win": 0.49997133408825883
+        }
+    },
+    "type": "LinearRegression"
+}

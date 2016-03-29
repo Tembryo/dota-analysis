@@ -92,10 +92,17 @@ RUN curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-
 
 ####################     Install python libs.     ####################
 
-RUN apt-get install -y libblas-dev liblapack-dev libatlas-base-dev gfortran
-RUN pip install numpy scipy logging matplotlib
-RUN pip install -U scikit-learn
-
+RUN apt-get install -y libblas-dev liblapack-dev libatlas-base-dev gfortran \
+  && pip install numpy scipy logging matplotlib \
+  && apt-get install -y build-essential python-dev python-setuptools python-numpy python-scipy libatlas-dev libatlas3gf-base \
+  && pip install cython nose 
+RUN git clone git://github.com/scikit-learn/scikit-learn.git 
+WORKDIR /scikit-learn
+RUN make clean \
+  && make inplace
+ENV PYTHONPATH $PYTHONPATH:/scikit-learn
+RUN echo $PYTHONPATH
+WORKDIR /
 ####################       Install sources.       ####################
 
 # make the src folder available in the docker image as volume

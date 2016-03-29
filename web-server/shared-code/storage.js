@@ -43,6 +43,7 @@ function retrieveFile(filename, callback)
             callback(null, local_file);
         } 
         else {
+            console.log("downloading stored file", filename);
             bucket.file(filename)
                 .download({destination: local_file}, 
                     function(err)

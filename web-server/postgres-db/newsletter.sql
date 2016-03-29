@@ -1,0 +1,1 @@
+INSERT INTO VerificationActionTypes (label) VALUES ('ConfirmNewsletter');

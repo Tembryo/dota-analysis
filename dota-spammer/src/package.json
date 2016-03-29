@@ -1,10 +1,9 @@
 {
-    "name": "wisdota-mmr-learner",
+    "name": "wisdota-spammer",
     "version": "0.0.1",
     "author": "fischerq",
-    "main": "process-main.js",
+    "main": "spammer-main.js",
     "dependencies": {
-        "pg": "^4.4.3",
         "async": "^1.5.0",
         "semaphore": "^1.0.3"
     }

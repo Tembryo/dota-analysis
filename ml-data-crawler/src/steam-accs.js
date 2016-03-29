@@ -1,5 +1,7 @@
 var steam_accs = [ 
-	{"steam_user": "wisdota_devbot_1","steam_pw": "crawley-the-devbot-1"},
+    {"steam_user": "wisdota_devbot_10","steam_pw": "crawley-the-devbot-10"},
+    {"steam_user": "wisdota_devbot_11","steam_pw": "crawley-the-devbot-11"},
+    {"steam_user": "wisdota_devbot_1","steam_pw": "crawley-the-devbot-1"},
     {"steam_user": "wisdota_devbot_2","steam_pw": "crawley-the-devbot-2"},
     {"steam_user": "wisdota_devbot_3","steam_pw": "crawley-the-devbot-3"},
     {"steam_user": "wisdota_devbot_4","steam_pw": "crawley-the-devbot-4"},

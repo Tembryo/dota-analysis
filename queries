@@ -1,0 +1,14 @@
+select count(*),floor(n/10)*10 FROM (select count(*) as n,uploader_id from replayfiles group by uploader_id) as replay_per_player group by floor(n/10)*10 order by floor(n/10)*10 DESC;
+
+select n,count(*),json_agg(steam_identifier) FROM (select count(*) as n,u.steam_identifier from replayfiles rf, users u where rf.uploader_id = u.id group by u.steam_identifier) as replay_per_player group by n order by n DESC;
+
+select count(*) from (select max(time), data->>'user' from events where event_type=2  and time > now() - interval '7 days'group by data->>'user') as userlogins;
+
+
+select count(*) from (select max(time) last_login, count(*) as logins, data->>'user' as id from events where event_type=2 group by data->>'user') as userlogins where last_login > now() - interval '7 days' and logins > 3;
+
+
+select uploader_id, count(*) from replayfiles group by uploader_id;
+
+SELECT count(*), n  from (Select uploader_id, count(*) as n from replayfiles group by uploader_id) AS  matchesrequested group by n order by n DESC;
+SELECT count(*)  from (Select uploader_id, count(*) as n from replayfiles group by uploader_id) AS  matchesrequested DESC;

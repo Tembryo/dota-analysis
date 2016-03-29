@@ -26,14 +26,12 @@ function query(sql, data, result_callback)
                     sql,
                     data,
                     callback);
-            },
-            function(results, callback)
-            {
-                db_locals.done();
-                callback(null, results);
             }
         ],
-        result_callback
+        function(err, results){
+            db_locals.done();
+            result_callback(err, results);
+        }
     );
 }
 

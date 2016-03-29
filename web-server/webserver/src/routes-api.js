@@ -44,7 +44,7 @@ router.route('/match-header')
                     function(callback)
                     {
                         var restriction_string = "";
-                        if(req.query.hasOwnProperty("matchid"))
+                        if(req.query.hasOwnProperty("matchid") && Number.isInteger(parseInt(req.query.matchid)))
                         {
                             match_id= parseInt(req.query.matchid);
                             database.query("SELECT header_file, label FROM Matches WHERE id=$1;",[match_id],callback);
@@ -104,7 +104,7 @@ router.route('/results')
     .get(function(req, res) 
         {
             var match_id = 0;
-            if(req.query.hasOwnProperty("matchid"))
+            if(req.query.hasOwnProperty("matchid") && Number.isInteger(parseInt(req.query.matchid)))
             {
                 match_id= parseInt(req.query.matchid);
             }
@@ -453,7 +453,10 @@ router.route('/admin-stats/:query')
                 break;
             case "processing-statuses":
                 query_string = "SELECT COUNT(*) as n, ps.label as status FROM Replayfiles rf, ProcessingStatuses ps  WHERE rf.processing_status =  ps.id GROUP BY ps.label;";
-                break;    
+                break;
+            case "mmrs":
+                query_string = "SELECT COUNT(*) as n, AVG(solo_mmr) as avg_solo, AVG(group_mmr) as avg_group FROM mmrdata;";
+                break;
             default:
                 res.json({});
                 return;
@@ -704,7 +707,7 @@ router.route("/download/:match_id")
 
 
 router.route("/verify/:verification_code")
-    .get(authentication.ensureAuthenticated,
+    .get(
         function(req, res)
         {
             var locals = {};
@@ -745,6 +748,16 @@ router.route("/verify/:verification_code")
                                                 [req.user["id"], "verified"],callback);
                                     });
                                 break;
+
+                            case "ConfirmNewsletter":
+                                var email_id = results.rows[0].args["id"];
+                                console.log("confirming newsletter for email", email_id);
+                                database.query(
+                                    "UPDATE Emails e SET verified=TRUE WHERE e.id=$1;",
+                                    [email_id],
+                                    callback);
+                                break;
+
                             case "ActivatePlus":
                                 locals.extension = results.rows[0].args["duration"];
                                 database.query(
@@ -823,23 +836,26 @@ var transporter = nodemailer.createTransport({
 var mail_schema = {
     from: 'Wisdota <quirin.fischer@wisdota.com>', // sender address
     to: [], // list of receivers
-    subject: 'Wisdota email verification', // Subject line
-    text: "Hey %(name)s, welcome to Wisdota!\n\n The verficiation code for your email is >> %(code)s <<. Enter the code in the user panel over at www.wisdota.com/user to complete the verification process.\n This unlocks the >> Replay upload << section of the website where you can upload your own replays to get them analysed.\n\n The software is under heavy development and this is just the very first step on our way towards automated game analysis. If you have any feedback, criticism, or features you want to see in the next version, please do let us know!\n\n best wishes\n The Wisdota Team ", // plaintext body
+    subject: 'Wisdota newsletter email verification', // Subject line
+    text: "Hey%(name)s, welcome to the Wisdota newsletter!\n\n Please confirm that you wanted to sign up by clicking this confirmation link: www.wisdota.com/confirm-newsletter/%(code)s \n We will then send you updates as we release new features on the website.\n Also, whenever you have any feedback, criticism, or features you really want to see, please do let us know!\n\n best wishes\n The Wisdota Team ", // plaintext body
     
-    html: "<h4>Hey %(name)s, welcome to Wisdota!</h4> <p>The verficiation code for your email is <b>%(code)s</b>. Enter the code in the user panel over at www.wisdota.com/user to complete the verification process.<br/> This unlocks the <b>Replay upload</b> section of the website where you can upload your own replays to get them analysed.</p><p> The software is under heavy development and this is just the very first step on our way towards automated game analysis. If you have any feedback, criticism, or features you want to see in the next version, please do let us know!</p> <p>best wishes<br/> The Wisdota Team</p> " // html body
+    html: "<h4>Hey%(name)s, welcome to the Wisdota newsletter!</h4> <p>Please confirm that you wanted to sign up by clicking this confirmation link: <a href=\"http://www.wisdota.com/confirm-newsletter/%(code)s\">www.wisdota.com/confirm-newsletter/%(code)s</a> <br/> We will then send you updates as we release new features on the website.</p><p>Also, whenever you have any feedback, criticism, or features you really want to see - please get in touch!</p><p> best wishes<br/> The Wisdota Team </p>" // html body
 };
 
 
-router.route("/settings/email/:email_address")
-    .get(authentication.ensureAuthenticated,
+router.route("/add-email/:email_address")
+    .get(
         function(req, res)
         {
             var code = shortid.generate();
 
             var result = {"action": "action_creation_set_email", "info": "", "result": "failed"};
+            var username = "";
+            if(req.user)
+                username = " "+req.user["name"];
             var mail_data = {
                                 "code": code,
-                                "name": req.user["name"]
+                                "name": username
                             };
             var mail = {};
             mail["from"] = mail_schema["from"];
@@ -855,12 +871,24 @@ router.route("/settings/email/:email_address")
                     function(info, callback)
                     {
                         console.log('Confirmation mail sent: ' + info.response);
-                        callback(null);
+                        if(req.user)
+                            database.query("INSERT INTO Emails(user_id, email, verified) VALUES ($1, $2, FALSE) RETURNING id;", [req.user["id"], req.params.email_address], callback);
+                        else
+                            database.query("INSERT INTO Emails(email, verified) VALUES ($1, FALSE) RETURNING id;", [req.params.email_address], callback);
                     },
-                    database.generateQueryFunction(
-                        "INSERT INTO VerificationActions(actiontype_id, args, code) SELECT vat.id, $3, $1 FROM VerificationActionTypes vat WHERE vat.label=$2;",
-                        [code, "SetEmail", {"new-address": req.params.email_address}]
-                    )
+                    function(results, callback)
+                    {
+                        if(results.rowCount == 1)
+                        {
+                            database.query(
+                            "INSERT INTO VerificationActions(actiontype_id, args, code) SELECT vat.id, $3, $1 FROM VerificationActionTypes vat WHERE vat.label=$2;",
+                            [code, "ConfirmNewsletter", {"id": results.rows[0]["id"]}], callback);
+                        }
+                        else
+                        {
+                            callback("bad email insert",results);
+                        }
+                    }
                 ],
                 function(err, results)
                 {

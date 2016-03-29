@@ -396,7 +396,7 @@ function updateHeroBubble(d)
 
 function onBubbleClick(d)
 {
-    console.log("hi");
+    //console.log("hi");
     var bubble = d3.select("#bubble"+d);
     console.log(bubble);
     bubble.attr("opacity", 0.7);
@@ -406,7 +406,7 @@ function onBubbleClick(d)
 
 function onBubbleMouseover(d)
 {
-    console.log("hi2");
+    //console.log("hi2");
     var bubble = d3.select("#bubble"+d);
         console.log(bubble);
     bubble.attr("opacity", 0.5);
@@ -414,7 +414,7 @@ function onBubbleMouseover(d)
 
 function onBubbleMouseout(d)
 {
-    console.log("hi3");
+    //console.log("hi3");
     var bubble = d3.select("#bubble"+d);
         console.log(bubble);
     bubble.attr("opacity", 0);

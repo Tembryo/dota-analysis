@@ -289,7 +289,7 @@ function drawScoreboard(data)
 	{
 		var player = {};
 		player["score"] = data["results"][i];
-		player["header"] = data["header"]["players"][i];
+		player["header"] = data["header"]["players"][ data["results"][i]["player_data"]["slot"]  ];
 
 		var slot = player["score"]["player_data"]["slot"];
 		var row_id =  slot % 5;

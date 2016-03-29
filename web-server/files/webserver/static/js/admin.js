@@ -31,6 +31,14 @@ $('.nav-tabs a').on('show.bs.tab', function(event){
             }
         );
         break;
+    case "#mmr-samples":
+        $.getJSON("api/admin-stats/mmrs",
+            function(data)
+            {
+                console.log("ps", data)
+                displayTable(data, "#mmr-samples-table");
+            }
+        );
     }
 
 
