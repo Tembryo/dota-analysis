@@ -449,10 +449,10 @@ router.route('/admin-stats/:query')
                 query_string = "SELECT COUNT(*) FROM Users;";
                 break;
             case "retrieval-statuses":
-                query_string = "SELECT COUNT(*) as n, mrr.retrieval_status as status_id, mrs.label as status FROM MatchRetrievalRequests mrr, MatchRetrievalStatuses mrs  WHERE mrr.retrieval_status =  mrs.id GROUP BY mrs.label, mrr.retrieval_status;";
+                query_string = "SELECT COUNT(*) as n, mrr.retrieval_status as status_id, mrs.label as status FROM MatchRetrievalRequests mrr, MatchRetrievalStatuses mrs  WHERE mrr.retrieval_status =  mrs.id GROUP BY mrs.label, mrr.retrieval_status ORDER BY mrr.retrieval_status;";
                 break;
             case "processing-statuses":
-                query_string = "SELECT COUNT(*) as n, ps.label as status FROM Replayfiles rf, ProcessingStatuses ps  WHERE rf.processing_status =  ps.id GROUP BY ps.label;";
+                query_string = "SELECT COUNT(*) as n, ps.label as status, rf.processing_status as status_id FROM Replayfiles rf, ProcessingStatuses ps  WHERE rf.processing_status =  ps.id GROUP BY ps.label, rf.processing_status ORDER BY rf.processing_status;";
                 break;
             case "mmrs":
                 query_string = "SELECT COUNT(*) as n, AVG(solo_mmr) as avg_solo, AVG(group_mmr) as avg_group FROM mmrdata;";

@@ -100,7 +100,24 @@ router.get('/user',
             data["start"] =  0;
             data["range"] =  5;
         }
-        res.render("pages/user.ejs", data);
+
+        async.waterfall(
+        [
+            database.generateQueryFunction(
+                "SELECT COUNT(*) as user_emails  FROM Emails WHERE user_id=$1 AND verified=TRUE;",[req.user["id"]]),
+            function(result, callback){
+                data["display_newsletter"] = true;
+                //console.log(result);
+                if(result.rowCount > 0)
+                {
+                    data["display_newsletter"] = !(parseInt(result.rows[0]["user_emails"]) > 0);
+                }
+                //console.log(data);
+
+                res.render("pages/user.ejs", data);
+                callback();
+            }
+        ]);
     }
 );
 

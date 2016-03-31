@@ -5,6 +5,11 @@ var config      = require("./config.js");
 
 var connection_string = "postgres://"+config.database_auth+"@"+config.database_host+"/wisdota";
 
+pg.on('error', function(error, client)
+    {
+        console.log("db client error", error);
+    });
+
 function getClient(){
     return new pg.Client(connection_string);
 }
@@ -22,6 +27,7 @@ function query(sql, data, result_callback)
             {
                 db_locals.client = client;
                 db_locals.done = done_client;
+
                 db_locals.client.query(
                     sql,
                     data,

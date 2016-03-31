@@ -1,8 +1,21 @@
-$('.nav-tabs a').on('show.bs.tab', function(event){
-    var selected = $(event.target).attr("href");         // active tab
+$('.nav-tabs a').on('show.bs.tab', 
+    function(event){
+        var selected = $(event.target).attr("href");         // active tab
+        var y = $(event.relatedTarget).text();  // previous tab
+        showTab(selected);
+    }
+);
 
-    console.log("showing", selected);
-    switch(selected)
+$(document).on('click', '#refresh', function () {
+    var $link = $('li.active a[data-toggle="tab"]');
+    $link.parent().removeClass('active');
+    var tabLink = $link.attr('href');
+    showTab(tabLink);
+});
+
+function showTab(tabref){
+    console.log("showing", tabref);
+    switch(tabref)
     {
     case "#users":
         $.getJSON("api/admin-stats/users",
@@ -40,17 +53,16 @@ $('.nav-tabs a').on('show.bs.tab', function(event){
             }
         );
     }
+}
 
 
-    var y = $(event.relatedTarget).text();  // previous tab
-});
 
 $(document).ready(function(){
     $('.nav-tabs a[href="#users"]').tab('show');
 });
 
 
-function displayTable(data, table_selector)
+function displayTable(data, table_selector, key)
 {
     var table = d3.select(table_selector);
 
@@ -76,7 +88,19 @@ function displayTable(data, table_selector)
                 for(var i = 0; i < data.fields.length; ++i)
                     row
                         .append("td")
+                        .attr("id", data.fields[i]["name"])
                         .text(d[data.fields[i]["name"]]);
             })
+
+    rows.each(
+            function(d){
+                var row = d3.select(this);
+
+                for(var i = 0; i < data.fields.length; ++i)
+                    row.select("#"+data.fields[i]["name"])
+                        .text(d[data.fields[i]["name"]]);
+            }
+        );
+
     rows.exit().remove();
 }

@@ -3,7 +3,7 @@
 }
 
 h2 {
-	padding-top: 40px;
+	padding-top: 20px;
 }
 
 
@@ -132,4 +132,17 @@ h2 {
 .label
 {
    font-size: 22px; 
+}
+
+#announcement
+{
+    padding:10px;
+    margin:20px;
+    font-size: 22;
+    background-color:#d9534f;
+}
+
+#announcement a
+{
+    color: #EEE;
 }
