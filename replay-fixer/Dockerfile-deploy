@@ -1,0 +1,14 @@
+FROM node:5
+
+COPY web-server/shared-code /shared-code
+WORKDIR /shared-code
+RUN npm install
+
+COPY replay-fixer/src /source
+WORKDIR /source
+RUN npm install
+
+RUN apt-get -y install bzip2
+
+CMD ["node", "replay-fixer.js"]
+
