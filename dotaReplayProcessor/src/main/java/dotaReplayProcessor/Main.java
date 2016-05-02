@@ -21,6 +21,7 @@ public class Main {
 	public static long getUnsignedInt(int x) {
 	    return x & 0x00000000ffffffffL;
 	}
+
 	public static void main(String[] args) {
 		 long tStart = System.currentTimeMillis();
 		
@@ -31,8 +32,8 @@ public class Main {
 		long matchid= -1;
 		
 		try {
-			matchid = getUnsignedInt(Clarity.infoForFile(filename_replay).getGameInfo().getDota().getMatchId());
-			
+			//matchid = getUnsignedInt(Clarity.infoForFile(filename_replay).getGameInfo().getDota().getMatchId());
+			matchid = Clarity.infoForFile(filename_replay).getGameInfo().getDota().getMatchId();
 			directory_out += matchid+"/";
 			boolean success = (new File(directory_out)).mkdirs();
 			if (!success) {

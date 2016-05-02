@@ -1,0 +1,8 @@
+replay-fixer:
+  build: .
+  volumes:
+    - /usr/local/dota-analysis/web-server/storage/shared:/shared
+    - /usr/local/dota-analysis/replay-fixer/src:/source:ro
+    - /usr/local/dota-analysis/web-server/shared-code:/shared-code:ro
+  links:
+    - postgres:POSTGRES_IP

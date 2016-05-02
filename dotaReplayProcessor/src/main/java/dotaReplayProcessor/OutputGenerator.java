@@ -47,10 +47,10 @@ public class OutputGenerator {
 	    return x & 0x00000000ffffffffL;
 	}
 	
-	public void writeGameData(int game_id, String radiant_team, String dire_team, String winner, long end_time){
+	public void writeGameData(long game_id, String radiant_team, String dire_team, String winner, long end_time){
 
 		try {
-			header_writer.write("ID, "+getUnsignedInt(game_id)+"\n");
+			header_writer.write("ID, "+game_id+"\n");
 			header_writer.write("TEAM_TAG_RADIANT, "+radiant_team.replace(",", "")+"\n");
 			header_writer.write("TEAM_TAG_DIRE, "+dire_team.replace(",", "")+"\n");
 			header_writer.write("WINNER, "+winner+"\n");

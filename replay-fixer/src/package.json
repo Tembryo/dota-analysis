@@ -1,0 +1,10 @@
+{
+    "name": "wisdota-download-server",
+    "version": "0.0.1",
+    "author": "fischerq",
+    "main": "download-server.js",
+    "dependencies": {
+        "async": "^1.5.0"
+    }
+}
+

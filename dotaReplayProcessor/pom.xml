@@ -10,7 +10,7 @@
 		<dependency>
 			<groupId>com.skadistats</groupId>
 			<artifactId>clarity</artifactId>
-			<version>2.1-SNAPSHOT</version>
+			<version>2.1-TEMBRYO</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.vecmath</groupId>

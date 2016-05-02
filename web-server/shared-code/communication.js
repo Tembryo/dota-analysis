@@ -55,7 +55,7 @@ Subscriber.prototype.open = function (opened_callback) {
                 console.error('could not connect to postgres', err);
                 setTimeout(function()
                     {
-                        self.open(callback);
+                        self.open(opened_callback);
                     },
                     retry_interval);
             }
@@ -71,7 +71,7 @@ Subscriber.prototype.open = function (opened_callback) {
                     self._client.end();
                     setTimeout(function()
                         {
-                            self.open(callback);
+                            self.open(function(){});
                         },
                         retry_interval);
                 });

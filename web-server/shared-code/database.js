@@ -14,9 +14,12 @@ function getClient(){
     return new pg.Client(connection_string);
 }
 
+function no_op(){}
+
 function query(sql, data, result_callback)
 {
     var db_locals = {};
+    db_locals.done = no_op;
     async.waterfall(
         [
             function(callback)
