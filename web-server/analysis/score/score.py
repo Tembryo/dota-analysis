@@ -16,13 +16,16 @@ def main():
 
             y_predicted = model.predict(X)
 
+            results = []
             for i in range(len(steamids)):
                 score = {}
                 for aspect in y_predicted:
                     score[aspect] = y_predicted[aspect][i]
                 score["MMR"] = score["All"]
                 score_result = {"steamid": steamids[i], "data": score}
-                print json.dumps(score_result)
+                results.append(score_result)
+            
+            print json.dumps(results)
 
 
 if __name__ == "__main__":

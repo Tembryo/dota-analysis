@@ -12,3 +12,16 @@ select uploader_id, count(*) from replayfiles group by uploader_id;
 
 SELECT count(*), n  from (Select uploader_id, count(*) as n from replayfiles group by uploader_id) AS  matchesrequested group by n order by n DESC;
 SELECT count(*)  from (Select uploader_id, count(*) as n from replayfiles group by uploader_id) AS  matchesrequested DESC;
+
+Select count(*) from (
+Select data->>'user' login_user, time login_time from events where event_type=2;
+) as logins;
+
+
+Select count(*) from events where data->>'page' LIKE '/api/retrieve/%';
+
+Select * from events where data->>'page' LIKE '/api/retrieve/%' limit 10;
+
+Select right(data->>'page', 10)::bigint as matchrequest_matchid, time matchrequest_time from events where data->>'page' ~ '/api/retrieve/\\d{10}' limit 10;
+
+Select right(data->>'page', 10)::bigint as matchrequest_matchid, time as matchrequest_time, data->>'user' as matchrequest_user from events where data->>'page' ~ '^/api/retrieve/[0-9]{10}';

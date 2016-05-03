@@ -83,58 +83,40 @@ function processReplay(message, callback_replay)
             },
             function(local_filename, callback)
             {
-                var bzip_extension =  ".bz2";
+                var bzip_extension = ".bz2";
+                var dem_extension = ".dem";
                 if(local_filename.substr(-bzip_extension.length) === bzip_extension)
                 {
-                    var decompressed_filename = config.storage+"/"+locals.replayfile_id+".dem";
-                    var out_file =  fs.createWriteStream(decompressed_filename);
-
-                    out_file.on('finish', function() {
-                        console.log("finished decompresssing, closing file", new Date());
-                        out_file.close(function(){callback(null, decompressed_filename);});  // close() is async, call cb after close completes.
+                    child_process.exec("bzip2 -d "+local_filename, function(err, stdout, stderr)
+                    {
+                        var decompressed_filename = local_filename.substr(0, local_filename.length - bzip_extension.length);
+                        console.log("decompressed ", decompressed_filename);
+                        callback(err, decompressed_filename)
                     });
-
-
-                    out_file.on('error', function(err) { // Handle errors
-                        fs.unlink(decompressed_filename); // Delete the file async. (But we don't check the result)
-
-                        if (callback) {
-                            return callback(err.message);
-                        }
-                    });
-
-                    var decompress = bz2();
-                    decompress.on('error', function(err) { // Handle errors
-                        console.log("decompress error", err);
-                        out_file.end();
-                        fs.unlink(decompressed_filename); // Delete the file async. (But we don't check the result)
-
-                        if (callback) {
-                            return callback(err.message);
-                        }
-                    });
-
-                    fs.createReadStream(local_filename).pipe(decompress).pipe(out_file);
                 }
-                else
+                else if(local_filename.substr(-dem_extension.length) === dem_extension)
                 {
                     callback(null, local_filename);
                 }
+                else
+                {
+                    callback("Bad replay filename "+local_filename, local_filename);
+                }
             },
-            function(extracted_filename, callback)
+            function(decompressed_filename, callback)
             {
-                locals.extracted_filename = extracted_filename;
+                locals.decompressed_filename = decompressed_filename;
                 try {
-                    fs.accessSync(extracted_filename, fs.F_OK);
-                    console.log("starting java, file", extracted_filename);
+                    fs.accessSync(decompressed_filename, fs.F_OK);
+                    console.log("starting java, file", decompressed_filename);
                     child_process.execFile(
                         "java", 
-                        ["-jar", "/extractor/extractor.jar", extracted_filename, config.storage+"/"],
+                        ["-jar", "/extractor/extractor.jar", decompressed_filename, config.storage+"/"],
                         {"timeout":max_extraction_time,
                             "killSignal": "SIGKILL" },
                         callback);
                 } catch (e) {
-                    callback("extracted file doesnt exist? "+extracted_filename);
+                    callback("extracted file doesnt exist? "+decompressed_filename);
                 }
 
             },
@@ -262,15 +244,9 @@ function processReplay(message, callback_replay)
             function(stdout, stderr, callback){
                 console.log("after scoring:", stdout);
                 console.log("----------------------");
-                var out = stdout.split("\n");
-                async.each(out, function(score_line, callback)
+                var results = JSON.parse(stdout);
+                async.each(results, function(score_result, callback)
                 {
-                    if(score_line.length == 0)
-                    {
-                        callback();
-                        return;
-                    }    
-                    var score_result = JSON.parse(score_line);
                     database.query(
                         "INSERT INTO Results (match_id, steam_identifier, data) VALUES($1, $2, $3)",
                         [locals.match_id, score_result["steamid"], score_result["data"]],
@@ -280,7 +256,7 @@ function processReplay(message, callback_replay)
             },
             function(callback)
             {
-                fs.unlink(locals.extracted_filename, callback);
+                fs.unlink(locals.decompressed_filename, callback);
             }
             ,
             function(callback)
