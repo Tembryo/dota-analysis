@@ -1,42 +1,70 @@
 proxy:
-  container_name: richard-proxy
+  container_name: wisdota-proxy
   image: jwilder/nginx-proxy
   ports:
     - "80:80"
   volumes:
     - /var/run/docker.sock:/tmp/docker.sock:ro
-    - /home/Users/richardmason/Documents/GitHub/Tembryo/dota-analysis/web-server/nginx/vhosts:/etc/nginx/vhost.d:ro
-database:
-  container_name: database-container
-  build: database
-  volumes:
-    - /home/Users/richardmason/Documents/GitHub/Tembryo/dota-analysis/web-server/storage/db:/data/db
+    - /Users/richardmason/Documents/Github/Tembryo/dota-analysis/web-server/nginx/vhosts:/etc/nginx/vhost.d:ro
+postgres:
+  container_name: postgres-container
+  image: postgres:9.4
   expose:
-    - "42200"
+    - "5432"
+  environment:
+    POSTGRES_USER: "wisdota"
+    POSTGRES_PASSWORD: "the-database-elephant"
+    PGDATA: "/postgres/data"
+  volumes:
+    - /usr/local/tembryo-dev/postgres:/postgres
 webserver:
-  build: webserver
+  image: tembryo/wisdota-webserver
   expose:
     - "42000"
   volumes:
-    - /home/Users/richardmason/Documents/GitHub/Tembryo/dota-analysis/web-server/webserver/src:/source:ro
-    - /home/Users/richardmason/Documents/GitHub/Tembryo/dota-analysis/web-server/storage/webserver:/storage
-    - /home/Users/richardmason/Documents/GitHub/Tembryo/web-server/storage/shared:/shared
-    - /home/Users/richardmason/Documents/GitHub/Tembryo/web-server/files/webserver:/files:ro
+    - /usr/local/tembryo-dev/webserver:/storage
+    - /usr/local/tembryo-dev/shared:/shared
+    - /Users/richardmason/Documents/Github/Tembryo/dota-analysis/web-server/files/webserver:/files:ro
   environment:
-    VIRTUAL_HOST: "localhost"
+    VERSION: "DEV"
+    VIRTUAL_HOST: "192.168.99.100"
     VIRTUAL_PORT: "42000"
-    DEV_VERSION: "true"
   links:
-    - database:DATABASE_IP
-analysis:
-  build: analysis
+    - postgres:POSTGRES_IP
+scheduler:
+  image: tembryo/wisdota-scheduler
   volumes:
-    - /home/Users/richardmason/Documents/GitHub/Tembryo/dota-analysis/web-server/analysis/server-src:/source:ro
-    - /home/Users/richardmason/Documents/GitHub/Tembryo/dota-analysis/web-server/analysis/extractor:/extractor:ro
-    - /home/Users/richardmason/Documents/GitHub/Tembryo/dota-analysis/web-server/analysis/analysis:/analysis:ro
-
-    - /home/Users/richardmason/Documents/GitHub/Tembryo/dota-analysis/web-server/storage/analysis:/storage
-    - /home/Users/richardmason/Documents/GitHub/Tembryo/dota-analysis/web-server/storage/shared:/shared
-    - /home/Users/richardmason/Documents/GitHub/Tembryo/dota-analysis/web-server/files/analysis:/files:ro
+    - /usr/local/tembryo-dev/scheduler:/storage
+    - /usr/local/tembryo-dev/shared:/shared
+  environment:
+    VERSION: "DEV"
   links:
-    - database:DATABASE_IP
+    - postgres:POSTGRES_IP
+analysis:
+  image: tembryo/wisdota-analysis
+  volumes:
+    -  /usr/local/tembryo-dev/analysis:/storage
+    - /usr/local/tembryo-dev/shared:/shared
+    - /Users/richardmason/Documents/Github/Tembryo/dota-analysis/web-server/files/analysis:/files:ro
+  environment:
+    VERSION: "DEV"
+  links:
+    - postgres:POSTGRES_IP
+retrieve:
+  image: tembryo/wisdota-retrieve
+  volumes:
+    - /usr/local/tembryo-dev/retrieve:/storage
+    - /usr/local/tembryo-dev/shared:/shared
+  environment:
+    VERSION: "DEV"
+  links:
+    - postgres:POSTGRES_IP
+download:
+  image: tembryo/wisdota-download
+  volumes:
+    - /usr/local/tembryo-dev/download:/storage
+    - /usr/local/tembryo-dev/shared:/shared
+  environment:
+    VERSION: "DEV"
+  links:
+    - postgres:POSTGRES_IP
