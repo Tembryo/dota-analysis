@@ -6,6 +6,8 @@ var database    = require("/shared-code/database.js"),
     storage     = require("/shared-code/storage.js");
 
 var async       = require("async");
+var mkdirp = require('mkdirp');
+
 
 var re_register_timeout = 1000;
 //THIS IS MAIN
@@ -14,6 +16,14 @@ var service = null;
 //THIS IS MAIN
 async.series(
     [
+        function(callback)
+        {
+            mkdirp('/shared/replays', function (err) {
+                if (err) console.error("mkdirp error", err);
+                else console.log('replay folder is fine!');
+                callback();
+            });
+        },
         function(callback)
         {
             service = new services.Service("Download", handleDownloadServerMsg, callback);

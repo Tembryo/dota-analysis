@@ -60,3 +60,10 @@ download:
     - /usr/local/dota-analysis/web-server/storage/shared:/shared
   links:
     - postgres:POSTGRES_IP
+crawler:
+  image: tembryo/wisdota-crawl
+  volumes:
+    - /usr/local/dota-analysis/web-server/storage/crawl:/storage
+    - /usr/local/dota-analysis/web-server/storage/shared:/shared
+  links:
+    - postgres:POSTGRES_IP

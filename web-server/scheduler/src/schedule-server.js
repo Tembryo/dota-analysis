@@ -15,7 +15,8 @@ var serviceHandlers =
     {
         "Retrieve": handleRetrieveServerMsg,
         "Download": handleDownloadServerMsg,
-        "Analysis": handleAnalysisServerMsg
+        "Analysis": handleAnalysisServerMsg,
+        "Crawl":    handleCrawlServerMsg
     };
 //TODO introduce sema for queue
 var jobs_queue = {};
@@ -111,6 +112,18 @@ function startTasks(callback)
     setTimeout(function()
         {
             updateAllHistories();
+        },
+        startup_delay);
+
+    setTimeout(function()
+        {
+            crawlCandidateMatches();
+        },
+        startup_delay);
+
+    setTimeout(function()
+        {
+            addSampleMatches();
         },
         startup_delay);
 
@@ -445,6 +458,85 @@ function handleAnalysisServerMsg(server_identifier, message) //channel name is t
     }
 }
 
+function handleCrawlServerMsg(server_identifier, message) //channel name is the server identifier
+{
+    if(("job" in message) && !(message["job"] in jobs_queue))
+    {
+        console.log("couldnt find crawl job", message);
+        return;
+    }
+
+    switch(message["message"])
+    {
+        case "CrawlCandidates":
+        case "AddSampleMatches":
+        case "SteamAccount":
+            //Sent by myself
+            break;
+
+
+        case "CrawlCandidatesResponse":
+            var job =  jobs_queue[message["job"]]; 
+            switch(message["result"])
+            {
+                case "finished":
+                    console.log("crawled", message["job"]);
+                    break;
+                case "failed":
+                    console.log("failed crawl", job);
+                    break;
+            }
+            closeTemporaryJob(server_identifier, message["job"]);
+            job["callback"]();//made a copy, so this works after cleaning up the job
+            break;
+
+        case "AddSampleMatchesResponse":
+            var job =  jobs_queue[message["job"]]; 
+            switch(message["result"])
+            {
+                case "finished":
+                    console.log("added samples", message["job"]);
+                    break;
+                case "failed":
+                    console.log("failed add samples", job);
+                    break;
+            }
+            closeTemporaryJob(server_identifier, message["job"]);
+            job["callback"]();//made a copy, so this works after cleaning up the job
+            break;
+        case "GetSteamAccount":
+            //free old acc
+            for(var i = 0; i < steam_accounts.length; ++i)
+            {
+                if(steam_accounts[i]["used-by"] === server_identifier)
+                    steam_accounts[i]["used-by"] = null;
+            }
+
+            //iterate account
+            next_steam_account = (next_steam_account+1)%steam_accounts.length;
+            while(steam_accounts[next_steam_account]["used-by"] != null)
+            {
+                next_steam_account = (next_steam_account+1)%steam_accounts.length;
+            }
+
+            var steam_acc_message = 
+                {
+                    "message": "SteamAccount",
+                    "id": next_steam_account,
+                    "name": steam_accounts[next_steam_account]["name"],
+                    "password": steam_accounts[next_steam_account]["password"]
+                };
+            steam_accounts[next_steam_account]["used-by"] = server_identifier;
+            communication.publish(server_identifier, steam_acc_message);
+            break;
+
+        default:
+            console.log("unknown response:", server_identifier, message);
+            break;
+    }
+}
+
+
 
 function registerService(type, identifier)
 {
@@ -537,6 +629,75 @@ function updateAllHistories()
     );
 }
 
+var candidates_batch_size = 50;
+var crawl_interval = 60*1000*5;
+
+function crawlCandidateMatches()
+{
+    var locals = {};
+    async.waterfall(
+        [
+            function(callback)
+            {
+
+                var job_data = {
+                    "message":      "CrawlCandidates",
+                    "n":  candidates_batch_size
+                };
+
+                createTemporaryJob
+                    (job_data,
+                    function(job_id){ jobs_queue[job_id]["callback"] = callback; }
+                    );
+            }
+        ],
+        function(err, results)
+        {
+            if (err)
+            {
+                console.log("failure", err, results, user_id_range);
+            }
+    
+            setTimeout(crawlCandidateMatches, crawl_interval);
+        }
+    );
+}
+
+var add_samples_batch_size = 5;
+var add_interval = 60*1000*5;
+
+function addSampleMatches()
+{
+    var locals = {};
+    async.waterfall(
+        [
+            function(callback)
+            {
+
+                var job_data = {
+                    "message":      "AddSampleMatches",
+                    "n":  add_samples_batch_size
+                };
+
+                createTemporaryJob
+                    (job_data,
+                    function(job_id){ jobs_queue[job_id]["callback"] = callback; }
+                    );
+            }
+        ],
+        function(err, results)
+        {
+            if (err)
+            {
+                console.log("failure", err, results, user_id_range);
+            }
+    
+            setTimeout(addSampleMatches, add_interval);
+        }
+    );
+}
+
+
 var scheduler_tick_interval = 30*1000; //update jobs every 30sec
 function runScheduler()
 {
@@ -606,6 +767,10 @@ function scheduleJob(job_id, callback)
             break;
         case "Analyse":
             server_identifier = chooseAnalysisServer();
+            break;
+        case "CrawlCandidates":
+        case "AddSampleMatches":
+            server_identifier = chooseCrawlServer();
             break;
         default:
             console.log("unknown job scheduled", job_id, job);
@@ -679,6 +844,24 @@ function chooseAnalysisServer()
     for(var i = 0; i < servers_by_type["Analysis"].length; ++i)
     {
         var server_identifier = servers_by_type["Analysis"][i];
+        //console.log("checking server", server_identifier, servers[server_identifier]);
+        if(
+            !servers[server_identifier]["busy"]
+            )
+        {
+            console.log("OK");
+            return server_identifier;
+        }
+    }
+
+    return null;
+}
+
+function chooseCrawlServer()
+{
+    for(var i = 0; i < servers_by_type["Crawl"].length; ++i)
+    {
+        var server_identifier = servers_by_type["Crawl"][i];
         //console.log("checking server", server_identifier, servers[server_identifier]);
         if(
             !servers[server_identifier]["busy"]

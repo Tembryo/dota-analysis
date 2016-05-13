@@ -1,6 +1,6 @@
 var database        = require("/shared-code/database.js"),
-    services        = require("/shared-code/services.js");
-
+    services        = require("/shared-code/services.js"),
+    dota            = require("/shared-code/dota.js");
 // retrieve - server.js
 var async       = require("async");
 
@@ -8,8 +8,8 @@ var retrieve_concurrency =  require("semaphore")(3);
     //Only one dota client, so the history updates are sequential anyway - no sema needed
 
 
-var replay_dl   = require("./replay-download.js"),
-    dota        = require("./dota.js");
+var replay_dl   = require("./replay-download.js");
+
 
 var check_interval = 5000;
 var matches_per_request = 20;

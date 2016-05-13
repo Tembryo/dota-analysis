@@ -128,6 +128,7 @@ var downloadFile = function(url, dest, cb) {
 
 
     file.on('error', function(err) { // Handle errors
+        console.log("file error on matchdownload", err);
         fs.unlink(dest); // Delete the file async. (But we don't check the result)
 
         if (cb) {
@@ -151,7 +152,7 @@ function downloadMatch(replay_data, target, callback)
     console.log("Downloading from", replay_address, " into ", file, new Date());
     //downloadAndDecompress(replay_address, file, function(){callback(null, file);});
 
-    downloadFile(replay_address, file, function(){callback(null, file);});
+    downloadFile(replay_address, file, function(err){callback(err, file);});
 }
 
 

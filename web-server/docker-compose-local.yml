@@ -82,3 +82,14 @@ download:
     VERSION: "DEV"
   links:
     - postgres:POSTGRES_IP
+crawler:
+  build: crawler
+  volumes:
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/crawler:/storage
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/shared:/shared
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/crawler/src:/source:ro
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/shared-code:/shared-code:ro
+  environment:
+    VERSION: "DEV"
+  links:
+    - postgres:POSTGRES_IP

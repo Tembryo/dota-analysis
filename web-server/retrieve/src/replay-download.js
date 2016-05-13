@@ -148,6 +148,11 @@ function getReplayData(client, match_id, final_callback)
                                     }
                                     else status = 2;
 
+                                    if(profile== null)
+                                    {
+                                       callback_player("profile is null"); 
+                                       return;
+                                    }
                                     var got_mmr = false;
                                     var entry = 
                                     {

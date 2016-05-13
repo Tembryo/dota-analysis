@@ -39,7 +39,7 @@ function performDotaAction(login_data, main_call, callback_final)
                             });
 
                         steamClient.on('loggedOff', function(){ callback("steamClient logged off"); });
-
+                        console.log("logging in using:", login_data);
                         steamUser.logOn({
                             account_name: login_data.steam_user,
                             password: login_data.steam_pw
@@ -60,22 +60,34 @@ function performDotaAction(login_data, main_call, callback_final)
 
                         main_call(Dota2, callback);
                     },
-                    function(result, callback)
-                    {
+                    function()
+                    {   
                         Dota2.on("unready", function() {
                                     console.log("Node-dota2 unready.");
                                 });
                         Dota2.exit();
-                        callback(null, result);
+                        //console.log(result, callback);
+                        var new_arguments = Array.prototype.slice.call(arguments);
+                        //console.log(new_arguments);
+                        var callback = new_arguments.pop();
+                        new_arguments.unshift(null);
+
+                        callback.apply(this, new_arguments);
                     },
-                    function(result, callback)
+                    function()
                     {
                         steamClient.disconnect();
-                        callback(null, result);
+
+                        var new_arguments = Array.prototype.slice.call(arguments);
+                        //console.log(new_arguments);
+                        var callback = new_arguments.pop();
+                        new_arguments.unshift(null);
+
+                        callback.apply(this, new_arguments);
                     }
                 ],
                 function(err, result){
-                    console.log("Dota action finished", err, result);
+                    //console.log("Dota action finished", err, result);
                     dota_semaphore.leave();
                     callback_final(err, result);
                 }
@@ -85,4 +97,3 @@ function performDotaAction(login_data, main_call, callback_final)
 }
 
 exports.performAction = performDotaAction;
-exports.chatChannelTypes = dota2.schema.DOTAChatChannelType_t;

@@ -87,7 +87,7 @@ function processReplay(message, callback_replay)
                 var dem_extension = ".dem";
                 if(local_filename.substr(-bzip_extension.length) === bzip_extension)
                 {
-                    child_process.exec("bzip2 -d "+local_filename, function(err, stdout, stderr)
+                    child_process.exec("bzip2 -d -f "+local_filename, function(err, stdout, stderr)
                     {
                         var decompressed_filename = local_filename.substr(0, local_filename.length - bzip_extension.length);
                         console.log("decompressed ", decompressed_filename);

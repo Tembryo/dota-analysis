@@ -64,7 +64,10 @@ function storeFile(filename, callback)
         function(err)
         {
             if(err)
+            {
+                console.log("store file failed", filename, err);
                 callback(err)
+            }
             else
                 callback(null, filename);
         });
