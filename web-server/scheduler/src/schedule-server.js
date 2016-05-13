@@ -629,7 +629,7 @@ function updateAllHistories()
     );
 }
 
-var candidates_batch_size = 50;
+var candidates_batch_size = 200;
 var crawl_interval = 60*1000*5;
 
 function crawlCandidateMatches()
@@ -663,7 +663,7 @@ function crawlCandidateMatches()
     );
 }
 
-var add_samples_batch_size = 5;
+var add_samples_batch_size = 10;
 var add_interval = 60*1000*5;
 
 function addSampleMatches()

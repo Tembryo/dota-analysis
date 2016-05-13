@@ -1,0 +1,4 @@
+dataset-export:
+  image: tembryo/wisdota-dataset-export
+  volumes:
+    - /usr/local/dota-analysis/web-server/storage/shared:/shared

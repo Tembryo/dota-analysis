@@ -1,0 +1,12 @@
+FROM node:5
+
+COPY web-server/shared-code /shared-code
+WORKDIR /shared-code
+RUN npm install
+
+COPY dataset-export/src /source
+WORKDIR /source
+RUN npm install
+
+CMD ["node", "dataset-export.js"]
+

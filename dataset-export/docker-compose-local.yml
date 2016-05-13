@@ -1,0 +1,10 @@
+dataset-export:
+  build: .
+  volumes:
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/storage/shared:/shared
+    - /home/fischerq/Documents/Wisdota/dota-analysis/dataset-export/src:/source:ro
+    - /home/fischerq/Documents/Wisdota/dota-analysis/web-server/shared-code:/shared-code:ro
+  environment:
+    VERSION: "DEV"
+  external_links:
+    - postgres-container:POSTGRES_IP

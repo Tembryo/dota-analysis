@@ -1,0 +1,10 @@
+{
+    "name": "wisdota-dataset-export",
+    "version": "0.0.1",
+    "author": "fischerq",
+    "main": "dataset-export.js",
+    "dependencies": {
+        "async": "^1.5.0"
+    }
+}
+
