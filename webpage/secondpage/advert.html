@@ -1,0 +1,112 @@
+<!Doctype html>
+
+<head>
+	<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Wisdota is an automated coaching platform for Dota 2">
+    <meta name="author" content="Richard Mason and Quirin Fischer">
+
+    <!-- Meta tags for FB Open Graph -->
+    <meta property="og:url"                content="http://www.wisdota.com" />
+    <meta property="og:type"               content="website" />
+    <meta property="og:title"              content="Let Artificial Intelligence rate your Dota game" />
+    <meta property="og:description"        content="Are you ready to turn pro? Have your Dota replay data analysed and compared to the top professionals." />
+    <meta property="og:image"              content="img/heros/nevermore.jpg" /> <!-- need to change this image later -->
+
+    <title> Wisdota | Free analysis of your Dota game </title>
+
+    <!-- Bootstrap and jQuery -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <script type="text/javascript" src="js/jquery-1.12.0.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+
+    <!-- Slick Image Carousel CSS -->
+    <link rel="stylesheet" type="text/css" href="slick-1.5.9/slick/slick.css"/>
+    <link rel="stylesheet" type="text/css" href="slick-1.5.9/slick/theme/slick-theme.css"/>
+    <link rel="stylesheet" type="text/css" href="slick-1.5.9/slick/slider.css"/>
+
+   <!-- Google Analytics -->
+   <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-69425317-1', 'auto');
+        ga('send', 'pageview');
+
+    </script>
+
+    <!-- Custom Wisdota CSS -->
+    <link href="css/main.css" rel="stylesheet">
+    <link href="css/results.css" rel="stylesheet">
+
+</head>
+
+<body id = "page-top">
+
+<!-- Facebook SDK -->
+    <script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '1678701072387395',
+      xfbml      : true,
+      version    : 'v2.5'
+    });
+  };
+
+  (function(d, s, id){
+     var js, fjs = d.getElementsByTagName(s)[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement(s); js.id = id;
+     js.src = "//connect.facebook.net/en_US/sdk.js";
+     fjs.parentNode.insertBefore(js, fjs);
+   }(document, 'script', 'facebook-jssdk'));
+</script>
+
+
+<!-- Header -->
+<div id="hotornot">
+<!-- Player Image Carousel -->
+<!-- Todo: make this responsive -->
+    </div class="container">
+        <div id="player-slider" class="slider">
+            <div id="slide1" class="mugshots text-center"><img src="img/heros/portraits/earthshaker_vert.jpg" width="210px"></div>
+
+            <div id="slide2" class="mugshots text-center"><img src="img/heros/portraits/brewmaster_vert.jpg" width="210px"></div>
+
+            <div id="slide3" class="mugshots text-center"><img src="img/heros/portraits/lina_vert.jpg" width="210px"> </div>
+
+            <div id="slide4" class="mugshots text-center"><img src="img/heros/portraits/lion_vert.jpg" width="210px"></div>
+            <div id="slide5" class="mugshots text-center"><img src="img/heros/portraits/juggernaut_vert.jpg" width="210px"></div>
+            <div id="slide6" class="mugshots text-center"><img src="img/heros/portraits/lina_vert.jpg" width="210px"> </div>
+        </div>
+    </div>
+       </div class="container">
+        <div id="player-slider" class="slider">
+            <div id="slide1" class="mugshots text-center"><img src="img/heros/portraits/earthshaker_vert.jpg" width="210px"></div>
+
+            <div id="slide2" class="mugshots text-center"><img src="img/heros/portraits/brewmaster_vert.jpg" width="210px"></div>
+
+            <div id="slide3" class="mugshots text-center"><img src="img/heros/portraits/lina_vert.jpg" width="210px"> </div>
+
+            <div id="slide4" class="mugshots text-center"><img src="img/heros/portraits/lion_vert.jpg" width="210px"></div>
+            <div id="slide5" class="mugshots text-center"><img src="img/heros/portraits/juggernaut_vert.jpg" width="210px"></div>
+            <div id="slide6" class="mugshots text-center"><img src="img/heros/portraits/lina_vert.jpg" width="210px"> </div>
+        </div>
+    </div>
+
+</div>
+
+
+<script type="text/javascript" src="slick-1.5.9/slick/slick.js"></script>
+
+<script type="text/javascript" src="js/index.js"></script>
+
+<!-- JavaScript for the progress bar -->
+ <script src="js/jquery.progressTimer.js"></script>
+
+
+</body>
+</html>
+
