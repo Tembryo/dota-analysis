@@ -116,60 +116,19 @@ function addSampleMatches(message, callback_request)
             function(callback)
             {
                 database.query(
-                    "SELECT COUNT(*) as n_samples,floor(AVG(d.solo_mmr)/$1)*$1 as mmr_bin FROM mmrdata d WHERE d.solo_mmr IS NOT NULL "+
-                    "GROUP BY floor(d.solo_mmr/$1)*$1;",
-                    [mmr_bin_size], callback);
+                    "WITH SampleBins AS "+
+                    "(SELECT -LOG(COUNT(*)::float/(SELECT COUNT(*) FROM mmrdata WHERE solo_mmr IS NOT NULL)) as entropy, "+
+                    "floor(AVG(d.solo_mmr)/$1)*$1 as mmr_bin "+
+                    "FROM mmrdata d WHERE d.solo_mmr IS NOT NULL GROUP BY floor(d.solo_mmr/$1)*$1)"+
+                    "SELECT m.matchid, SUM(bin.entropy) AS value "+
+                    "FROM CrawlingMatches m, CrawlingMatchStatuses s, CrawlingSamples smpl, SampleBins bin "+
+                    "WHERE smpl.matchid= m.matchid AND s.label='open' AND s.id=m.status AND floor(smpl.solo_mmr/$1)*$1=bin.mmr_bin "+
+                    "AND to_timestamp((m.data->>'start_time')::bigint) > current_date - interval '7 days' GROUP BY m.matchid ORDER BY value DESC LIMIT $2;",
+                    [mmr_bin_size, message["n"]], callback);
             },
             function(results, callback)
             {
-                locals.samples_context = {};
-                var total_n = 0;
-                var max_value = 1;
-
-                for (var i = 0; i < results.rowCount; ++i)
-                {
-                    total_n += results.rows[i]["n_samples"];
-                }
-                //console.log(results.rows, total_n);
-
-                for (var i = 0; i < results.rowCount; ++i)
-                {
-                    locals.samples_context[results.rows[i]["mmr_bin"]] = - Math.log(results.rows[i]["n_samples"]/total_n);
-                    if(locals.samples_context[results.rows[i]["mmr_bin"]] > max_value)
-                        max_value = locals.samples_context[results.rows[i]["mmr_bin"]];
-                }
-
-                for (var i = 0; i*mmr_bin_size < max_mmr; ++i)
-                {
-                    var bin = i*mmr_bin_size;
-                    if (! (bin in locals.samples_context))
-                    {
-                        locals.samples_context[bin] = 10*max_value;
-                    }
-                }
-                //console.log(locals.samples_context);
-
-                database.query(
-                    "SELECT m.matchid, json_agg(row_to_json(smpl)) as samples "+
-                    "FROM CrawlingMatches m, CrawlingMatchStatuses s, CrawlingSamples smpl WHERE smpl.matchid= m.matchid AND s.label='open' AND s.id=m.status "+
-                    "AND to_timestamp((m.data->>'start_time')::bigint) > current_date - interval '7 days' GROUP BY m.matchid ORDER BY COUNT(*) DESC LIMIT 100*$1;",
-                    [message["n"]], callback);
-            },
-            function(results, callback)
-            {
-                games_list = [];
-                for(var i = 0; i < results.rowCount; ++i)
-                {
-                    var scored_match = {};
-                    scored_match["matchid"] = results.rows[i]["matchid"];
-                    scored_match["score"] = calculateSampleValue(results.rows[i]["samples"], locals.samples_context);
-                    //console.log(scored_match);
-                    games_list.push(scored_match)
-                }
-
-                games_list.sort(function(a, b){return b["score"]-a["score"];});
-                var games_to_add = games_list.slice(0, message["n"]);
-                async.each(games_to_add,
+                async.each(results.rows,
                     function(game, callback){
                         database.query(
                             "INSERT INTO MatchRetrievalRequests (id) VALUES ($1);",
@@ -227,18 +186,6 @@ function addSampleMatches(message, callback_request)
             }
         }
         );
-}
-
-function calculateSampleValue(samples, context)
-{
-    var value = 0;
-    for(var i = 0; i < samples.length; ++i)
-    {
-        var bin = Math.floor(samples[i]["solo_mmr"]/mmr_bin_size) * mmr_bin_size;
-        value += context[bin];
-    }
-
-    return value;
 }
 
 // skip most recent matches, as they contain comparatively far more short matches

@@ -457,6 +457,10 @@ router.route('/admin-stats/:query')
             case "mmrs":
                 query_string = "SELECT COUNT(*) as n, AVG(solo_mmr) as avg_solo, AVG(group_mmr) as avg_group FROM mmrdata;";
                 break;
+            case "mmr-distribution":
+                query_string = "SELECT COUNT(*) as n_samples,floor(AVG(d.solo_mmr)/250)*250 as mmr_bin FROM mmrdata d WHERE d.solo_mmr IS NOT NULL GROUP BY floor(d.solo_mmr/250)*250 ORDER BY AVG(d.solo_mmr);";
+                break;
+            
             default:
                 res.json({});
                 return;

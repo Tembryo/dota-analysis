@@ -4,14 +4,10 @@
     "author": "fischerq",
     "main": "retrieve-server.js",
     "dependencies": {
-        "pg": "^4.4.3",
         "request": "^2.67.0",
         "unbzip2-stream": "^1.0.8", 
         "async": "^1.5.0",
-        "steam": "^1.4.0",
-        "dota2": "git://github.com/RJacksonm1/node-dota2.git",
-        "semaphore": "^1.0.3",
-        "shortid": "^2.2.4"
+        "semaphore": "^1.0.3"
     }
 }
 

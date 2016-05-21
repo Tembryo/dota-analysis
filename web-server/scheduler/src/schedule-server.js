@@ -630,6 +630,8 @@ function updateAllHistories()
 }
 
 var candidates_batch_size = 200;
+if(process.env.VERSION === "DEV")
+    candidates_batch_size = 0 ;
 var crawl_interval = 60*1000*5;
 
 function crawlCandidateMatches()
@@ -663,7 +665,9 @@ function crawlCandidateMatches()
     );
 }
 
-var add_samples_batch_size = 10;
+var add_samples_batch_size = 2;
+if(process.env.VERSION === "DEV")
+    add_samples_batch_size = 0;
 var add_interval = 60*1000*5;
 
 function addSampleMatches()

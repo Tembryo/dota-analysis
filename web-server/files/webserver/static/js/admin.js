@@ -1,4 +1,4 @@
-$('.nav-tabs a').on('show.bs.tab', 
+$('#main-tabs a').on('show.bs.tab', 
     function(event){
         var selected = $(event.target).attr("href");         // active tab
         var y = $(event.relatedTarget).text();  // previous tab
@@ -10,7 +10,8 @@ $(document).on('click', '#refresh', function () {
     var $link = $('li.active a[data-toggle="tab"]');
     $link.parent().removeClass('active');
     var tabLink = $link.attr('href');
-    showTab(tabLink);
+    console.log("refreshing");
+    $('#main-tabs a[href="' + tabLink + '"]').tab('show');
 });
 
 function showTab(tabref){
@@ -52,6 +53,16 @@ function showTab(tabref){
                 displayTable(data, "#mmr-samples-table");
             }
         );
+        break;
+    case "#mmr-distribution":
+        $.getJSON("api/admin-stats/mmr-distribution",
+            function(data)
+            {
+                console.log("ps", data)
+                displayTable(data, "#mmr-distribution-table");
+            }
+        );
+        break;
     }
 }
 

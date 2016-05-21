@@ -1,88 +1,10 @@
 var async       = require("async"),
-    fs          = require('fs'),
-    bz2         = require('unbzip2-stream'),
-    request     = require('request');
+    fs          = require('fs');
 
 var config          = require("./config.js");
 
 var api_timeout = 2000;
 
-var downloadAndDecompress = function(url, dest, cb) {
-    //TODO clean this up
-    // errors dont get propagated, an error in the decoder will appear after the the file got closed -> after final callback was written
-    //probably  wait for both cbs, then return?
-
-
-    var file = fs.createWriteStream(dest);
-    var sendReq = request.get(url);
-
-    // verify response code
-    sendReq.on('response', function(response) {
-        if (response.statusCode !== 200) {
-            return cb('Response status was ' + response.statusCode);
-        }
-    });
-
-    // check for request errors
-    sendReq.on('error', function (err) {
-        console.log("sendreq got error");
-        fs.unlink(dest);
-
-        if (cb) {
-            return cb(err.message);
-        }
-    });
-
-    // check for request errors
-    sendReq.on('end', function (err) {
-        console.log("sendreq got end");
-    });
-    // check for request errors
-    //sendReq.on('data', function (err) {
-    //    console.log("sendreq got data");
-    //});
-
-    var decoder = bz2();
-    decoder.on('error', function(err) { // Handle errors
-        console.log("decoder got error");
-        fs.unlink(dest); // Delete the file async. (But we don't check the result)
-        
-        if (cb) {
-            return cb(err.message);
-        }
-    });
-    // check for request errors
-    decoder.on('data', function (err) {
-        console.log("decoder got data");
-    });
-    // check for request errors
-    decoder.on('end', function (err) {
-        console.log("decoder got end");
-    });
-
-
-    try
-    {
-        sendReq.pipe(decoder).pipe(file);
-    }
-    catch(e)
-    {
-        cb(e);
-    }
-    
-    file.on('finish', function() {
-        file.close(cb);  // close() is async, call cb after close completes.
-    });
-
-
-    file.on('error', function(err) { // Handle errors
-        fs.unlink(dest); // Delete the file async. (But we don't check the result)
-
-        if (cb) {
-            return cb(err.message);
-        }
-    });
-};
 
 
 //Full download procedure of a match starting from the match ID
@@ -231,5 +153,3 @@ function downloadMatch(replay_data, target, callback)
 
 
 exports.getReplayData = getReplayData;
-
-exports.downloadMatch = downloadMatch;

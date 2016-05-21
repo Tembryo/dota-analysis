@@ -1,11 +1,23 @@
 var async   = require("async"),
     Steam   = require('steam'),
-    dota2   = require('dota2');
+    dota2   = require('dota2'),
+    domain = require('domain');
 
 var dota_semaphore = require("semaphore")(1);
 
+
 function performDotaAction(login_data, main_call, callback_final)
 {
+    var dota_error = function(err)
+    {
+        console.log("dota error", err);
+        callback_final(err);
+    }
+
+    var d = domain.create();  
+    d.on('error', dota_error) 
+    d.enter(); 
+
     dota_semaphore.take(
         function(){
             var steamClient     = new Steam.SteamClient(),
@@ -18,12 +30,16 @@ function performDotaAction(login_data, main_call, callback_final)
                     function(callback)
                     {
                         steamClient.on('connected', callback);
-                        steamClient.on('error', function(){ callback("steamClient error"); });
+                        steamClient.on('error', function(err){
+                            console.log("stean client error", err);
+                            callback("steamClient error", err);
+                        });
                         try{
                             steamClient.connect();
                         }
                         catch(err)
                         {
+                            console.log("got exception", err);
                             callback(err);
                         }
                     },
@@ -57,11 +73,12 @@ function performDotaAction(login_data, main_call, callback_final)
                     function(callback)
                     {
                         console.log("Node-dota2 ready.");
-
+                        d.exit(); 
                         main_call(Dota2, callback);
                     },
-                    function()
+                    function()//extracting parameters from arguments array
                     {   
+                        d.enter(); 
                         Dota2.on("unready", function() {
                                     console.log("Node-dota2 unready.");
                                 });
@@ -74,7 +91,7 @@ function performDotaAction(login_data, main_call, callback_final)
 
                         callback.apply(this, new_arguments);
                     },
-                    function()
+                    function()//extracting parameters from arguments array
                     {
                         steamClient.disconnect();
 
@@ -87,8 +104,14 @@ function performDotaAction(login_data, main_call, callback_final)
                     }
                 ],
                 function(err, result){
-                    //console.log("Dota action finished", err, result);
+                    if(err)
+                    {
+                       console.log("Dota action error occured", err, result); 
+                    }
+
                     dota_semaphore.leave();
+
+                    d.exit(); 
                     callback_final(err, result);
                 }
             );
