@@ -1,0 +1,259 @@
+<!doctype html>
+<html>
+<head>
+  <title>D3 tutorial 13</title>
+  <!--[if lte IE 8]><script src="r2d3.min.js" charset="utf-8"></script><![endif]-->
+  <!--[if gte IE 9]><!-->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script src="js/d3.min.js"></script>
+  <!--<![endif]-->
+</head>
+<body>
+
+    <div id="user-dashboard">
+        <div class="container">
+            <div class="row">
+                <div id="polygon-container" class="col-lg-4 text-center">
+                    <h1> Attributes </h1>
+                </div>
+                <div id="timeline-container" class="col-lg-8 text-center">
+                    <h1> Timeline </h1>
+                </div>
+
+                <div id="skills-container" class="col-lg-12 text-center">
+                    <!--<h1> Skills </h1> -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+  <script>
+      $(document).ready(function(){
+
+        var boxSize = 300;   // size of the SVG container
+        var polyScale = 0.6;  // size of polygon as proportion of SVG container
+        var textPaddingScale = 0.12; // padding for text around polygon
+        var alpha = 0.1;
+        var maxMMR = 8000;
+        var textFont = "helvetica";
+
+        // variables for userSkills
+        var height = 200;
+        var width = 300;
+
+        // variable to select match to focus on
+        var index = 1;
+
+        // definitions to explain skills when user hovers over the text
+        var definitions = {"item-checks":"measures how frequently you compare check items",
+                            "camera-skills":"measures your camera skills",
+                            "cursor-control":"measures you cursor control",
+                            "actions-issued":"measures effectivenss of actions issued to teammates",
+                            "damage-dealt":"measures how much damage you do to opponent heros",
+                            "fights-taken/won":"measures how many fights you won out of the fights you took",
+                            "last-hitting":"measures your last hitting performance",
+                            "lane-equilibrium":"measures your control of the lane equilibrium",
+                            "TP-scroll use":"measures how well you use TP-scrolls",
+                            "cooldown-use":"measures how effectively you use items with cooldowns",
+                            "tower-damage":"measures how much damage to towers you do in each game",
+                            "barracks-damage":"measures how much damage to barracks you do in each game",
+                            "hiding-from-vision":"measures how often you are consealed from vision from the enemy",
+                            "runes":"measues your effeciv at taking runes"
+                            };
+
+        var xOffset = boxSize/2;
+        var yOffset = boxSize/2;
+        var radius = polyScale*boxSize/2;
+        var textPadding = textPaddingScale*boxSize/2;
+        var thetaOffset = Math.PI/2;
+
+        d3.json("userData2.json", function(data){ 
+
+            // derived coefficients
+            var dim = data[index]["ratings"].length; 
+            var N = data.length;
+            var incr = 2*Math.PI/dim;
+
+            // make SVG container
+            var canvas = d3.select("#polygon-container").append("svg")
+                            .attr("height",boxSize)
+                            .attr("width",boxSize);
+
+            // make an array of [x,y] vectors that point towards nodes of polygon
+            var vectorArray = [];  
+            for (i=0; i < dim; i++){
+                var x = Math.cos(i*incr - thetaOffset);
+                var y = Math.sin(i*incr - thetaOffset);
+                vectorArray.push([x,y]);
+            }
+
+            //given an array of vectors and a radius, make a string of points to pass to SVG to make a polygon
+            function genPointString(vectorArray,radius){
+                var pointString = "";
+                for (i=0; i < dim; i++){
+                    pointString = pointString + " " + (radius*vectorArray[i][0]).toString() +"," + (radius*vectorArray[i][1]).toString();
+                }
+                return pointString
+            }
+
+            // string to translate objects to the middle of the SVG canvas
+            var translateString = "translate(" + xOffset.toString() + "," + yOffset.toString()+ ")";
+
+            // make outer polygon
+            var outerPolygon = canvas.append("polygon")
+                                .attr("points",genPointString(vectorArray,radius))
+                                .attr("fill","none")
+                                .attr("stroke","black")
+                                .attr("stroke-width",1)
+                                .attr("transform",translateString);
+                                
+            // make inner polygon that is alpha times the size of the outer polygon
+             var innerPolygon = canvas.append("polygon")
+                                .attr("points",genPointString(vectorArray,alpha*radius))
+                                .attr("fill","black")
+                                .attr("stroke","black")
+                                .attr("transform",translateString);
+
+            // make a linear scale mapping MMR to pixel scale of polygon
+            var scale = d3.scale.linear()
+                          .domain([0,maxMMR])
+                          .range([0,radius]);
+
+            // loop over points on polygon drawing lines, adding text
+            var dataPointString = "";
+            for (i=0; i<dim; i++){
+                var line = canvas.append("line")
+                            .attr("x1",0)
+                            .attr("y1",0)
+                            .attr("x2",function(){return radius*vectorArray[i][0];})
+                            .attr("y2",function(){return radius*vectorArray[i][1];})
+                            .attr("stroke","black")
+                            .attr("stroke-width",1)
+                            .attr("width",5)
+                            .attr("transform",translateString);
+
+                var text = canvas.append("text")
+                            .attr("x",function(){return (textPadding+radius)*vectorArray[i][0];})
+                            .attr("y",function(){return (textPadding+radius)*vectorArray[i][1];})
+                            .text(data[index]["ratings"][i].attribute)
+                            .attr("text-anchor","middle")
+                            .attr("font-family",textFont)
+                            .attr("transform",translateString);
+
+                // make string of points to describe the user's score polygon
+                var x = scale(data[index]["ratings"][i].rating*vectorArray[i][0]);
+                var y = scale(data[index]["ratings"][i].rating*vectorArray[i][1]);
+
+                dataPointString = dataPointString + " " + x.toString() +"," + y.toString();
+            }
+
+            var dataPointStringAverage = "";
+            var averageRatings = new Array(dim).fill(0);
+            // make an array containing average ratings for whole dataset
+            for (j=0; j<N; j++){
+                for (i=0; i<dim; i++){
+                    averageRatings[i] = averageRatings[i] + data[j]["ratings"][i].rating/N;
+                }
+
+            }
+
+            for (i=0; i<dim; i++){
+            // make string of points to describe the user's average score polygon
+                var x = scale(averageRatings[i]*vectorArray[i][0]);
+                var y = scale(averageRatings[i]*vectorArray[i][1]);
+
+                dataPointStringAverage = dataPointStringAverage + " " + x.toString() +"," + y.toString();
+            }
+
+            // make the user's average score polygon
+            var userPolygon = canvas.append("polygon")
+                              .attr("points",dataPointStringAverage)
+                              .attr("fill","rgba(0,0,0,0.5")
+                              .attr("stroke","black")
+                              .attr("stroke-width",0)
+                              .attr("transform",translateString);
+
+            // make the user's score polygon for the match selected by index
+            var userPolygon = canvas.append("polygon")
+                              .attr("points",dataPointString)
+                              .attr("fill","rgba(200,0,0,0.7")
+                              .attr("stroke","black")
+                              .attr("stroke-width",0)
+                              .attr("transform",translateString);
+
+
+            var xOffsetText = 0;
+            var yOffsetText = height*0.1;
+            var yOffsetSkills = height*0.2;   
+            var textTranslateString = "translate(" + xOffsetText.toString() + "," + yOffsetText.toString()+ ")";
+            var barHeight = 20;
+            var textWidth = 120;
+            var barWidth = 150;
+
+            var color = d3.scale.linear()
+                        .domain([0,100])
+                        .range(["blue","red"]);
+
+            var barScale = d3.scale.linear()
+                             .domain([0,100])
+                             .range([0,barWidth]); 
+
+            for (i=0; i<dim; i++){
+
+                var div = d3.select("#skills-container").append("div")
+                                .attr("class","col-lg-4 text-center")
+
+                div.append("h2")
+                    .text(data[index]["ratings"][i].attribute)
+
+                var userSkills =  div.append("svg")
+                                    .attr("height",height)
+                                    .attr("width",width);
+
+
+                var bar = userSkills.selectAll("rect").data(d3.entries(data[index]["ratings"][i].skills))
+                                .enter()
+                                .append("g")
+                                .attr("transform", function(d, i) { 
+                                    yOffsetGroup = 2*i*barHeight + 20;
+                                    return "translate(10," + yOffsetGroup.toString() +")"; });
+
+                barText = bar.append("text")
+                    .attr("style","cursor:Pointer")
+                    .attr("font-family",textFont)
+                    .attr("text-anchor","end")
+                    .attr("x",textWidth - 20)
+                    .attr("y",0.75*barHeight)
+                    .text(function(d){return d.key;});
+
+                bar.append("svg:title")
+                    .text(function(d){return definitions[d.key];});
+
+                bar.append("rect")
+                    .attr("height",barHeight)
+                    .attr("width",barScale(65))
+                    .attr("fill","rgba(0,0,0,0.5")
+                    .attr("x",textWidth);
+
+                bar.append("rect")
+                    .attr("height",barHeight)
+                    .attr("width",function(d){return barScale(d.value)})
+                    .attr("fill",function(d){return color(d.value);})
+                    .attr("x",textWidth)
+                    .attr("fill-opacity",0.7);
+
+                bar.append("text")
+                    .attr("y",barHeight/2)
+                    .attr("x",function(d){return barScale(d.value) - 20 + textWidth;})
+                    .attr("dy", ".35em")
+                    .attr("fill","white")
+                    .text(function(d){return d.value;});
+            }
+
+        })
+    })
+  </script>
+</body>
+</html>
