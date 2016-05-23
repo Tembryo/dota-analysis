@@ -5,6 +5,7 @@
   <!--[if lte IE 8]><script src="r2d3.min.js" charset="utf-8"></script><![endif]-->
   <!--[if gte IE 9]><!-->
     <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/style.css">
     <script type="text/javascript" src="js/jquery.js"></script>
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
     <script src="js/d3.min.js"></script>
@@ -15,18 +16,41 @@
     <div id="user-dashboard">
         <div class="container">
             <div class="row">
-                <div id="polygon-container" class="col-lg-4 text-center">
-                    <h1> Attributes </h1>
+                <div class="col-lg-4 text-center">
+                    <h2> My Profile </h2>
                 </div>
                 <div id="timeline-container" class="col-lg-8 text-center">
-                    <h1> Match History </h1>
+                    <h2> Match History </h2>
                 </div>
-
-                <div id="skills-container" class="col-lg-10 col-lg-offset-1 text-center">
-                    <h1> Match Report </h1>
-                    <p> In this match you performed well at Farming (number of last-hits was above avere for this hero), Objectives (you delived a significantly higher amount of damage to towers and barracks than average for this hero).</p>
-
-                    <p> The main areas to work on are you camera skills (make more frequent jumps to collect information about what is happening on the other side of the map) and maintaining lane equilibrium (during the first 10 minutes try to deny creeps to keep the lane equilibrium closer to your tower).  </p>
+            </div>
+            <hr class="featurette-divider">
+            <div class="row">
+                    <div class ="col-lg-4"> 
+                        <h2 id="match-report-heading"> Match ID: </h2>
+                    </div>
+                    <div class ="col-lg-8 text-center"> 
+                        <div id = "radiant-hero-image-container" class="hero-image-container">
+                            <img src="http://placehold.it/40x40">
+                            <img src="http://placehold.it/40x40">
+                            <img src="http://placehold.it/40x40">
+                            <img src="http://placehold.it/40x40">
+                            <img src="http://placehold.it/40x40">
+                        </div>
+                        <div id = "dire-hero-image-container" class="hero-image-container">
+                            <img src="http://placehold.it/40x40">
+                            <img src="http://placehold.it/40x40">
+                            <img src="http://placehold.it/40x40">
+                            <img src="http://placehold.it/40x40">
+                            <img src="http://placehold.it/40x40">
+                        </div>
+                    </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div id="polygon-container" class="col-lg-4"> 
+                    </div>
+                    <div id="skills-container" class="col-lg-8">
+                    </div>
                 </div>
             </div>
         </div>
@@ -35,7 +59,7 @@
   <script>
       $(document).ready(function(){
 
-        var boxSize = 300;   // size of the SVG container
+        var boxSize = 275;   // size of the SVG container
         var polyScale = 0.6;  // size of polygon as proportion of SVG container
         var textPaddingScale = 0.12; // padding for text around polygon
         var alpha = 0.1;
@@ -51,7 +75,7 @@
         var textTranslateString = "translate(" + xOffsetText.toString() + "," + yOffsetText.toString()+ ")";
         var barHeight = 20;
         var textWidth = 120;
-        var barWidth = 150;
+        var barWidth = 160;
         var barSpacing = 5;
 
         // definitions to explain skills when user hovers over the text
@@ -102,6 +126,10 @@
                             .attr("height",boxSize)
                             .attr("width",boxSize)
                             .attr("id","polygon-canvas");
+
+            var polygonText = document.createElement("p");
+            polygonText.innerHTML = "Red polygon = rating for selected match. <br> Grey polygon = average over all of your matches.";
+            document.getElementById("polygon-container").appendChild(polygonText); 
 
             // make an array of [x,y] vectors that point towards nodes of polygon
             var vectorArray = [];  
@@ -227,9 +255,9 @@
                 for (i=0; i<n; i++){
 
                 var div = d3.select("#skills-container").append("div")
-                                .attr("class","col-lg-4 text-center")
+                                .attr("class","col-md-6 text-center");
 
-                div.append("h2")
+                div.append("h3")
                     .text(data[index]["ratings"][i].attribute)
 
                 var classString = "svg_" + i.toString();
@@ -472,7 +500,9 @@
                         .on("click",function(d){renderBars(d);
                             d3.selectAll("circle").attr("fill","black");
                             renderPolygon(d,"rgba(255,0,0,0.5)",1);
-                            d3.select(this).attr("fill","rgba(255,0,0,0.8)");})
+                            d3.select(this).attr("fill","rgba(255,0,0,0.8)");
+                            d3.select("#match-report-heading").text("Match ID: "+ d["match-id"]);
+                            renderTips(d);})
                         .on("mouseenter",function(d,i){d3.select(".info-text_"+i.toString()).style("opacity",1);})
                         .on("mouseleave",function(d,i){d3.select(".info-text_"+i.toString()).style("opacity",0);});
 
@@ -511,13 +541,32 @@
 
                 infoText.exit().remove();
 
+                var graphText = document.createElement("p");
+                graphText.innerHTML = "Individual Match Rating (IMR) vs Match Number. <br> (Click on a circle to select that match)" ;
+                document.getElementById("timeline-container").appendChild(graphText);
+
+                document.getElementById("match-report-heading").innerHTML = "Match ID: " + data[data.length-1]["match-id"].toString();
+
             }
             
+            function renderTips(dataPoint){
 
-            var sel = 4;
+                tipsText.innerHTML = "The main areas to work on are you camera skills (make more frequent jumps to collect information about what is happening on the other side of the map) and maintaining lane equilibrium (during the first 10 minutes try to deny creeps to keep the lane equilibrium closer to your tower)."
+
+                document.getElementById("polygon-container").appendChild(tipsText);
+            }
+ 
+            var sel = 2;
             var avData = getAverage(data);
             renderPolygon(avData,"rgba(0,0,0,0.5)",0);
             renderPolygon(data[sel],"rgba(255,0,0,0.5)",1);
+
+            var tipsHeading = document.createElement("h3");
+            tipsHeading.innerHTML = "Tips";
+            document.getElementById("polygon-container").appendChild(tipsHeading);
+
+            var tipsText = document.createElement("p");
+
             renderBarsAv(avData);
             renderBars(data[sel]);
             renderGraph(data);

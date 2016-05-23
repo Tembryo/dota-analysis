@@ -1,5 +1,5 @@
 [{"user-id":0,"match-id":1,"IMR":3000,"date":"19/05/2016","ratings":[
-{"attribute":"Mechanics","rating":7000,"skills":{"item-checks":60,"camera-skills":50,"cursor-control":80,"actions-issued":76}},
+{"attribute":"Mechanics","rating":7000,"skills":{"item-checks":100,"camera-skills":50,"cursor-control":80,"actions-issued":76}},
 {"attribute":"Fighting","rating":1000,"skills":{"damage-dealt":60,"fights-taken/won":70}},
 {"attribute":"Farming","rating":1000,"skills":{"last-hitting":20,"lane-equilibrium":30}},
 {"attribute":"Itemization","rating":1000,"skills":{"TP-scroll use":40,"cooldown-use":70}},
