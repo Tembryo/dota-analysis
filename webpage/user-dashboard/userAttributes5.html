@@ -25,25 +25,9 @@
             </div>
             <hr class="featurette-divider">
             <div class="row">
-                    <div class ="col-lg-4"> 
-                        <h2 id="match-report-heading"> Match ID: </h2>
-                    </div>
-                    <div class ="col-lg-8 text-center"> 
-                        <div id = "radiant-hero-image-container" class="hero-image-container">
-                            <img src="http://placehold.it/40x40">
-                            <img src="http://placehold.it/40x40">
-                            <img src="http://placehold.it/40x40">
-                            <img src="http://placehold.it/40x40">
-                            <img src="http://placehold.it/40x40">
-                        </div>
-                        <div id = "dire-hero-image-container" class="hero-image-container">
-                            <img src="http://placehold.it/40x40">
-                            <img src="http://placehold.it/40x40">
-                            <img src="http://placehold.it/40x40">
-                            <img src="http://placehold.it/40x40">
-                            <img src="http://placehold.it/40x40">
-                        </div>
-                    </div>
+                <div class ="col-lg-12"> 
+                    <h2 id="match-report-heading"> Match ID: 2370326728 Result: Win </h2>
+                </div>
             </div>
             <div class="row">
                 <div class="col-lg-12">
@@ -79,11 +63,11 @@
         var barSpacing = 5;
 
         // definitions to explain skills when user hovers over the text
-        var definitions = {"item-checks":"measures how frequently you compare check items",
+        var definitions = {"item-checks":"measures how frequently you check items of opponents",
                             "camera-skills":"measures your camera skills",
                             "cursor-control":"measures you cursor control",
                             "actions-issued":"measures effectivenss of actions issued to teammates",
-                            "damage-dealt":"measures how much damage you do to opponent heros",
+                            "damage-dealt":"measures how much damage you do to opponent heroes",
                             "fights-taken/won":"measures how many fights you won out of the fights you took",
                             "last-hitting":"measures your last hitting performance",
                             "lane-equilibrium":"measures your control of the lane equilibrium",
@@ -92,7 +76,7 @@
                             "tower-damage":"measures how much damage to towers you do in each game",
                             "barracks-damage":"measures how much damage to barracks you do in each game",
                             "hiding-from-vision":"measures how often you are consealed from vision from the enemy",
-                            "runes":"measues your effeciv at taking runes"
+                            "runes":"measues your effectiveness at taking runes"
                             };
 
         var xOffset = boxSize/2;
@@ -551,7 +535,41 @@
             
             function renderTips(dataPoint){
 
-                tipsText.innerHTML = "The main areas to work on are you camera skills (make more frequent jumps to collect information about what is happening on the other side of the map) and maintaining lane equilibrium (during the first 10 minutes try to deny creeps to keep the lane equilibrium closer to your tower)."
+                // make an object containing all the tips for how to improve each skill
+                var tips = {}
+
+                tips["item-checks"] = "item-checks";
+                tips["camera-skills"] = "make more frequent jumps to collect information about what is happening on the other side of the map";
+                tips["cursor-control"] = "cursor-control";
+                tips["actions-issued"] = "actions-issued";
+                tips["damage-dealt"] = "damage-dealt";
+                tips["fights-taken"] = "fights-taken";
+                tips["last-hitting"] = "practice timing your last hits better as you were slightly early in several cases";
+                tips["lane-equilibrium"] = "try to maintain lane equilibrium close to your towers during first 10 mins"
+                tips["TP-scroll-use"] = "TP-scroll-use";
+                tips["cooldown-use"] = "you are under-utilising some of your items";
+                tips["tower-damage"] = "tower-damage";
+                tips["barracks-damage"] = "look for opportunities to do more damage to the opponent's barracks";
+                tips["hiding-from-vision"] = "try to be more aware of when you are visible to the enemy and remain concealed if possible";
+                tips["runes"] = "runes";
+
+                // find the two weakest skills of user in selected match
+
+                skillsList = [];
+
+                for (j=0; j<dataPoint["ratings"].length; j++){
+                    for (var skill in dataPoint["ratings"][j]["skills"]){
+                        skillsList.push([skill, dataPoint["ratings"][j]["skills"][skill]]);
+                        // if a[1] > b[1] --> a gets sorted to have a lower index than b
+                        skillsList.sort(function(a, b) {return a[1]- b[1]});
+                    }
+
+                }
+
+                var skillOne = skillsList[0][0];
+                var skillTwo = skillsList[1][0];
+
+                tipsText.innerHTML = "Work on your " + skillOne +  " (" + tips[skillOne] + ") and " + skillTwo + " (" + tips[skillTwo] + ").";
 
                 document.getElementById("polygon-container").appendChild(tipsText);
             }
@@ -570,6 +588,7 @@
             renderBarsAv(avData);
             renderBars(data[sel]);
             renderGraph(data);
+            renderTips(data[sel]);
 
 
 
