@@ -16,17 +16,37 @@
     <div id="user-dashboard">
         <div class="container">
             <div class="row">
-                <div class="col-lg-4 text-center">
-                    <h2> My Profile </h2>
+                <div class="col-lg-12">
+                    <h2 id="user-name"> Lord_Zera </h2>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-4">
+                    <img height="300px" width="300px" src ="img/HarryPotter.png">
                 </div>
                 <div id="timeline-container" class="col-lg-8 text-center">
-                    <h2> Match History </h2>
                 </div>
             </div>
             <hr class="featurette-divider">
             <div class="row">
-                <div class ="col-lg-12"> 
+                <div class ="col-lg-4"> 
                     <h2 id="match-report-heading"> Match ID: 2370326728 Result: Win </h2>
+                </div>
+                <div class= "col-lg-8 text-center">
+                    <div class="hero-image-container">
+                        <img id="hero_0" height="32" width="60" src="static/img/heroes/pictures/Abaddon.png">
+                        <img id="hero_1" height="32" width="60" src="static/img/heroes/pictures/Alchemist.png">
+                        <img id="hero_2" height="32" width="60" src="static/img/heroes/pictures/Ancient_Apparition.png">
+                        <img id="hero_3" height="32" width="60" src="static/img/heroes/pictures/Antimage.png">
+                        <img id="hero_4" height="32" width="60" src="static/img/heroes/pictures/Arc Warden.png">
+                    </div>
+                    <div class="hero-image-container">
+                        <img id="hero_5" height="32" width="60" src="static/img/heroes/pictures/Axe.png">
+                        <img id="hero_6" height="32" width="60" src="static/img/heroes/pictures/Bane.png">
+                        <img id="hero_7" height="32" width="60" src="static/img/heroes/pictures/Batrider.png">
+                        <img id="hero_8" height="32" width="60" src="static/img/heroes/pictures/Beastmaster.png">
+                        <img id="hero_9" height="32" width="60" src="static/img/heroes/pictures/Bounty_Hunter.png">
+                    </div>
                 </div>
             </div>
             <div class="row">
@@ -78,6 +98,235 @@
                             "hiding-from-vision":"measures how often you are consealed from vision from the enemy",
                             "runes":"measues your effectiveness at taking runes"
                             };
+
+        var pictures =
+            {
+                "abaddon":              "static/img/heroes/pictures/Abaddon.png",
+                "alchemist":            "static/img/heroes/pictures/Alchemist.png",
+                "ancient_apparition":   "static/img/heroes/pictures/Ancient_Apparition.png",
+                "antimage":             "static/img/heroes/pictures/Antimage.png",
+                "arc_warden":           "static/img/heroes/pictures/Arc Warden.png",
+                "axe":                  "static/img/heroes/pictures/Axe.png",
+                "bane":                 "static/img/heroes/pictures/Bane.png",
+                "batrider":             "static/img/heroes/pictures/Batrider.png",
+                "beastmaster":          "static/img/heroes/pictures/Beastmaster.png",
+                "bloodseeker":          "static/img/heroes/pictures/Bloodseeker.png",
+                "bounty_hunter":        "static/img/heroes/pictures/Bounty_Hunter.png",
+                "brewmaster":           "static/img/heroes/pictures/Brewmaster.png",
+                "bristleback":          "static/img/heroes/pictures/Bristleback.png",
+                "broodmother":          "static/img/heroes/pictures/Broodmother.png",
+                "centaur":              "static/img/heroes/pictures/Centaur_Warrunner.png",
+                "chaos_knight":         "static/img/heroes/pictures/Chaos_Knight.png",
+                "chen":                 "static/img/heroes/pictures/Chen.png",
+                "clinkz":               "static/img/heroes/pictures/Clinkz.png",
+                "crystal_maiden":       "static/img/heroes/pictures/Crystal Maiden.png",
+                "dark_seer":            "static/img/heroes/pictures/Dark Seer.png",
+                "dazzle":               "static/img/heroes/pictures/Dazzle.png",
+                "death_prophet":        "static/img/heroes/pictures/Death_Prophet.png",
+                "disruptor":            "static/img/heroes/pictures/Disruptor.png",
+                "doom_bringer":         "static/img/heroes/pictures/Doom.png",
+                "dragon_knight":        "static/img/heroes/pictures/Dragon_Knight.png",
+                "drow_ranger":          "static/img/heroes/pictures/Drow_Ranger.png",
+                "earthshaker":          "static/img/heroes/pictures/Earthshaker.png",
+                "elder_titan":          "static/img/heroes/pictures/Elder_Titan.png",
+                "earth_spirit":          "static/img/heroes/pictures/Earth_Spirit.png",
+                "ember_spirit":         "static/img/heroes/pictures/Ember_Spirit.png",
+                "enchantress":          "static/img/heroes/pictures/Enchantress.png",
+                "enigma":               "static/img/heroes/pictures/Enigma.png",
+                "furion":               "static/img/heroes/pictures/Furion.png",
+                "faceless_void":        "static/img/heroes/pictures/Faceless Void.png",
+                "gyrocopter":           "static/img/heroes/pictures/Gyrocopter.png", 
+                "huskar":               "static/img/heroes/pictures/Huskar.png",
+                "invoker":              "static/img/heroes/pictures/Invoker.png",
+                "jakiro":               "static/img/heroes/pictures/Jakiro.png",
+                "juggernaut":           "static/img/heroes/pictures/Juggernaut.png",
+                "keeper_of_the_light":  "static/img/heroes/pictures/Keeper_of_the_Light.png",
+                "kunkka":               "static/img/heroes/pictures/Kunkka.png",
+                "legion_commander":     "static/img/heroes/pictures/Legion_Commander.png",
+                "leshrac":              "static/img/heroes/pictures/Leshrac.png",
+                "lich":                 "static/img/heroes/pictures/Lich.png",
+                "life_stealer":         "static/img/heroes/pictures/Life Stealer.png",
+                "lina":                 "static/img/heroes/pictures/Lina.png",
+                "lion":                 "static/img/heroes/pictures/Lion.png",
+                "lone_druid":           "static/img/heroes/pictures/Lone_Druid.png",
+                "luna":                 "static/img/heroes/pictures/Luna.png",
+                "lycan":                "static/img/heroes/pictures/Lycanthrope.png",
+                "magnataur":            "static/img/heroes/pictures/Magnataur.png",
+                "medusa":               "static/img/heroes/pictures/Medusa.png",
+                "meepo":                "static/img/heroes/pictures/Meepo.png",
+                "mirana":               "static/img/heroes/pictures/Mirana.png",
+                "morphling":            "static/img/heroes/pictures/Morphling.png",
+                "naga_siren":           "static/img/heroes/pictures/Naga Siren.png",
+                "necrolyte":            "static/img/heroes/pictures/Necrolyte.png",
+                "nevermore":            "static/img/heroes/pictures/Shadow_Fiend.png",
+                "night_stalker":        "static/img/heroes/pictures/Night_Stalker.png",
+                "nyx_assassin":         "static/img/heroes/pictures/Nyx Assassin.png",
+                "obsidian_destroyer":   "static/img/heroes/pictures/Obsidian Destroyer.png",
+                "ogre_magi":            "static/img/heroes/pictures/Ogre_Magi.png",
+                "omniknight":           "static/img/heroes/pictures/Omniknight.png",
+                "oracle":               "static/img/heroes/pictures/Oracle.png",
+                "phantom_assassin":     "static/img/heroes/pictures/Phantom_Assassin.png",
+                "phantom_lancer":       "static/img/heroes/pictures/Phantom_Lancer.png",
+                "phoenix":              "static/img/heroes/pictures/Phoenix.png",
+                "puck":                 "static/img/heroes/pictures/Puck.png",
+                "pudge":                "static/img/heroes/pictures/Pudge.png",
+                "pugna":                "static/img/heroes/pictures/Pugna.png",
+                "queenofpain":          "static/img/heroes/pictures/Queen of Pain.png",
+                "rattletrap":           "static/img/heroes/pictures/Rattletrap.png",
+                "razor":                "static/img/heroes/pictures/Razor.png",
+                "riki":                 "static/img/heroes/pictures/Riki.png",
+                "rubick":               "static/img/heroes/pictures/Rubick.png",
+                "sand_king":            "static/img/heroes/pictures/Sand_King.png",
+                "shadow_demon":         "static/img/heroes/pictures/Shadow_Demon.png",
+                "shadow_shaman":        "static/img/heroes/pictures/Shadow_Shaman.png",
+                "shredder":             "static/img/heroes/pictures/Timbersaw.png",
+                "silencer":             "static/img/heroes/pictures/Silencer.png",
+                "skeleton_king":        "static/img/heroes/pictures/Wraith_King.png",
+                "skywrath_mage":        "static/img/heroes/pictures/Skywrath_Mage.png",
+                "slardar":              "static/img/heroes/pictures/Slardar.png",
+                "slark":                "static/img/heroes/pictures/Slark.png",
+                "sniper":               "static/img/heroes/pictures/Sniper.png",
+                "spectre":              "static/img/heroes/pictures/Spectre.png", 
+                "spirit_breaker":       "static/img/heroes/pictures/Spirit_Breaker.png",
+                "storm_spirit":         "static/img/heroes/pictures/Storm_Spirit.png",
+                "sven":                 "static/img/heroes/pictures/Sven.png",
+                "techies":              "static/img/heroes/pictures/Techies.png",
+                "templar_assassin":     "static/img/heroes/pictures/Templar Assassin.png",
+                "terrorblade":          "static/img/heroes/pictures/Terrorblade.png",
+                "tidehunter":           "static/img/heroes/pictures/Tidehunter.png",
+                "tinker":               "static/img/heroes/pictures/Tinker.png",
+                "tiny":                 "static/img/heroes/pictures/Tiny.png",
+                "treant":               "static/img/heroes/pictures/Treant.png",
+                "troll_warlord":        "static/img/heroes/pictures/Troll_Warlord.png",
+                "tusk":                 "static/img/heroes/pictures/Tusk.png",
+                "undying":              "static/img/heroes/pictures/Undying.png",
+                "vengefulspirit":       "static/img/heroes/pictures/Vengeful Spirit.png",
+                "venomancer":           "static/img/heroes/pictures/Venomancer.png",
+                "viper":                "static/img/heroes/pictures/Viper.png", 
+                "visage":               "static/img/heroes/pictures/Visage.png",
+                "ursa":                 "static/img/heroes/pictures/Ursa.png",
+                "warlock":              "static/img/heroes/pictures/Warlock.png",
+                "weaver":               "static/img/heroes/pictures/Weaver.png",
+                "windrunner":           "static/img/heroes/pictures/Windrunner.png",
+                "winter_wyvern":        "static/img/heroes/pictures/Winter Wyvern.png",
+                "wisp":                 "static/img/heroes/pictures/Wisp.png",
+                "witch_doctor":         "static/img/heroes/pictures/Witch_Doctor.png",
+                "zuus":                 "static/img/heroes/pictures/Zeus.png"
+            };
+
+        var icon_images = {
+            "abaddon":              "static/img/heroes/icons/Abaddon_icon.png",
+            "alchemist":            "static/img/heroes/icons/Alchemist_icon.png",
+            "ancient_apparition":   "static/img/heroes/icons/Ancient_Apparition_icon.png",
+            "antimage":             "static/img/heroes/icons/Antimage_icon.png",
+            "arc_warden":           "static/img/heroes/icons/Arc_Warden_icon.png",
+            "axe":                  "static/img/heroes/icons/Axe_icon.png",
+            "bane":                 "static/img/heroes/icons/Bane_icon.png",
+            "batrider":             "static/img/heroes/icons/Batrider_icon.png",
+            "beastmaster":          "static/img/heroes/icons/Beastmaster_icon.png",
+            "bloodseeker":          "static/img/heroes/icons/Bloodseeker_icon.png",
+            "bounty_hunter":        "static/img/heroes/icons/Bounty Hunter_icon.png",
+            "brewmaster":           "static/img/heroes/icons/Brewmaster_icon.png",
+            "bristleback":          "static/img/heroes/icons/Bristleback_icon.png",
+            "broodmother":          "static/img/heroes/icons/Broodmother_icon.png",
+            "centaur":              "static/img/heroes/icons/Centaur Warrunner_icon.png",
+            "chaos_knight":         "static/img/heroes/icons/Chaos Knight_icon.png",
+            "chen":                 "static/img/heroes/icons/Chen_icon.png",
+            "clinkz":               "static/img/heroes/icons/Clinkz_icon.png",
+            "crystal_maiden":       "static/img/heroes/icons/Crystal Maiden_icon.png",
+            "dark_seer":            "static/img/heroes/icons/Dark Seer_icon.png",
+            "dazzle":               "static/img/heroes/icons/Dazzle_icon.png",
+            "death_prophet":        "static/img/heroes/icons/Death Prophet_icon.png",
+            "disruptor":            "static/img/heroes/icons/Disruptor_icon.png",
+            "doom_bringer":         "static/img/heroes/icons/Doom Bringer_icon.png",
+            "dragon_knight":        "static/img/heroes/icons/Dragon Knight_icon.png",
+            "drow_ranger":          "static/img/heroes/icons/Drow Ranger_icon.png",
+            "earthshaker":          "static/img/heroes/icons/Earthshaker_icon.png",
+            "elder_titan":          "static/img/heroes/icons/Elder Titan_icon.png",
+            "earth_spirit":          "static/img/heroes/icons/Earth Spirit_icon.png",
+            "ember_spirit":         "static/img/heroes/icons/Ember Spirit_icon.png",
+            "enchantress":          "static/img/heroes/icons/Enchantress_icon.png",
+            "enigma":               "static/img/heroes/icons/Enigma_icon.png",
+            "furion":               "static/img/heroes/icons/Nature's Prophet_icon.png",
+            "faceless_void":        "static/img/heroes/icons/Faceless Void_icon.png",
+            "gyrocopter":           "static/img/heroes/icons/Gyrocopter_icon.png", 
+            "huskar":               "static/img/heroes/icons/Huskar_icon.png",
+            "invoker":              "static/img/heroes/icons/Invoker_icon.png",
+            "jakiro":               "static/img/heroes/icons/Jakiro_icon.png",
+            "juggernaut":           "static/img/heroes/icons/Juggernaut_icon.png",
+            "keeper_of_the_light":  "static/img/heroes/icons/Keeper of the Light_icon.png",
+            "kunkka":               "static/img/heroes/icons/Kunkka_icon.png",
+            "legion_commander":     "static/img/heroes/icons/Legion Commander_icon.png",
+            "leshrac":              "static/img/heroes/icons/Leshrac_icon.png",
+            "lich":                 "static/img/heroes/icons/Lich_icon.png",
+            "life_stealer":         "static/img/heroes/icons/Life Stealer_icon.png",
+            "lina":                 "static/img/heroes/icons/Lina_icon.png",
+            "lion":                 "static/img/heroes/icons/Lion_icon.png",
+            "lone_druid":           "static/img/heroes/icons/Lone Druid_icon.png",
+            "luna":                 "static/img/heroes/icons/Luna_icon.png",
+            "lycan":                "static/img/heroes/icons/Lycanthrope_icon.png",
+            "magnataur":            "static/img/heroes/icons/Magnataur_icon.png",
+            "medusa":               "static/img/heroes/icons/Medusa_icon.png",
+            "meepo":                "static/img/heroes/icons/Meepo_icon.png",
+            "mirana":               "static/img/heroes/icons/Mirana_icon.png",
+            "morphling":            "static/img/heroes/icons/Morphling_icon.png",
+            "naga_siren":           "static/img/heroes/icons/Naga Siren_icon.png",
+            "necrolyte":            "static/img/heroes/icons/Necrolyte_icon.png",
+            "nevermore":            "static/img/heroes/icons/Shadow Fiend_icon.png",
+            "night_stalker":        "static/img/heroes/icons/Night Stalker_icon.png",
+            "nyx_assassin":         "static/img/heroes/icons/Nyx Assassin_icon.png",
+            "obsidian_destroyer":   "static/img/heroes/icons/Obsidian Destroyer_icon.png",
+            "ogre_magi":            "static/img/heroes/icons/Ogre Magi_icon.png",
+            "omniknight":           "static/img/heroes/icons/Omniknight_icon.png",
+            "oracle":               "static/img/heroes/icons/Oracle_icon.png",
+            "phantom_assassin":     "static/img/heroes/icons/Phantom Assassin_icon.png",
+            "phantom_lancer":       "static/img/heroes/icons/Phantom Lancer_icon.png",
+            "phoenix":              "static/img/heroes/icons/Phoenix_icon.png",
+            "puck":                 "static/img/heroes/icons/Puck_icon.png",
+            "pudge":                "static/img/heroes/icons/Pudge_icon.png",
+            "pugna":                "static/img/heroes/icons/Pugna_icon.png",
+            "queenofpain":          "static/img/heroes/icons/Queen Of Pain_icon.png",
+            "rattletrap":           "static/img/heroes/icons/Rattletrap_icon.png",
+            "razor":                "static/img/heroes/icons/Razor_icon.png",
+            "riki":                 "static/img/heroes/icons/Riki_icon.png",
+            "rubick":               "static/img/heroes/icons/Rubick_icon.png",
+            "sand_king":            "static/img/heroes/icons/Sand King_icon.png",
+            "shadow_demon":         "static/img/heroes/icons/Shadow Demon_icon.png",
+            "shadow_shaman":        "static/img/heroes/icons/Shadow Shaman_icon.png",
+            "shredder":             "static/img/heroes/icons/Shredder_icon.png",
+            "silencer":             "static/img/heroes/icons/Silencer_icon.png",
+            "skeleton_king":        "static/img/heroes/icons/Wraith_King_icon.png",
+            "skywrath_mage":        "static/img/heroes/icons/Skywrath_Mage_icon.png",
+            "slardar":              "static/img/heroes/icons/Slardar_icon.png",
+            "slark":                "static/img/heroes/icons/Slark_icon.png",
+            "sniper":               "static/img/heroes/icons/Sniper_icon.png",
+            "spectre":              "static/img/heroes/icons/Spectre_icon.png", 
+            "spirit_breaker":       "static/img/heroes/icons/Spirit Breaker_icon.png",
+            "storm_spirit":         "static/img/heroes/icons/Storm_Spirit_icon.png",
+            "sven":                 "static/img/heroes/icons/Sven_icon.png",
+            "techies":              "static/img/heroes/icons/Techies_icon.png",
+            "templar_assassin":     "static/img/heroes/icons/Templar Assassin_icon.png",
+            "terrorblade":          "static/img/heroes/icons/Terrorblade_icon.png",
+            "tidehunter":           "static/img/heroes/icons/Tidehunter_icon.png",
+            "tinker":               "static/img/heroes/icons/Tinker_icon.png",
+            "tiny":                 "static/img/heroes/icons/Tiny_icon.png",
+            "treant":               "static/img/heroes/icons/Treant_icon.png",
+            "troll_warlord":        "static/img/heroes/icons/Troll Warlord_icon.png",
+            "tusk":                 "static/img/heroes/icons/Tusk_icon.png",
+            "undying":              "static/img/heroes/icons/Undying_icon.png",
+            "vengefulspirit":       "static/img/heroes/icons/Vengeful Spirit_icon.png",
+            "venomancer":           "static/img/heroes/icons/Venomancer_icon.png",
+            "viper":                "static/img/heroes/icons/Viper_icon.png", 
+            "visage":               "static/img/heroes/icons/Visage_icon.png",
+            "ursa":                 "static/img/heroes/icons/Ursa_icon.png",
+            "warlock":              "static/img/heroes/icons/Warlock_icon.png",
+            "weaver":               "static/img/heroes/icons/Weaver_icon.png",
+            "windrunner":           "static/img/heroes/icons/Windrunner_icon.png",
+            "winter_wyvern":        "static/img/heroes/icons/Winter_Wyvern_icon.png",
+            "wisp":                 "static/img/heroes/icons/Wisp_icon.png",
+            "witch_doctor":         "static/img/heroes/icons/Witch_Doctor_icon.png",
+            "zuus":                 "static/img/heroes/icons/Zeus_icon.png"
+        };
 
         var xOffset = boxSize/2;
         var yOffset = boxSize/2;
@@ -471,27 +720,39 @@
                 canvas.select("#y-axis-label")
                     .text("IMR");
 
-                var circles = canvas.selectAll("circles")
-                                .data(data,function(d){return d["IMR"]});
+                var icon_size = 32;
 
-                circles.enter()
-                        .append("circle")
-                        .attr("id", function(d,i){return "circle" + i;})
-                        .attr("fill",function(d,i){if (i==data.length-1){ return "rgba(255,0,0,0.8)" } return "black"})
-                        .attr("cx",function(d,i){return x_scale(i+1);})
-                        .attr("cy",function(d){return y_scale(d["IMR"]);})
-                        .attr("r",10)
+                var icons = canvas.selectAll("circles")
+                                .data(data);
+
+                var iconsGroup = icons.enter()
+                                    .append("g")
+                                    .attr("id", function(d,i){return "circle" + i;})
+
+                iconsGroup.append("circle")
+                        .attr("fill",function(d,i){if (i==data.length-1){ return "rgba(255,0,0,0.8)" } return "rgba(140,140,140,0)"})
+                        .attr("cx",function(d,i){return  x_scale(i+1)})
+                        .attr("cy",function(d){return y_scale(d["IMR"])})
+                        .attr("r",20)
                         .on("click",function(d){renderBars(d);
-                            d3.selectAll("circle").attr("fill","black");
+                            d3.selectAll("circle").attr("fill","rgba(140,140,140,0)");
                             renderPolygon(d,"rgba(255,0,0,0.5)",1);
                             d3.select(this).attr("fill","rgba(255,0,0,0.8)");
                             d3.select("#match-report-heading").text("Match ID: "+ d["match-id"]);
-                            renderTips(d);})
+                            renderTips(d);
+                            renderHeroImages(d);})
                         .on("mouseenter",function(d,i){d3.select(".info-text_"+i.toString()).style("opacity",1);})
                         .on("mouseleave",function(d,i){d3.select(".info-text_"+i.toString()).style("opacity",0);});
 
+                iconsGroup.append("svg:image")
+                        .attr("xlink:href",function(d){return icon_images[d["heroes"][d["hero-id"]]];})
+                        .attr("x", function(d,i){return  x_scale(i+1)-0.5*icon_size})
+                        .attr("y", function(d){return y_scale(d["IMR"]) -0.5*icon_size})
+                        .attr("width",icon_size)
+                        .attr("height",icon_size)
+                        .attr("pointer-events","none");
 
-                circles.exit().remove();
+                icons.exit().remove();
 
                 var infoText = canvas.selectAll(".id-text")
                                 .data(data);
@@ -503,25 +764,19 @@
 
                 infoGroup.append("rect")
                         .attr("class","textRect")
-                        .attr("height",44)
-                        .attr("width",80)
+                        .attr("height",30)
+                        .attr("width",40)
                         .attr("fill","rgba(50,50,50,0.9)")  
                         .attr("rx",4)
                         .attr("ry",4)    
-                        .attr("x",function(d,i){return x_scale(i+1)-44;})
+                        .attr("x",function(d,i){return x_scale(i+1)-20;})
                         .attr("y",function(d){return y_scale(d["IMR"])-60;});
 
                 infoGroup.append("text")                                           
-                        .attr("x",function(d,i){return x_scale(i+1)-40;})
+                        .attr("x",function(d,i){return x_scale(i+1)-16;})
                         .attr("y",function(d){return y_scale(d["IMR"])-40;})
                         .attr("fill","white")
-                        .text(function(d){return d["match-id"]});                
-                        
-                infoGroup.append("text")
-                        .text(function(d){return d["date"]}) 
-                        .attr("fill","white")       
-                        .attr("x",function(d,i){return x_scale(i+1)-40;})
-                        .attr("y",function(d){return y_scale(d["IMR"])-20;})
+                        .text(function(d){return d["IMR"]});               
 
                 infoText.exit().remove();
 
@@ -573,6 +828,13 @@
 
                 document.getElementById("polygon-container").appendChild(tipsText);
             }
+
+            function renderHeroImages(dataPoint) {
+                var heroes = dataPoint["heroes"];
+                for (i=0; i<heroes.length; i++){
+                    document.getElementById("hero_" + i.toString()).src = pictures[heroes[i]];
+                }
+            }
  
             var sel = 2;
             var avData = getAverage(data);
@@ -589,6 +851,7 @@
             renderBars(data[sel]);
             renderGraph(data);
             renderTips(data[sel]);
+            renderHeroImages(data[sel]);
 
 
 
