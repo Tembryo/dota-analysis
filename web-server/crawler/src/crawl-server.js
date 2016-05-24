@@ -119,7 +119,7 @@ function addSampleMatches(message, callback_request)
                     "WITH SampleBins AS "+
                     "(SELECT -LOG(COUNT(*)::float/(SELECT COUNT(*) FROM mmrdata WHERE solo_mmr IS NOT NULL)) as entropy, "+
                     "floor(AVG(d.solo_mmr)/$1)*$1 as mmr_bin "+
-                    "FROM mmrdata d WHERE d.solo_mmr IS NOT NULL GROUP BY floor(d.solo_mmr/$1)*$1)"+
+                    "FROM mmrdata d WHERE d.solo_mmr IS NOT NULL GROUP BY floor(d.solo_mmr/$1)*$1) "+
                     "SELECT m.matchid, SUM(bin.entropy) AS value "+
                     "FROM CrawlingMatches m, CrawlingMatchStatuses s, CrawlingSamples smpl, SampleBins bin "+
                     "WHERE smpl.matchid= m.matchid AND s.label='open' AND s.id=m.status AND floor(smpl.solo_mmr/$1)*$1=bin.mmr_bin "+

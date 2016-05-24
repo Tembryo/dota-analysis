@@ -138,7 +138,7 @@ var downloadFile = function(url, dest, cb) {
 };
 
 
-
+var minimum_filesize = 1024*1024; //require replays to be > 1MB
 
 //Full download procedure of a match starting from the match ID
 //Retrieves salt using a given Dota2 client, stores the downloaded/decompressed replay 
@@ -152,7 +152,22 @@ function downloadMatch(replay_data, target, callback)
     console.log("Downloading from", replay_address, " into ", file, new Date());
     //downloadAndDecompress(replay_address, file, function(){callback(null, file);});
 
-    downloadFile(replay_address, file, function(err){callback(err, file);});
+    downloadFile(replay_address, file, 
+        function(err)
+        {
+            if(err)
+            {
+                callback(err, file);
+                return;
+            }
+            //check file size
+            var stats = fs.statSync(file)
+            var fileSizeInBytes = stats["size"];
+            if(fileSizeInBytes > minimum_filesize)
+                callback(null, file);
+            else
+                callback("replay too small", file);
+        });
 }
 
 

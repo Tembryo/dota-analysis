@@ -1,0 +1,1 @@
+ALTER TABLE Matches ADD COLUMN analysis_version text;

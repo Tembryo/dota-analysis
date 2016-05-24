@@ -79,7 +79,7 @@ function loadQueue(callback)
     async.waterfall(
         [
             database.generateQueryFunction(
-                "SELECT id, data from Jobs WHERE finished IS NULL;",
+                "SELECT id, data, started from Jobs WHERE finished IS NULL;",
                 []),
             function(results, callback)
             {
@@ -87,7 +87,7 @@ function loadQueue(callback)
                 async.each(results.rows,
                     function(row, callback)
                     {
-                        createJob(row["data"], row["id"], 
+                        createJob(row["data"], row["id"], row["started"],
                             function(id){
                                 callback();
                             }
@@ -629,9 +629,6 @@ function updateAllHistories()
     );
 }
 
-var candidates_batch_size = 200;
-if(process.env.VERSION === "DEV")
-    candidates_batch_size = 0 ;
 var crawl_interval = 60*1000*5;
 
 function crawlCandidateMatches()
@@ -639,9 +636,10 @@ function crawlCandidateMatches()
     var locals = {};
     async.waterfall(
         [
-            function(callback)
+            database.generateQueryFunction("SELECT data FROM Settings WHERE name=$1;", ["crawler_candidates_batch_size"]),
+            function(results, callback)
             {
-
+                var candidates_batch_size = results.rows[0]["data"]["value"];
                 var job_data = {
                     "message":      "CrawlCandidates",
                     "n":  candidates_batch_size
@@ -665,9 +663,6 @@ function crawlCandidateMatches()
     );
 }
 
-var add_samples_batch_size = 2;
-if(process.env.VERSION === "DEV")
-    add_samples_batch_size = 0;
 var add_interval = 60*1000*5;
 
 function addSampleMatches()
@@ -675,8 +670,10 @@ function addSampleMatches()
     var locals = {};
     async.waterfall(
         [
-            function(callback)
+            database.generateQueryFunction("SELECT data FROM Settings WHERE name=$1;", ["add_samples_batch_size"]),
+            function(results, callback)
             {
+                var add_samples_batch_size = results.rows[0]["data"]["value"];
 
                 var job_data = {
                     "message":      "AddSampleMatches",
@@ -729,9 +726,14 @@ function schedulerTick()
                     console.log("\t\t", servers_by_type[type][i], JSON.stringify(server_log_obj));
                 }
             }*/
+            var job_keys =  Object.keys(jobs_queue);
+            job_keys.sort(
+                function(a, b){
+                    return jobs_queue[b]["time"] - jobs_queue[a]["time"];
+                })
 
             async.eachSeries(
-                Object.keys(jobs_queue),
+                job_keys,
                 function(job_id, callback)
                 {
                     if(jobs_queue[job_id]["state"] === "open")
@@ -883,13 +885,18 @@ function chooseCrawlServer()
 
 function createTemporaryJob(data, callback)
 {
-    createJob(data, shortid.generate(), callback);
+    createJob(data, shortid.generate(), null, callback);
 }
 
-function createJob(data, id, callback_job)
+function createJob(data, id, started, callback_job)
 {
     var job = {};
-    job ["time"] = Date.now();
+    if(started)
+        job ["time"] = started;
+    else
+        job ["time"] = Date.now();
+
+    console.log("job ",started, job ["time"])
     job ["state"] = "open";
     job ["data"] = data;
     console.log("creating job", id, data);

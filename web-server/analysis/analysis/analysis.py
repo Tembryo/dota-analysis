@@ -33,7 +33,7 @@ class Match:
         self.entitied_input_filename = match_directory+"/ents.csv"
         # variables that determine how the data is analysed - need to include all parameters
         self.parameters = {}
-        self.parameters["version"] = "0.0.05"
+        self.parameters["version"] = "0.1.00"
         self.parameters["datetime"] = {}
         self.parameters["datetime"]["date"] = str(datetime.date.today())
         self.parameters["datetime"]["time"] = str(datetime.datetime.now().time())
@@ -58,7 +58,7 @@ class Match:
 
         self.parameters["heroPositions"] = {}
         self.parameters["heroPositions"]["sample_step_size"] = 150
-        self.parameters["heroPositions"]["sample_step_size_hifi"] = 10
+        self.parameters["heroPositions"]["sample_step_size_hifi"] = 1
 
         self.parameters["heroTrajectories"] = {}
         self.parameters["heroTrajectories"]["delta"] = 1000
@@ -88,6 +88,12 @@ class Match:
         self.parameters["fightEvaluation"]["kappa"] = 0.15
         self.parameters["fightEvaluation"]["time_threshold"] = 2
 
+        self.parameters["creepEvaluation"] = {}
+        self.parameters["creepEvaluation"]["responsibility_distance"] = 1000
+
+        self.parameters["cameraEvaluation"] = {}
+        self.parameters["cameraEvaluation"]["jump_threshold"] = 1500
+        self.parameters["cameraEvaluation"]["self_range"] = 1500
     def matchInfo(self):
 
         # extract the match and player info (id,team names,player names,hero names,match start and end times) from the header and events files
@@ -259,7 +265,7 @@ def killsInfo(match):
 #############################################################################################
 
 
-def heroPositions(match):
+def loadTrajectoriesFile(match):
 
     #for each hero, sample their [x(t),y(t)] coordinates for each time t between the pregame start time
     # and the match end time and store in v_mat and t_vec  
@@ -277,9 +283,17 @@ def heroPositions(match):
     pregame_start_time = match.pregame_start_time
     match_end_time = match.match_end_time
 
-    for key in heroes:
-        v_mat[key] = []
-        v_mat_hifi[key] = []
+    for hero in heroes:
+        v_mat[hero] = { "position": [],
+                        "camera": [],
+                        "mouse": [],
+                        "hp": [],
+                        "mana": []}
+        v_mat_hifi[hero] = { "position": [],
+                        "camera": [],
+                        "mouse": [],
+                        "hp": [],
+                        "mana": []}
 
     with  open(match.position_input_filename,'rb') as file:
         reader = csv.DictReader(file)    
@@ -292,14 +306,30 @@ def heroPositions(match):
                     t_vec_hifi.append(t)
                     if (i % sample_step_size==0):
                             t_vec.append(t)
-                    for key in heroes:
-                        v = [float(row["{}X".format(heroes[key]["index"])]),float(row["{}Y".format(heroes[key]["index"])])]
-                        v_mat_hifi[key].append(v)
+                    for hero in heroes:
+                        v_position = [float(row["{}X".format(heroes[hero]["index"])]),float(row["{}Y".format(heroes[hero]["index"])])]
+                        v_cam = [float(row["{}CamX".format(heroes[hero]["index"])]),float(row["{}CamY".format(heroes[hero]["index"])])]
+                        v_mouse = [float(row["{}MouseX".format(heroes[hero]["index"])]),float(row["{}MouseX".format(heroes[hero]["index"])])]
+                        hp = [float(row["{}HP".format(heroes[hero]["index"])])]
+                        mana = [float(row["{}Mana".format(heroes[hero]["index"])])]
+
+
+                        v_mat_hifi[hero]["position"].append(v_position)
+                        v_mat_hifi[hero]["camera"].append(v_cam)
+                        v_mat_hifi[hero]["mouse"].append(v_mouse)
+                        v_mat_hifi[hero]["hp"].append(hp)
+                        v_mat_hifi[hero]["mana"].append(mana)
                         if (i % sample_step_size==0):
-                            v_mat[key].append(v)
+                            v_mat[hero]["position"].append(v_position)
+                            v_mat[hero]["camera"].append(v_cam)
+                            v_mat[hero]["mouse"].append(v_mouse)
+                            v_mat[hero]["hp"].append(hp)
+                            v_mat[hero]["mana"].append(mana)
 
     state = [v_mat,t_vec]
     state_hifi = [v_mat_hifi,t_vec_hifi]
+
+    match.state_hifi = state_hifi
 
     return (state,state_hifi) 
 
@@ -326,28 +356,28 @@ def heroTrajectories(match,state,hero_deaths,number_of_kills,number_of_deaths):
         death_time_list = [i for i in hero_deaths[key] if (i < state[1][-1])]
         death_time_list.append(state[1][-1]) #append the final timestamp on t_vec - everybody dies in the end!
         # handle the first hero trajectory where there is no initial period where the hero is in death limbo
-        samples_list =[{"t":t,"v":state[0][key][j]} for j, t in enumerate(state[1]) if len(death_time_list)==0 or (t <= death_time_list[0])]
+        samples_list =[{"t":t,"v":state[0][key]["position"][j]} for j, t in enumerate(state[1]) if len(death_time_list)==0 or (t <= death_time_list[0])]
         trajectory = {"time-start":samples_list[0]["t"],"time-end":samples_list[-1]["t"],"timeseries":{"format":"samples","samples":samples_list}}    
         tmp_list.append(trajectory)
 
         for i in range(0,len(death_time_list)-1):
             try:
                 #can we replace with a respawn flag?
-                 respawn_time = next(t for j, t in enumerate(state[1]) if (t > death_time_list[i]) and (t < death_time_list[i+1]) and ((state[0][key][j][0]-state[0][key][j+1][0])**2+ (state[0][key][j][1]-state[0][key][j+1][1])**2 > delta))
+                 respawn_time = next(t for j, t in enumerate(state[1]) if (t > death_time_list[i]) and (t < death_time_list[i+1]) and ((state[0][key]["position"][j][0]-state[0][key]["position"][j+1][0])**2+ (state[0][key]["position"][j][1]-state[0][key]["position"][j+1][1])**2 > delta))
                  t1 = respawn_time
                  t2 = death_time_list[i+1]
             except StopIteration:
                 t1 = death_time_list[i]
                 t2 = death_time_list[i+1]
                 if t2 - t1 >= min_timespan: #filter out very short erroneous trajectories
-                    samples_list =[{"t":t,"v":state[0][key][j]} for j, t in enumerate(state[1]) if (t > t1) and (t < t2)]
+                    samples_list =[{"t":t,"v":state[0][key]["position"][j]} for j, t in enumerate(state[1]) if (t > t1) and (t < t2)]
                     if len(samples_list) == 0:
                         continue #FIXME TODO WASGEHTAB
                     trajectory = {"time-start":samples_list[0]["t"],"time-end":samples_list[-1]["t"],"timeseries":{"format":"samples","samples":samples_list}}    
                     tmp_list.append(trajectory)
             else:
                 if t2-t1 >= min_timespan: #filter out very short erroneous trajectories
-                    samples_list =[{"t":t,"v":state[0][key][j]} for j, t in enumerate(state[1]) if (t >= t1) and (t <= t2)]
+                    samples_list =[{"t":t,"v":state[0][key]["position"][j]} for j, t in enumerate(state[1]) if (t >= t1) and (t <= t2)]
                     trajectory = {"time-start":samples_list[0]["t"],"time-end":samples_list[-1]["t"],"timeseries":{"format":"samples","samples":samples_list}}    
                     tmp_list.append(trajectory)
         visibility_summary = {"format":"changelist", "samples":[]}
@@ -390,8 +420,8 @@ def assignPlayerArea(match,hero_name,state,area_matrix):
     grid_size_x = (xmax-xmin)/num_box
     grid_size_y = (ymax-ymin)/num_box
 
-    x = [math.floor((i[0]-xmin)/grid_size_x) for i in state[0][hero_name]]
-    y = [math.floor((i[1]-ymin)/grid_size_y) for i in state[0][hero_name]]
+    x = [math.floor((i[0]-xmin)/grid_size_x) for i in state[0][hero_name]["position"]]
+    y = [math.floor((i[1]-ymin)/grid_size_y) for i in state[0][hero_name]["position"]]
 
     area_state = []
     for k in range(0,len(x)):
@@ -692,7 +722,7 @@ def makeAttackList(match,state):
                         attack_method = attack_method[len(attacker_name)+1:]
                     health_delta = row[6]
 
-                    new_attack = Attack(attacker_name,victim_name,float(row[5]),state[0][attacker_name][index],timestamp,attack_method,health_delta)
+                    new_attack = Attack(attacker_name,victim_name,float(row[5]),state[0][attacker_name]["position"][index],timestamp,attack_method,health_delta)
                     #print attacker_name + " at " + str(state[0][attacker_name][index]) + " attacked " + victim_name + " at " + str(state[0][victim_name][index])  + " did " + str(row[5]) + " damage  at " + str(timestamp)              
                     attack_list.append(new_attack)
 
@@ -1010,15 +1040,17 @@ def whoWonFight(match,fight,involved):
 def lookupTimeIndex(match,state,absolute_time):
     #given absolute time, return the index that would need to insert that time into state[1] and maintain the ordering
     i = bisect.bisect_left(state[1],absolute_time-match.match_start_time)
-    if i:
+    if i < len(state[1]):
         return i
-    raise ValueError
+    else: 
+        return len(state[1]) -1
+        #raise ValueError
         
 ##################################################################################
 
 def lookupHeroPosition(match,state,hero_name,absolute_time):
     i = lookupTimeIndex(match,state,absolute_time)
-    return  state[0][hero_name][i]
+    return  state[0][hero_name]["position"][i]
 
 #####################################################################################
 
@@ -1054,6 +1086,23 @@ def fightFiltering(match,fight_dict,hero_death_fights):
             events[id_num] = fight_dict[key]
             events[id_num]["type"] = "fight"
 
+###########################################################################
+def buildingDamageEvaluation(match):
+    match.tower_damage = {}
+    match.rax_damage = {}
+    for hero in match.heroes:
+        match.tower_damage[hero] = 0
+        match.rax_damage[hero] = 0
+
+    for row in match.damage_events:
+        attacker = row[2]
+        victim = row[3] 
+        if transformHeroName(attacker) in match.heroes and "tower" in victim:
+            match.tower_damage[transformHeroName(attacker)] += float(row[5])
+        elif transformHeroName(attacker) in match.heroes and "rax" in victim:
+            match.rax_damage[transformHeroName(attacker)] += float(row[5])
+
+
 
 ############################################################################
 def initiationScoring(fight_event):
@@ -1072,7 +1121,9 @@ def initiationScoring(fight_event):
 ##############################################################################
 # code for retrieving personalised info about specific heroes
 
-def camControlEvaluation(match):
+
+
+def camControlEvaluation(match, state):
     last_selection = {}
     for player in match.players:
         last_selection[str(player)] = {"unit":None, "t":0}
@@ -1094,6 +1145,78 @@ def camControlEvaluation(match):
             camera_event_counter += 1
         last_selection[row[2]]["t"] = row[0]
         last_selection[row[2]]["unit"] = row[4]
+
+    match.camera_stats = {}
+    for hero in match.heroes:
+
+        last_cam = []
+        last_distance = 0
+        last_time = 0
+        last_self = True
+
+        total_camera_movement = 0
+        average_hero_distance = 0
+        average_hero_distance_n = 0
+        average_hero_distance_M2 = 0
+        jumps = []
+
+        time_self = 0
+        time_far = 0
+        time_moving = 0
+        time_total = 0
+
+
+        for i in xrange(len(state[1])):
+            time = state[1][i]
+            pos = state[0][hero]["position"][i]
+            cam = state[0][hero]["camera"][i]
+            relative = [pos[0] - cam[0], pos[1] - cam[1]]
+            distance = math.sqrt(relative[0]*relative[0] + relative[1]*relative[1])
+
+            hero_distance_delta = (distance - average_hero_distance)
+            average_hero_distance_n += 1
+            average_hero_distance += hero_distance_delta /(average_hero_distance_n)
+            average_hero_distance_M2 += hero_distance_delta*(distance - average_hero_distance)
+
+            if i == 0:
+                last_cam = cam
+                last_distance = distance
+                last_time = time
+                continue
+
+            camera_delta = [cam[0] - last_cam[0], cam[1] - last_cam[1]]
+            delta_length = math.sqrt(camera_delta[0]*camera_delta[0] + camera_delta[1]*camera_delta[1])
+           
+            total_camera_movement += delta_length
+            if delta_length > match.parameters["cameraEvaluation"]["jump_threshold"]:
+                jumps.append((state[1][i], camera_delta))
+            
+
+            delta_time = time - last_time
+            time_total += delta_time
+            if delta_length > 1:
+                time_moving += delta_time
+            else:
+                if distance < match.parameters["cameraEvaluation"]["self_range"]:
+                    time_self += delta_time
+                else:
+                    time_far += delta_time
+
+            last_cam = cam
+            last_distance = distance
+            last_time = time
+
+        match.camera_stats[hero] = {
+            "avg_movement":total_camera_movement/time_total,
+            "average_distance": average_hero_distance,
+            "distance_std_dev": math.sqrt(average_hero_distance_M2/average_hero_distance_n),
+            "jumps": len(jumps),
+            "percentMove": time_moving/time_total,
+            "percentSelf": time_self/time_total,
+            "percentFar": time_far/time_total
+        }
+
+
 
 ####################################################################################
 
@@ -1172,6 +1295,8 @@ def putSpawn(match, row):
     #print "put {} {}".format(position, row)
     match.creep_positions[row[3]] = position
 
+creep_types=["npc_dota_creep_lane", "npc_dota_creep_siege", "npc_dota_creep_neutral"]
+
 def matchCreepsWithLog(match, time, creeps, log):
     gold = []
     exps = []
@@ -1190,6 +1315,10 @@ def matchCreepsWithLog(match, time, creeps, log):
         elif logrow[1] == "OVERHEAD_ALERT_DENY":
             denie_list.append(logrow)
     for creepy in creeps:
+        #skip heroes/towers/wards/summons
+        if not creepy[2] in creep_types:
+            continue
+
         event = createCreepEvent(match, creepy)
         death_type = "none"
         for lh in lh_list:
@@ -1227,7 +1356,21 @@ def matchCreepsWithLog(match, time, creeps, log):
             pass#print "multiple creeps and exps \n\t{}\n\t{}\n\t{}\n\t{}\n\t{}\n".format(creeps, gold, exps, lh_list, denie_list) #todo
         event["exp-claimed-by"] = exp_ids
         event["lasthit-type"] = death_type #none/lasthit/denie
-        event["responsible"] = [] #TODO
+
+        event["responsible"] = [] 
+        event["contested-by"] = [] 
+
+        position = [float(creepy[5]), float(creepy[6])]
+        time = float(creepy[0])
+        for hero in match.heroes:
+            hero_pos = lookupHeroPosition(match, match.state_hifi, hero, time)
+            d = math.sqrt((position[0] - hero_pos[0]) *(position[0] - hero_pos[0]) + (position[1] - hero_pos[1])*(position[1] - hero_pos[1]))
+            if d < match.parameters["creepEvaluation"]["responsibility_distance"]:
+                if match.heroes[hero]["side"] == event["team"]:
+                    event["contested-by"].append(match.heroes[hero]["index"])
+                else:
+                    event["responsible"].append(match.heroes[hero]["index"])
+
         event_id = str(match.parameters["namespace"]["creeps_namespace"]+match.nCreeps)
         match.nCreeps += 1
         events[event_id]= event   
@@ -1246,6 +1389,7 @@ def createCreepEvent(match, creep_row):
     elif creep_row[2] == "npc_dota_creep_neutral":
         creep_event["creep-type"]="neutral"
     else:
+        print "whatis {}".format(creep_row[2])
         creep_event["creep-type"]="unknown"
     creep_event["time"] = float(creep_row[0]) - match.match_start_time
     creep_event["position"] = { "x":float(creep_row[5]), "y":float(creep_row[6]) }
@@ -1277,10 +1421,17 @@ def computeStats(match, analysis):
         player_eval["lasthits"] = 0
         player_eval["denies"] = 0
 
-        player_eval["creeps-missed"] = 0
         player_eval["denies-with-exp"] = 0
         player_eval["neutrals"] = 0
         player_eval["lane-creeps"] = 0
+        player_eval["lasthit-free"] = 0
+        player_eval["lasthit-contested"] = 0
+        player_eval["missed-free"] = 0
+        player_eval["missed-contested"] = 0
+        player_eval["contested-total"] = 0
+        player_eval["contested-lasthit"] = 0
+        player_eval["contested-denied"] = 0
+        player_eval["contested-unclaimed"] = 0
 
         player_eval["time-visible"] = 0
         player_eval["time-visible-first10"] = 0
@@ -1308,6 +1459,10 @@ def computeStats(match, analysis):
 
         evaluation["player-stats"][str(player_id)] = player_eval
 
+        player_eval["camera-stats"] = match.camera_stats[match.players[player_id]["hero"]]
+        player_eval["tower-damage"] = match.tower_damage[match.players[player_id]["hero"]]
+        player_eval["rax-damage"] = match.rax_damage[match.players[player_id]["hero"]]
+
     for event_id in analysis["events"]:
         event = analysis["events"][event_id]
         if event["type"] == "creep-death":
@@ -1317,16 +1472,45 @@ def computeStats(match, analysis):
                 if not str(event["lasthit-by"]) in evaluation["player-stats"]: #FIXME
                     continue
                 evaluation["player-stats"][str(event["lasthit-by"])]["lasthits"] += 1
+                #count creep types
                 if event["creep-type"] == "lane" or event["creep-type"] == "siege":
                     evaluation["player-stats"][str(event["lasthit-by"])]["lane-creeps"] += 1
                 elif event["creep-type"] == "neutral":
                     evaluation["player-stats"][str(event["lasthit-by"])]["neutrals"] += 1
+                #count for lasthitter
+                if len(event["contested-by"]) == 0:
+                    evaluation["player-stats"][str(event["lasthit-by"])]["lasthit-free"] += 1
+                else:
+                    evaluation["player-stats"][str(event["lasthit-by"])]["lasthit-contested"] += 1
+                    #count for contesting players
+                    for contestant in event["contested-by"]:
+                        evaluation["player-stats"][str(contestant)]["contested-total"] += 1 
+                        evaluation["player-stats"][str(contestant)]["contested-lasthit"] += 1 
+
             elif event["lasthit-type"] == "denie":
                 if not str(event["denied-by"]) in evaluation["player-stats"]: #FIXME
                     continue
                 evaluation["player-stats"][str(event["denied-by"])]["denies"] += 1
                 if len(event["exp-claimed-by"]) > 0:
                     evaluation["player-stats"][str(event["denied-by"])]["denies-with-exp"] += 1
+
+                for responsible in event["responsible"]:
+                    evaluation["player-stats"][str(responsible)]["missed-contested"] += 1
+                for contestant in event["contested-by"]:
+                    evaluation["player-stats"][str(contestant)]["contested-denied"] += 1
+                    evaluation["player-stats"][str(contestant)]["contested-total"] += 1
+
+            elif event["lasthit-type"] == "none":
+                if len(event["contested-by"]) == 0:
+                    for responsible in event["responsible"]:
+                        evaluation["player-stats"][str(responsible)]["missed-free"] += 1
+                else:
+                    for responsible in event["responsible"]:
+                        evaluation["player-stats"][str(responsible)]["missed-contested"] += 1
+                    for contestant in event["contested-by"]:
+                        evaluation["player-stats"][str(contestant)]["contested-unclaimed"] += 1
+                        evaluation["player-stats"][str(contestant)]["contested-total"] += 1
+
         elif event["type"] == "unit-selection":
             evaluation["player-stats"][str(event["player"])]["n-checks"] += 1
             evaluation["player-stats"][str(event["player"])]["average-check-duration"] += ((event["time-end"] - event["time-start"]) - evaluation["player-stats"][str(event["player"])]["average-check-duration"] )/ evaluation["player-stats"][str(event["player"])]["n-checks"]
@@ -1345,7 +1529,7 @@ def computeStats(match, analysis):
         evaluation["player-stats"][str(player_id)]["num-of-kills"] = analysis["entities"][hero_entity_id]["number_of_kills"]
         evaluation["player-stats"][str(player_id)]["num-of-deaths"] = analysis["entities"][hero_entity_id]["number_of_deaths"] 
         evaluation["player-stats"][str(player_id)]["GPM"] = analysis["entities"][hero_entity_id]["GPM"]
-        evaluation["player-stats"][str(player_id)]["XPM"] = analysis["entities"][hero_entity_id]["XPM"]      
+        evaluation["player-stats"][str(player_id)]["XPM"] = analysis["entities"][hero_entity_id]["XPM"]
         if evaluation["player-stats"][str(player_id)]["num-of-fights"]!= 0:
             evaluation["player-stats"][str(player_id)]["initation-score"] =  evaluation["player-stats"][str(player_id)]["initation-score"]/evaluation["player-stats"][str(player_id)]["num-of-fights"]
         
@@ -1362,7 +1546,7 @@ def main():
     match.matchInfo()
     header = headerInfo(match)
     hero_deaths, number_of_kills, number_of_deaths = killsInfo(match)
-    state, state_hifi = heroPositions(match)  #[[v_mat],t_vec]
+    state, state_hifi = loadTrajectoriesFile(match)  #[[v_mat],t_vec]
     entities = heroTrajectories(match,state,hero_deaths,number_of_kills,number_of_deaths)
     eventsMapping(match,state,area_matrix)
     timeseries = goldXPInfo(match,entities) #up to this point takes a few seconds
@@ -1372,7 +1556,8 @@ def main():
     fight_dict = makeFightDict(match,fight_list,area_matrix)
     hero_death_fights = myDeaths(match,hero_deaths,fight_dict)
     fightFiltering(match,fight_dict,hero_death_fights)
-    camControlEvaluation(match)
+    buildingDamageEvaluation(match)
+    camControlEvaluation(match, state_hifi)
     creepEvaluation(match)
     analysis = {"header":header,"entities":entities,"events":events,"timeseries":timeseries}
     stats = computeStats(match, analysis)

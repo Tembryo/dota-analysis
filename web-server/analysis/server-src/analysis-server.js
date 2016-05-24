@@ -180,15 +180,15 @@ function processReplay(message, callback_replay)
                 if(results.rowCount != 0)
                 {
                     database.query(
-                        "UPDATE Matches m SET label=$2, file=$3, header_file=$4, replayfile_id=$5 WHERE m.id=$1;",
-                        [locals.match_id, "", locals.analysis_file, locals.header_file, locals.replayfile_id],
+                        "UPDATE Matches m SET label=$2, file=$3, header_file=$4, replayfile_id=$5, analysis_version=$6 WHERE m.id=$1;",
+                        [locals.match_id, "", locals.analysis_file, locals.header_file, locals.replayfile_id, samples.version],
                         callback
                     );
                 }
                 else{
                     database.query(
-                        "INSERT INTO Matches(id, label, file, header_file, replayfile_id) VALUES ($1, $2, $3, $4, $5);",
-                        [locals.match_id, "", locals.analysis_file, locals.header_file, locals.replayfile_id],
+                        "INSERT INTO Matches(id, label, file, header_file, replayfile_id, analysis_version) VALUES ($1, $2, $3, $4, $5, $6);",
+                        [locals.match_id, "", locals.analysis_file, locals.header_file, locals.replayfile_id, samples.version],
                         callback);
                 }
             },

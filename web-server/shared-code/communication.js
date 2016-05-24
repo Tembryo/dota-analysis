@@ -2,7 +2,7 @@ var async       = require("async");
 
 var database = require("./database.js");
 
-var retry_interval = 5000;
+var retry_interval = 10000;
 
 function Subscriber(callback) {
     this._client = database.getClient();
@@ -58,6 +58,7 @@ Subscriber.prototype.open = function (opened_callback) {
                         self.open(opened_callback);
                     },
                     retry_interval);
+                return;
             }
 
             self._client.on('notification', 
