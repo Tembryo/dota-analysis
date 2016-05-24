@@ -1,0 +1,165 @@
+<!doctype html>
+<html>
+<head>
+  <title>D3 tutorial 13</title>
+  <!--[if lte IE 8]><script src="r2d3.min.js" charset="utf-8"></script><![endif]-->
+  <!--[if gte IE 9]><!-->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script src="js/d3.min.js"></script>
+  <!--<![endif]-->
+</head>
+<body>
+
+ 	<div id="comparison-dashboard">
+        <div class="container">
+            <div class="row">
+                <div id="polygon-container" class="col-lg-12 text-center">
+                    <h1> Attributes </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+   	$(document).ready(function(){
+   		d3.json("userData2.json", function(data){ 
+
+   			boxSize = 600;
+   			selectionState = [0,5];
+
+			// fixed variables
+			var polyScale = 0.6;  // size of polygon as proportion of SVG container
+    		var textPaddingScale = 0.12; // padding for text around polygon
+    		var alpha = 0.1;
+    		var maxMMR = 8000;
+    		var textFont = "helvetica";
+
+    		//derived variables
+			n = data[0]["ratings"].length;
+			var incr = 2*Math.PI/n;
+			var xOffset = boxSize/2;
+   			var yOffset = boxSize/2;
+   			var radius = polyScale*boxSize/2;
+	        var textPadding = textPaddingScale*boxSize/2;
+	        var thetaOffset = Math.PI/2;
+
+	        // make a linear scale mapping MMR to pixel scale of polygon
+    		var scale = d3.scale.linear()
+                  .domain([0,maxMMR])
+                  .range([0,radius]);
+
+
+			var vectorArray = [];  
+            for (i=0; i < n; i++){
+                var x = Math.cos(i*incr - thetaOffset);
+                var y = Math.sin(i*incr - thetaOffset);
+                vectorArray.push([x,y]);
+            }
+
+           	// string to translate objects to the middle of the SVG canvas
+            var translateString = "translate(" + xOffset.toString() + "," + yOffset.toString()+ ")";
+
+   			renderPolygonFrame(data,boxSize);
+   			comparePolygons(data[0],data[2]);
+
+
+   			function renderPolygonFrame(data,boxSize){
+
+   				// make SVG container
+	            var canvas = d3.select("#polygon-container").append("svg")
+	                            .attr("height",boxSize)
+	                            .attr("width",boxSize)
+	                            .attr("id","polygon-canvas");
+
+
+				//given an array of vectors and a radius, make a string of points to pass to SVG to make a polygon
+	            function genPointString(vectorArray,radius){
+	                var pointString = "";
+	                for (i=0; i < n; i++){
+	                    pointString = pointString + " " + (radius*vectorArray[i][0]).toString() +"," + (radius*vectorArray[i][1]).toString();
+	                }
+	                return pointString
+	            }
+
+	            // make outer polygon
+	            var outerPolygon = canvas.append("polygon")
+	                                .attr("points",genPointString(vectorArray,radius))
+	                                .attr("fill","none")
+	                                .attr("stroke","black")
+	                                .attr("stroke-width",1)
+	                                .attr("transform",translateString);
+	                                
+	            // make inner polygon that is alpha times the size of the outer polygon
+	            var innerPolygon = canvas.append("polygon")
+	                                .attr("points",genPointString(vectorArray,alpha*radius))
+	                                .attr("fill","black")
+	                                .attr("stroke","black")
+	                                .attr("transform",translateString);
+
+	            // loop over points on polygon drawing lines, adding text 
+	            for (i=0; i<n; i++){
+	                var line = canvas.append("line")
+	                            .attr("x1",0)
+	                            .attr("y1",0)
+	                            .attr("x2",function(){return radius*vectorArray[i][0];})
+	                            .attr("y2",function(){return radius*vectorArray[i][1];})
+	                            .attr("stroke","black")
+	                            .attr("stroke-width",1)
+	                            .attr("width",5)
+	                            .attr("transform",translateString);
+
+	                var text = canvas.append("text")
+	                            .attr("x",function(){return (textPadding*(1+Math.abs(Math.sin(incr*i)))+radius)*vectorArray[i][0];})
+	                            .attr("y",function(){return (textPadding*(1+Math.abs(Math.sin(incr*i)))+radius)*vectorArray[i][1];})
+	                            .text(data[0]["ratings"][i].attribute)
+	                            .attr("text-anchor","middle")
+	                            .attr("font-family",textFont)
+	                            .attr("transform",translateString);
+
+	            }
+
+   			}
+
+         	function comparePolygons(dataPoint1,dataPoint2){
+
+         		//remove any existing polygons
+         		d3.select("#polygon-canvas").selectAll(".user-polygon").remove();
+
+         		function makePointString(dataPoint){
+	              	var dataPointString = "";
+	                for (i=0;i<n; i++){
+	                    // make string of points to describe the user's score polygon
+	                    var x = scale(dataPoint["ratings"][i].rating*vectorArray[i][0]);
+	                    var y = scale(dataPoint["ratings"][i].rating*vectorArray[i][1]);
+
+	                    dataPointString = dataPointString + " " + x.toString() +"," + y.toString();
+	                }
+	                return dataPointString;
+	            }
+
+	            var userPolygon1 = d3.select("#polygon-canvas").append("polygon")
+	              .attr("points",makePointString(dataPoint1))
+	              .attr("fill","rgba(255,0,0,0.5)")
+	              .attr("stroke","black")
+	              .attr("stroke-width",0)
+	              .attr("class","user-polygon")
+	              .attr("transform",translateString);
+
+	           	var userPolygon2 = d3.select("#polygon-canvas").append("polygon")
+	              .attr("points",makePointString(dataPoint2))
+	              .attr("fill","rgba(0,0,255,0.5")
+	              .attr("stroke","black")
+	              .attr("stroke-width",0)
+	              .attr("class","user-polygon")
+	              .attr("transform",translateString);
+
+
+         	}
+
+   		})
+   	})
+</script>
+</body>
+</html>
