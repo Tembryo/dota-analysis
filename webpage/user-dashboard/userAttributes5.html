@@ -4,7 +4,7 @@
   <title>D3 tutorial 13</title>
   <!--[if lte IE 8]><script src="r2d3.min.js" charset="utf-8"></script><![endif]-->
   <!--[if gte IE 9]><!-->
-    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/bootstrap.css">
     <link rel="stylesheet" href="css/style.css">
     <script type="text/javascript" src="js/jquery.js"></script>
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
@@ -23,6 +23,7 @@
             <div class="row">
                 <div class="col-lg-4 text-center">
                     <img id="user-pic" height="280px" width="280px" src ="img/HarryPotter.png">
+                    <a id="analyse-matches-button" href="#" class="btn btn-warning btn-lg active">Parse all recent matches</a>
                 </div>
                 <div id="timeline-container" class="col-lg-8 text-center">
                 </div>
@@ -635,11 +636,9 @@
                 return foo;
             }
 
-            function renderGraph(data){
 
-                width = 800;
-                height = 300;
-                padding = 20;
+
+            function renderGraph(width,height,padding){
 
                 canvas=d3.select("#timeline-container")
                         .append("svg")
@@ -675,7 +674,26 @@
                     .attr("transform", "translate("+(padding/2)+", "+(padding-10)+")")
                     .text("rating");
 
-                 x_scale = d3.scale.linear()
+                var backwards = document.createElement("a");
+                $(backwards).attr("class","glyphicon glyphicon-chevron-left")
+                            .attr("id","scroll-left")
+                            .css("color","black")
+                            .css("font-size","20px");
+
+                var forwards = document.createElement("a");
+                $(forwards).attr("class","glyphicon glyphicon-chevron-right")
+                        .attr("id","scroll-right")
+                        .css("color","black")
+                        .css("font-size","20px");
+
+                $("#timeline-container").append(backwards);
+                $("#timeline-container").append(forwards);
+
+                }
+
+                function updateGraph(data){
+
+                x_scale = d3.scale.linear()
                             .domain([0,data.length+1])
                             .range([padding,width-padding]);
                 var value_min = d3.min(data,function(d){return d["IMR"];});
@@ -685,7 +703,8 @@
                 y_scale = d3.scale.linear()
                             .domain([value_min-value_padding,value_max+value_padding])
                             .range([height-padding,padding]);
-                var line =d3.svg.line()
+
+                var line = d3.svg.line()
                     .x(function(d,i) { return x_scale(i+1); })
                     .y(function(d){ return y_scale(d["IMR"]);})
                     .interpolate("linear");
@@ -723,14 +742,14 @@
 
                 var icon_size = 32;
 
-                var icons = canvas.selectAll("circles")
-                                .data(data);
+                var icons = canvas.selectAll(".icons")
+                                .data(data,function(d){return d["match-id"]});
 
-                var iconsGroup = icons.enter()
-                                    .append("g")
-                                    .attr("id", function(d,i){return "circle" + i;})
+                icons.enter()
+                    .append("g")
+                    .attr("id", function(d,i){return "circle" + i;})
 
-                iconsGroup.append("circle")
+                icons.append("circle")
                         .attr("fill",function(d,i){if (i==data.length-1){ return "rgba(255,0,0,0.8)" } return "rgba(140,140,140,0)"})
                         .attr("cx",function(d,i){return  x_scale(i+1)})
                         .attr("cy",function(d){return y_scale(d["IMR"])})
@@ -742,10 +761,10 @@
                             d3.select("#match-report-heading").text("Match ID: "+ d["match-id"]);
                             renderTips(d);
                             renderHeroImages(d);})
-                        .on("mouseenter",function(d,i){d3.select(".info-text_"+i.toString()).style("opacity",1);})
-                        .on("mouseleave",function(d,i){d3.select(".info-text_"+i.toString()).style("opacity",0);});
+                        .on("mouseenter",function(d,i){d3.select("#info-text_"+i.toString()).style("opacity",1);})
+                        .on("mouseleave",function(d,i){d3.select("#info-text_"+i.toString()).style("opacity",0);});
 
-                iconsGroup.append("svg:image")
+                icons.append("svg:image")
                         .attr("xlink:href",function(d){return icon_images[d["heroes"][d["hero-id"]]];})
                         .attr("x", function(d,i){return  x_scale(i+1)-0.5*icon_size})
                         .attr("y", function(d){return y_scale(d["IMR"]) -0.5*icon_size})
@@ -755,12 +774,12 @@
 
                 icons.exit().remove();
 
-                var infoText = canvas.selectAll(".id-text")
-                                .data(data);
+                var infoText = canvas.selectAll(".circle-text")
+                                .data(data,function(d){return d["match-id"]});
 
                 var infoGroup = infoText.enter()
                                     .append("g")
-                                    .attr("class",function(d,i){return "info-text_"+ i.toString();})
+                                    .attr("id",function(d,i){return "info-text_"+ i.toString();})
                                     .style("opacity",0);
 
                 infoGroup.append("rect")
@@ -777,13 +796,9 @@
                         .attr("x",function(d,i){return x_scale(i+1)-16;})
                         .attr("y",function(d){return y_scale(d["IMR"])-40;})
                         .attr("fill","white")
-                        .text(function(d){return d["IMR"]});               
+                        .text(function(d){return d["IMR"]});
 
                 infoText.exit().remove();
-
-                var graphText = document.createElement("p");
-                graphText.innerHTML = "Individual Match Rating (IMR) vs Match Number." ;
-                document.getElementById("timeline-container").appendChild(graphText);
 
                 document.getElementById("match-report-heading").innerHTML = "Match ID: " + data[data.length-1]["match-id"].toString();
 
@@ -836,6 +851,10 @@
                     document.getElementById("hero_" + i.toString()).src = pictures[heroes[i]];
                 }
             }
+
+            $("#analyse-matches-button" ).click(function() {
+              alert( "Hello world" );
+            });
  
             var sel = 2;
             var avData = getAverage(data);
@@ -850,7 +869,14 @@
 
             renderBarsAv(avData);
             renderBars(data[sel]);
-            renderGraph(data);
+
+            width = 800;
+            height = 300;
+            padding = 20;
+
+            renderGraph(width,height,padding);
+            updateGraph(data.slice(0,20));
+            updateGraph(data);
             renderTips(data[sel]);
             renderHeroImages(data[sel]);
 
