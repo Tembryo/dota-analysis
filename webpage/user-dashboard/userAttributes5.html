@@ -687,7 +687,25 @@
                         .css("font-size","20px");
 
                 $("#timeline-container").append(backwards);
+
+                var loadTwenty = document.createElement("a");
+                $(loadTwenty).attr("class","btn btn-primary btn-sm active")
+                            .attr("id","load-twenty")
+                            .css("margin","5px")
+                            .text("20");
+
+                var loadFifty = document.createElement("a");
+                $(loadFifty).attr("class","btn btn-primary btn-sm active")
+                            .attr("id","load-fifty")
+                            .css("margin","5px")
+                            .text("50");
+
+                $("#timeline-container").append(loadTwenty);
+                $("#timeline-container").append(loadFifty);
+
                 $("#timeline-container").append(forwards);
+    
+
 
                 }
 
@@ -742,12 +760,15 @@
 
                 var icon_size = 32;
 
+                d3.selectAll(".icons").remove()
+
                 var icons = canvas.selectAll(".icons")
-                                .data(data,function(d){return d["match-id"]});
+                                .data(data);
 
                 icons.enter()
                     .append("g")
-                    .attr("id", function(d,i){return "circle" + i;})
+                    .attr("class","icons")
+                    .attr("id", function(d,i){return "circle" + i;});
 
                 icons.append("circle")
                         .attr("fill",function(d,i){if (i==data.length-1){ return "rgba(255,0,0,0.8)" } return "rgba(140,140,140,0)"})
@@ -775,7 +796,7 @@
                 icons.exit().remove();
 
                 var infoText = canvas.selectAll(".circle-text")
-                                .data(data,function(d){return d["match-id"]});
+                                .data(data);
 
                 var infoGroup = infoText.enter()
                                     .append("g")
@@ -875,10 +896,21 @@
             padding = 20;
 
             renderGraph(width,height,padding);
-            updateGraph(data.slice(0,20));
             updateGraph(data);
             renderTips(data[sel]);
             renderHeroImages(data[sel]);
+
+            var indx = 1;
+            var numMatches = 20;
+            $("#scroll-right").click(function(){indx = indx +1;
+                updateGraph(data.slice(Math.max(0,indx),numMatches+indx));});
+            $("#scroll-left").click(function(){indx = indx -1;
+                updateGraph(data.slice(Math.max(0,indx),numMatches+indx));});
+
+            $("#load-twenty").click(function(){ numMatches = 20;
+                updateGraph(data.slice(Math.max(0,indx),numMatches+indx))});
+            $("#load-fifty").click(function(){ numMatches = 50;
+                updateGraph(data.slice(Math.max(0,indx),numMatches+indx))});
 
 
 
