@@ -1,4 +1,4 @@
-[{"user-id":0,"match-id":1,"IMR":3000,"date":"19/05/2016","result":"Win","ratings":[
+[{"user-id":0,"hero-id":0,"match-id":1,"IMR":3000,"date":"19/05/2016","result":"Win","heroes":["lion","alchemist","ancient_apparition","antimage","arc_warden","axe","bane","batrider","beastmaster","bloodseeker"],"ratings":[
 {"attribute":"Mechanics","rating":7000,"skills":{"item-checks":100,"camera-skills":50,"cursor-control":80,"actions-issued":76}},
 {"attribute":"Fighting","rating":1000,"skills":{"damage-dealt":60,"fights-taken":70}},
 {"attribute":"Farming","rating":1000,"skills":{"last-hitting":20,"lane-equilibrium":30}},
@@ -6,7 +6,7 @@
 {"attribute":"Objectives","rating":1000,"skills":{"tower-damage":20,"barracks-damage":90}},
 {"attribute":"Movement","rating":1000,"skills":{"hiding-from-vision":20,"runes":50}}
 ]},
-{"user-id":1, "match-id":2,"IMR":3300,"date":"19/05/2016","result":"Win","ratings":[
+{"user-id":1,"hero-id":0, "match-id":2,"IMR":3300,"date":"19/05/2016","result":"Win","heroes":["abaddon","lion","ancient_apparition","antimage","arc_warden","axe","bane","batrider","beastmaster","bloodseeker"],"ratings":[
 {"attribute":"Mechanics","rating":1000,"skills":{"item-checks":10,"camera-skills":10,"cursor-control":10,"actions-issued":16}},
 {"attribute":"Fighting","rating":7000,"skills":{"damage-dealt":60,"fights-taken":70}},
 {"attribute":"Farming","rating":1000,"skills":{"last-hitting":20,"lane-equilibrium":30}},
@@ -14,7 +14,7 @@
 {"attribute":"Objectives","rating":1000,"skills":{"tower-damage":20,"barracks-damage":90}},
 {"attribute":"Movement","rating":1000,"skills":{"hiding-from-vision":20,"runes":50}}
 ]},
-{"user-id":2,"match-id":3,"IMR":3200,"date":"19/05/2016","result":"Win","ratings":[
+{"user-id":2,"hero-id":0,"match-id":3,"IMR":3200,"date":"19/05/2016","result":"Win","heroes":["abaddon","alchemist","lion","antimage","arc_warden","axe","bane","batrider","beastmaster","bloodseeker"],"ratings":[
 {"attribute":"Mechanics","rating":1000,"skills":{"item-checks":60,"camera-skills":50,"cursor-control":80,"actions-issued":76}},
 {"attribute":"Fighting","rating":1000,"skills":{"damage-dealt":60,"fights-taken":70}},
 {"attribute":"Farming","rating":7000,"skills":{"last-hitting":30,"lane-equilibrium":30}},
@@ -22,7 +22,7 @@
 {"attribute":"Objectives","rating":1000,"skills":{"tower-damage":60,"barracks-damage":90}},
 {"attribute":"Movement","rating":1000,"skills":{"hiding-from-vision":20,"runes":50}}
 ]},
-{"user-id":3,"match-id":4,"IMR":3400,"date":"19/05/2016","result":"Loss","ratings":[
+{"user-id":3,"hero-id":0,"match-id":4,"IMR":3400,"date":"19/05/2016","result":"Loss","heroes":["abaddon","alchemist","ancient_apparition","lion","arc_warden","axe","bane","batrider","beastmaster","bloodseeker"],"ratings":[
 {"attribute":"Mechanics","rating":1000,"skills":{"item-checks":80,"camera-skills":30,"cursor-control":80,"actions-issued":76}},
 {"attribute":"Fighting","rating":4000,"skills":{"damage-dealt":30,"fights-taken":70}},
 {"attribute":"Farming","rating":7000,"skills":{"last-hitting":60,"lane-equilibrium":30}},
@@ -30,13 +30,21 @@
 {"attribute":"Objectives","rating":3500,"skills":{"tower-damage":40,"barracks-damage":90}},
 {"attribute":"Movement","rating":1000,"skills":{"hiding-from-vision":30,"runes":50}}
 ]},
-{"user-id":4,"match-id":"2370326728","IMR":3600,"date":"19/05/2016","result":"Win","ratings":[
+{"user-id":4,"hero-id":0,"match-id":"2370326728","IMR":3600,"date":"19/05/2016","result":"Win","heroes":["abaddon","alchemist","ancient_apparition","antimage","lion","axe","bane","batrider","beastmaster","bloodseeker"],"ratings":[
 {"attribute":"Mechanics","rating":6000,"skills":{"item-checks":80,"camera-skills":30,"cursor-control":60,"actions-issued":90}},
 {"attribute":"Fighting","rating":4000,"skills":{"damage-dealt":60,"fights-taken":70}},
 {"attribute":"Farming","rating":7000,"skills":{"last-hitting":60,"lane-equilibrium":30}},
 {"attribute":"Itemization","rating":4000,"skills":{"TP-scroll-use":70,"cooldown-use":70}},
 {"attribute":"Objectives","rating":3500,"skills":{"tower-damage":80,"barracks-damage":90}},
 {"attribute":"Movement","rating":3000,"skills":{"hiding-from-vision":50,"runes":50}}
+]},
+{"user-id":5,"hero-id":5,"match-id":"2370326729","IMR":4000,"date":"19/05/2016","result":"Win","heroes":["abaddon","alchemist","ancient_apparition","antimage","lion","axe","bane","batrider","beastmaster","bloodseeker"],"ratings":[
+{"attribute":"Mechanics","rating":6000,"skills":{"item-checks":80,"camera-skills":30,"cursor-control":60,"actions-issued":90}},
+{"attribute":"Fighting","rating":4000,"skills":{"damage-dealt":60,"fights-taken":70}},
+{"attribute":"Farming","rating":6000,"skills":{"last-hitting":60,"lane-equilibrium":30}},
+{"attribute":"Itemization","rating":4000,"skills":{"TP-scroll-use":70,"cooldown-use":70}},
+{"attribute":"Objectives","rating":3500,"skills":{"tower-damage":80,"barracks-damage":90}},
+{"attribute":"Movement","rating":4000,"skills":{"hiding-from-vision":50,"runes":50}}
 ]}
 
 ]

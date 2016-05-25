@@ -16,20 +16,20 @@
     <div id="user-dashboard">
         <div class="container">
             <div class="row">
-                <div class="col-lg-12">
+                <div class="col-lg-4 text-center">
                     <h2 id="user-name"> Lord_Zera </h2>
                 </div>
             </div>
             <div class="row">
-                <div class="col-lg-4">
-                    <img height="300px" width="300px" src ="img/HarryPotter.png">
+                <div class="col-lg-4 text-center">
+                    <img id="user-pic" height="280px" width="280px" src ="img/HarryPotter.png">
                 </div>
                 <div id="timeline-container" class="col-lg-8 text-center">
                 </div>
             </div>
             <hr class="featurette-divider">
             <div class="row">
-                <div class ="col-lg-4"> 
+                <div class ="col-lg-4 text-center"> 
                     <h2 id="match-report-heading"> Match ID: 2370326728 Result: Win </h2>
                 </div>
                 <div class= "col-lg-8 text-center">
@@ -51,9 +51,10 @@
             </div>
             <div class="row">
                 <div class="col-lg-12">
-                    <div id="polygon-container" class="col-lg-4"> 
+                    <div id="polygon-container" class="col-lg-4 text-center"> 
+                        <h3>Performance Summary</h3>
                     </div>
-                    <div id="skills-container" class="col-lg-8">
+                    <div id="skills-container" class="col-lg-8 text-center">
                     </div>
                 </div>
             </div>
@@ -781,7 +782,7 @@
                 infoText.exit().remove();
 
                 var graphText = document.createElement("p");
-                graphText.innerHTML = "Individual Match Rating (IMR) vs Match Number. <br> (Click on a circle to select that match)" ;
+                graphText.innerHTML = "Individual Match Rating (IMR) vs Match Number." ;
                 document.getElementById("timeline-container").appendChild(graphText);
 
                 document.getElementById("match-report-heading").innerHTML = "Match ID: " + data[data.length-1]["match-id"].toString();
