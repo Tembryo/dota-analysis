@@ -1,5 +1,8 @@
       $(document).ready(function(){
 
+        var indx = 0;
+        var numMatches = 20;
+
         var boxSize = 275;   // size of the SVG container
         var polyScale = 0.6;  // size of polygon as proportion of SVG container
         var textPaddingScale = 0.12; // padding for text around polygon
@@ -284,7 +287,7 @@ var hero_pictures = {
                              .range([0,barWidth]); 
 
 
-        d3.json("/api/get-player-matches", function(data){ 
+        function load(data){ 
 
             var N = data.length;
             var n = makeDivs(data);
@@ -643,13 +646,13 @@ var hero_pictures = {
                 $("#timeline-container").append(backwards);
 
                 var loadTwenty = document.createElement("a");
-                $(loadTwenty).attr("class","btn btn-primary btn-sm active")
+                $(loadTwenty).attr("class","btn btn-primary btn-sm disabled")
                             .attr("id","load-twenty")
                             .css("margin","5px")
                             .text("20");
 
                 var loadFifty = document.createElement("a");
-                $(loadFifty).attr("class","btn btn-primary btn-sm active")
+                $(loadFifty).attr("class","btn btn-primary btn-sm disabled")
                             .attr("id","load-fifty")
                             .css("margin","5px")
                             .text("50");
@@ -727,12 +730,12 @@ var hero_pictures = {
                     .attr("id", function(d,i){return "circle" + i;});
 
                 icons.append("circle")
-                        .attr("fill",function(d,i){if (i==data.length-1){ return "rgba(255,0,0,0.8)" } else if(!d["IMR"]){ return "rgba(140,140,140,0.5)"} else {return "rgba(140,140,140,0)";}})
+                        .attr("fill",function(d,i){if (i==data.length-1){ return "rgba(255,0,0,0.8)" } else if(d["status"]==="open"){ return "rgba(140,140,140,0.5)"} else if(d["status"]==="queued"){return "rgba(0,255,0,0.3)";}else if(d["status"]==="parsed"){return "rgba(0,0,0,0)";}})
                         .attr("cx",function(d,i){return  x_scale(i+1)})
                         .attr("cy",function(d){if(d["IMR"]) return y_scale(d["IMR"]); else return height/2;})
                         .attr("r",20)
                         .on("click",function(d){renderBars(d);
-                            d3.selectAll("circle").attr("fill",function(d){if(!d["IMR"]){ return "rgba(140,140,140,0.5)"} else {return "rgba(140,140,140,0)";}});
+                            d3.selectAll("circle").attr("fill",function(d){ if(d["status"]==="open"){ return "rgba(140,140,140,0.5)"} else if(d["status"]==="queued"){return "rgba(0,255,0,0.3)";}else if(d["status"]==="parsed"){return "rgba(0,0,0,0)";}});
                             renderPolygon(d,"rgba(255,0,0,0.5)",1);
                             d3.select(this).attr("fill","rgba(255,0,0,0.8)");
                             d3.select("#match-report-heading").text("Match ID: "+ d["match-id"]);
@@ -773,7 +776,7 @@ var hero_pictures = {
                         .attr("x",function(d,i){return x_scale(i+1)-16;})
                         .attr("y",function(d){return y_scale(d["IMR"])-40;})
                         .attr("fill","white")
-                        .text(function(d){return d["IMR"]});
+                        .text(function(d){return Math.floor(d["IMR"]);});
 
                 infoText.exit().remove();
 
@@ -832,7 +835,17 @@ var hero_pictures = {
             }
 
             $("#analyse-matches-button" ).click(function() {
-              alert( "Hello world" );
+              d3.json("/api/queue-matches", function(data){ 
+                if(data["result"]==="success")
+                {
+                    if(data["n-requested"] == 0)
+                        alert("Up to date, no matches to queue.");
+                    else           
+                        alert("Queued "+data["n-requested"]+" matches for analysis.");
+                }
+                else
+                    alert("Sorry, failure queueing matches. Leave us a message and we will look into it.");
+              });
             });
  
             var sel = 2;
@@ -858,8 +871,7 @@ var hero_pictures = {
             renderTips(data[sel]);
             renderHeroImages(data[sel]);
 
-            var indx = 1;
-            var numMatches = 20;
+
             $("#scroll-right").click(function(){indx = indx +1;
                 updateGraph(data.slice(Math.max(0,indx),numMatches+indx));});
             $("#scroll-left").click(function(){indx = indx -1;
@@ -872,5 +884,7 @@ var hero_pictures = {
 
 
 
-        })
+        };
+
+        d3.json("/api/get-player-matches?start="+indx+"&end="+(indx+numMatches), load);
     })
