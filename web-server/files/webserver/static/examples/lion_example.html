@@ -1,4 +1,110 @@
-      $(document).ready(function(){
+<!doctype html>
+<html>
+<head>
+  <title>D3 tutorial 13</title>
+  <!--[if lte IE 8]><script src="r2d3.min.js" charset="utf-8"></script><![endif]-->
+  <!--[if gte IE 9]><!-->
+    <link rel="stylesheet" href="/static/css/bootstrap.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/main.css">
+    <script type="text/javascript" src="/static/js/jquery-1.12.0.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/d3.min.js"></script>
+  <!--<![endif]-->
+</head>
+<body>
+
+     <nav id="mainNav" class="navbar navbar-default" role="navigation">
+  <div class="navbar-header">
+    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+
+  </div>
+  <div class="navbar-collapse collapse">
+    <ul class="nav navbar-nav">
+      <li class="navbar-left"><a class="navbar-brand page-scroll" href="/">Wisdota</a></li>
+      <!--<li class="active"><a class="announcement" href="#">Ran into a replay download limit put by Valve, new matches should be available tomorrow morning. Apologies for the inconvenience.</a></li>-->
+      <!--<li class="active"><a class="announcement" href="#">Server under high load, parsing might take a while. Apologies for the inconvenience.</a></li>-->
+
+
+        <li class="navbar-right">
+            <a class="page-scroll" href="/auth/steam"> <img id="steam-logo-small" src="/static/img/logos/steam.png" height="20px" alt="Steam signin"/>Sign In</a>
+        </li>
+
+
+        <li class="navbar-right">
+            <a class="page-scroll" href="/plus">Plus</a>
+        </li>
+         
+
+         
+                 <li class="navbar-right">
+                    <a class="page-scroll" href="/about">
+                        About
+                    </a>
+                </li>
+
+            </ul>
+          </div>
+        </nav>
+
+
+    <div id="user-dashboard">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 text-center">
+                    <h2 id="user-name" class="lina"> Lina </h2>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-4 text-center">
+                    <img id="user-pic" height="272px" width="235px" src ="../img/heroes/portraits/lion_vert.jpg">
+                    <a id="analyse-matches-button" href="#" class="btn btn-warning btn-lg active">Parse all recent matches</a>
+                </div>
+                <div id="timeline-container" class="col-lg-8 text-center">
+                </div>
+            </div>
+            <hr class="featurette-divider">
+            <div class="row">
+                <div class ="col-lg-4 text-center"> 
+                    <h2 id="match-report-heading"> Match ID: 2370326728 Result: Win </h2>
+                </div>
+                <div class= "col-lg-8 text-center">
+                    <div class="hero-image-container">
+                        <img id="hero_0" height="32" width="60" src="/static/img/heroes/pictures/Abaddon.png">
+                        <img id="hero_1" height="32" width="60" src="/static/img/heroes/pictures/Alchemist.png">
+                        <img id="hero_2" height="32" width="60" src="/static/img/heroes/pictures/Ancient_Apparition.png">
+                        <img id="hero_3" height="32" width="60" src="/static/img/heroes/pictures/Antimage.png">
+                        <img id="hero_4" height="32" width="60" src="/static/img/heroes/pictures/Arc Warden.png">
+                    </div>
+                    <div class="hero-image-container">
+                        <img id="hero_5" height="32" width="60" src="/static/img/heroes/pictures/Axe.png">
+                        <img id="hero_6" height="32" width="60" src="/static/img/heroes/pictures/Bane.png">
+                        <img id="hero_7" height="32" width="60" src="/static/img/heroes/pictures/Batrider.png">
+                        <img id="hero_8" height="32" width="60" src="/static/img/heroes/pictures/Beastmaster.png">
+                        <img id="hero_9" height="32" width="60" src="/static/img/heroes/pictures/Bounty_Hunter.png">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div id="polygon-container" class="col-lg-4 text-center"> 
+                        <h3>Performance Summary</h3>
+                    </div>
+                    <div id="skills-container" class="col-lg-8 text-center">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+     $(document).ready(function(){
+
+        var myfilename = "lina.json";
 
         var boxSize = 275;   // size of the SVG container
         var polyScale = 0.6;  // size of polygon as proportion of SVG container
@@ -284,7 +390,7 @@ var hero_pictures = {
                              .range([0,barWidth]); 
 
 
-        d3.json("/api/get-player-matches", function(data){ 
+        d3.json("lina.json", function(data){ 
 
             var N = data.length;
             var n = makeDivs(data);
@@ -830,10 +936,6 @@ var hero_pictures = {
                     document.getElementById("hero_" + i.toString()).alt = players[i]["name"];
                 }
             }
-
-            $("#analyse-matches-button" ).click(function() {
-              alert( "Hello world" );
-            });
  
             var sel = 2;
             var avData = getAverage(data);
@@ -874,3 +976,7 @@ var hero_pictures = {
 
         })
     })
+
+</script>
+</body>
+</html>
