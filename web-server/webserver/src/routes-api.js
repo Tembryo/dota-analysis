@@ -67,7 +67,7 @@ router.route("/get-player-matches")
             async.waterfall(
                 [
                     database.generateQueryFunction(
-                        "SELECT umh.match_id, umh.data as history_data, "+
+                        "SELECT umh.match_id, umh.data as history_data, EXISTS(SELECT id FROM MatchRetrievalRequests where id = umh.match_id) as requested, "+
                             "COALESCE( (SELECT ps.data FROM PlayerStats ps WHERE umh.match_id = ps.match_id AND ps.steam_identifier = u.steam_identifier),"+
                                 "'null'::json) AS player_stats, "+
                             "COALESCE( (SELECT ms.data FROM MatchStats ms WHERE umh.match_id = ms.id ),"+
@@ -96,7 +96,15 @@ router.route("/get-player-matches")
                                 "IMR": null,
                                 "players": [],
                                 "ratings": [],
+                                "status": null
                             };
+
+                            if(results.rows[i]["player_stats"] && results.rows[i]["score_data"])
+                                next_result["status"] = "parsed";
+                            else if (results.rows[i]["requested"])
+                                next_result["status"] = "queued";
+                            else
+                                next_result["status"] = "open";
 
                             if(results.rows[i]["match_details"])
                             {
@@ -203,6 +211,49 @@ router.route("/get-player-matches")
             );
         }
     );
+
+
+router.route("/queue-matches")
+    .get(authentication.ensureAuthenticated,
+        function(req, res)
+        {
+            async.waterfall(
+                [
+                    database.generateQueryFunction("INSERT INTO MatchRetrievalRequests(id, retrieval_status, requester_id) "+
+                        "(SELECT umh.match_id, (SELECT mrs.id FROM MatchRetrievalStatuses mrs where mrs.label=$2), $1 "+
+                        "FROM UserMatchHistory umh WHERE umh.user_id = $1 AND to_timestamp((umh.data->>'start_time')::int) > current_timestamp - interval '7 days' AND NOT EXISTS (SELECT mrs.id FROM MatchRetrievalRequests mrs where mrs.id = umh.match_id) ) "+
+                        "RETURNING *;",
+                            [req.user["id"], "requested"]),
+                    function(results, callback)
+                    {
+                        callback(null, results.rowCount);
+                    }
+                ],
+                function(err, results)
+                {
+                    if(err)
+                    {
+                        console.log(err);
+                        var error_result = {
+                            "result": "error",
+                            "message": err,
+                            "info": results
+                            };
+                        res.json(error_result);
+                    }
+                    else
+                    {
+                        var success_result = {
+                            "result": "success",
+                            "n-requested": results
+                            };
+                        res.json(success_result);
+                    }
+                }
+            );
+        }
+    );
+
 
 
 //Match Data Serving
