@@ -30,8 +30,184 @@ router.get('/', function(req, res) {
 });
 
 
+
+
+function parseRatingsAndSkills(scores, stats)
+{
+    var ratings = []
+
+    return ratings;
+}
+
+
+
+router.route("/get-player-matches")
+    .get(authentication.ensureAuthenticated,
+        function(req, res)
+        {
+            var window_string = "LIMIT 20 OFFSET 0";
+            if(req.query.hasOwnProperty("start") && req.query.hasOwnProperty("end"))
+            {
+                // Selection windows, counting from most recent once
+                // <<< -------- 10 ------- 5 ----- 1 NOW
+                var start = parseInt(req.query.start);
+                var end = parseInt(req.query.end);
+                if(start < end && start >= 0)
+                {
+                    var offset = start;
+                    var n_matches = end - start;
+
+                    window_string = "LIMIT "+n_matches+" OFFSET "+offset;
+                }
+            }
+
+            if(req.query.hasOwnProperty("mode") && req.query.mode === "all")
+                window_string = "";
+
+            async.waterfall(
+                [
+                    database.generateQueryFunction(
+                        "SELECT umh.match_id, umh.data as history_data, "+
+                            "COALESCE( (SELECT ps.data FROM PlayerStats ps WHERE umh.match_id = ps.match_id AND ps.steam_identifier = u.steam_identifier),"+
+                                "'null'::json) AS player_stats, "+
+                            "COALESCE( (SELECT ms.data FROM MatchStats ms WHERE umh.match_id = ms.id ),"+
+                                "'null'::json) AS match_stats, "+
+                            "COALESCE( (SELECT r.data FROM Results r WHERE umh.match_id = r.match_id AND r.steam_identifier = u.steam_identifier),"+
+                                "'null'::json) AS score_data, "+
+                            "COALESCE( (SELECT md.data FROM MatchDetails md WHERE umh.match_id = md.matchid),"+
+                                "'null'::json) AS match_details "+
+                        "FROM Users u, UserMatchHistory umh "+
+                        "WHERE u.id = $1 "+
+                            "AND u.id = umh.user_id "+
+                        "ORDER BY umh.match_id DESC "+
+                        window_string+";",
+                            [req.user["id"]]),
+                    function(results, callback)
+                    {
+                        var response = [];
+                        for(var i = 0; i < results.rowCount; i++)
+                        {
+                            var next_result = 
+                            {
+                                "match-id":results.rows[i]["match_id"],
+                                "hero": results.rows[i]["history_data"]["hero_id"],
+                                "date": results.rows[i]["history_data"]["start_time"],
+                                "result": results.rows[i]["history_data"]["winner"],
+                                "IMR": null,
+                                "players": [],
+                                "ratings": [],
+                            };
+
+                            if(results.rows[i]["match_details"])
+                            {
+                                for(var j = 0; j < results.rows[i]["match_details"]["players"].length; ++j)
+                                {
+                                    var player = 
+                                    {
+                                        "hero": results.rows[i]["match_details"]["players"][j]["hero_id"],
+                                        "name": results.rows[i]["match_details"]["players"][j]["player_name"]
+                                    }
+                                    var slot = results.rows[i]["match_details"]["players"][j]["player_slot"];
+                                    if (slot >=128)
+                                        slot = slot - 128 + 5;
+                                    next_result["players"][slot] = player;
+                                }
+                            }
+
+                            if(results.rows[i]["player_stats"] && results.rows[i]["score_data"])
+                            {
+                                next_result["IMR"] = results.rows[i]["score_data"]["IMR"]
+
+                                if("mechanics" in results.rows[i]["score_data"])
+                                {
+                                    var mechanics_rating = {
+                                        "attribute":"Mechanics",
+                                        "rating":results.rows[i]["score_data"]["mechanics"],
+                                        "skills":{}
+                                    }
+
+                                    if("n-checks" in results.rows[i]["player_stats"])
+                                        mechanics_rating["skills"]["n-checks"] = results.rows[i]["player_stats"]["n-checks"]
+
+                                    if("n-checks" in results.rows[i]["player_stats"])
+                                        mechanics_rating["skills"]["average-check-duration"] = results.rows[i]["player_stats"]["average-check-duration"]
+
+                                    if("camera-stats" in results.rows[i]["player_stats"])
+                                        mechanics_rating["skills"]["camera-jumps"] = results.rows[i]["player_stats"]["camera-stats"]["jumps"]
+
+                                    if("camera-stats" in results.rows[i]["player_stats"])
+                                        mechanics_rating["skills"]["movement-per-minute"] = results.rows[i]["player_stats"]["camera-stats"]["avg_movement"]
+
+                                    next_result["ratings"].push(mechanics_rating)
+                                }
+
+
+                                if("farming" in results.rows[i]["score_data"])
+                                {
+                                    var farming_rating = {
+                                        "attribute":"Farming",
+                                        "rating":results.rows[i]["score_data"]["farming"],
+                                        "skills":{}
+                                    }
+
+                                    if("GPM" in results.rows[i]["player_stats"])
+                                        farming_rating["skills"]["GPM"] = results.rows[i]["player_stats"]["GPM"];
+
+                                    if("XPM" in results.rows[i]["player_stats"])
+                                        farming_rating["skills"]["XPM"] = results.rows[i]["player_stats"]["XPM"];
+
+                                    if("missed-free" in results.rows[i]["player_stats"])
+                                        farming_rating["skills"]["missed-free-lasthits"] = results.rows[i]["player_stats"]["missed-free"];
+
+                                    if("contested-lasthit" in results.rows[i]["player_stats"] && "contested-total" in results.rows[i]["player_stats"])
+                                        farming_rating["skills"]["percent-of-contested-lasthits-gotten"] = results.rows[i]["player_stats"]["contested-lasthit"]/Math.max(results.rows[i]["player_stats"]["contested-total"], 1);
+              
+                                    next_result["ratings"].push(farming_rating)
+                                }
+
+                                if("fighting" in results.rows[i]["score_data"])
+                                {
+                                    var fighting_rating = {
+                                        "attribute":"Fighting",
+                                        "rating":results.rows[i]["score_data"]["farming"],
+                                        "skills":{}
+                                    }
+
+                                    if("num-of-kills" in results.rows[i]["player_stats"])
+                                        fighting_rating["skills"]["kills"] = results.rows[i]["player_stats"]["num-of-kills"];
+
+                                    if("XPM" in results.rows[i]["player_stats"])
+                                        fighting_rating["skills"]["deaths"] = results.rows[i]["player_stats"]["num-of-deaths"];
+
+                                    if("missed-free" in results.rows[i]["player_stats"])
+                                        fighting_rating["skills"]["fights"] = results.rows[i]["player_stats"]["num-of-fights"];
+
+                                    next_result["ratings"].push(fighting_rating)
+                                }
+                                //objectives
+                            }
+
+                            response.push(next_result);
+                        }
+                        callback(null, response);
+                    }
+                ],
+                function(err, response)
+                {
+                    if(err)
+                    {
+                        console.log(err);
+                    }
+                    res.json(response);
+                }
+            );
+        }
+    );
+
+
 //Match Data Serving
 // =============================================================================
+
 
 router.route('/match-header')
     // get all the matches

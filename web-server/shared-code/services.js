@@ -68,6 +68,7 @@ Service.prototype._handleSchedulerMsg =  function(channel, message)
 
 Service.prototype.send = function(message, callback)
 {
+    console.log("sending", message);
     communication.publish(this._identifier, message, callback);
 }
 

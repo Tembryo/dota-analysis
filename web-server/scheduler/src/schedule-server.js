@@ -36,7 +36,6 @@ async.series(
     [
         initialise,
         registerListeners,
-        loadQueue,
         startTasks
     ]
 );
@@ -72,43 +71,16 @@ function initialise(callback)
         callback);
 }
 
-
-function loadQueue(callback)
-{
-    var locals = {};
-    async.waterfall(
-        [
-            database.generateQueryFunction(
-                "SELECT id, data, started from Jobs WHERE finished IS NULL;",
-                []),
-            function(results, callback)
-            {
-                console.log("Rerunning queue of ", results.rowCount);
-                async.each(results.rows,
-                    function(row, callback)
-                    {
-                        createJob(row["data"], row["id"], row["started"],
-                            function(id){
-                                callback();
-                            }
-                        );
-                    },
-                    callback);
-            }
-        ],
-        function(err, results)
-        {
-            if (err)
-                console.log(err, results);
-            callback(err, results);
-        }
-    );
-}
-
 var startup_delay = 1000;
 
 function startTasks(callback)
 {
+    setTimeout(function()
+        {
+            loadQueue();
+        },
+        startup_delay);
+
     setTimeout(function()
         {
             updateAllHistories();
@@ -439,6 +411,8 @@ function handleAnalysisServerMsg(server_identifier, message) //channel name is t
             break;
 
         case "AnalyseResponse":
+            
+            console.log("got analysis response");
             var job =  jobs_queue[message["job"]]; 
             switch(message["result"])
             {
@@ -448,7 +422,15 @@ function handleAnalysisServerMsg(server_identifier, message) //channel name is t
                 case "failed":
                     console.log("failed analysis", job);
                     break;
+                default:
+                    console.log("weird result ", message["result"]);
             }
+            if(! (message["message"]==="AnalyseResponse"))
+            {
+                console.log("WHAT THE FUCK");
+                return;
+            }
+
             closeJob(server_identifier, message["job"]);
 
             break;
@@ -571,6 +553,45 @@ function registerService(type, identifier)
         console.log("trying to register for unmanaged service type", type, identifier);
     }
 }
+
+var queue_load_interval = 20*1000;
+var max_jobs = 200;
+function loadQueue()
+{
+    var to_load = Math.max(max_jobs - Object.keys(jobs_queue).length, 0);
+    var locals = {};
+    async.waterfall(
+        [
+            database.generateQueryFunction(
+                "SELECT id, data, extract(epoch from started) as started from Jobs WHERE finished IS NULL ORDER BY started DESC LIMIT $1;",
+                [to_load]),
+            function(results, callback)
+            {
+                //TODO: Currently can load same job multiple times, will drop duplicates tho
+                // Track executed jobs and only pull free ones
+                console.log("Rerunning queue of ", results.rowCount);
+                async.each(results.rows,
+                    function(row, callback)
+                    {
+                        createJob(row["data"], row["id"], row["started"],
+                            function(id){
+                                callback();
+                            }
+                        );
+                    },
+                    callback);
+            }
+        ],
+        function(err, results)
+        {
+            if (err)
+                console.log(err, results);
+            setTimeout(loadQueue, queue_load_interval);
+        }
+    );
+}
+
+
 
 var history_job_size = 50;
 var check_interval_history = 60*1000*10;
@@ -709,7 +730,7 @@ function runScheduler()
 function schedulerTick()
 {
     //Make async
-
+    //console.log("tick")
     job_queue_block.take(
         function()
         {
@@ -727,11 +748,12 @@ function schedulerTick()
                 }
             }*/
             var job_keys =  Object.keys(jobs_queue);
+            //console.log("tick, n jobs:", job_keys.length);
             job_keys.sort(
                 function(a, b){
                     return jobs_queue[b]["time"] - jobs_queue[a]["time"];
                 })
-
+            //console.log("after", job_keys.length);
             async.eachSeries(
                 job_keys,
                 function(job_id, callback)
@@ -748,6 +770,7 @@ function schedulerTick()
                 function()
                 {
                     job_queue_block.leave();
+                    //console.log("left")
                 }
             );
         }
@@ -789,13 +812,13 @@ function scheduleJob(job_id, callback)
     
         //dispatch message to server to handle job
         var message = job["data"];
-        message["job"] = job_id;
+        message["job"] = String(job_id);
 
         communication.publish(server_identifier, message,
             function(){
                 console.log("message sent");
                 job["state"] = "in-progress";
-                jobs_queue[job_id] = job;
+                jobs_queue[String(job_id)] = job;
                 servers[server_identifier]["busy"] = true;
                 callback();
             });
@@ -890,16 +913,23 @@ function createTemporaryJob(data, callback)
 
 function createJob(data, id, started, callback_job)
 {
+    if(id in jobs_queue)
+    {        
+        if(callback_job)
+            callback_job(id); // pass back id
+        return;
+    }
+
     var job = {};
     if(started)
-        job ["time"] = started;
+        job ["time"] = started*1000;
     else
         job ["time"] = Date.now();
 
-    console.log("job ",started, job ["time"])
+    //console.log("job ",started, job ["time"])
     job ["state"] = "open";
     job ["data"] = data;
-    console.log("creating job", id, data);
+    //console.log("creating job", id, data);
     if(id != null)
     {
         console.log("only queued");
@@ -944,7 +974,7 @@ function createJob(data, id, started, callback_job)
                     job_queue_block.take(
                         function()
                         {
-                            jobs_queue[job_id] = job;
+                            jobs_queue[String(job_id)] = job;
                             job_queue_block.leave();
                     
                             schedulerTick();
@@ -965,6 +995,7 @@ function closeTemporaryJob(server_identifier, job_id)
         {
             delete jobs_queue[job_id];
             servers[server_identifier]["busy"] = false;
+            console.log("freed ", server_identifier);
             job_queue_block.leave();
 
             schedulerTick();
@@ -1001,7 +1032,7 @@ function closeJob(server_identifier, job_id)
                         delete jobs_queue[job_id];
                         servers[server_identifier]["busy"] = false;
                         job_queue_block.leave();
-
+                        console.log("freed rserver", server_identifier);
                         schedulerTick();
                     });
             }

@@ -1541,7 +1541,7 @@ def main():
     analysis_filename = sys.argv[3]
     header_filename = sys.argv[4]
     stats_filename = sys.argv[5]
-    logging.basicConfig(filename=match_directory+'/logfile.log',level=logging.DEBUG)
+    #logging.basicConfig(filename=match_directory+'/logfile.log',level=logging.DEBUG)
     match = Match(match_id, match_directory)
     match.matchInfo()
     header = headerInfo(match)
