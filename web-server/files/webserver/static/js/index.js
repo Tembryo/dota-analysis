@@ -59,7 +59,8 @@ $(document).ready(function(){
             var offset = ($('.slick-slider').slick('slickGetOption', "slidesToShow")-1) /2;
             var current_slide = $('.slick-slider').slick('slickCurrentSlide'); 
 
-            window.location.replace("/result?example="+(current_slide+offset)%examples.length);
+            //window.location.replace("/result?example="+(current_slide+offset)%examples.length);
+            window.location.replace("/static/examples/lina_example.html");
         }
     });  
   });
