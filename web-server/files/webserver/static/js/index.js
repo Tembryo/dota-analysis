@@ -60,7 +60,7 @@ $(document).ready(function(){
             var current_slide = $('.slick-slider').slick('slickCurrentSlide'); 
 
             //window.location.replace("/result?example="+(current_slide+offset)%examples.length);
-            window.location.replace("/static/examples/new_example_" +(current_slide+offset)%examples.length + ".html");
+            window.location = "/static/examples/new_example_" +(current_slide+offset)%examples.length + ".html";
         }
     });  
   });
