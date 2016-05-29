@@ -475,7 +475,7 @@ var hero_pictures = {
 
                     var barText = d3.select(classString).selectAll("text.bar-text")
                                 .data(d3.entries(skills))
-                                .attr("x",function(d){return barScale(d.value) - 20 + textWidth;})
+                                .attr("x",function(d){return textWidth +4;})
                                 .text(function(d){return d.value;});
 
                     barText.enter()
@@ -485,7 +485,7 @@ var hero_pictures = {
                                     yOffsetGroup = i*(barHeight + barSpacing)+10;
                                     return "translate(10," + yOffsetGroup.toString() +")"; })
                         .attr("y",barHeight/2)
-                        .attr("x",function(d){return barScale(d.value) - 20 + textWidth;})
+                        .attr("x",function(d){return textWidth +4;})
                         .attr("dy", ".35em")
                         .attr("fill","white")
                         .text(function(d){return d.value;});
