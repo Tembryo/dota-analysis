@@ -18,26 +18,81 @@
         var yOffsetSkills = height*0.2;   
         var textTranslateString = "translate(" + xOffsetText.toString() + "," + yOffsetText.toString()+ ")";
         var barHeight = 20;
-        var textWidth = 120;
+        var textWidth = 140;
         var barWidth = 160;
         var barSpacing = 5;
 
         // definitions to explain skills when user hovers over the text
-        var definitions = {"item-checks":"measures how frequently you check items of opponents",
-                            "camera-skills":"measures your camera skills",
-                            "cursor-control":"measures you cursor control",
-                            "actions-issued":"measures effectivenss of actions issued to teammates",
-                            "damage-dealt":"measures how much damage you do to opponent heroes",
-                            "fights-taken/won":"measures how many fights you won out of the fights you took",
-                            "last-hitting":"measures your last hitting performance",
-                            "lane-equilibrium":"measures your control of the lane equilibrium",
-                            "TP-scroll use":"measures how well you use TP-scrolls",
-                            "cooldown-use":"measures how effectively you use items with cooldowns",
-                            "tower-damage":"measures how much damage to towers you do in each game",
-                            "barracks-damage":"measures how much damage to barracks you do in each game",
-                            "hiding-from-vision":"measures how often you are consealed from vision from the enemy",
-                            "runes":"measues your effectiveness at taking runes"
-                            };
+        var skill_constants = {
+            "n-checks":
+                {   "label": "Item Checks",
+                    "scale": d3.scale.linear().domain([0, 300]).range([0,100]).clamp(true),
+                    "explanation": "measures how frequently you check items of opponents",
+                    "tip": "Click enemies as often as possible so you know their current items and exact HP/Mana values."
+                },
+
+            "average-check-duration":
+                {   "label": "Check Speed",
+                    "scale": d3.scale.linear().domain([0.5, 3]).range([0,100]).clamp(true),
+                    "explanation": "measures how quickly you check items of opponents",
+                    "tip": "Checking enemy inventories should be as quick as possible, you have many other things to do!"
+                },
+
+            "camera-jumps":
+                {   "label": "Camera Jumps",
+                    "scale": d3.scale.linear().domain([0, 400]).range([0,100]).clamp(true),
+                    "explanation": "measures how often you reposition the camera to check things far away",
+                    "tip": "Use the minimap to jump with your camera and view action happening somewhere else."
+                },
+            "movement-per-minute":
+                {   "label": "Camera Movement",
+                    "scale": d3.scale.linear().domain([500, 2000]).range([0,100]).clamp(true),
+                    "explanation": "measures how much you move your camera around",
+                    "tip": "Keep your camera moving to see as much as possible."
+                },
+            "GPM":
+                {   "label": "GPM",
+                    "scale": d3.scale.linear().domain([0, 900]).range([0,100]).clamp(true),
+                    "explanation": "measures average gold gain per minute",
+                    "tip": "Earning Gold is crucial to success."
+                },
+            "XPM":
+                {   "label": "XPM",
+                    "scale": d3.scale.linear().domain([0, 600]).range([0,100]).clamp(true),
+                    "explanation": "measures average experience gain per minute",
+                    "tip": "Make sure you collect enough experience, if you are underleveled your abilities will lose their impact."
+                },
+            "missed-free-lasthits":
+                {   "label": "Missed LH",
+                    "scale": d3.scale.linear().domain([100, 0]).range([0,100]).clamp(true),
+                    "explanation": "Measures how many easy to get lasthits you missed",
+                    "tip": "When nobody is around, you should be lasthitting every creep that dies. Every single one!"
+                },
+            "percent-of-contested-lasthits-gotten":
+                {   "label": "Contested LH",
+                    "scale": d3.scale.linear().domain([0, 1]).range([0,100]).clamp(true),
+                    "explanation": "measures how much of the lasthits you got when challenged by an enemy",
+                    "tip": "Lasthitting creeps while competing with an enemy is a challenge, keep practicing."
+                },
+            "kills":
+                {   "label": "Kills",
+                    "scale": d3.scale.linear().domain([0, 20]).range([0,100]).clamp(true),
+                    "explanation": "Number of opponents killed",
+                    "tip": "Kill enemies and you will gain a significant advantage over them."
+                },
+            "deaths":
+                {   "label": "Deaths",
+                    "scale": d3.scale.linear().domain([20, 0]).range([0,100]).clamp(true),
+                    "explanation": "Your number of deaths",
+                    "tip": "Most deaths could be avoided with a little more careful play."
+                },
+            "fights":
+                {   "label": "Fights",
+                    "scale": d3.scale.linear().domain([0, 60]).range([0,100]).clamp(true),
+                    "explanation": "measures how often you got involved in fights with enemy heroes.",
+                    "tip": "Fight the enemy a lot to keep up pressure."
+                }
+            };
 
 var hero_pictures = {
     "102":  "/static/img/heroes/pictures/Abaddon.png",
@@ -280,7 +335,7 @@ var hero_pictures = {
 
         var color = d3.scale.linear()
                         .domain([0,100])
-                        .range(["blue","red"]);
+                        .range(["#a50026","#d73027","#f46d43","#fdae61","#fee08b","#ffffbf","#d9ef8b","#a6d96a","#66bd63","#1a9850","#006837"]);
 
         var barScale = d3.scale.linear()
                              .domain([0,100])
@@ -337,6 +392,16 @@ var hero_pictures = {
                                 .attr("fill","black")
                                 .attr("stroke","black")
                                 .attr("transform",translateString);
+            
+
+            var n_ratings = 0;
+            var index = 0;
+            for (j=0; j<data.length; j++){
+                if (data[j]["ratings"].length > n_ratings){
+                    n_ratings = data[j]["ratings"].length;
+                    index = j;
+                }
+            }
 
             // loop over points on polygon drawing lines, adding text 
             for (i=0; i<n; i++){
@@ -353,7 +418,7 @@ var hero_pictures = {
                 var text = canvas.append("text")
                             .attr("x",function(){return (textPadding*(1+Math.abs(Math.sin(incr*i)))+radius)*vectorArray[i][0];})
                             .attr("y",function(){return (textPadding*(1+Math.abs(Math.sin(incr*i)))+radius)*vectorArray[i][1];})
-                            .text(data[0]["ratings"][i].attribute)
+                            .text(data[index]["ratings"][i].attribute)
                             .attr("text-anchor","middle")
                             .attr("font-family",textFont)
                             .attr("transform",translateString);
@@ -395,7 +460,7 @@ var hero_pictures = {
 
                 var attributeArray = [];
                 for (i=0; i<dataPoint["ratings"].length; i++){
-                    attributeArray.push(dataPoint["ratings"][i]["rating"]);
+                    attributeArray.push(Math.floor(dataPoint["ratings"][i]["rating"]/10)*10);
                 }
 
                 var polygonText = d3.select("#polygon-canvas").selectAll(".polygonText")
@@ -456,8 +521,8 @@ var hero_pictures = {
 
                     var userBar = d3.select(classString).selectAll("rect.userBar")
                                     .data(d3.entries(skills))
-                                    .attr("width",function(d){return barScale(d.value)})
-                                    .attr("fill",function(d){return color(d.value);})
+                                    .attr("width",function(d){return barScale(Math.floor(skill_constants[d.key]["scale"](d.value)))})
+                                    .attr("fill",function(d){return color(Math.floor(skill_constants[d.key]["scale"](d.value)));})
 
                     userBar.enter()
                         .append("rect")
@@ -466,17 +531,17 @@ var hero_pictures = {
                                     yOffsetGroup = i*(barHeight+barSpacing) + 10;
                                     return "translate(10," + yOffsetGroup.toString() +")"; })
                         .attr("height",barHeight)
-                        .attr("x",textWidth)
+                        .attr("x", textWidth +15)
                         .attr("fill-opacity",0.5)
                         .attr("width",function(d){return barScale(d.value)})
-                        .attr("fill",function(d){return color(d.value);});
+                        .attr("fill",function(d){return color(Math.floor(skill_constants[d.key]["scale"](d.value)));});
 
                     userBar.exit().remove();
 
                     var barText = d3.select(classString).selectAll("text.bar-text")
                                 .data(d3.entries(skills))
-                                .attr("x",function(d){return textWidth +4;})
-                                .text(function(d){return d.value;});
+                                .attr("x",function(d){return textWidth -12;})
+                                .text(function(d){return Math.floor(skill_constants[d.key]["scale"](d.value));});
 
                     barText.enter()
                         .append("text")
@@ -485,10 +550,11 @@ var hero_pictures = {
                                     yOffsetGroup = i*(barHeight + barSpacing)+10;
                                     return "translate(10," + yOffsetGroup.toString() +")"; })
                         .attr("y",barHeight/2)
-                        .attr("x",function(d){return textWidth +4;})
+                        .attr("x",function(d){return textWidth-12;})
                         .attr("dy", ".35em")
-                        .attr("fill","white")
-                        .text(function(d){return d.value;});
+                        .attr("fill","black")
+                        .attr("style", "font-weight: bold;")
+                        .text(function(d){return Math.floor(skill_constants[d.key]["scale"](d.value));});
 
                     barText.exit().remove();
 
@@ -503,7 +569,7 @@ var hero_pictures = {
 
                     var userBar = d3.select(classString).selectAll("rect.userBarAv")
                                     .data(d3.entries(dataPoint["ratings"][i].skills))
-                                    .attr("width",function(d){return barScale(d.value)});
+                                    .attr("width",function(d){return barScale(Math.floor(skill_constants[d.key]["scale"](d.value)))});
 
                     userBar.enter()
                         .append("rect")
@@ -512,16 +578,16 @@ var hero_pictures = {
                                     yOffsetGroup = i*(barHeight + barSpacing)+10;
                                     return "translate(10," + yOffsetGroup.toString() +")"; })
                         .attr("height",barHeight)
-                        .attr("x",textWidth)
+                        .attr("x",textWidth +15)
                         .attr("fill-opacity",0.7)
-                        .attr("width",function(d){return barScale(d.value)})
+                        .attr("width",function(d){return barScale(Math.floor(skill_constants[d.key]["scale"](d.value)));})
                         .attr("fill","rgba(0,0,0,0.5)");
 
                     userBar.exit().remove();
 
                     var skillText = d3.select(classString).selectAll("text.skill-text")
                                 .data(d3.entries(dataPoint["ratings"][i].skills))
-                                .text(function(d){return d.key;});
+                                .text(function(d){return skill_constants[d.key];});
 
                     skillText.enter()
                         .append("text")
@@ -534,10 +600,10 @@ var hero_pictures = {
                                     return "translate(10," + yOffsetGroup.toString() +")"; })
                         .attr("x",textWidth - 20)
                         .attr("y",0.75*barHeight)
-                        .text(function(d){return d.key;});
+                        .text(function(d){return skill_constants[d.key]["label"];});
 
                     skillText.append("svg:title")
-                        .text(function(d){return definitions[d.key];});
+                        .text(function(d){return skill_constants[d.key]["explanation"];});
 
                     skillText.exit().remove();
 
@@ -787,23 +853,7 @@ var hero_pictures = {
             function renderTips(dataPoint){
                 if(dataPoint["ratings"].length ==0)
                     return;
-                // make an object containing all the tips for how to improve each skill
-                var tips = {}
 
-                tips["item-checks"] = "item-checks";
-                tips["camera-skills"] = "make more frequent jumps to collect information about what is happening on the other side of the map";
-                tips["cursor-control"] = "cursor-control";
-                tips["actions-issued"] = "actions-issued";
-                tips["damage-dealt"] = "damage-dealt";
-                tips["fights-taken"] = "fights-taken";
-                tips["last-hitting"] = "practice timing your last hits better as you were slightly early in several cases";
-                tips["lane-equilibrium"] = "try to maintain lane equilibrium close to your towers during first 10 mins"
-                tips["TP-scroll-use"] = "TP-scroll-use";
-                tips["cooldown-use"] = "you are under-utilising some of your items";
-                tips["tower-damage"] = "tower-damage";
-                tips["barracks-damage"] = "look for opportunities to do more damage to the opponent's barracks";
-                tips["hiding-from-vision"] = "try to be more aware of when you are visible to the enemy and remain concealed if possible";
-                tips["runes"] = "runes";
 
                 // find the two weakest skills of user in selected match
 
@@ -811,7 +861,7 @@ var hero_pictures = {
 
                 for (j=0; j<dataPoint["ratings"].length; j++){
                     for (var skill in dataPoint["ratings"][j]["skills"]){
-                        skillsList.push([skill, dataPoint["ratings"][j]["skills"][skill]]);
+                        skillsList.push( [skill, Math.floor(skill_constants[skill]["scale"](dataPoint["ratings"][j]["skills"][skill])) ] );
                         // if a[1] > b[1] --> a gets sorted to have a lower index than b
                         skillsList.sort(function(a, b) {return a[1]- b[1]});
                     }
@@ -821,7 +871,7 @@ var hero_pictures = {
                 var skillOne = skillsList[0][0];
                 var skillTwo = skillsList[1][0];
 
-                tipsText.innerHTML = "Work on your " + skillOne +  " (" + tips[skillOne] + ") and " + skillTwo + " (" + tips[skillTwo] + ").";
+                tipsText.innerHTML = "<p>Work on your <b>" + skill_constants[skillOne]["label"] +  "</b>:<br/> " + skill_constants[skillOne]["tip"] + "</p><p> A second area to improve is <b>" + skill_constants[skillTwo]["label"] + "</b>: <br/>" + skill_constants[skillTwo]["tip"] + " </p>";
 
                 document.getElementById("polygon-container").appendChild(tipsText);
             }
@@ -831,6 +881,15 @@ var hero_pictures = {
                 for (i=0; i<players.length; i++){
                     document.getElementById("hero_" + i.toString()).src = hero_pictures[players[i]["hero"]];
                     document.getElementById("hero_" + i.toString()).alt = players[i]["name"];
+
+                    if(players[i]["hero"] == dataPoint["hero"])
+                    {
+                        document.getElementById("hero_" + i.toString()).style = "border:2px solid #FF0000;"
+                    }
+                    else
+                    {
+                        document.getElementById("hero_" + i.toString()).style = "border:0px;"
+                    }
                 }
             }
 
