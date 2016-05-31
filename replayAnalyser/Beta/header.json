@@ -1,122 +1,128 @@
 {
+    "draft": {},
+    "id": "2364597318",
+    "length": 1773.0,
     "parameters": {
-        "formAdjacencyMatrix": {
-            "w_space1": 0.02,
-            "w_space2": 0.3,
-            "w_time": 80,
-            "radius": 1500,
-            "distance_threshold": 300
-        },
-        "map": {
-            "xmin": -8200,
-            "num_box": 32,
-            "ymin": -8200,
-            "ymax": 8000,
-            "xmax": 8000
+        "datetime": {
+            "date": "2016-05-31",
+            "time": "14:53:33.390942"
         },
         "fightEvaluation": {
             "alpha": 150,
             "kappa": 0.15,
             "time_threshold": 2
         },
-        "graphAttacks": {
-            "damage_threshold": 50
-        },
-        "namespace": {
-            "normal_namespace": 11000,
-            "kills_namespace": 10000,
-            "fights_namespace": 15000,
-            "hero_namespace": 100
-        },
-        "heroPositions": {
-            "sample_step_size": 150
+        "formAdjacencyMatrix": {
+            "distance_threshold": 300,
+            "radius": 1500,
+            "w_space1": 0.02,
+            "w_space2": 0.3,
+            "w_time": 80
         },
         "general": {
-            "col_per_player": 7,
             "num_players": 10
         },
         "goldXPInfo": {
             "bin_size": 2
         },
+        "graphAttacks": {
+            "damage_threshold": 50
+        },
+        "heroPositions": {
+            "sample_step_size": 150,
+            "sample_step_size_hifi": 10
+        },
+        "heroTrajectories": {
+            "delta": 1000,
+            "min_timespan": 3
+        },
+        "initiationDamage": {
+            "initiation_window": 1
+        },
         "makeAttackList": {
             "bin_size": 1
         },
-        "version": "0.0.03",
-        "heroTrajectories": {
-            "min_timespan": 3,
-            "delta": 1000
+        "map": {
+            "num_box": 32,
+            "xmax": 8000,
+            "xmin": -8200,
+            "ymax": 8000,
+            "ymin": -8200
+        },
+        "namespace": {
+            "camera_namespace": 30000,
+            "creeps_namespace": 20000,
+            "fights_namespace": 15000,
+            "hero_namespace": 100,
+            "kills_namespace": 10000,
+            "normal_namespace": 11000
         },
         "pregame_time_shift": 60,
-        "datetime": {
-            "date": "2016-01-20",
-            "time": "19:37:22.478936"
+        "version": "0.0.05"
+    },
+    "players": {
+        "0": {
+            "hero": "spirit_breaker",
+            "name": "Stingg(sup/hard)",
+            "steam_id": "76561198027466304"
+        },
+        "1": {
+            "hero": "oracle",
+            "name": "\u0440\u0443\u0444\u043b",
+            "steam_id": "76561198015864421"
+        },
+        "2": {
+            "hero": "lion",
+            "name": "Fleim",
+            "steam_id": "76561197983810875"
+        },
+        "3": {
+            "hero": "queenofpain",
+            "name": "Grasz",
+            "steam_id": "76561197981378290"
+        },
+        "4": {
+            "hero": "slark",
+            "name": "twitch.tv/ra1nmandoto",
+            "steam_id": "76561198088324668"
+        },
+        "5": {
+            "hero": "shredder",
+            "name": "spasibo",
+            "steam_id": "76561198049304158"
+        },
+        "6": {
+            "hero": "ogre_magi",
+            "name": "Mental",
+            "steam_id": "76561198085118227"
+        },
+        "7": {
+            "hero": "juggernaut",
+            "name": "EverySecondMatters",
+            "steam_id": "76561198003541947"
+        },
+        "8": {
+            "hero": "beastmaster",
+            "name": "CookieMonster",
+            "steam_id": "76561197983356132"
+        },
+        "9": {
+            "hero": "tinker",
+            "name": "NoX",
+            "steam_id": "76561198129624977"
         }
     },
     "teams": {
         "0": {
+            "name": " \n",
             "short": "empty",
-            "side": "radiant",
-            "name": "empty"
+            "side": "radiant"
         },
         "1": {
+            "name": " \n",
             "short": "empty",
-            "side": "dire",
-            "name": "empty"
+            "side": "dire"
         }
     },
-    "players": {
-        "0": {
-            "steam_id": 76561198129537853,
-            "hero": "sniper",
-            "name": "BearzkyChrisHaAR"
-        },
-        "1": {
-            "steam_id": 76561197990995443,
-            "hero": "bristleback",
-            "name": "ka"
-        },
-        "2": {
-            "steam_id": 76561198037954400,
-            "hero": "juggernaut",
-            "name": "Viral"
-        },
-        "3": {
-            "steam_id": 76561198042800606,
-            "hero": "puck",
-            "name": "Artishir"
-        },
-        "4": {
-            "steam_id": 76561198058325603,
-            "hero": "tusk",
-            "name": "LordRamsayBolton"
-        },
-        "5": {
-            "steam_id": 76561198141786646,
-            "hero": "zuus",
-            "name": "Excentric"
-        },
-        "6": {
-            "steam_id": 76561198130154138,
-            "hero": "necrolyte",
-            "name": "edhykrack_12"
-        },
-        "7": {
-            "steam_id": 76561198094496371,
-            "hero": "antimage",
-            "name": "OOOPUSSS"
-        },
-        "8": {
-            "steam_id": 76561198093028903,
-            "hero": "undying",
-            "name": "Am\u00e9ri\u00a9o"
-        },
-        "9": {
-            "steam_id": 76561198179665166,
-            "hero": "weaver",
-            "name": "ELRECHUCHA"
-        }
-    },
-    "length": 2768.0,
-    "draft": {},
-    "id": "1967006029"
+    "winner": "dire"
 }

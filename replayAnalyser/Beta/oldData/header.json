@@ -1,0 +1,122 @@
+{
+    "parameters": {
+        "formAdjacencyMatrix": {
+            "w_space1": 0.02,
+            "w_space2": 0.3,
+            "w_time": 80,
+            "radius": 1500,
+            "distance_threshold": 300
+        },
+        "map": {
+            "xmin": -8200,
+            "num_box": 32,
+            "ymin": -8200,
+            "ymax": 8000,
+            "xmax": 8000
+        },
+        "fightEvaluation": {
+            "alpha": 150,
+            "kappa": 0.15,
+            "time_threshold": 2
+        },
+        "graphAttacks": {
+            "damage_threshold": 50
+        },
+        "namespace": {
+            "normal_namespace": 11000,
+            "kills_namespace": 10000,
+            "fights_namespace": 15000,
+            "hero_namespace": 100
+        },
+        "heroPositions": {
+            "sample_step_size": 150
+        },
+        "general": {
+            "col_per_player": 7,
+            "num_players": 10
+        },
+        "goldXPInfo": {
+            "bin_size": 2
+        },
+        "makeAttackList": {
+            "bin_size": 1
+        },
+        "version": "0.0.03",
+        "heroTrajectories": {
+            "min_timespan": 3,
+            "delta": 1000
+        },
+        "pregame_time_shift": 60,
+        "datetime": {
+            "date": "2016-01-20",
+            "time": "19:37:22.478936"
+        }
+    },
+    "teams": {
+        "0": {
+            "short": "empty",
+            "side": "radiant",
+            "name": "empty"
+        },
+        "1": {
+            "short": "empty",
+            "side": "dire",
+            "name": "empty"
+        }
+    },
+    "players": {
+        "0": {
+            "steam_id": 76561198129537853,
+            "hero": "sniper",
+            "name": "BearzkyChrisHaAR"
+        },
+        "1": {
+            "steam_id": 76561197990995443,
+            "hero": "bristleback",
+            "name": "ka"
+        },
+        "2": {
+            "steam_id": 76561198037954400,
+            "hero": "juggernaut",
+            "name": "Viral"
+        },
+        "3": {
+            "steam_id": 76561198042800606,
+            "hero": "puck",
+            "name": "Artishir"
+        },
+        "4": {
+            "steam_id": 76561198058325603,
+            "hero": "tusk",
+            "name": "LordRamsayBolton"
+        },
+        "5": {
+            "steam_id": 76561198141786646,
+            "hero": "zuus",
+            "name": "Excentric"
+        },
+        "6": {
+            "steam_id": 76561198130154138,
+            "hero": "necrolyte",
+            "name": "edhykrack_12"
+        },
+        "7": {
+            "steam_id": 76561198094496371,
+            "hero": "antimage",
+            "name": "OOOPUSSS"
+        },
+        "8": {
+            "steam_id": 76561198093028903,
+            "hero": "undying",
+            "name": "Am\u00e9ri\u00a9o"
+        },
+        "9": {
+            "steam_id": 76561198179665166,
+            "hero": "weaver",
+            "name": "ELRECHUCHA"
+        }
+    },
+    "length": 2768.0,
+    "draft": {},
+    "id": "1967006029"
+}
