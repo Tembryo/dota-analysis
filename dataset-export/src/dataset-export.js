@@ -7,14 +7,16 @@ var database        = require("/shared-code/database.js"),
 
 var samples         = require("./samples.js");
 
+
 async.waterfall(
     [
         function(callback)
         {
+            console.log("Collectiong stuff for version", samples.version);
             database.query(
-                "SELECT matchid FROM mmrdata mmr, replayfiles rf, processingstatuses ps "+
-                "WHERE mmr.solo_mmr IS NOT NULL AND mmr.matchid = rf.match_id AND rf.processing_status=ps.id AND ps.label='registered' group by mmr.matchid;",
-                [], callback);
+                "SELECT matchid FROM mmrdata mmr, replayfiles rf, processingstatuses ps, Matches m "+
+                "WHERE mmr.solo_mmr IS NOT NULL AND mmr.matchid = rf.match_id AND rf.processing_status=ps.id AND ps.label='registered' AND m.id=rf.match_id AND m.analysis_version= $1 group by mmr.matchid;",
+                [samples.version], callback);
         },
         function(result, callback)
         {
@@ -32,7 +34,7 @@ async.waterfall(
                 {
                     appedMatchSamples(row["matchid"], csv_file, callback);
                 }
-                , 10); // Run 3 simultaneous uploads
+                , 10);
 
             queue.drain = function() {
                 console.log("done iterating");
@@ -60,27 +62,25 @@ function appedMatchSamples(matchid, csv_file, callback)
     [
         function(callback)
         {
-            var stats_filename = "/shared/match_stats/"+matchid+".json";
-            storage.retrieve(stats_filename, callback)
-        },
-        function(local_statsfile, callback)
-        {
-            fs.readFile(local_statsfile, 'utf8', callback);
-        },
-        function(statsfile, callback)
-        {
-            locals.match = JSON.parse(statsfile);
-            database.query("SELECT slot, solo_mmr FROM mmrdata WHERE matchid=$1 AND solo_mmr IS NOT NULL;", [matchid], callback);
+            database.query("SELECT mmr.solo_mmr,mmr.slot, ms.data as match_data, ps.data as player_data FROM mmrdata mmr, MatchStats ms, PlayerStats ps WHERE mmr.matchid=$1 AND ms.id=mmr.matchid AND ps.match_id=mmr.matchid AND ps.steam_identifier = mmr.player_steamid AND solo_mmr IS NOT NULL;", [matchid], callback);
         },
         function(results, callback)
         {
             for(var i = 0; i < results.rowCount; i++)
             {
+                csv_file.write("\n");
                 var slot = results.rows[i]["slot"];
                 if(slot >= 128)
                     slot = slot - 128 + 5;
 
-                var fullsample = {"label": results.rows[i]["solo_mmr"], "data": samples.createSampleData(locals.match, slot)};
+                var match = 
+                {
+                    "match-stats": results.rows[i]["match_data"], 
+                    "player-stats": {}
+                }
+                match["player-stats"][slot] = results.rows[i]["player_data"];
+                //console.log(match);
+                var fullsample = {"label": results.rows[i]["solo_mmr"], "data": samples.createSampleData(match, slot)};
                 samples.writeSample(csv_file,fullsample);
             }
             callback();

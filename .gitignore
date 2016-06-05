@@ -3,4 +3,4 @@
 **/*.pyc
 **/*.log
 **/node_modules
-!.gitignore
+!**/.gitignore
