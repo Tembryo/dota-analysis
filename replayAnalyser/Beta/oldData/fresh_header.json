@@ -1,0 +1,128 @@
+{
+    "draft": {},
+    "id": "2078774816",
+    "length": 3658.0,
+    "parameters": {
+        "datetime": {
+            "date": "2016-02-26",
+            "time": "16:59:11.480396"
+        },
+        "fightEvaluation": {
+            "alpha": 150,
+            "kappa": 0.15,
+            "time_threshold": 2
+        },
+        "formAdjacencyMatrix": {
+            "distance_threshold": 300,
+            "radius": 1500,
+            "w_space1": 0.02,
+            "w_space2": 0.3,
+            "w_time": 80
+        },
+        "general": {
+            "num_players": 10
+        },
+        "goldXPInfo": {
+            "bin_size": 2
+        },
+        "graphAttacks": {
+            "damage_threshold": 50
+        },
+        "heroPositions": {
+            "sample_step_size": 150,
+            "sample_step_size_hifi": 10
+        },
+        "heroTrajectories": {
+            "delta": 1000,
+            "min_timespan": 3
+        },
+        "initiationDamage": {
+            "initiation_window": 1
+        },
+        "makeAttackList": {
+            "bin_size": 1
+        },
+        "map": {
+            "num_box": 32,
+            "xmax": 8000,
+            "xmin": -8200,
+            "ymax": 8000,
+            "ymin": -8200
+        },
+        "namespace": {
+            "camera_namespace": 30000,
+            "creeps_namespace": 20000,
+            "fights_namespace": 15000,
+            "hero_namespace": 100,
+            "kills_namespace": 10000,
+            "normal_namespace": 11000
+        },
+        "pregame_time_shift": 60,
+        "version": "0.0.05"
+    },
+    "players": {
+        "0": {
+            "hero": "earthshaker",
+            "name": "player",
+            "steam_id": "76561198260682055"
+        },
+        "1": {
+            "hero": "bane",
+            "name": "Zera",
+            "steam_id": "76561198019532009"
+        },
+        "2": {
+            "hero": "obsidian_destroyer",
+            "name": "MyNuts=UrFace",
+            "steam_id": "76561197982064719"
+        },
+        "3": {
+            "hero": "lich",
+            "name": "[HA]Steppenwolf",
+            "steam_id": "76561197960853317"
+        },
+        "4": {
+            "hero": "spectre",
+            "name": "CAN`TBETOUCHED",
+            "steam_id": "76561198215900312"
+        },
+        "5": {
+            "hero": "tusk",
+            "name": ".Yagami.Light.",
+            "steam_id": "76561198081036288"
+        },
+        "6": {
+            "hero": "centaur",
+            "name": "Truelol",
+            "steam_id": "76561198064028251"
+        },
+        "7": {
+            "hero": "treant",
+            "name": "KRIEGER_",
+            "steam_id": "76561198100270665"
+        },
+        "8": {
+            "hero": "alchemist",
+            "name": "\u2020Vincent\u2020",
+            "steam_id": "76561198093984448"
+        },
+        "9": {
+            "hero": "queenofpain",
+            "name": "Andryushka",
+            "steam_id": "76561198269633186"
+        }
+    },
+    "teams": {
+        "0": {
+            "name": " \n",
+            "short": "empty",
+            "side": "radiant"
+        },
+        "1": {
+            "name": " \n",
+            "short": "empty",
+            "side": "dire"
+        }
+    },
+    "winner": "dire"
+}

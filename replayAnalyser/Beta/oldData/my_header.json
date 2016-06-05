@@ -1,0 +1,127 @@
+{
+    "draft": {},
+    "id": "1950217743",
+    "length": 3911.0,
+    "parameters": {
+        "datetime": {
+            "date": "2016-02-01",
+            "time": "13:09:22.178713"
+        },
+        "fightEvaluation": {
+            "alpha": 150,
+            "kappa": 0.15,
+            "time_threshold": 2
+        },
+        "formAdjacencyMatrix": {
+            "distance_threshold": 300,
+            "radius": 1500,
+            "w_space1": 0.02,
+            "w_space2": 0.3,
+            "w_time": 80
+        },
+        "general": {
+            "num_players": 10
+        },
+        "goldXPInfo": {
+            "bin_size": 2
+        },
+        "graphAttacks": {
+            "damage_threshold": 50
+        },
+        "heroPositions": {
+            "sample_step_size": 150,
+            "sample_step_size_hifi": 10
+        },
+        "heroTrajectories": {
+            "delta": 1000,
+            "min_timespan": 3
+        },
+        "initiationDamage": {
+            "initiation_window": 1
+        },
+        "makeAttackList": {
+            "bin_size": 1
+        },
+        "map": {
+            "num_box": 32,
+            "xmax": 8000,
+            "xmin": -8200,
+            "ymax": 8000,
+            "ymin": -8200
+        },
+        "namespace": {
+            "camera_namespace": 30000,
+            "creeps_namespace": 20000,
+            "fights_namespace": 15000,
+            "hero_namespace": 100,
+            "kills_namespace": 10000,
+            "normal_namespace": 11000
+        },
+        "pregame_time_shift": 60,
+        "version": "0.0.05"
+    },
+    "players": {
+        "0": {
+            "hero": "bane",
+            "name": "Puppey",
+            "steam_id": 76561198047544485
+        },
+        "1": {
+            "hero": "slardar",
+            "name": "MISERY",
+            "steam_id": 76561198047648307
+        },
+        "2": {
+            "hero": "slark",
+            "name": "EternaLEnVy",
+            "steam_id": 76561198003541947
+        },
+        "3": {
+            "hero": "queenofpain",
+            "name": "Secret.w33.haa",
+            "steam_id": 76561198046966189
+        },
+        "4": {
+            "hero": "rubick",
+            "name": "pieliedie",
+            "steam_id": 76561197967187728
+        },
+        "5": {
+            "hero": "dazzle",
+            "name": "Fly",
+            "steam_id": 76561198054420884
+        },
+        "6": {
+            "hero": "winter_wyvern",
+            "name": "Cr1t-",
+            "steam_id": 76561197986172872
+        },
+        "7": {
+            "hero": "alchemist",
+            "name": "Mamacita",
+            "steam_id": 76561198065514372
+        },
+        "8": {
+            "hero": "rattletrap",
+            "name": "Moon",
+            "steam_id": 76561197998894475
+        },
+        "9": {
+            "hero": "gyrocopter",
+            "name": "N0tail",
+            "steam_id": 76561197979938082
+        }
+    },
+    "teams": {
+        "0": {
+            "name": " Secret",
+            "short": "empty",
+            "side": "radiant"
+        },
+        "1": {
+            "name": " OG",
+            "short": "empty",
+            "side": "dire"
+        }
+    }
+}

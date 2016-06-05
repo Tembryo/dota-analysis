@@ -924,6 +924,8 @@ def makeFightDict(match,fight_list,area_matrix):
         #print "fight dictionary entry" + str(i)
     return fight_dict
 
+
+
 def initiationDamage(match,damage_dealt,time_start):
     initiation_window = match.parameters["initiationDamage"]["initiation_window"]
     radiant_initiation_damage = 0
@@ -1403,7 +1405,118 @@ def createCreepEvent(match, creep_row):
     creep_event["spawned-at"] = match.creep_positions[creep_row[3]]
     return creep_event
 
+def normalize(v):
+    #function for normalizing an array
+    norm=np.linalg.norm(v)
+    if norm==0: 
+       return v
+    return v/norm
 
+def fightCoordinationScore(match,analysis):
+    #set bin size (seconds) for fight timeline
+    time_delta = 0.1
+    decay_rate = 2
+    n_steps = int(math.floor(1/time_delta))
+    hero_coordination_coeffs = {}
+    for i in range(100,110):
+         hero_coordination_coeffs[i] = []
+
+    for event_id in analysis["events"]:
+        event = analysis["events"][event_id]
+        if event["type"] == "fight":
+            involved = event["involved"]
+            if len(involved) > 2:
+                fight_length = event["time-end"]- event["time-start"]
+                n = math.floor(fight_length/time_delta) + n_steps
+                #separate involved list into radiant and dire involved
+                radiant_involved = []
+                dire_involved = []
+                for item in involved:
+                    if item < 105:
+                        radiant_involved.append(item)
+                    elif item >= 105:
+                        dire_involved.append(item)
+                    else:
+                        print "error - involved should only include numbers 100-109"
+                #make dictionaries to store the arrays of attack signal
+                radiant_attack_signals = {}
+                for radiant_hero in radiant_involved:
+                    radiant_attack_signals[radiant_hero] = {}
+                    for dire_hero in dire_involved:
+                        radiant_attack_signals[radiant_hero][dire_hero] = np.zeros(n)
+                #same for dire
+                dire_attack_signals = {}
+                for dire_hero in dire_involved:
+                    dire_attack_signals[dire_hero] = {}
+                    for radiant_hero in radiant_involved:
+                        dire_attack_signals[dire_hero][radiant_hero] = np.zeros(n)
+                #loop over all attacks in fight assigning them to correct signal
+                for attack in event["attack_sequence"]:
+                    attacker = attack["attacker"]
+                    victim = attack["victim"]
+                    if attacker < 105 and victim >= 105:
+                        start_index = math.floor((attack["t"]-event["time-start"])/time_delta)
+                        for i in range(0,n_steps):
+                            radiant_attack_signals[attacker][victim][start_index + i] = attack["damage"]*math.exp(-i*time_delta*decay_rate)
+                    elif attacker >= 105 and victim < 105:
+                        start_index = math.floor((attack["t"]-event["time-start"])/time_delta)
+                        for i in range(0,n_steps):
+                            dire_attack_signals[attacker][victim][start_index + i] = attack["damage"]*math.exp(-i*time_delta*decay_rate)
+                #normalise each vector
+                for radiant_hero in radiant_involved:
+                    for dire_hero in dire_involved:
+                        radiant_attack_signals[radiant_hero][dire_hero] = normalize(radiant_attack_signals[radiant_hero][dire_hero])
+                for dire_hero in dire_involved:
+                    for radiant_hero in radiant_involved:
+                        dire_attack_signals[dire_hero][radiant_hero] = normalize(dire_attack_signals[dire_hero][radiant_hero])
+                #make vectors for whole radiant team
+                radiant_attack_signals["team"] = {}
+                for dire_hero in dire_involved:
+                    radiant_attack_signals["team"][dire_hero] = np.zeros(n)   
+                for dire_hero in dire_involved:
+                    for radiant_hero in radiant_involved:
+                        radiant_attack_signals["team"][dire_hero] = radiant_attack_signals["team"][dire_hero]+ radiant_attack_signals[radiant_hero][dire_hero]
+                for dire_hero in dire_involved:
+                    radiant_attack_signals["team"][dire_hero] = normalize(radiant_attack_signals["team"][dire_hero])
+                #same for dire
+                dire_attack_signals["team"] = {}
+                for radiant_hero in radiant_involved:
+                    dire_attack_signals["team"][radiant_hero] = np.zeros(n)   
+                for radiant_hero in radiant_involved:
+                    for dire_hero in dire_involved:
+                        dire_attack_signals["team"][radiant_hero] = dire_attack_signals["team"][radiant_hero]+ dire_attack_signals[dire_hero][radiant_hero]
+                for radiant_hero in radiant_involved:
+                    dire_attack_signals["team"][radiant_hero] = normalize(dire_attack_signals["team"][radiant_hero])
+                #form matrix of signals for radiant team
+                R = np.zeros((len(radiant_involved),n*len(dire_involved)))
+                for i in range(0,len(radiant_involved)):
+                    for j in range(0,len(dire_involved)):
+                        R[i,j*n:(j+1)*n] = radiant_attack_signals[radiant_involved[i]][dire_involved[j]]
+                #form matrix of signals for dire team
+                D = np.zeros((len(dire_involved),n*len(radiant_involved)))
+                for i in range(0,len(dire_involved)):
+                    for j in range(0,len(radiant_involved)):
+                        D[i,j*n:(j+1)*n] = dire_attack_signals[dire_involved[i]][radiant_involved[j]]
+                #form vector of signals for radiant team
+                p = np.zeros(n*len(dire_involved))
+                for i in range(0,len(dire_involved)):
+                    p[i*n:(i+1)*n] = radiant_attack_signals["team"][dire_involved[i]]
+                #form vector of signals for dire team
+                q = np.zeros(n*len(radiant_involved))
+                for i in range(0,len(radiant_involved)):
+                    q[i*n:(i+1)*n] = dire_attack_signals["team"][radiant_involved[i]]
+                #multiply Dq and Dq to get coordination coefficients for each hero
+                v = np.dot(R,p)
+                for i in range(0,len(radiant_involved)):
+                    hero_coordination_coeffs[radiant_involved[i]] = v[i]
+                w = np.dot(D,q)
+                for i in range(0,len(dire_involved)):
+                    hero_coordination_coeffs[dire_involved[i]] = w[i]
+
+        for key in hero_coordination_coeffs:
+            hero_coordination_coeffs[key] = np.average(hero_coordination_coeffs[key])
+
+    return hero_coordination_coeffs
 
 def computeStats(match, analysis):
     evaluation = {"player-stats": {}, "match-stats": {}}
@@ -1455,6 +1568,8 @@ def computeStats(match, analysis):
 
         player_eval["n-checks"] = 0
         player_eval["average-check-duration"] = 0
+        player_eval["damage-synchronization"] = 0 
+        player_eval["fight-coordination"] = 0
 
 
         evaluation["player-stats"][str(player_id)] = player_eval
@@ -1522,7 +1637,9 @@ def computeStats(match, analysis):
                 evaluation["player-stats"][str(item-match.parameters["namespace"]["hero_namespace"])]["num-of-fights"] += 1
                 #if the player is on the radiant side and radiant initiated or the player is on the dire side and dire initiated
                 if (match.id_2_side[item] == "radiant") and (side_indicator > 0) or (match.id_2_side[item] == "dire") and (side_indicator < 0 ):
-                    evaluation["player-stats"][str(item-match.parameters["namespace"]["hero_namespace"])]["initation-score"] += side_indicator*fight_score
+                    evaluation["player-stats"][str(item-match.parameters["namespace"]["hero_namespace"])]["initation-score"] += side_indicator*fight_score        
+
+    hero_fight_coordination = fightCoordinationScore(match,analysis)
 
     for player_id in match.players:
         hero_entity_id = match.heroes[match.players[player_id]["hero"]]["hero_id"]
@@ -1532,9 +1649,10 @@ def computeStats(match, analysis):
         evaluation["player-stats"][str(player_id)]["XPM"] = analysis["entities"][hero_entity_id]["XPM"]
         if evaluation["player-stats"][str(player_id)]["num-of-fights"]!= 0:
             evaluation["player-stats"][str(player_id)]["initation-score"] =  evaluation["player-stats"][str(player_id)]["initation-score"]/evaluation["player-stats"][str(player_id)]["num-of-fights"]
+        evaluation["player-stats"][str(player_id)]["fight-coordination"] = hero_fight_coordination[hero_entity_id]
         
-
     return evaluation
+
 def main():
     match_id = sys.argv[1]
     match_directory = sys.argv[2]
@@ -1553,6 +1671,7 @@ def main():
     attack_list = makeAttackList(match,state)
     A = formAdjacencyMatrix(match,attack_list)
     fight_list = makeFightList(match,attack_list,A)
+    #graphFights(attack_list,A,1000,1400)
     fight_dict = makeFightDict(match,fight_list,area_matrix)
     hero_death_fights = myDeaths(match,hero_deaths,fight_dict)
     fightFiltering(match,fight_dict,hero_death_fights)
