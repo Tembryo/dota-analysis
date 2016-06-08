@@ -127,7 +127,7 @@ def build_evaluation(prediction, labels, name):
     r2 = 1- (sum_residual_squares/total_sum_of_squares)
     tf.scalar_summary(name+'/evaluation-R2', tf.squeeze(r2))
 
-    return r2
+    return [r2, mean_abs, root_mean_sqr]
 
 
 class Model:
@@ -209,7 +209,7 @@ class Model:
             self.computed_results = []
             result_names = []
             collected_costs = []
-            self.collected_evaluations = []
+            self.collected_evaluations = {}
 
             for subset in self.subsets:
                 with tf.name_scope(subset):
@@ -227,7 +227,7 @@ class Model:
                     cost = built_cost_graph(prediction, self.labels, subset)
                     evaluation = build_evaluation(prediction, self.labels, subset)
                     self.computed_results.append(prediction)
-                    self.collected_evaluations.append(evaluation)
+                    self.collected_evaluations[subset] = evaluation
                     collected_costs.append(cost)
                     result_names.append(subset)
             #set up prediction, cost and optimisation
@@ -246,7 +246,7 @@ class Model:
                     FLAGS.learning_rate).minimize(self.cost)
 
             self.summary_op = tf.merge_all_summaries()
-            self.saver = tf.train.Saver()
+            self.saver = tf.train.Saver(max_to_keep=None)
 
             self.sess = tf.Session()
             init = tf.initialize_all_variables()
@@ -256,21 +256,16 @@ class Model:
             self.summary_writer = tf.train.SummaryWriter(settings["logs-dir"], self.sess.graph)
             self.feed_dict = {}
 
-    def load(self, dir):
-        checkpoint = tf.train.get_checkpoint_state(dir)
-        if checkpoint and checkpoint.model_checkpoint_path:
-            #print "restoring"
-            self.saver.restore(self.sess, checkpoint.model_checkpoint_path)
-        else:
-            print "loading model failed"
+    def load(self, model_filename):
+        self.saver.restore(self.sess, model_filename)
 
     def train(self, batch):
         self.set_data(batch)
-        _, cost_value = self.sess.run([self.train_step, self.sqrt_cost],
+        _, cost_value,imr_cost = self.sess.run([self.train_step, self.sqrt_cost,self.collected_evaluations["IMR"][2]],
                        feed_dict=self.feed_dict)
 
 
-        return cost_value
+        return cost_value,imr_cost
 
     def predict(self, batch):
         self.set_data(batch)
@@ -300,6 +295,8 @@ class Model:
 
     def evaluate(self, batch):
         self.set_data(batch)
-        r2s = self.sess.run(self.collected_evaluations,
+        cost = self.sess.run(self.sqrt_cost,
                        feed_dict=self.feed_dict)
-        return r2s
+        evals = self.sess.run(self.collected_evaluations,
+                       feed_dict=self.feed_dict)
+        return cost,evals

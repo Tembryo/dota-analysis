@@ -23,7 +23,7 @@ def importCSV(file):
 
 Dataset = collections.namedtuple('Dataset', ['labels','steamids', 'features', 'features_hero', 'feature_encoder', 'hero_encoder', 'feature_scaler', 'test_set', 'training_set'])
 
-fraction_test = 0.15
+fraction_test = 0.01
 
 def generateData(rows, settings = None):
     labels = [] #either MMRs for training or steamids for rating
@@ -79,8 +79,12 @@ def generateData(rows, settings = None):
         steamids = labels
 
     full_set =  [i for i in range(len(labels))]
-    n_test = int(fraction_test*len(full_set))
-    test_set = random.sample(full_set, n_test)
+    if settings is None:
+        n_test = int(fraction_test*len(full_set))
+        test_set = random.sample(full_set, n_test)
+    else:
+        n_test = 0
+        test_set = []
     training_set = [i for i in full_set if i not in test_set]
 
     result  = Dataset(
