@@ -7,10 +7,11 @@ var express         = require("express"),
     morgan          = require("morgan"),
     ejs_mate        = require('ejs-mate'),
     methodOverride  = require("method-override"),
-    passport        = require("passport");
+    passport        = require("passport"),
+    pgSession       = require('connect-pg-simple')(session);
 
 var config          = require("./config.js"),
-    database          = require("./database.js");
+    database        = require("/shared-code/database.js");
 
 var website_routes  = require("./routes-website.js"),
     api_routes      = require("./routes-api.js"),
@@ -34,7 +35,20 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(methodOverride());
-app.use(session({secret: session_secret}));
+
+app.use(session({
+  "store": new pgSession({
+    "pg" : database.pg,
+    "conString" : database.connection_string,
+    "tableName" : 'UserSessions'
+  }),
+  "secret": session_secret,
+  "resave": false,
+  "saveUninitialized": false,
+  "cookie": { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days 
+}));
+
+
 app.use(passport.initialize());
 app.use(passport.session());
 

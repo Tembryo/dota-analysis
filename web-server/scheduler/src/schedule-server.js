@@ -407,6 +407,7 @@ function handleAnalysisServerMsg(server_identifier, message) //channel name is t
     switch(message["message"])
     {
         case "Analyse":
+        case "Score":
             //Sent by myself
             break;
 
@@ -431,6 +432,24 @@ function handleAnalysisServerMsg(server_identifier, message) //channel name is t
                 return;
             }
 
+            closeJob(server_identifier, message["job"]);
+
+            break;
+
+        case "ScoreResponse":
+            console.log("got score response");
+            var job =  jobs_queue[message["job"]]; 
+            switch(message["result"])
+            {
+                case "finished":
+                    console.log("finished score", message["job"]);
+                    break;
+                case "failed":
+                    console.log("failed score", job);
+                    break;
+                default:
+                    console.log("weird result ", message["result"]);
+            }
             closeJob(server_identifier, message["job"]);
 
             break;
@@ -555,16 +574,21 @@ function registerService(type, identifier)
 }
 
 var queue_load_interval = 20*1000;
-var max_jobs = 200;
 function loadQueue()
 {
-    var to_load = Math.max(max_jobs - Object.keys(jobs_queue).length, 0);
     var locals = {};
     async.waterfall(
         [
+            database.generateQueryFunction("SELECT data FROM Settings WHERE name=$1;", ["max_jobs"]),
+            function(results, callback)
+            {
+                locals.max_jobs = results.rows[0]["data"]["value"];
+                locals.to_load = Math.max(locals.max_jobs - Object.keys(jobs_queue).length, 0);
+                callback();
+            },
             database.generateQueryFunction(
                 "SELECT id, data, extract(epoch from started) as started from Jobs WHERE finished IS NULL ORDER BY started DESC LIMIT $1;",
-                [to_load]),
+                [locals.to_load]),
             function(results, callback)
             {
                 //TODO: Currently can load same job multiple times, will drop duplicates tho
@@ -792,14 +816,15 @@ function scheduleJob(job_id, callback)
             server_identifier = chooseRetrieveServer(false);
             break;
         case "Download":
-            server_identifier = chooseDownloadServer();
+            server_identifier = chooseServer("Download");
             break;
         case "Analyse":
-            server_identifier = chooseAnalysisServer();
+        case "Score":
+            server_identifier = chooseServer("Analysis");
             break;
         case "CrawlCandidates":
         case "AddSampleMatches":
-            server_identifier = chooseCrawlServer();
+            server_identifier = chooseServer("Crawl");
             break;
         default:
             console.log("unknown job scheduled", job_id, job);
@@ -850,11 +875,11 @@ function chooseRetrieveServer(capacity_required)
     return null;
 }
 
-function chooseDownloadServer()
+function chooseServer(server_type)
 {
-    for(var i = 0; i < servers_by_type["Download"].length; ++i)
+    for(var i = 0; i < servers_by_type[server_type].length; ++i)
     {
-        var server_identifier = servers_by_type["Download"][i];
+        var server_identifier = servers_by_type[server_type][i];
         //console.log("checking server", server_identifier, servers[server_identifier]);
         if(
             !servers[server_identifier]["busy"]
@@ -867,44 +892,6 @@ function chooseDownloadServer()
 
     return null;
 }
-
-function chooseAnalysisServer()
-{
-    for(var i = 0; i < servers_by_type["Analysis"].length; ++i)
-    {
-        var server_identifier = servers_by_type["Analysis"][i];
-        //console.log("checking server", server_identifier, servers[server_identifier]);
-        if(
-            !servers[server_identifier]["busy"]
-            )
-        {
-            console.log("OK");
-            return server_identifier;
-        }
-    }
-
-    return null;
-}
-
-function chooseCrawlServer()
-{
-    for(var i = 0; i < servers_by_type["Crawl"].length; ++i)
-    {
-        var server_identifier = servers_by_type["Crawl"][i];
-        //console.log("checking server", server_identifier, servers[server_identifier]);
-        if(
-            !servers[server_identifier]["busy"]
-            )
-        {
-            console.log("OK");
-            return server_identifier;
-        }
-    }
-
-    return null;
-}
-
-
 
 function createTemporaryJob(data, callback)
 {

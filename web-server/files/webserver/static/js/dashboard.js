@@ -26,69 +26,69 @@
         var skill_constants = {
             "n-checks":
                 {   "label": "Item Checks",
-                    "scale": d3.scale.linear().domain([0, 300]).range([0,100]).clamp(true),
+                    //"scale": d3.scale.linear().domain([0, 300]).range([0,100]).clamp(true),
                     "explanation": "measures how frequently you check items of opponents",
                     "tip": "Click enemies as often as possible so you know their current items and exact HP/Mana values."
                 },
 
             "average-check-duration":
                 {   "label": "Check Speed",
-                    "scale": d3.scale.linear().domain([0.5, 3]).range([0,100]).clamp(true),
+                    //"scale": d3.scale.linear().domain([0.5, 3]).range([0,100]).clamp(true),
                     "explanation": "measures how quickly you check items of opponents",
                     "tip": "Checking enemy inventories should be as quick as possible, you have many other things to do!"
                 },
 
             "camera-jumps":
                 {   "label": "Camera Jumps",
-                    "scale": d3.scale.linear().domain([0, 400]).range([0,100]).clamp(true),
+                    //"scale": d3.scale.linear().domain([0, 400]).range([0,100]).clamp(true),
                     "explanation": "measures how often you reposition the camera to check things far away",
                     "tip": "Use the minimap to jump with your camera and view action happening somewhere else."
                 },
             "movement-per-minute":
                 {   "label": "Camera Movement",
-                    "scale": d3.scale.linear().domain([500, 2000]).range([0,100]).clamp(true),
+                    //"scale": d3.scale.linear().domain([500, 2000]).range([0,100]).clamp(true),
                     "explanation": "measures how much you move your camera around",
                     "tip": "Keep your camera moving to see as much as possible."
                 },
             "GPM":
                 {   "label": "GPM",
-                    "scale": d3.scale.linear().domain([0, 900]).range([0,100]).clamp(true),
+                    //"scale": d3.scale.linear().domain([0, 900]).range([0,100]).clamp(true),
                     "explanation": "measures average gold gain per minute",
                     "tip": "Earning Gold is crucial to success."
                 },
             "XPM":
                 {   "label": "XPM",
-                    "scale": d3.scale.linear().domain([0, 600]).range([0,100]).clamp(true),
+                    //"scale": d3.scale.linear().domain([0, 600]).range([0,100]).clamp(true),
                     "explanation": "measures average experience gain per minute",
                     "tip": "Make sure you collect enough experience, if you are underleveled your abilities will lose their impact."
                 },
             "missed-free-lasthits":
                 {   "label": "Missed LH",
-                    "scale": d3.scale.linear().domain([100, 0]).range([0,100]).clamp(true),
+                    //"scale": d3.scale.linear().domain([100, 0]).range([0,100]).clamp(true),
                     "explanation": "Measures how many easy to get lasthits you missed",
                     "tip": "When nobody is around, you should be lasthitting every creep that dies. Every single one!"
                 },
             "percent-of-contested-lasthits-gotten":
                 {   "label": "Contested LH",
-                    "scale": d3.scale.linear().domain([0, 1]).range([0,100]).clamp(true),
+                    //"scale": d3.scale.linear().domain([0, 1]).range([0,100]).clamp(true),
                     "explanation": "measures how much of the lasthits you got when challenged by an enemy",
                     "tip": "Lasthitting creeps while competing with an enemy is a challenge, keep practicing."
                 },
             "kills":
                 {   "label": "Kills",
-                    "scale": d3.scale.linear().domain([0, 20]).range([0,100]).clamp(true),
+                    //"scale": d3.scale.linear().domain([0, 20]).range([0,100]).clamp(true),
                     "explanation": "Number of opponents killed",
                     "tip": "Kill enemies and you will gain a significant advantage over them."
                 },
             "deaths":
                 {   "label": "Deaths",
-                    "scale": d3.scale.linear().domain([20, 0]).range([0,100]).clamp(true),
+                    //"scale": d3.scale.linear().domain([20, 0]).range([0,100]).clamp(true),
                     "explanation": "Your number of deaths",
                     "tip": "Most deaths could be avoided with a little more careful play."
                 },
             "fights":
                 {   "label": "Fights",
-                    "scale": d3.scale.linear().domain([0, 60]).range([0,100]).clamp(true),
+                    //"scale": d3.scale.linear().domain([0, 60]).range([0,100]).clamp(true),
                     "explanation": "measures how often you got involved in fights with enemy heroes.",
                     "tip": "Fight the enemy a lot to keep up pressure."
                 }
@@ -322,6 +322,123 @@ var hero_pictures = {
             "22":                 "/static/img/heroes/icons/Zeus_icon.png"
         };
 
+
+
+var names =
+{
+    "102":              "Abaddon",
+    "73":            "Alchemist",
+    "68":   "Ancient Apparition",
+    "1":             "Anti-Mage",
+    "113":           "Arc Warden",
+    "2":                  "Axe",
+    "3":                 "Bane",
+    "65":             "Batrider",
+    "38":          "Beastmaster",
+    "4":          "Bloodseeker",
+    "62":        "Bounty Hunter",
+    "78":           "Brewmaster",
+    "99":          "Bristleback",
+    "61":          "Broodmother",
+    "96":              "Centaur Warrunner",
+    "81":         "Chaos Knight",
+    "66":                 "Chen",
+    "56":               "Clinkz",
+    "5":       "Crystal Maiden",
+    "55":            "Dark Seer",
+    "50":               "Dazzle",
+    "43":        "Death Prophet",
+    "87":            "Disruptor",
+    "69":         "Doom Bringer",
+    "49":        "Dragon Knight",
+    "6":          "Drow Ranger",
+    "7":          "Earthshaker",
+    "103":          "Elder Titan",
+    "107":          "Earth Spirit",
+    "58":         "Ember Spirit",
+    "106":          "Enchantress",
+    "33":               "Enigma",
+    "53":               "Nature's Prophet",
+    "41":        "Faceless Void",
+    "72":           "Gyrocopter", 
+    "59":               "Huskar",
+    "74":              "Invoker",
+    "64":               "Jakiro",
+    "8":           "Juggernaut",
+    "90":  "Keeper of the Light",
+    "23":               "Kunkka",
+    "104":     "Legion Commander",
+    "52":              "Leshrac",
+    "31":                 "Lich",
+    "54":         "Life Stealer",
+    "25":                 "Lina",
+    "26":                 "Lion",
+    "80":           "Lone Druid",
+    "48":                 "Luna",
+    "77":                "Lycanthrope",
+    "97":            "Magnus",
+    "94":               "Medusa",
+    "82":                "Meepo",
+    "9":               "Mirana",
+    "10":            "Morphling",
+    "89":           "Naga Siren",
+    "36":            "Necrolyte",
+    "11":            "Shadow Fiend",
+    "60":        "Night Stalker",
+    "88":         "Nyx Assassin",
+    "76":   "Outworld Devourer",
+    "84":            "Ogre Magi",
+    "57":           "Omniknight",
+    "111":               "Oracle",
+    "44":     "Phantom Assassin",
+    "12":       "Phantom Lancer",
+    "110":              "Phoenix",
+    "13":                 "Puck",
+    "14":                "Pudge",
+    "45":                "Pugna",
+    "39":          "Queen Of Pain",
+    "51":           "Clockwerk",
+    "15":                "Razor",
+    "32":                 "Riki",
+    "86":               "Rubick",
+    "16":            "Sand King",
+    "79":         "Shadow Demon",
+    "27":        "Shadow Shaman",
+    "98":             "Timbersaw",
+    "75":             "Silencer",
+    "42":        "Wraith King",
+    "101":        "Skywrath Mage",
+    "28":              "Slardar",
+    "93":                "Slark",
+    "35":               "Sniper",
+    "67":              "Spectre", 
+    "71":       "Spirit Breaker",
+    "17":         "Storm Spirit",
+    "18":                 "Sven",
+    "105":              "Techies",
+    "46":     "Templar Assassin",
+    "109":          "Terrorblade",
+    "29":           "Tidehunter",
+    "34":               "Tinker",
+    "19":                 "Tiny",
+    "83":               "Treant",
+    "95":        "Troll Warlord",
+    "100":                 "Tusk",
+    "85":              "Undying",
+    "20":       "Vengeful Spirit",
+    "40":           "Venomancer",
+    "47":                "Viper", 
+    "92":               "Visage",
+    "70":                 "Ursa",
+    "37":              "Warlock",
+    "63":               "Weaver",
+    "21":           "Windranger",
+    "112":        "Winter Wyvern",
+    "91":                 "Wisp",
+    "30":         "Witch Doctor",
+    "22":                 "Zeus"
+};
+
         var xOffset = boxSize/2;
         var yOffset = boxSize/2;
         var radius = polyScale*boxSize/2;
@@ -355,7 +472,7 @@ var hero_pictures = {
                             .attr("id","polygon-canvas");
 
             var polygonText = document.createElement("p");
-            polygonText.innerHTML = "Red polygon = rating for selected match. <br> Grey polygon = average over all of your matches.";
+            polygonText.innerHTML = "Yellow polygon = rating for selected match. <br> Grey polygon = average over your matches.";
             document.getElementById("polygon-container").appendChild(polygonText); 
 
             // make an array of [x,y] vectors that point towards nodes of polygon
@@ -521,8 +638,8 @@ var hero_pictures = {
 
                     var userBar = d3.select(classString).selectAll("rect.userBar")
                                     .data(d3.entries(skills))
-                                    .attr("width",function(d){return barScale(Math.floor(skill_constants[d.key]["scale"](d.value)))})
-                                    .attr("fill",function(d){return color(Math.floor(skill_constants[d.key]["scale"](d.value)));})
+                                    .attr("width",function(d){return barScale(d.value.index)})
+                                    .attr("fill",function(d){return color(d.value.index);})
 
                     userBar.enter()
                         .append("rect")
@@ -533,15 +650,15 @@ var hero_pictures = {
                         .attr("height",barHeight)
                         .attr("x", textWidth +15)
                         .attr("fill-opacity",0.5)
-                        .attr("width",function(d){return barScale(d.value)})
-                        .attr("fill",function(d){return color(Math.floor(skill_constants[d.key]["scale"](d.value)));});
+                        .attr("width",function(d){return barScale(d.value.index)})
+                        .attr("fill",function(d){return color(d.value.index);});
 
                     userBar.exit().remove();
 
                     var barText = d3.select(classString).selectAll("text.bar-text")
                                 .data(d3.entries(skills))
                                 .attr("x",function(d){return textWidth -12;})
-                                .text(function(d){return Math.floor(skill_constants[d.key]["scale"](d.value));});
+                                .text(function(d){return d.value.index;});
 
                     barText.enter()
                         .append("text")
@@ -554,7 +671,7 @@ var hero_pictures = {
                         .attr("dy", ".35em")
                         .attr("fill","black")
                         .attr("style", "font-weight: bold;")
-                        .text(function(d){return Math.floor(skill_constants[d.key]["scale"](d.value));});
+                        .text(function(d){return d.value.index;});
 
                     barText.exit().remove();
 
@@ -566,10 +683,10 @@ var hero_pictures = {
                 for (i=0; i<n; i++){
                     //select svg_i
                     var classString = ".svg_" + i.toString();
-
+                    console.log(d3.entries(dataPoint["ratings"][i].skills));
                     var userBar = d3.select(classString).selectAll("rect.userBarAv")
                                     .data(d3.entries(dataPoint["ratings"][i].skills))
-                                    .attr("width",function(d){return barScale(Math.floor(skill_constants[d.key]["scale"](d.value)))});
+                                    .attr("width",function(d){return barScale(Math.floor(d.value))});
 
                     userBar.enter()
                         .append("rect")
@@ -580,7 +697,7 @@ var hero_pictures = {
                         .attr("height",barHeight)
                         .attr("x",textWidth +15)
                         .attr("fill-opacity",0.7)
-                        .attr("width",function(d){return barScale(Math.floor(skill_constants[d.key]["scale"](d.value)));})
+                        .attr("width",function(d){return barScale(Math.floor(d.value));})
                         .attr("fill","rgba(0,0,0,0.5)");
 
                     userBar.exit().remove();
@@ -600,10 +717,10 @@ var hero_pictures = {
                                     return "translate(10," + yOffsetGroup.toString() +")"; })
                         .attr("x",textWidth - 20)
                         .attr("y",0.75*barHeight)
-                        .text(function(d){return skill_constants[d.key]["label"];});
+                        .text(function(d){if(d.key in skill_constants) return skill_constants[d.key]["label"]; else return d.key;});
 
                     skillText.append("svg:title")
-                        .text(function(d){return skill_constants[d.key]["explanation"];});
+                        .text(function(d){if(d.key in skill_constants) return skill_constants[d.key]["label"]; else return d.key;});
 
                     skillText.exit().remove();
 
@@ -642,13 +759,11 @@ var hero_pictures = {
                     for (j=0; j<data[i]["ratings"].length; j++){
                         averageData["ratings"][j]["rating"] +=  (data[i]["ratings"][j]["rating"] - averageData["ratings"][j]["rating"]) /avg_counter;
                         for (var key in data[i]["ratings"][j]["skills"]){
-                            averageData["ratings"][j]["skills"][key] += (data[i]["ratings"][j]["skills"][key] - averageData["ratings"][j]["skills"][key] ) /avg_counter;
-
+                            averageData["ratings"][j]["skills"][key] += (data[i]["ratings"][j]["skills"][key]["index"] - averageData["ratings"][j]["skills"][key] ) /avg_counter;
                         }
                     }
                 }
 
-                console.log("avg", averageData);
                 return averageData
             }
 
@@ -796,24 +911,51 @@ var hero_pictures = {
                     .attr("id", function(d,i){return "circle" + i;});
 
                 icons.append("circle")
-                        .attr("fill",function(d,i){if (i==data.length-1){ return "rgba(255,0,0,0.8)" } else if(d["status"]==="open"){ return "rgba(140,140,140,0.5)"} else if(d["status"]==="queued"){return "rgba(0,255,0,0.3)";}else if(d["status"]==="parsed"){return "rgba(0,0,0,0)";}})
+                        .attr("fill",
+                            function(d,i)
+                            {
+                                if (i==data.length-1)
+                                    { return "rgba(255,0,0,0.8)" }
+                                else if(d["status"]==="open")
+                                    { return "rgba(140,140,140,0.5)"} 
+                                else if(d["status"]==="queued")
+                                    {return "rgba(0,255,0,0.3)";}
+                                else if(d["status"]==="failed")
+                                    {return "rgba(255,0,0,0.3)";}
+                                else if(d["status"]==="parsed")
+                                    {return "rgba(0,0,0,0)";}
+                            })
                         .attr("cx",function(d,i){return  x_scale(i+1)})
                         .attr("cy",function(d){if(d["IMR"]) return y_scale(d["IMR"]); else return height/2;})
                         .attr("r",20)
-                        .on("click",function(d){renderBars(d);
-                            d3.selectAll("circle").attr("fill",function(d){ if(d["status"]==="open"){ return "rgba(140,140,140,0.5)"} else if(d["status"]==="queued"){return "rgba(0,255,0,0.3)";}else if(d["status"]==="parsed"){return "rgba(0,0,0,0)";}});
-                            renderPolygon(d,"rgba(255,0,0,0.5)",1);
-                            d3.select(this).attr("fill","rgba(255,0,0,0.8)");
-                            d3.select("#match-report-heading").text("Match ID: "+ d["match-id"]);
+                        .on("click",function(d){
+                            renderBars(d);
+                            d3.selectAll("circle").attr("fill",
+                                function(d)
+                                {
+                                    if(d["status"]==="open")
+                                        { return "rgba(140,140,140,0.5)"}
+                                    else if(d["status"]==="queued")
+                                        {return "rgba(0,255,0,0.3)";}
+                                    else if(d["status"]==="failed")
+                                        {return "rgba(255,0,0,0.3)";}
+                                    else if(d["status"]==="parsed")
+                                        {return "rgba(0,0,0,0)";}
+                                });
+                            renderPolygon(d,"rgba(236,151,31,0.8)",1);
+                            d3.select(this).attr("fill","rgba(236,151,31,0.8)");
+                            d3.select("#match-report-heading").html("Match <a href='/scoreboard/"+ d["match-id"]+"'>"+d["match-id"]+"</a>");
                             renderTips(d);
-                            renderHeroImages(d);})
+                            renderHeroImages(d);
+                        })
                         .on("mouseenter",function(d,i){d3.select("#info-text_"+i.toString()).style("opacity",1);})
                         .on("mouseleave",function(d,i){d3.select("#info-text_"+i.toString()).style("opacity",0);});
 
                 icons.append("svg:image")
                         .attr("xlink:href",function(d){return hero_icons[d["hero"]];})
+                        .attr("opacity", function(d){if(!d["IMR"]) return 0.5; else return 1;})
                         .attr("x", function(d,i){return  x_scale(i+1)-0.5*icon_size})
-                        .attr("y", function(d){return y_scale(d["IMR"]) -0.5*icon_size})
+                        .attr("y", function(d){if(!d["IMR"])return height/2 -0.5*icon_size; else return y_scale(d["IMR"]) -0.5*icon_size})
                         .attr("width",icon_size)
                         .attr("height",icon_size)
                         .attr("pointer-events","none");
@@ -836,17 +978,17 @@ var hero_pictures = {
                         .attr("rx",4)
                         .attr("ry",4)    
                         .attr("x",function(d,i){return x_scale(i+1)-20;})
-                        .attr("y",function(d){return y_scale(d["IMR"])-60;});
+                        .attr("y",function(d){if(!d["IMR"])return height/2-60; else return y_scale(d["IMR"])-60;});
 
                 infoGroup.append("text")                                           
                         .attr("x",function(d,i){return x_scale(i+1)-16;})
-                        .attr("y",function(d){return y_scale(d["IMR"])-40;})
+                        .attr("y",function(d){if(!d["IMR"])return height/2-40; else return y_scale(d["IMR"])-40;})
                         .attr("fill","white")
-                        .text(function(d){return Math.floor(d["IMR"]);});
+                        .text(function(d){if(!d["IMR"])return "?"; else return Math.floor(d["IMR"]);});
 
                 infoText.exit().remove();
 
-                document.getElementById("match-report-heading").innerHTML = "Match ID: " + data[data.length-1]["match-id"].toString();
+                $("#match-report-heading").html("Match <a href='/scoreboard/"+  data[data.length-1]["match-id"]+"'>"+ data[data.length-1]["match-id"]+"</a>");
 
             }
             
@@ -854,24 +996,47 @@ var hero_pictures = {
                 if(dataPoint["ratings"].length ==0)
                     return;
 
-
+                $("#current-hero").html(names[dataPoint["hero"]]);
+                $("#current-hero-icon").attr("src", hero_icons[dataPoint["hero"]]);
+                $("#current-imr").html(Math.floor(dataPoint["IMR"]/10)*10);
                 // find the two weakest skills of user in selected match
 
                 skillsList = [];
 
                 for (j=0; j<dataPoint["ratings"].length; j++){
                     for (var skill in dataPoint["ratings"][j]["skills"]){
-                        skillsList.push( [skill, Math.floor(skill_constants[skill]["scale"](dataPoint["ratings"][j]["skills"][skill])) ] );
-                        // if a[1] > b[1] --> a gets sorted to have a lower index than b
-                        skillsList.sort(function(a, b) {return a[1]- b[1]});
+                        skillsList.push( [skill, dataPoint["ratings"][j]["skills"][skill] ]);
+                        //sort descending
+                        skillsList.sort(function(a, b) {
+                            var value_a = (Math.abs(a[1]["impact"]) * (a[1]["improved-score"] - dataPoint["IMR"]) ) / Math.sqrt(a[1]["certainty"]);
+                            var value_b = (Math.abs(b[1]["impact"]) * (b[1]["improved-score"] - dataPoint["IMR"]) ) / Math.sqrt(b[1]["certainty"]);
+
+                            return value_b - value_a;
+                        });
                     }
 
                 }
 
-                var skillOne = skillsList[0][0];
-                var skillTwo = skillsList[1][0];
+                var skillOne = skillsList[0];
+                var skillTwo = skillsList[1];
+                var new_tips_text =""
+                if(skillOne[0] in skill_constants)
+                    new_tips_text += "<p>Work on your <b>" + skill_constants[skillOne[0]]["label"] +"</b>:<br/>"+
+                        " You achieved "+skillOne[1]["value"].toFixed(3)+", a value of "+skillOne[1]["improved-value"].toFixed(3)+" would result in "+Math.floor(skillOne[1]["improved-score"])+" IMR. <br/> " +
+                         skill_constants[skillOne[0]]["tip"] + "</p>";
+                else
+                    new_tips_text += "<p>Work on your <b>" + skillOne[0] +"</b>:<br/>"+
+                        " You achieved "+skillOne[1]["value"].toFixed(3)+", a value of "+skillOne[1]["improved-value"].toFixed(3)+" would result in "+Math.floor(skillOne[1]["improved-score"])+" IMR.</p>";
+                
+                if(skillTwo[0] in skill_constants)
+                    new_tips_text += "<p>Work on your <b>" + skill_constants[skillTwo[0]]["label"] +"</b>:<br/>"+
+                        " You achieved "+skillTwo[1]["value"].toFixed(3)+", a value of "+skillTwo[1]["improved-value"].toFixed(3)+" would result in "+Math.floor(skillTwo[1]["improved-score"])+" IMR. <br/> " +
+                         skill_constants[skillTwo[0]]["tip"] + "</p>";
+                else
+                    new_tips_text += "<p>Work on your <b>" + skillTwo[0] +"</b>:<br/>"+
+                        " You achieved "+skillTwo[1]["value"].toFixed(3)+", a value of "+skillTwo[1]["improved-value"].toFixed(3)+" would result in "+Math.floor(skillTwo[1]["improved-score"])+" IMR.</p>";
 
-                tipsText.innerHTML = "<p>Work on your <b>" + skill_constants[skillOne]["label"] +  "</b>:<br/> " + skill_constants[skillOne]["tip"] + "</p><p> A second area to improve is <b>" + skill_constants[skillTwo]["label"] + "</b>: <br/>" + skill_constants[skillTwo]["tip"] + " </p>";
+                tipsText.innerHTML = new_tips_text;
 
                 document.getElementById("polygon-container").appendChild(tipsText);
             }
@@ -884,7 +1049,7 @@ var hero_pictures = {
 
                     if(players[i]["hero"] == dataPoint["hero"])
                     {
-                        document.getElementById("hero_" + i.toString()).style = "border:2px solid #FF0000;"
+                        document.getElementById("hero_" + i.toString()).style = "border:3px solid #ec971f;"
                     }
                     else
                     {
@@ -910,7 +1075,7 @@ var hero_pictures = {
             var sel = 2;
             var avData = getAverage(data);
             renderPolygon(avData,"rgba(0,0,0,0.5)",0);
-            renderPolygon(data[sel],"rgba(255,0,0,0.5)",1);
+            renderPolygon(data[sel],"rgba(236,151,31,0.8)",1);
 
             var tipsHeading = document.createElement("h3");
             tipsHeading.innerHTML = "Tips";

@@ -12,9 +12,9 @@ var database        = require("/shared-code/database.js"),
     storage         = require("/shared-code/storage.js");
 
 var check_interval = 5000;
-var max_extraction_time = 300000;
-var max_analysis_time = 120000;
-var max_score_time = 20000;
+var max_extraction_time = 10*60*1000;
+var max_analysis_time = 3*60*1000;
+var max_score_time = 2*60*1000;
 
 
 
@@ -40,6 +40,7 @@ function handleAnalysisServerMsg(server_identifier, message)
     switch(message["message"])
     {
         case "AnalyseResponse":
+        case "ScoreResponse":
             //Sent by myself
             break;
 
@@ -50,6 +51,15 @@ function handleAnalysisServerMsg(server_identifier, message)
                 function()
                 {
                     console.log("finished analysing", replay_id);
+                });
+            break;
+        case "Score":
+            var match_id = message["id"];
+            console.log("trying to score ",match_id);
+            scoreReplay(message,
+                function()
+                {
+                    console.log("finished scoring", match_id);
                 });
             break;
         default:
@@ -237,12 +247,12 @@ function processReplay(message, callback_replay)
             function(callback){
                 child_process.execFile(
                     "python",
-                    ["/score/score.py", "/score/model.p", locals.sample_filename],
+                    ["/score/score.py", locals.sample_filename],
                     {"timeout":max_score_time},
                     callback);
             },
             function(stdout, stderr, callback){
-                console.log("after scoring:", stdout);
+                console.log("after scoring:");
                 console.log("----------------------");
                 var results = JSON.parse(stdout);
                 async.each(results, function(score_result, callback)
@@ -377,4 +387,146 @@ function parseStatsFile(locals, callback)
         }
         
     );
+}
+
+
+function scoreReplay(message, callback_replay)
+{
+    var match_id = message["id"];
+    console.log("scoring replay", match_id);
+    var locals = {};
+    locals.match_id = match_id;
+    async.waterfall(
+        [
+            function(callback)
+            {
+                database.query(
+                    "DELETE FROM Results r WHERE r.match_id=$1;",
+                    [locals.match_id],
+                    callback);
+            },
+
+            function(result, callback)
+            {
+                locals.sample_filename = "/storage/samples"+locals.match_id+".csv";
+                locals.csv_file = fs.createWriteStream(locals.sample_filename);
+                samples.writeSample(locals.csv_file, samples.header());
+                locals.csv_file.on("close", 
+                    function()
+                    {
+                        console.log("finished writing samples");
+                        callback();
+                    });
+
+                appedMatchSamples(locals.match_id, locals.csv_file, 
+                    function(e)
+                    {
+                        if(e)
+                            callback(e);
+                        else
+                        {
+                            locals.csv_file.end();
+                        }
+                    });
+            },
+            function(callback){
+                child_process.execFile(
+                    "python",
+                    ["/score/score.py", locals.sample_filename],
+                    {"timeout":max_score_time},
+                    callback);
+            },
+            function(stdout, stderr, callback){
+                console.log("after scoring:");
+                console.log("----------------------");
+                var results = JSON.parse(stdout);
+                console.log("n scored:", results.length);
+                async.each(results, function(score_result, callback)
+                {
+                    database.query(
+                        "INSERT INTO Results (match_id, steam_identifier, data) VALUES($1, $2, $3)",
+                        [locals.match_id, score_result["steamid"], score_result["data"]],
+                        callback);
+                },
+                callback);
+            },
+            function(callback)
+            {
+                fs.unlink(locals.sample_filename, callback);
+            }
+        ],
+        function(err, results)
+        {
+            if(err)
+            {
+                console.log("scoring error", arguments);
+                database.query(
+                    "UPDATE ReplayFiles rf SET processing_status=(SELECT ps.id FROM ProcessingStatuses ps WHERE ps.label=$2) WHERE rf.match_id=$1;",
+                    [locals.match_id, "failed"],
+                    function()
+                    {
+                        console.log("score-put replayfile as failed", locals.match_id, err);
+                        var failed_message  =
+                            {
+                                "message": "ScoreResponse",
+                                "result": "failed",
+                                "job": message["job"]
+                            };
+                        service.send(failed_message);
+
+                        callback_replay(null);
+                    });
+            }
+            else
+            {
+                console.log("scored~", locals.match_id);
+
+                var finished_message  =
+                {
+                    "message": "ScoreResponse",
+                    "result": "finished",
+                    "job": message["job"]
+                };
+                service.send(finished_message);
+
+                callback_replay(null);
+            }
+        }
+    );
+}
+
+function appedMatchSamples(matchid, csv_file, match_callback)
+{
+    var locals = {};
+    async.waterfall(
+    [
+        function(callback)
+        {
+            database.query("SELECT ps.steam_identifier as steam_identifier, ms.data as match_data, ps.data as player_data FROM MatchStats ms, PlayerStats ps WHERE ms.id=$1 AND ps.match_id=ms.id;", [matchid], callback);
+        },
+        function(results, callback)
+        {
+            //console.log("writing samples", matchid, results.rows.length)
+            for(var i = 0; i < results.rowCount; i++)
+            {
+                //console.log("writing",i);
+                csv_file.write("\n");
+                var slot = results.rows[i]["slot"];
+                if(slot >= 128)
+                    slot = slot - 128 + 5;
+
+                var match = 
+                {
+                    "match-stats": results.rows[i]["match_data"], 
+                    "player-stats": {}
+                }
+                match["player-stats"][slot] = results.rows[i]["player_data"];
+                //console.log(match);
+                var fullsample = {"label": results.rows[i]["steam_identifier"], "data": samples.createSampleData(match, slot)};
+                samples.writeSample(csv_file,fullsample);
+            }
+            callback();
+        }
+    ],
+    match_callback);
 }

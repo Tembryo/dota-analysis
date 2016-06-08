@@ -95,6 +95,7 @@ RUN curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-
 RUN apt-get install -y libblas-dev liblapack-dev libatlas-base-dev gfortran
 RUN pip install numpy scipy logging matplotlib
 RUN pip install -U scikit-learn
+RUN pip install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.9.0rc0-cp27-none-linux_x86_64.whl
 
 ####################       Install sources.       ####################
 

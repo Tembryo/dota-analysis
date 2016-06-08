@@ -68,6 +68,10 @@ router.route("/get-player-matches")
                 [
                     database.generateQueryFunction(
                         "SELECT umh.match_id, umh.data as history_data, EXISTS(SELECT id FROM MatchRetrievalRequests where id = umh.match_id) as requested, "+
+                            "COALESCE( (SELECT ps.label FROM ProcessingStatuses ps, Replayfiles rf where rf.match_id = umh.match_id AND ps.id=rf.processing_status),"+
+                                        "'unknown') AS processing_status, "+
+                            "COALESCE( (SELECT mrs.label FROM MatchRetrievalStatuses mrs, MatchRetrievalRequests mrr where mrr.id = umh.match_id AND mrs.id=mrr.retrieval_status),"+
+                                        "'unknown') AS retrieval_status, "+
                             "COALESCE( (SELECT ps.data FROM PlayerStats ps WHERE umh.match_id = ps.match_id AND ps.steam_identifier = u.steam_identifier),"+
                                 "'null'::json) AS player_stats, "+
                             "COALESCE( (SELECT ms.data FROM MatchStats ms WHERE umh.match_id = ms.id ),"+
@@ -102,7 +106,12 @@ router.route("/get-player-matches")
                             if(results.rows[i]["player_stats"] && results.rows[i]["score_data"])
                                 next_result["status"] = "parsed";
                             else if (results.rows[i]["requested"])
-                                next_result["status"] = "queued";
+                            {
+                                if(results.rows[i]["retrieval_status"] === "failed" || results.rows[i]["processing_status"] === "failed")
+                                    next_result["status"] = "failed";
+                                else
+                                    next_result["status"] = "queued";
+                            }
                             else
                                 next_result["status"] = "open";
 
@@ -124,52 +133,25 @@ router.route("/get-player-matches")
 
                             if(results.rows[i]["player_stats"] && results.rows[i]["score_data"])
                             {
-                                next_result["IMR"] = results.rows[i]["score_data"]["IMR"]
+                                next_result["IMR"] = results.rows[i]["score_data"]["IMR"]["score"]
 
                                 if("mechanics" in results.rows[i]["score_data"])
                                 {
                                     var mechanics_rating = {
                                         "attribute":"Mechanics",
-                                        "rating":results.rows[i]["score_data"]["mechanics"],
-                                        "skills":{}
+                                        "rating":results.rows[i]["score_data"]["mechanics"]["score"],
+                                        "skills":results.rows[i]["score_data"]["mechanics"]["skills"]
                                     }
-
-                                    if("n-checks" in results.rows[i]["player_stats"])
-                                        mechanics_rating["skills"]["n-checks"] = results.rows[i]["player_stats"]["n-checks"]
-
-                                    if("n-checks" in results.rows[i]["player_stats"])
-                                        mechanics_rating["skills"]["average-check-duration"] = results.rows[i]["player_stats"]["average-check-duration"]
-
-                                    if("camera-stats" in results.rows[i]["player_stats"])
-                                        mechanics_rating["skills"]["camera-jumps"] = results.rows[i]["player_stats"]["camera-stats"]["jumps"]
-
-                                    if("camera-stats" in results.rows[i]["player_stats"])
-                                        mechanics_rating["skills"]["movement-per-minute"] = results.rows[i]["player_stats"]["camera-stats"]["avg_movement"]
-
                                     next_result["ratings"].push(mechanics_rating)
                                 }
-
 
                                 if("farming" in results.rows[i]["score_data"])
                                 {
                                     var farming_rating = {
                                         "attribute":"Farming",
-                                        "rating":results.rows[i]["score_data"]["farming"],
-                                        "skills":{}
+                                        "rating":results.rows[i]["score_data"]["farming"]["score"],
+                                        "skills":results.rows[i]["score_data"]["farming"]["skills"]
                                     }
-
-                                    if("GPM" in results.rows[i]["player_stats"])
-                                        farming_rating["skills"]["GPM"] = results.rows[i]["player_stats"]["GPM"];
-
-                                    if("XPM" in results.rows[i]["player_stats"])
-                                        farming_rating["skills"]["XPM"] = results.rows[i]["player_stats"]["XPM"];
-
-                                    if("missed-free" in results.rows[i]["player_stats"])
-                                        farming_rating["skills"]["missed-free-lasthits"] = results.rows[i]["player_stats"]["missed-free"];
-
-                                    if("contested-lasthit" in results.rows[i]["player_stats"] && "contested-total" in results.rows[i]["player_stats"])
-                                        farming_rating["skills"]["percent-of-contested-lasthits-gotten"] = results.rows[i]["player_stats"]["contested-lasthit"]/Math.max(results.rows[i]["player_stats"]["contested-total"], 1);
-              
                                     next_result["ratings"].push(farming_rating)
                                 }
 
@@ -177,19 +159,9 @@ router.route("/get-player-matches")
                                 {
                                     var fighting_rating = {
                                         "attribute":"Fighting",
-                                        "rating":results.rows[i]["score_data"]["farming"],
-                                        "skills":{}
+                                        "rating":results.rows[i]["score_data"]["fighting"]["score"],
+                                        "skills":results.rows[i]["score_data"]["fighting"]["skills"]
                                     }
-
-                                    if("num-of-kills" in results.rows[i]["player_stats"])
-                                        fighting_rating["skills"]["kills"] = results.rows[i]["player_stats"]["num-of-kills"];
-
-                                    if("XPM" in results.rows[i]["player_stats"])
-                                        fighting_rating["skills"]["deaths"] = results.rows[i]["player_stats"]["num-of-deaths"];
-
-                                    if("missed-free" in results.rows[i]["player_stats"])
-                                        fighting_rating["skills"]["fights"] = results.rows[i]["player_stats"]["num-of-fights"];
-
                                     next_result["ratings"].push(fighting_rating)
                                 }
                                 //objectives
@@ -337,6 +309,7 @@ router.route('/results')
             }
             else
             {
+                console.log("no matchid", req.query);
                 res.json([]);
                 return;
             }
