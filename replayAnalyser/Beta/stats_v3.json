@@ -1,0 +1,71 @@
+{
+    "match-stats": {
+        "creeps-killed": 0,
+        "creeps-lasthit": 0,
+        "duration": 2670.0,
+        "duration-all": 2760.0,
+        "winner": "dire"
+    },
+    "player-stats": {
+        "0": {
+            "average-check-duration": 2.5251532660590272,
+            "deaths": 0,
+            "kills": 0,
+            "n-checks": 36
+        },
+        "1": {
+            "average-check-duration": 5.765694754464286,
+            "deaths": 0,
+            "kills": 0,
+            "n-checks": 28
+        },
+        "2": {
+            "average-check-duration": 1.0159514054008154,
+            "deaths": 0,
+            "kills": 0,
+            "n-checks": 92
+        },
+        "3": {
+            "average-check-duration": 1.3720217176303744,
+            "deaths": 0,
+            "kills": 0,
+            "n-checks": 314
+        },
+        "4": {
+            "average-check-duration": 2.3431266118021843,
+            "deaths": 0,
+            "kills": 0,
+            "n-checks": 103
+        },
+        "5": {
+            "average-check-duration": 1.2444824218750001,
+            "deaths": 0,
+            "kills": 0,
+            "n-checks": 100
+        },
+        "6": {
+            "average-check-duration": 1.139076063368056,
+            "deaths": 0,
+            "kills": 0,
+            "n-checks": 180
+        },
+        "7": {
+            "average-check-duration": 2.0422835811491935,
+            "deaths": 0,
+            "kills": 0,
+            "n-checks": 62
+        },
+        "8": {
+            "average-check-duration": 1.8086035156250007,
+            "deaths": 0,
+            "kills": 0,
+            "n-checks": 25
+        },
+        "9": {
+            "average-check-duration": 1.5186386108398438,
+            "deaths": 0,
+            "kills": 0,
+            "n-checks": 64
+        }
+    }
+}

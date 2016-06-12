@@ -21,6 +21,8 @@ def transformHeroName(name):
     hero_name_list = hero_name_list[3:] # remove the unnecessary dota_npc_hero part
     return "_".join(hero_name_list) # join the strings back together
 
+# <Done
+
 class Match:
 
     def __init__(self,match_id, match_directory):
@@ -199,10 +201,13 @@ class Match:
         self.match_end_time = match_end_time
         self.total_match_time = match_end_time - match_start_time 
 
+# Done >
+
     def transformTime(self, t_string):
         return float(t_string) - self.match_start_time
 
-#############################################################################################
+
+# <Done --> processKills
 
 def killsInfo(match):
     #loops over match.events and extracts info on when heroes die, number of other heroes they kill, and number of times they die.
@@ -248,8 +253,11 @@ def killsInfo(match):
 
     return (hero_deaths,number_of_kills,number_of_deaths) 
 
+# Done >
+
 #############################################################################################
 
+# <Done --> processHeroPositions
 
 def heroPositions(match):
 
@@ -295,9 +303,9 @@ def heroPositions(match):
 
     return (state,state_hifi) 
 
-#####################
-# hero trajectories #
-#####################
+# Done>
+
+# <Done --> processHeroPositions
  
 def heroTrajectories(match,state,hero_deaths,number_of_kills,number_of_deaths):
 
@@ -347,6 +355,7 @@ def heroTrajectories(match,state,hero_deaths,number_of_kills,number_of_deaths):
         entities[heroes[key]["hero_id"]]["number_of_kills"] = number_of_kills[key]
         entities[heroes[key]["hero_id"]]["number_of_deaths"] = number_of_deaths[key]
 
+    #<Done --> processHeroVisibility
     for row in match.visibility_rows:
         enemy_visibility_bit = 0
         hero = transformHeroName(row[2])
@@ -361,8 +370,10 @@ def heroTrajectories(match,state,hero_deaths,number_of_kills,number_of_deaths):
         visible_to_enemy = (int(row[4]) & (1<<enemy_visibility_bit) ) >> enemy_visibility_bit
         entities[heroes[hero]["hero_id"]]["visibility"]["samples"].append({"t": match.transformTime(row[0]), "v": [visible_to_enemy]})
 
+    # Done>
 
     return entities
+# Done>
 
 ##########################################################################################################
 #                                       extract normal events
@@ -493,9 +504,7 @@ def eventsMapping(match,state,area_matrix):
                 events[id_num] = new_event
                 k=k+1
 
-########################################################################
-#                   experience and gold
-#########################################################################
+# <Done -- processGoldXP
 
 
 def goldXPInfo(match,entities):
@@ -584,6 +593,8 @@ def goldXPInfo(match,entities):
     timeseries = {"gold-advantage":{"format":"samples","samples":gold_samples},"exp-advantage":{"format":"samples","samples":exp_samples}}
 
     return timeseries
+
+# Done>
 
 ######################################################################################################
 # extract the fight events
@@ -884,6 +895,7 @@ def makeFightDict(match,fight_list,area_matrix):
         fight_dict[i]["damage_matrix"] = damage_matrix.tolist()
         #print "fight dictionary entry" + str(i)
     return fight_dict
+
 
 
 def initiationDamage(match,damage_dealt,time_start):
@@ -1429,6 +1441,15 @@ def fightMovementSpeed(match,analysis):
     print hero_speeds
 
 
+
+
+
+
+
+
+
+
+
 def computeStats(match, analysis):
     evaluation = {"player-stats": {}, "match-stats": {}}
 
@@ -1557,7 +1578,6 @@ def main():
     entities = heroTrajectories(match,state,hero_deaths,number_of_kills,number_of_deaths)
     eventsMapping(match,state,area_matrix)
     timeseries = goldXPInfo(match,entities) #up to this point takes a few seconds
-
     attack_list = makeAttackList(match,state)
     A = formAdjacencyMatrix(match,attack_list)
     fight_list = makeFightList(match,attack_list,A)
@@ -1583,5 +1603,5 @@ def main():
     #shutil.rmtree(match_directory)
 
 if __name__ == "__main__":
-    cProfile.run('main()')
+    #cProfile.run('main()')
     main()

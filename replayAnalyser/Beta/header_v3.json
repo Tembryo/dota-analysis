@@ -1,11 +1,15 @@
 {
     "draft": {},
-    "id": "2364597318",
-    "length": 1773.0,
+    "id": "2366032695",
+    "length": 2670.0,
     "parameters": {
+        "cameraEvaluation": {
+            "jump_threshold": 1500,
+            "self_range": 1500
+        },
         "datetime": {
-            "date": "2016-05-31",
-            "time": "14:53:33.390942"
+            "date": "2016-06-07",
+            "time": "20:14:32.227893"
         },
         "fightEvaluation": {
             "alpha": 150,
@@ -30,7 +34,7 @@
         },
         "heroPositions": {
             "sample_step_size": 150,
-            "sample_step_size_hifi": 10
+            "sample_step_size_hifi": 1
         },
         "heroTrajectories": {
             "delta": 1000,
@@ -62,54 +66,54 @@
     },
     "players": {
         "0": {
-            "hero": "spirit_breaker",
-            "name": "Stingg(sup/hard)",
-            "steam_id": "76561198027466304"
+            "hero": "lion",
+            "name": "Sempfo",
+            "steam_id": "76561198010978448"
         },
         "1": {
-            "hero": "oracle",
-            "name": "\u0440\u0443\u0444\u043b",
-            "steam_id": "76561198015864421"
+            "hero": "antimage",
+            "name": "HotGrill",
+            "steam_id": "76561198009804779"
         },
         "2": {
-            "hero": "lion",
-            "name": "Fleim",
-            "steam_id": "76561197983810875"
+            "hero": "spectre",
+            "name": "Zera|wisdota.com",
+            "steam_id": "76561198019532009"
         },
         "3": {
-            "hero": "queenofpain",
-            "name": "Grasz",
-            "steam_id": "76561197981378290"
+            "hero": "pudge",
+            "name": "Fuckyoubuthaveaniceday",
+            "steam_id": "76561198131142608"
         },
         "4": {
-            "hero": "slark",
-            "name": "twitch.tv/ra1nmandoto",
-            "steam_id": "76561198088324668"
+            "hero": "bounty_hunter",
+            "name": "KeRe",
+            "steam_id": "76561198196552534"
         },
         "5": {
-            "hero": "shredder",
-            "name": "spasibo",
-            "steam_id": "76561198049304158"
+            "hero": "storm_spirit",
+            "name": "ultranasilie",
+            "steam_id": "76561198062862602"
         },
         "6": {
-            "hero": "ogre_magi",
-            "name": "Mental",
-            "steam_id": "76561198085118227"
+            "hero": "riki",
+            "name": "Daze",
+            "steam_id": "76561198103115728"
         },
         "7": {
-            "hero": "juggernaut",
-            "name": "EverySecondMatters",
-            "steam_id": "76561198003541947"
+            "hero": "necrolyte",
+            "name": "\u043f\u0435\u0440\u0441\u0438\u043a",
+            "steam_id": "76561198095582131"
         },
         "8": {
-            "hero": "beastmaster",
-            "name": "CookieMonster",
-            "steam_id": "76561197983356132"
+            "hero": "gyrocopter",
+            "name": "flag",
+            "steam_id": "76561198059160303"
         },
         "9": {
-            "hero": "tinker",
-            "name": "NoX",
-            "steam_id": "76561198129624977"
+            "hero": "silencer",
+            "name": "e1337",
+            "steam_id": "76561198089866473"
         }
     },
     "teams": {
