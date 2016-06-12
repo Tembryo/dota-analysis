@@ -6,7 +6,5 @@ learner:
     - /home/fischerq/Documents/Wisdota/dota-analysis/ml-learn/analysis:/analysis
     - /home/fischerq/Documents/Wisdota/dota-analysis/replayAnalyser/Beta/event_extractor4.py:/analysis/analysis.py:ro
     - /home/fischerq/Documents/Wisdota/dota-analysis/dotaReplayProcessor/target/dotaReplayProcessor-0.0.1-SNAPSHOT.jar:/extract.jar:ro
-    - /home/fischerq/Documents/Wisdota/dota-analysis/ml-learn/files:/files
+    - /home/fischerq/Documents/Wisdota/dota-analysis/ml-learn/new_model:/files
     - /home/fischerq/Documents/Wisdota/dota-analysis/ml-learn/learn:/learn
-  external_links:
-    - crawler-db:POSTGRES_IP

@@ -83,7 +83,14 @@ class SingleModel:
         labels = [] #either MMRs for training or steamids for rating
         heroes = []
         data = []
+
         for row in reader:
+            ok = True
+            for key in row:
+                if row[key] is None:
+                    ok = False
+            if not ok:
+                continue
             label = None
             hero = None
             parsed_row = {}
@@ -99,6 +106,7 @@ class SingleModel:
                         parsed_row[key] = float(row[key])
                     except ValueError:
                         parsed_row[key] = row[key]
+
             heroes.append(hero)
             labels.append(label)
             data.append(parsed_row)
@@ -148,11 +156,11 @@ model_types = [
                 #"logit",
                 #"SVRrbf1",
                 #"SVRrbf2",
-                #"SVRrbf3",
+                "SVRrbf3",
                 #"SVRrbf4",
                 #"SVRrbf5",
                 #"SVRlin",
-                #"SVRpoly",
+                "SVRpoly",
                 #"tree2",
                 #"tree4",
                 #"tree6",
@@ -160,10 +168,10 @@ model_types = [
                 "NN2",
                 "NN3",
                 "NN4",
-                "NN1_tanh",
-                "NN2_tanh",
-                "NN3_tanh",
-                "NN4_tanh"
+                #"NN1_tanh",
+                #"NN2_tanh",
+                #"NN3_tanh",
+                #"NN4_tanh"
                 ]
 
 composity_types = [#"herowin",

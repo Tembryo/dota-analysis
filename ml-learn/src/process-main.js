@@ -12,8 +12,8 @@ var max_analysis_time = 120*1000;
 
 var mode;
 //mode = "process";
-mode = "generate";
-//mode = "learn";
+//mode = "generate";
+mode = "learn";
 
 switch(mode)
 {

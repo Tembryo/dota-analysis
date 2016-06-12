@@ -54,7 +54,8 @@ function generateQueryFunction(sql, data)
 
 
 //exports.connect = pg.connect.bind(pg,"postgres://"+config.database_auth+"@"+config.database_host+"/wisdota"); // connect to our database
-
+exports.pg = pg;
+exports.connection_string = connection_string;
 exports.getClient = getClient;
 exports.query = query;
 exports.generateQueryFunction = generateQueryFunction;
