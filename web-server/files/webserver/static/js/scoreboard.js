@@ -237,13 +237,15 @@ function getValue(entry, d)
     {
         case "IMR":
             if(d["score_data"])
-                return d["score_data"]["IMR"];
+                return d["score_data"]["IMR"]["score"];
             else
                 return 0;
         case "Mechanics":
-            return d["score_data"]["mechanics"];
-        case "MMR":
-            return d["score_data"]["MMR"]; 
+            return d["score_data"]["mechanics"]["score"];
+        case "Farming":
+            return d["score_data"]["farming"]["score"];
+        case "Fighting":
+            return d["score_data"]["fighting"]["score"]; 
         default:
             return 0;
     }
@@ -273,6 +275,16 @@ $(document).ready(function(){
         drawScoreboard(data);
         e.preventDefault();// prevent the default anchor functionality
     });
+    $('#select-farming').click(function(e) {
+        entry = "Farming";
+        drawScoreboard(data);
+        e.preventDefault();// prevent the default anchor functionality
+    });
+    $('#select-fighting').click(function(e) {
+        entry = "Fighting";
+        drawScoreboard(data);
+        e.preventDefault();// prevent the default anchor functionality
+    });
 });
 
 function drawScoreboard(data)
@@ -280,7 +292,7 @@ function drawScoreboard(data)
 	var pairs = [];
 	for(var i = 0; i < 5; ++i)
 	{
-		pairs.push({"radiant": null, "dire": null});
+		pairs.push({"radiant": null, "dire": null });
 	}
 	var avg_value = 0;
     var radiant_avg_value = 0;
@@ -340,11 +352,11 @@ function createRow(pair)
         .append("div")
             .attr("class","image-thumbnail")
             .append("img")
-                .attr("src", pictures[pair["radiant"]["score"]["player_data"]["hero"]])
+                .attr("src", function(d){if(pair["radiant"]) return pictures[pair["radiant"]["score"]["player_data"]["hero"]];})
                 .attr("style", "height:37px");
 
     row.append("td")
-        .text(pair["radiant"]["header"]["name"]);
+        .text(function(d){if(pair["dire"]) return pair["radiant"]["header"]["name"];});
 
     row.append("td")
         .attr("id","radiant-value");
@@ -355,11 +367,11 @@ function createRow(pair)
         .append("div")
             .attr("class","image-thumbnail")
             .append("img")
-                .attr("src", pictures[pair["dire"]["score"]["player_data"]["hero"]])
+                .attr("src", function(d){if(pair["dire"]) return pictures[pair["dire"]["score"]["player_data"]["hero"]];})
                 .attr("style", "height:37px");
 
     row.append("td")
-        .text(pair["dire"]["header"]["name"]);
+        .text(function(d){if(pair["dire"]) return pair["dire"]["header"]["name"];});
 
     row.append("td")
         .attr("id","dire-value");
@@ -369,7 +381,7 @@ function updateRow(pair)
 {
     var row = d3.select(this);
 
-    row.select("#radiant-value").text(Math.floor(getValue(entry, pair["radiant"]["score"])));
-    row.select("#dire-value").text(Math.floor(getValue(entry, pair["dire"]["score"])));
+    row.select("#radiant-value").text(function(d){if(pair["radiant"]) return Math.floor(getValue(entry, pair["radiant"]["score"]));});
+    row.select("#dire-value").text(function(d){if(pair["dire"]) return Math.floor(getValue(entry, pair["dire"]["score"]));});
 
 }

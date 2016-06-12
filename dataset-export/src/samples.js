@@ -14,7 +14,23 @@ function sampleHeader()
                                 "kills",
                                 "deaths",
                                 "fightsPerMin",
-                                "initiation-score"]};
+                                "initiation-score",
+                                "camera-average-movement",
+                                "camera-distance-average",
+                                "camera-distance-stdev",
+                                "camera-jumps-per-minute",
+                                "camera-percent-far",
+                                "camera-percent-moving",
+                                "camera-percent-self",
+                                "lasthits-per-minute",
+                                "lasthits-total-contested",
+                                "lasthits-contested-percent-lasthit",
+                                "lasthits-taken-percent-free",
+                                "lasthits-missed-free",
+                                "lasthits-percent-taken-against-contest",
+                                "tower-damage",
+                                "rax-damage"
+                                ]};
     return header;
 }
 
@@ -41,6 +57,15 @@ function createSampleData(match, slot)
     var checksPerMin = player_stats["n-checks"] / durationMins;
     var timeFractionVisible = player_stats["time-visible"] / durationMins;
     var fightsPerMin =  (player_stats["num-of-fights"] /durationMins);  
+
+    if(player_stats["camera-stats"] == null)
+        console.log(match, match["player-stats"],id, match["player-stats"][id], player_stats);
+    var camJumpsPerMin =  player_stats["camera-stats"]["jumps"]/durationMins;
+    var lasthitsPerMin =  player_stats["lasthits"]/durationMins;
+    var contestedCreepsLasthit =  player_stats["contested-lasthit"]/Math.max(player_stats["contested-total"], 1);
+    var percentFreeOfLasthits =  player_stats["lasthit-free"]/Math.max(player_stats["lasthits"], 1);
+    var percentTakenAgainstContest = player_stats["lasthit-contested"]/Math.max((player_stats["lasthit-contested"]+player_stats["missed-contested"]), 1);
+
     var features =  [   player_stats["hero"],
                         win,
                         durationMins.toFixed(3),
@@ -54,7 +79,22 @@ function createSampleData(match, slot)
                         player_stats["num-of-kills"],
                         player_stats["num-of-deaths"],
                         fightsPerMin,
-                        player_stats["initation-score"]
+                        player_stats["initation-score"],
+                        player_stats["camera-stats"]["avg_movement"],
+                        player_stats["camera-stats"]["average_distance"],
+                        player_stats["camera-stats"]["distance_std_dev"],
+                        camJumpsPerMin,
+                        player_stats["camera-stats"]["percentFar"],
+                        player_stats["camera-stats"]["percentMove"],
+                        player_stats["camera-stats"]["percentSelf"],
+                        lasthitsPerMin,
+                        player_stats["contested-total"],
+                        contestedCreepsLasthit,
+                        percentFreeOfLasthits,
+                        player_stats["missed-free"],
+                        percentTakenAgainstContest,
+                        player_stats["tower-damage"],
+                        player_stats["rax-damage"]
                         ];
     return features;    
 }
@@ -71,7 +111,6 @@ function writeSample(file, sample)
         if(feature_i +1 < sample["data"].length )
             line += ",";
     }
-    line += "\n";
     file.write(line)
 }
 
@@ -79,3 +118,4 @@ function writeSample(file, sample)
 exports.header =  sampleHeader;
 exports.createSampleData =  createSampleData;
 exports.writeSample =  writeSample;
+exports.version = "24/05/16";

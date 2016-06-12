@@ -36,18 +36,20 @@ function sampleHeader()
 
 function createSampleData(match, slot)
 {
-    var id;
-    if(slot < 128)
-        id = slot;
-    else
-        id = slot - 128 + 5;
+    if(slot >=10)
+    {
+        console.log("bad slot")
+    }
     var match_stats = match["match-stats"];
-    if(!match["player-stats"].hasOwnProperty(id))
+    if(!match["player-stats"].hasOwnProperty(slot))
+    {
+        console.log("bad slot/match", slot, match);
         return [];
-    var player_stats = match["player-stats"][id];
+    }
+    var player_stats = match["player-stats"][slot];
     var win = 0;
-    if( (match_stats["winner"] === "radiant" && slot < 128) ||
-        (match_stats["winner"] === "dire" && slot >= 128))
+    if( (match_stats["winner"] === "radiant" && slot < 5) ||
+        (match_stats["winner"] === "dire" && slot >= 5))
         win = 1;
     //console.log(match, match["player-stats"],id, match["player-stats"][id], player_stats);
 
@@ -59,7 +61,7 @@ function createSampleData(match, slot)
     var fightsPerMin =  (player_stats["num-of-fights"] /durationMins);  
 
     var camJumpsPerMin =  player_stats["camera-stats"]["jumps"]/durationMins;
-    var lasthitsPerMin =  player_stats["camera-lasthits"]/durationMins;
+    var lasthitsPerMin =  player_stats["lasthits"]/durationMins;
     var contestedCreepsLasthit =  player_stats["contested-lasthit"]/Math.max(player_stats["contested-total"], 1);
     var percentFreeOfLasthits =  player_stats["lasthit-free"]/Math.max(player_stats["lasthits"], 1);
     var percentTakenAgainstContest = player_stats["lasthit-contested"]/Math.max((player_stats["lasthit-contested"]+player_stats["missed-contested"]), 1);
