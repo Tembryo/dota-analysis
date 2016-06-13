@@ -694,7 +694,9 @@ def makeStats(match):
                 "num-creeps-denied": 0,
                 "num-lane-creeps-lasthit": 0,
                 "num-neutral-creeps-lasthit": 0,
-                "num-siege-creeps-lasthit": 0
+                "num-siege-creeps-lasthit": 0,
+                "melee-damage": 0,
+                "spell-damage": 0
             }
 
 def evaluateVisibility(match):
@@ -803,13 +805,26 @@ def evaluateHeroGoldExp(match):
         match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["GPM"] = match["entities"][match["heroes"][hero]["entity_id"]]["GPM"]
         match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["XPM"] = match["entities"][match["heroes"][hero]["entity_id"]]["XPM"]
 
-def evaluteNumberOfFights(match):
-    # evaluate the number of fights that each hero has been invovled in
-    for fight in match["fight_list"]:
-        for hero_id in fight["heroes_involved"]:
-            match["stats"]["player-stats"][match["entities"][hero_id]["control"]]["num-of-fights"] += 1
-
 def evaluateHeroFights(match):
+    # evaluate different attributes of the fight events
+    evaluateBasicFightStats(match)
+    evaluateFightMovementSpeed(match)
+    evaluateFightCoordination(match)
+    evaluateFightMovementSpeed(match)
+    evaluateFightDamage(match)
+
+def evaluateFightDamage(match):
+    # evaluate the amount of melee and spell based damage done by each hero in each fight
+    for fight in match["fight_list"]:
+        for attack_index in fight["attack_sequence"]:
+            attack = match["attack_list"][attack_index]
+            player_index = match["heroes"][attack["attacker"]]["player_index"]
+            if attack["attack_method"] == "melee":
+                match["stats"]["player-stats"][player_index]["melee-damage"] += attack["damage"]
+            else:
+                match["stats"]["player-stats"][player_index]["spell-damage"] += attack["damage"]
+
+def evaluateBasicFightStats(match):
     # evaluate whether players get solo/team kills/deaths
     for fight in match["fight_list"]:
         for hero_id in fight["heroes_involved"]:
@@ -834,7 +849,6 @@ def evaluateHeroFights(match):
     # look up the total number of kills and subtract the solo kills to get the team kills for each player
     for hero in match["heroes"]:
         match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["team-kills"] =  match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["num-of-kills"] - match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["solo-kills"]
-
 
 def normalize(v):
     #function for normalizing an array
@@ -1011,10 +1025,8 @@ def computeStats(match):
     makeStats(match)
     evaluateCameraControl(match)
     evaluateHeroDeaths(match)
-    evaluateFightCoordination(match)
     evaluateHeroGoldExp(match)
     evaluateHeroFights(match)
-    evaluateFightMovementSpeed(match)
     evaluateVisibility(match)
     evaluateLastHits(match)
 
