@@ -12,7 +12,7 @@ import scipy.sparse
 def createParameters():
     # set variables that determine how the data is analysed - need to include all parameters
     parameters = {}
-    parameters["version"] = "0.0.05"
+    parameters["version"] = "0.1.00"
     parameters["datetime"] = {}
     parameters["datetime"]["date"] = str(datetime.date.today())
     parameters["datetime"]["time"] = str(datetime.datetime.now().time())
@@ -35,20 +35,6 @@ def createParameters():
     parameters["pregame_time_shift"] = 60
     # function specific parameters
 
-    parameters["heroPositions"] = {}
-    parameters["heroPositions"]["sample_step_size"] = 150
-    parameters["heroPositions"]["sample_step_size_hifi"] = 1
-
-    parameters["heroTrajectories"] = {}
-    parameters["heroTrajectories"]["delta"] = 1000
-    parameters["heroTrajectories"]["min_timespan"] = 3
-
-    parameters["goldXPInfo"] = {}
-    parameters["goldXPInfo"]["bin_size"] = 2
-
-    parameters["makeAttackList"] = {}
-    parameters["makeAttackList"]["bin_size"] = 1 
-
     parameters["graphAttacks"] = {}
     parameters["graphAttacks"]["damage_threshold"] = 50
 
@@ -59,13 +45,13 @@ def createParameters():
     parameters["formAdjacencyMatrix"]["w_space2"] = 0.3
     parameters["formAdjacencyMatrix"]["w_time"] = 80
 
-    parameters["initiationDamage"] = {}
-    parameters["initiationDamage"]["initiation_window"] = 1 #time window in seconds that we consider to be when initiating
-
     parameters["fightEvaluation"] = {}
     parameters["fightEvaluation"]["alpha"] = 150
     parameters["fightEvaluation"]["kappa"] = 0.15
     parameters["fightEvaluation"]["time_threshold"] = 2
+
+    parameters["initiationDamage"] = {}
+    parameters["initiationDamage"]["initiation_window"] = 1 #time window in seconds that we consider to be when initiating
 
     parameters["cameraEvaluation"] = {}
     parameters["cameraEvaluation"]["jump_threshold"] = 1500
@@ -108,7 +94,6 @@ def loadFiles(match_id, match_directory):
         }
 
     match["raw"] = {
-        "events": [],
         "damage_events": [],
         "gold_events": [],
         "exp_events": [],
@@ -128,7 +113,7 @@ def loadFiles(match_id, match_directory):
         0:{
             "side":"radiant",
             "name":"empty",
-            "short":"empty"},
+            "short":"empty"},            
         1:{
             "side":"dire",
             "name":"empty",
@@ -148,7 +133,7 @@ def loadFiles(match_id, match_directory):
     header_input_filename = match_directory+"/header.csv"
     with open(header_input_filename,'rb') as f:
         for i, row in enumerate(f):
-            row = row.split(",")
+            row = row.strip().split(",")
             if row[0].upper() == "TEAM_TAG_RADIANT":
                 if row[1] == " ":
                     match["teams"][0]["name"] = "empty"
@@ -160,22 +145,20 @@ def loadFiles(match_id, match_directory):
                 else:            
                     match["teams"][1]["name"] = row[1]
             elif row[0].upper() == "PLAYER":
-                player_index = int(row[1])
-                new_player = {}        
-                player_name_string = row[2]
-                player_name_list = player_name_string.split( )
+                # form new player dictionary
+                new_player = {}     
+                player_index = int(row[1])   
+                player_name_list = row[2].split( )
                 player_name = "".join(player_name_list)
+                hero_name = transformHeroName(row[4])
                 new_player["name"] = player_name
                 new_player["steam_id"] = row[3]
-                # form the heroes dictionary
-                hero_name = transformHeroName(row[4])
                 new_player["hero"] = hero_name
                 match["players"][player_index] = new_player
-                match["players"][player_index] = new_player
+                # form new hero dictionary
                 new_hero = {}
                 new_hero["player_index"] = player_index
-                entity_id = match["parameters"]["namespace"]["hero_namespace"] + player_index
-                new_hero["entity_id"] = entity_id
+                new_hero["entity_id"] = match["parameters"]["namespace"]["hero_namespace"] + player_index
                 if int(row[5]) == 2:
                     new_hero["side"] = "radiant"
                 elif int(row[5]) == 3:
@@ -217,7 +200,6 @@ def loadFiles(match_id, match_directory):
             absolute_time = float(row[0])
             if (absolute_time >= match["times"]["pregame_start_time"]) and (absolute_time <= match["times"]["match_end_time"]):
                 row[0] = transformTime(match,row[0])
-                match["raw"]["events"].append(row)
                 if row[1] == "DOTA_COMBATLOG_GOLD":
                     row[4] = int(row[4])
                     match["raw"]["gold_events"].append(row)
@@ -738,6 +720,72 @@ def evaluateCameraControl(match):
     for player_index in match["players"]:
         if match["stats"]["player-stats"][player_index]["n-checks"] != 0:
             match["stats"]["player-stats"][player_index]["average-check-duration"] =  match["stats"]["player-stats"][player_index]["total-check-duration"]/match["stats"]["player-stats"][player_index]["n-checks"]
+
+    for hero in match["heroes"]:
+
+        last_cam = []
+        last_distance = 0
+        last_time = 0
+        last_self = True
+
+        total_camera_movement = 0
+        average_hero_distance = 0
+        average_hero_distance_n = 0
+        average_hero_distance_M2 = 0
+        jumps = []
+
+        time_self = 0
+        time_far = 0
+        time_moving = 0
+        time_total = 0
+
+        for i in xrange(len(match["raw"]["trajectories"][hero]["position"])):
+            time = match["raw"]["trajectories"]["time"][i]
+            pos = match["raw"]["trajectories"][hero]["position"][i]
+            cam = match["raw"]["trajectories"][hero]["camera"][i]
+            relative = [pos[0] - cam[0], pos[1] - cam[1]]
+            distance = math.sqrt(relative[0]**2 + relative[1]**2)
+
+            hero_distance_delta = (distance - average_hero_distance)
+            average_hero_distance_n += 1
+            average_hero_distance += hero_distance_delta /(average_hero_distance_n)
+            average_hero_distance_M2 += hero_distance_delta*(distance - average_hero_distance)
+
+            if i == 0:
+                last_cam = cam
+                last_distance = distance
+                last_time = time
+                continue
+
+            camera_delta = [cam[0] - last_cam[0], cam[1] - last_cam[1]]
+            delta_length = math.sqrt(camera_delta[0]**2 + camera_delta[1]**2)        
+            total_camera_movement += delta_length
+
+            if delta_length > match["parameters"]["cameraEvaluation"]["jump_threshold"]:
+                jumps.append((match["raw"]["trajectories"]["time"][i], camera_delta))
+            
+            delta_time = time - last_time
+            time_total += delta_time
+
+            if delta_length > 1:
+                time_moving += delta_time
+            else:
+                if distance < match["parameters"]["cameraEvaluation"]["self_range"]:
+                    time_self += delta_time
+                else:
+                    time_far += delta_time
+
+            last_cam = cam
+            last_distance = distance
+            last_time = time
+
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["avg_movement"] = total_camera_movement/time_total
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["average_distance"] = average_hero_distance
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["distance_std_dev"] = math.sqrt(average_hero_distance_M2/average_hero_distance_n)
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["jumps"] = len(jumps)
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["percentMove"] = time_moving/time_total
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["percentSelf"] = time_self/time_total
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["percentFar"] = time_far/time_total
 
 def evaluateHeroDeaths(match):
     # evaluate the number of kills and deaths of each player (note that the killer might be a tower)
