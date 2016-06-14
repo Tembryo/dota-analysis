@@ -4,3 +4,48 @@
 	margin-top: 20px;
 	margin-bottom: 10px;
 }
+
+
+.skills-table
+{
+    border-collapse: separate;
+    empty-cells: show;
+}
+
+.skills-table td
+{
+    padding: 5px;
+}
+
+.skill-row 
+{}
+
+.skill-name
+{
+    text-align: left;
+}
+.skill-score
+{
+    font-weight: bold;
+}
+
+.skill-bar
+{
+    height: 10px;
+}
+
+.skill-bar-value
+{
+    position: absolute;
+    background: #ec971f;
+    height: 15px;
+    opacity: 1;
+}
+
+.skill-bar-average
+{
+    position: absolute;
+    background: #000000;
+    height: 15px;
+    opacity: 0.5;
+}

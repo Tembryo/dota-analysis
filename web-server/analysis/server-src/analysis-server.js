@@ -122,8 +122,10 @@ function processReplay(message, callback_replay)
                     child_process.execFile(
                         "java", 
                         ["-jar", "/extractor/extractor.jar", decompressed_filename, config.storage+"/"],
-                        {"timeout":max_extraction_time,
-                            "killSignal": "SIGKILL" },
+                        {
+                            //"timeout":max_extraction_time,
+                            //"killSignal": "SIGKILL"
+                        },
                         callback);
                 } catch (e) {
                     callback("extracted file doesnt exist? "+decompressed_filename);
