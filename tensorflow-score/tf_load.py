@@ -23,7 +23,7 @@ def importCSV(file):
 
 Dataset = collections.namedtuple('Dataset', ['labels','steamids', 'features', 'features_hero', 'feature_encoder', 'hero_encoder', 'feature_scaler', 'test_set', 'training_set'])
 
-fraction_test = 0.01
+fraction_test = 0.005
 
 def generateData(rows, settings = None):
     labels = [] #either MMRs for training or steamids for rating
