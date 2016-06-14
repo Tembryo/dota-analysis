@@ -4,24 +4,31 @@ import tf_load
 import tf_model
 
 import numpy as np
+from scipy.stats import norm
 
 import json
 import pickle
 import math
 import sys
 
-settings_filename = "settings2016-05-30_22-47.p"
-model_path = "logs2016-05-30_17-00"
-representatives_filename = "feature_representatives.json"
+import random
+random.seed()
+
+import os
+dn = os.path.dirname(os.path.realpath(__file__))
+
+settings_filename = dn+"/model_files/settings.p"
+model_path = dn+"/model_files/wisdota-model.ckpt-99999"
+representatives_filename = dn+"/model_files/feature_representatives.json"
 samples_filename = sys.argv[1]
 
-n_representatives = 99
+
 
 feature_to_subscore = {}
 
 #feature_to_subscore["hero"] = ""
-#feature_to_subscore["win"] = ""
-#feature_to_subscore["durationMins"] = ""
+feature_to_subscore["win"] = ""
+feature_to_subscore["durationMins"] = ""
 feature_to_subscore["GPM"] = "farming"
 feature_to_subscore["XPM"] = "farming"
 #feature_to_subscore["fraction-creeps-lasthit"] = ""
@@ -49,7 +56,33 @@ feature_to_subscore["lasthits-percent-taken-against-contest"] = "farming"
 feature_to_subscore["tower-damage"] = "objectives"
 feature_to_subscore["rax-damage"] = "objectives"
 
-def make_sampled_variations(batch, representatives, feature_to_col):
+n_baseline_variations = 1000
+def make_variations(batch, representatives, feature_to_col):
+    result = {}
+    for i in range(batch["features"].shape[0]):
+        result[i] = {}
+        feature_row = batch["features"][i,:]
+        feature_row = feature_row.reshape([1,-1]) #reshape into row
+        #print feature_row.shape
+        repeated_row = np.repeat(feature_row, n_baseline_variations, axis=0)
+        #print repeated_row.shape
+
+        hero_row = batch["features_hero"][i,:]
+        hero_row = hero_row.reshape([1,-1])#reshape into row
+        hero_repeated = np.repeat(hero_row, n_baseline_variations, axis=0)
+        result[i]["hero"] = hero_repeated
+        result[i]["label"] = np.zeros((n_baseline_variations,1),dtype=np.float32)
+        result[i]["features"] = {}
+        result[i]["features"]["any"] = np.copy(repeated_row)
+        for j in range(n_variations):
+            #vary all features randomly
+            for feature in feature_to_subscore:
+                result[i]["features"]["any"][j, feature_to_col[feature]] = random.choice(representatives[feature])
+    return result
+
+
+n_representatives = 99
+def make_variations_one_free(batch, representatives, feature_to_col):
     result = {}
     for i in range(batch["features"].shape[0]):
         result[i] = {}
@@ -72,6 +105,44 @@ def make_sampled_variations(batch, representatives, feature_to_col):
                 result[i]["features"][feature][j, feature_to_col[feature]] = representatives[feature][j]
                 #print result[i]["features"][feature][j, feature_to_col[feature]]
     return result
+
+
+n_variations = 500
+def make_variations_one_fixed(batch, representatives, feature_to_col):
+    result = {}
+    for i in range(batch["features"].shape[0]):
+        result[i] = {}
+        feature_row = batch["features"][i,:]
+        feature_row = feature_row.reshape([1,-1]) #reshape into row
+        #print feature_row.shape
+        repeated_row = np.repeat(feature_row, n_variations, axis=0)
+        #print repeated_row.shape
+
+        hero_row = batch["features_hero"][i,:]
+        hero_row = hero_row.reshape([1,-1])#reshape into row
+        hero_repeated = np.repeat(hero_row, n_variations, axis=0)
+        result[i]["hero"] = hero_repeated
+        result[i]["label"] = np.zeros((n_variations,1),dtype=np.float32)
+        result[i]["features"] = {}
+        for fixed_feature in representatives:
+            result[i]["features"][fixed_feature] = np.copy(repeated_row)
+            #print "{} {}".format(feature, result[i]["features"][feature])
+            for j in range(n_variations):
+                #vary all features randomly, keep the relevant one fixed
+                for feature_changed in feature_to_subscore:
+                    if feature_changed == fixed_feature:
+                        continue
+                    result[i]["features"][fixed_feature][j, feature_to_col[feature_changed]] = random.choice(representatives[feature_changed])
+    return result
+
+def evaluate_variation_set(model, hero_variation_set, feature):
+    batch = {
+            "features": hero_variation_set["features"][feature],
+            "features_hero": hero_variation_set["hero"],
+            "labels": hero_variation_set["label"]
+        }
+    predictions = model.predict(batch)
+    return predictions
 
 def median(lst):
     lst = sorted(lst)
@@ -109,7 +180,7 @@ def feature_inv_map(value, feature, settings):
 
 with open(settings_filename) as settings_file:
     settings = pickle.load(settings_file)
-    model = tf_model.Model(settings=settings["model-settings"])
+    model = tf_model.Model(settings=settings["model-settings"], logging=False)
     model.load(model_path)
 
     feature_to_col = settings["feature-encoder"].vocabulary_
@@ -139,18 +210,27 @@ with open(settings_filename) as settings_file:
         results.append(score_result)
 
 
-
-    sampled_inputs = make_sampled_variations(batch, representatives, feature_to_col )
+    sampled_inputs_baseline = make_variations(batch, representatives, feature_to_col )
+    sampled_inputs_narrow = make_variations_one_free(batch, representatives, feature_to_col )
+    sampled_inputs_broad = make_variations_one_fixed(batch, representatives, feature_to_col )
     target_offset = 1
-    for i in sampled_inputs:
-        for feature in sampled_inputs[i]["features"]:
-            if feature in feature_to_subscore:
-                sample_batch = {
-                        "features": sampled_inputs[i]["features"][feature],
-                        "features_hero": sampled_inputs[i]["hero"],
-                        "labels": sampled_inputs[i]["label"]
-                    }
-                sample_predictions = model.predict(sample_batch)
+    for i in sampled_inputs_narrow:
+        baseline_predictions = evaluate_variation_set(model, sampled_inputs_baseline[i], "any")
+        baseline_mean = np.mean(baseline_predictions[:,model.result_entries["IMR"]])
+        baseline_std = np.std(baseline_predictions[:,model.result_entries["IMR"]])
+
+
+        for feature in sampled_inputs_narrow[i]["features"]:
+            if feature in feature_to_subscore and feature_to_subscore[feature] in results[i]["data"]:
+                broad_predictions = evaluate_variation_set(model, sampled_inputs_broad[i], feature)
+                broad_mean = np.mean(broad_predictions[:,model.result_entries["IMR"]])
+                broad_std = np.std(broad_predictions[:,model.result_entries["IMR"]])
+
+                skill_score_mean = 3800
+                skill_score_std = 1000
+                skill_score = math.floor(norm.cdf(broad_mean, skill_score_mean, skill_score_std)*100)
+
+                sample_predictions = evaluate_variation_set(model, sampled_inputs_narrow[i], feature)
                 sampled_pairs = [(j, float(representatives[feature][j]), float(sample_predictions[j][model.result_entries["IMR"]])) for j in range(n_representatives)]
            
                 my_value = float(batch["features"][i,feature_to_col[feature]])
@@ -180,15 +260,17 @@ with open(settings_filename) as settings_file:
                 improved_pairs.sort(key=(lambda entry:
                      (entry[2] - (float(coeffs[1])+float(coeffs[0])*entry[1]))**2  + #sample should represent the general trend - squared distance to line
                      ((abs(entry[1] - my_value) - optimal_distance) * float(coeffs[0]) )**2 + #sample should be about <optimal dstance> away from real - squared distance from 0.5 offset(), penalized in IMR score(scaled by coeff)
-                      (float(coeffs[0]) *3)/(entry[2] - my_imr + 1)**2 #sample should be better - penalise closeness to real solution
+                      (float(coeffs[0])**2)/(entry[2] - my_imr + 1)**2 #sample should be better - penalise closeness to real solution
                      ))
                 skill_analysis = {
                     "value": feature_inv_map(float(batch["features"][i,feature_to_col[feature]]), feature, settings),
-                    "index": index,
+                    "index": skill_score,#index,
                     "improved-score": improved_pairs[0][2] if len(improved_pairs) > 0 else None,#mean(improved_imrs),
                     "improved-value": feature_inv_map(improved_pairs[0][1], feature, settings) if len(improved_pairs) > 0 else None,#feature_inv_map(mean(improved_values), feature, settings),
                     "impact": float(coeffs[0]),
-                    "certainty": math.sqrt(float(residual[0])/len(sampled_pairs))
+                    "certainty": math.sqrt(float(residual[0])/len(sampled_pairs)),
+#                    "baseline": [float(baseline_mean), float(baseline_std)],
+                    "broad": [float(broad_mean), float(broad_std)]
                     #,"scaling": [float(settings["feature-scaler"].mean_[settings["feature-encoder"].vocabulary_[feature]]), float(settings["feature-scaler"].scale_[settings["feature-encoder"].vocabulary_[feature]])]
                     #,"samples": sampled_pairs
                 }
