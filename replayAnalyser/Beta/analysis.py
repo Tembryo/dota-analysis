@@ -21,8 +21,9 @@ def createParameters():
     parameters["namespace"]["kills_namespace"] = 10000
     parameters["namespace"]["normal_namespace"] = 11000
     parameters["namespace"]["fights_namespace"] = 15000
-    parameters["namespace"]["creeps_namespace"] = 20000
-    parameters["namespace"]["camera_namespace"] = 30000
+    parameters["namespace"]["creep_spawn_namespace"] = 20000
+    parameters["namespace"]["creep_death_namespace"] = 30000
+    parameters["namespace"]["camera_namespace"] = 40000
 
     parameters["general"] = {}
     parameters["general"]["num_players"] = 10
@@ -658,7 +659,6 @@ def processFights(match):
                 "dire_exp_gained": dire_exp_gained
         }
 
-
         # apply a crude filter to the fights
         damage_threshold = match["parameters"]["fightEvaluation"]["alpha"] + match["parameters"]["fightEvaluation"]["kappa"]*fight["time_start"]
         if ((len(fight["heroes_killed"]) > 0) or ((fight["damage_dealt_radiant"] + fight["damage_dealt_dire"] > damage_threshold)  and (fight["time_end"] - fight["time_start"] > match["parameters"]["fightEvaluation"]["time_threshold"]))) and len(heroes_involved) > 1:
@@ -669,12 +669,12 @@ def processCreepSpawns(match):
     # extract the creep spawns from spawn_rows
     match["creep_spawns"] = []
     locations = [
-        {"x": -6575,    "y": -4104,   "name": "top"},#radiant
-        {"x": -4896,    "y": -4384,   "name": "mid"},#radiant
+        {"x": -6575,    "y": -4104,   "name": "top"}, #radiant
+        {"x": -4896,    "y": -4384,   "name": "mid"}, #radiant
         {"x": -3648,    "y": -6112,   "name": "bot"}, #radiant
-        {"x": 3168,     "y": 5792,    "name": "top"},#dire
-        {"x": 4096,     "y": 3583,    "name": "mid"},#dire 
-        {"x": 6275,     "y": 3645,    "name": "bot"}#dire
+        {"x": 3168,     "y": 5792,    "name": "top"}, #dire
+        {"x": 4096,     "y": 3583,    "name": "mid"}, #dire 
+        {"x": 6275,     "y": 3645,    "name": "bot"}  #dire
     ]
     #for each row find the location of where the spawns are occuring
     for row in match["raw"]["spawn_rows"]:
@@ -711,7 +711,6 @@ def processCreepDeaths(match):
         "rows": []
     }
 
-    #extract the DOTA_COMBATLOG_DEATH events (from events.csv) involving creeps to match with those in the death_rows (from ents.csv)
     for row in match["raw"]["death_events"]:
         if row[2].startswith("npc_dota_creep_"):
             creep_kills["time"].append(row[0])
@@ -1172,11 +1171,65 @@ def evaluateBuildingDamage(match):
         elif attacker in match["heroes"] and "rax" in victim:
             match["stats"]["player-stats"][match["heroes"][attacker]["player_index"]]["rax-damage"] += row[5]
 
+def iterateEventList(match,array,event_type,namespace):
+    for i, item in enumerate(array):
+        item["type"] = event_type
+        match["results"]["events"][namespace + i] = item
+
+def makeResults(match):
+    # sample the data and place into the match["results"]
+    match["results"] = {}
+    match["results"]["header"] = match["header"]
+    match["results"]["events"] = {}
+
+    iterateEventList(match,match["hero_deaths"],"kill",match["parameters"]["namespace"]["kills_namespace"])
+    iterateEventList(match,match["creep_spawns"],"creep_spawn",match["parameters"]["namespace"]["creep_spawn_namespace"])
+    iterateEventList(match,match["creep_deaths"],"creep_death",match["parameters"]["namespace"]["creep_death_namespace"])
+    iterateEventList(match,match["fight_list"],"fight",match["parameters"]["namespace"]["fights_namespace"])
+
+    # sample the timeseries by deleting points
+    for entity in match["entities"]:
+        for i in range(0,len(match["entities"][entity]["position"])):
+            previous_time = match["entities"][entity]["position"][i]["timeseries"]["samples"][i]["t"]
+            j = 0
+            while j < len(match["entities"][entity]["position"][i]["timeseries"]["samples"]):
+                if match["entities"][entity]["position"][i]["timeseries"]["samples"][j]["t"] - previous_time < 1/match["parameters"]["makeResults"]["sample_rate_position"]:
+                    del match["entities"][entity]["position"][i]["timeseries"]["samples"][j]
+                else:
+                    previous_time =  match["entities"][entity]["position"][i]["timeseries"]["samples"][j]["t"]
+                    j += 1
+
+    match["results"]["entites"] = match["entities"]
+
+    #sample the gold and exp timeseries
+    previous_time = match["timeseries"]["gold-advantage"]["samples"][0]["t"]
+    j = 0
+    while j < len(match["timeseries"]["gold-advantage"]["samples"]):
+        if match["timeseries"]["gold-advantage"]["samples"][j]["t"] - previous_time < 1/match["parameters"]["makeResults"]["sample_rate_gold_exp"]:
+            del match["timeseries"]["gold-advantage"]["samples"][j]
+        else:
+            previous_time = match["timeseries"]["gold-advantage"]["samples"][j]["t"]
+            j += 1
+
+    previous_time = match["timeseries"]["exp-advantage"]["samples"][0]["t"]
+    j = 0
+    while j < len(match["timeseries"]["exp-advantage"]["samples"]):
+        if match["timeseries"]["exp-advantage"]["samples"][j]["t"] - previous_time < 1/match["parameters"]["makeResults"]["sample_rate_gold_exp"]:
+            del match["timeseries"]["exp-advantage"]["samples"][j]
+        else:
+            previous_time = match["timeseries"]["exp-advantage"]["samples"][j]["t"]
+            j += 1
+
+    match["results"]["timeseries"] = match["timeseries"]
+
+
+
 def evaluateMechanics(match):
+    # evaluate different skills for the Mechanics attribute
     evaluateCameraControl(match)
 
 def evaluateFighting(match):
-    # evaluate different attributes of the Fighting attribute
+    # evaluate different skills for the Fighting attribute
     evaluateBasicFightStats(match)
     evaluateFightMovementSpeed(match)
     evaluateFightCoordination(match)
@@ -1185,10 +1238,12 @@ def evaluateFighting(match):
     evaluateFightInitiation(match)
 
 def evaluateFarming(match):
+    # evaluate different skills for the Farming attribute
     evaluateLastHits(match)
     evaluateHeroGoldExp(match)
 
 def evaluateMovement(match):
+    # evaluate different skills for the Movement attribute
     evaluateVisibility(match)
 
 def writeToJson(filename,dictionary):
@@ -1220,54 +1275,6 @@ def computeStats(match):
     evaluateFarming(match)
     evaluateMovement(match)
     evaluateObjectives(match)
-
-def makeResults(match):
-    # reformat the data 
-    match["results"] = {}
-    match["results"]["header"] = match["header"]
-    match["results"]["events"] = {}
-    #add in hero death events
-    for i, hero_death in enumerate(match["hero_deaths"]):
-        hero_death["type"] = "kill"
-        match["results"]["events"][match["parameters"]["namespace"]["kills_namespace"] + i] = hero_death
-
-    # sample the timeseries by deleting points
-    for entity in match["entities"]:
-        for i in range(0,len(match["entities"][entity]["position"])):
-            previous_time = match["entities"][entity]["position"][i]["timeseries"]["samples"][i]["t"]
-            j = 0
-            while j < len(match["entities"][entity]["position"][i]["timeseries"]["samples"]):
-                if match["entities"][entity]["position"][i]["timeseries"]["samples"][j]["t"] - previous_time < 1/match["parameters"]["makeResults"]["sample_rate_position"]:
-                    del match["entities"][entity]["position"][i]["timeseries"]["samples"][j]
-                else:
-                    previous_time =  match["entities"][entity]["position"][i]["timeseries"]["samples"][j]["t"]
-                    j += 1
-
-    match["results"]["entites"] = match["entities"]
-
-    #sample the gold and exp timeseries
-
-    #match["timeseries"] = {"gold-advantage":{"format":"samples","samples":gold},"exp-advantage":{"format":"samples","samples":exp}}
-    previous_time = match["timeseries"]["gold-advantage"]["samples"][0]["t"]
-    j = 0
-    while j < len(match["timeseries"]["gold-advantage"]["samples"]):
-        if match["timeseries"]["gold-advantage"]["samples"][j]["t"] - previous_time < 1/match["parameters"]["makeResults"]["sample_rate_gold_exp"]:
-            del match["timeseries"]["gold-advantage"]["samples"][j]
-        else:
-            previous_time = match["timeseries"]["gold-advantage"]["samples"][j]["t"]
-            j += 1
-
-    #match["timeseries"] = {"gold-advantage":{"format":"samples","samples":gold},"exp-advantage":{"format":"samples","samples":exp}}
-    previous_time = match["timeseries"]["exp-advantage"]["samples"][0]["t"]
-    j = 0
-    while j < len(match["timeseries"]["exp-advantage"]["samples"]):
-        if match["timeseries"]["exp-advantage"]["samples"][j]["t"] - previous_time < 1/match["parameters"]["makeResults"]["sample_rate_gold_exp"]:
-            del match["timeseries"]["exp-advantage"]["samples"][j]
-        else:
-            previous_time = match["timeseries"]["exp-advantage"]["samples"][j]["t"]
-            j += 1
-
-    match["results"]["timeseries"] = match["timeseries"]
 
 def main():
     match_id = sys.argv[1]
