@@ -7,7 +7,7 @@ import json
 import bisect
 import numpy as np
 import scipy.sparse
-#import cProfile
+import cProfile
 
 def createParameters():
     # set variables that determine how the data is analysed - need to include all parameters
@@ -640,7 +640,7 @@ def processFights(match):
                 "heroes_involved": heroes_involved,
                 "heroes_killed": list(heroes_killed),
                 "mean_position": mean_position,
-                "initiated_by": side_indicator,
+                "initiation_side": side_indicator,
                 "radiant_gold_gained": radiant_gold_gained,
                 "dire_gold_gained": dire_gold_gained,
                 "radiant_exp_gained": radiant_exp_gained,
@@ -769,7 +769,9 @@ def makeStats(match):
                 "melee-damage": 0,
                 "spell-damage": 0,
                 "tower-damage": 0,
-                "rax-damage": 0
+                "rax-damage": 0,
+                "initiation_score": 0,
+                "num-camera-jumps": 0
             }
 
 def evaluateVisibility(match):
@@ -854,10 +856,10 @@ def evaluateCameraControl(match):
             last_distance = distance
             last_time = time
 
-        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["avg_movement"] = total_camera_movement/time_total
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["avg_camera_movement"] = total_camera_movement/time_total
         match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["average_distance"] = average_hero_distance
         match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["distance_std_dev"] = math.sqrt(average_hero_distance_M2/average_hero_distance_n)
-        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["jumps"] = len(jumps)
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["num-camera-jumps"] = len(jumps)
         match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["percentMove"] = time_moving/time_total
         match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["percentSelf"] = time_self/time_total
         match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["percentFar"] = time_far/time_total
@@ -1039,7 +1041,13 @@ def evaluateFightMovementSpeed(match):
         match["stats"]["player-stats"][player_id]["average-fight-movement-speed"] = total_distance_traveled[player_id]/total_fight_time[player_id] 
 
 def evaluateFightInitiation(match):
-    print "to do"
+    # evaluate whether players tend to win the fights they initiate (in terms of gold/exp exchanged)
+    for fight in match["fight_list"]:
+        total_gold_exp_tranfer = abs(fight["radiant_gold_gained"]) + abs(fight["dire_gold_gained"]) + abs(fight["radiant_exp_gained"]) + abs(fight["dire_exp_gained"])
+        if total_gold_exp_tranfer != 0:
+            initiation_score = fight["initiation_side"]*((fight["radiant_gold_gained"] - fight["dire_gold_gained"] + fight["radiant_exp_gained"] - fight["dire_exp_gained"])/total_gold_exp_tranfer) 
+            for hero_id in fight["heroes_involved"]:
+                match["stats"]["player-stats"][match["entities"][hero_id]["control"]]["initiation_score"] += initiation_score
 
 def evaluateLastHits(match):
     # evaluate the number of creeps last-hit, denied and missed 
@@ -1145,6 +1153,7 @@ def main():
 
     computeStats(match)
 
+
     writeToJson(stats_filename,match["stats"]) 
 
 
@@ -1152,5 +1161,5 @@ def main():
     #shutil.rmtree(match_directory)
 
 if __name__ == "__main__":
-    #cProfile.run('main()')
+    cProfile.run('main()')
     main()
