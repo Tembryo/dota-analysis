@@ -67,6 +67,11 @@ def createParameters():
     parameters["evaluatefightCoordination"]["time_delta"] = 0.1
     parameters["evaluatefightCoordination"]["decay_rate"] = 2
 
+    parameters["makeResults"] = {}
+    parameters["makeResults"]["sample_rate_position"] = 0.5
+    parameters["makeResults"]["sample_rate_gold_exp"] = 0.1
+
+
     return parameters
 
 def transformHeroName(name):
@@ -75,17 +80,18 @@ def transformHeroName(name):
     hero_name_list = hero_name_list[3:] # remove the unnecessary dota_npc_hero part
     return "_".join(hero_name_list) # join the strings back together
 
-def transformTime(match, t_string):
+def transformTime(match,t_string):
     return float(t_string) - match["times"]["match_start_time"]
 
 def findTimeTick(match,array,time):
-    #Find leftmost tick greater than or equal to x
+    #find leftmost tick greater than or equal to x
     i = bisect.bisect_left(array,time)
     if i != len(array):
         return i
     raise ValueError
 
 def lookupHeroPosition(match,hero,time):
+    #find the [x,y] coordinates for a hero at a specified time
     i = findTimeTick(match,match["raw"]["trajectories"][hero]["position"],time)
     return  match["raw"]["trajectories"][hero]["position"][i]
 
@@ -119,7 +125,7 @@ def loadFiles(match_id, match_directory):
         }
     }
 
-    match["teams"] = {
+    match["header"]["teams"] = {
         0:{
             "side":"radiant",
             "name":"empty",
@@ -146,14 +152,14 @@ def loadFiles(match_id, match_directory):
             row = row.strip().split(",")
             if row[0].upper() == "TEAM_TAG_RADIANT":
                 if row[1] == " ":
-                    match["teams"][0]["name"] = "empty"
+                    match["header"]["teams"][0]["name"] = "empty"
                 else:            
-                    match["teams"][0]["name"] = row[1]
+                    match["header"]["teams"][0]["name"] = row[1]
             elif row[0].upper() == "TEAM_TAG_DIRE":
                 if row[1] == " ":
-                    match["teams"][1]["name"] = "empty"
+                    match["header"]["teams"][1]["name"] = "empty"
                 else:            
-                    match["teams"][1]["name"] = row[1]
+                    match["header"]["teams"][1]["name"] = row[1]
             elif row[0].upper() == "PLAYER":
                 # form new player dictionary
                 new_player = {}     
@@ -1215,6 +1221,54 @@ def computeStats(match):
     evaluateMovement(match)
     evaluateObjectives(match)
 
+def makeResults(match):
+    # reformat the data 
+    match["results"] = {}
+    match["results"]["header"] = match["header"]
+    match["results"]["events"] = {}
+    #add in hero death events
+    for i, hero_death in enumerate(match["hero_deaths"]):
+        hero_death["type"] = "kill"
+        match["results"]["events"][match["parameters"]["namespace"]["kills_namespace"] + i] = hero_death
+
+    # sample the timeseries by deleting points
+    for entity in match["entities"]:
+        for i in range(0,len(match["entities"][entity]["position"])):
+            previous_time = match["entities"][entity]["position"][i]["timeseries"]["samples"][i]["t"]
+            j = 0
+            while j < len(match["entities"][entity]["position"][i]["timeseries"]["samples"]):
+                if match["entities"][entity]["position"][i]["timeseries"]["samples"][j]["t"] - previous_time < 1/match["parameters"]["makeResults"]["sample_rate_position"]:
+                    del match["entities"][entity]["position"][i]["timeseries"]["samples"][j]
+                else:
+                    previous_time =  match["entities"][entity]["position"][i]["timeseries"]["samples"][j]["t"]
+                    j += 1
+
+    match["results"]["entites"] = match["entities"]
+
+    #sample the gold and exp timeseries
+
+    #match["timeseries"] = {"gold-advantage":{"format":"samples","samples":gold},"exp-advantage":{"format":"samples","samples":exp}}
+    previous_time = match["timeseries"]["gold-advantage"]["samples"][0]["t"]
+    j = 0
+    while j < len(match["timeseries"]["gold-advantage"]["samples"]):
+        if match["timeseries"]["gold-advantage"]["samples"][j]["t"] - previous_time < 1/match["parameters"]["makeResults"]["sample_rate_gold_exp"]:
+            del match["timeseries"]["gold-advantage"]["samples"][j]
+        else:
+            previous_time = match["timeseries"]["gold-advantage"]["samples"][j]["t"]
+            j += 1
+
+    #match["timeseries"] = {"gold-advantage":{"format":"samples","samples":gold},"exp-advantage":{"format":"samples","samples":exp}}
+    previous_time = match["timeseries"]["exp-advantage"]["samples"][0]["t"]
+    j = 0
+    while j < len(match["timeseries"]["exp-advantage"]["samples"]):
+        if match["timeseries"]["exp-advantage"]["samples"][j]["t"] - previous_time < 1/match["parameters"]["makeResults"]["sample_rate_gold_exp"]:
+            del match["timeseries"]["exp-advantage"]["samples"][j]
+        else:
+            previous_time = match["timeseries"]["exp-advantage"]["samples"][j]["t"]
+            j += 1
+
+    match["results"]["timeseries"] = match["timeseries"]
+
 def main():
     match_id = sys.argv[1]
     match_directory = sys.argv[2]
@@ -1223,13 +1277,13 @@ def main():
     stats_filename = sys.argv[5]
 
     match = loadFiles(match_id, match_directory)
-
     process(match)
-
     computeStats(match)
+    makeResults(match)
 
+    writeToJson(analysis_filename,match["results"]) 
+    writeToJson(header_filename,match["results"]["header"])
     writeToJson(stats_filename,match["stats"]) 
-
     #delete intermediate/input files
     #shutil.rmtree(match_directory)
 
