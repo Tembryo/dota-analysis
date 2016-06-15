@@ -31,7 +31,10 @@
             <hr class="featurette-divider">
             <div class="row">
                 <div class ="col-lg-4 text-center"> 
-                    <h2 id="match-report-heading"> Match ID: 2370326728 Result: Win </h2>
+                    <h2>Match <span id="current-match-id"> </span></h2>
+                    <a id= "scoreboard-link" href='/scoreboard/"+ dataPoint["match-id"]+"'>Scoreboard</a>
+                    &mdash;
+                    <a id= "review-link" href='/match/"+ dataPoint["match-id"]+"'>Review</a>
                 </div>
                 <div class= "col-lg-8 text-center">
                     <div class="hero-image-container">
@@ -60,7 +63,10 @@
                                 <span id="current-hero"></span>: <span id="current-imr"></span> IMR 
                             </h3>
                         </div>
-                        <div class="row" id="polygon-container"></div>
+                        <div class="row" id="polygon-container">
+                            <svg id="polygon-canvas"></svg>
+                            <p>Yellow polygon = rating for selected match. <br> Grey polygon = average over your matches.</p>
+                        </div>
                         <div class="row" id="tips-container">
                             <h3>Tips</h3>
                             <p id="tip1"></p>

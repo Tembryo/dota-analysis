@@ -1,5 +1,7 @@
 var indx = 0;
-var numMatches = 20;
+var numMatchesDisplayed = 20;
+var load_offset = 0
+var load_num = 30;
 
 var boxSize = 275;   // size of the SVG container
 var polyScale = 0.6;  // size of polygon as proportion of SVG container
@@ -9,6 +11,9 @@ var maxMMR = 8000;
 var textFont = "helvetica";
 
 // variables for userSkills
+
+var icon_size = 32;
+
 var height = 120;
 var width = 300;
 var xOffsetText = 0;
@@ -20,8 +25,10 @@ var textWidth = 140;
 var barWidth = 120;
 
 var graph_width = 800;
-var graph_height = 300;
-var graph_padding = 20;
+var graph_height = 360;
+var graph_padding = 40;
+
+var selected_match = null;
 
 var ratings =[
 {   "key":      "Mechanics",
@@ -63,21 +70,15 @@ function initPage()
 {
     createPolygonBase();
     createRatingDivs();
-    createGraph();
+    createTimeline();
 }
 
 function createPolygonBase()
 {
     // make SVG container
-    var canvas = d3.select("#polygon-container").append("svg")
+    var canvas = d3.select("#polygon-canvas")
                     .attr("height",boxSize)
-                    .attr("width",boxSize)
-                    .attr("id","polygon-canvas");
-
-    var polygonText = document.createElement("p");
-    polygonText.innerHTML = "Yellow polygon = rating for selected match. <br> Grey polygon = average over your matches.";
-    document.getElementById("polygon-container").appendChild(polygonText); 
-
+                    .attr("width",boxSize);
 
     // make an array of [x,y] vectors that point towards nodes of polygon
     var incr = 2*Math.PI/ratings.length;
@@ -129,12 +130,12 @@ function createPolygonBase()
     }
 }
 
-function createGraph()
+function createTimeline()
 {
-    canvas=d3.select("#timeline-container")
+    var canvas = d3.select("#timeline-container")
             .append("svg")
-            .attr("id","graph-canvas")
-            .attr("viewBox", "-30 0 "+(graph_width+20)+" "+graph_height);
+                .attr("id","timeline-canvas")
+                .attr("viewBox", "-30 0 "+(graph_width+20)+" "+graph_height);
 
     canvas.append("path")
         .attr("id", "graph")
@@ -176,19 +177,21 @@ function createGraph()
             .css("color","black")
             .css("font-size","20px");
 
-    $("#timeline-container").append(backwards);
+
 
     var loadTwenty = document.createElement("a");
-    $(loadTwenty).attr("class","btn btn-primary btn-sm disabled")
+    $(loadTwenty).attr("class","btn btn-primary btn-sm")
                 .attr("id","load-twenty")
                 .css("margin","5px")
                 .text("20");
 
     var loadFifty = document.createElement("a");
-    $(loadFifty).attr("class","btn btn-primary btn-sm disabled")
+    $(loadFifty).attr("class","btn btn-primary btn-sm")
                 .attr("id","load-fifty")
                 .css("margin","5px")
                 .text("50");
+
+    $("#timeline-container").append(backwards);
 
     $("#timeline-container").append(loadTwenty);
     $("#timeline-container").append(loadFifty);
@@ -196,15 +199,73 @@ function createGraph()
     $("#timeline-container").append(forwards);
     
 
-    $("#scroll-right").click(function(){indx = indx +1;
-        updateGraph(data.slice(Math.max(0,indx),numMatches+indx));});
-    $("#scroll-left").click(function(){indx = indx -1;
-        updateGraph(data.slice(Math.max(0,indx),numMatches+indx));});
+    $("#scroll-left").click(function(){
+        indx += 1;
+        if(numMatchesDisplayed+indx > load_num)
+        {
+            load_offset = load_offset+indx;
+            d3.json("/api/get-player-matches?start="+load_offset+"&end="+(load_offset+load_num),
+            function(data){
+                indx = 0;
+                load(data);
+            } );
+        }
+        else
+        {
+            renderTimeline();
+        }
+    });
 
-    $("#load-twenty").click(function(){ numMatches = 20;
-        updateGraph(data.slice(Math.max(0,indx),numMatches+indx))});
-    $("#load-fifty").click(function(){ numMatches = 50;
-        updateGraph(data.slice(Math.max(0,indx),numMatches+indx))});
+
+    $("#scroll-right").click(function(){
+        indx -= 1;
+        if(indx < 0)
+        {
+            if(load_offset > 0)
+            {
+                load_offset = Math.max(0, load_offset-(load_num - numMatchesDisplayed));
+                d3.json("/api/get-player-matches?start="+load_offset+"&end="+(load_offset+load_num),
+                function(data){
+                    indx = load_num- numMatchesDisplayed;
+                    load(data);
+                } );
+            }
+            else
+                //ignore
+                indx = 0;
+        }
+        else
+        {
+            renderTimeline();
+        }
+    });
+
+    $("#load-twenty").click(function(){
+        if(numMatchesDisplayed != 20)
+        {
+
+            d3.json("/api/get-player-matches?start="+load_offset+"&end="+(load_offset+load_num),
+            function(data){
+                numMatchesDisplayed = 20;
+                icon_size = 32;
+                load_num = 30;
+                load(data);
+            } );
+        }
+    });
+
+    $("#load-fifty").click(function(){
+        if(numMatchesDisplayed != 50)
+        {
+            d3.json("/api/get-player-matches?start="+load_offset+"&end="+(load_offset+load_num),
+            function(data){
+                numMatchesDisplayed = 50;
+                icon_size = 24;
+                load_num = 70;
+                load(data);
+            } );
+        }
+    });
 }
 
 function createRatingDivs(){
@@ -243,16 +304,19 @@ function load(new_data)
     data = new_data;
     average = calculateAverage(data);
 
-    drawGraph(data);
+    renderTimeline();
 
-    var first_parsed = -1;
-    for(var i = 0; i < data.length; ++i)
-        if(data[i]["status"] === "parsed")
-        {
-            first_parsed = i; 
-            break;
-        }
-    displayMatch(first_parsed);
+    if(selected_match == null)
+    {
+        var first_parsed = -1;
+        for(var i = 0; i < data.length; ++i)
+            if(data[i]["status"] === "parsed")
+            {
+                first_parsed = i; 
+                break;
+            }
+        displayMatch(data[i]);
+    }
 }
 
 function calculateAverage(data){
@@ -290,21 +354,23 @@ function calculateAverage(data){
     return averageData;
 }
 
-function drawGraph(data)
+function renderTimeline()
 {
+    var displayed_matches = data.slice(indx,indx+numMatchesDisplayed);
+
     x_scale = d3.scale.linear()
-                .domain([data.length+1, 0])
+                .domain([displayed_matches.length+1, 0])
                 .range([graph_padding,graph_width-graph_padding]);
 
-    var value_min = d3.min(data,function(d){return d["IMR"];});
-    var value_max = d3.max(data,function(d){return d["IMR"];});
+    var value_min = d3.min(displayed_matches,function(d){return d["IMR"];});
+    var value_max = d3.max(displayed_matches,function(d){return d["IMR"];});
     var value_padding = Math.max((value_max - value_min)*0.05, value_min*0.05);
 
     y_scale = d3.scale.linear()
                 .domain([value_min-value_padding,value_max+value_padding])
                 .range([graph_height-graph_padding,graph_padding]);
 
-    var line_data = data.map(function(d,i){return {"IMR": d["IMR"], "index": i};}).filter(function(d){return d["IMR"];});
+    var line_data = displayed_matches.map(function(d,i){return {"IMR": d["IMR"], "index": i};}).filter(function(d){return d["IMR"];});
 
     var line = d3.svg.line()
         .x(function(d) { return x_scale(d["index"]+1); })
@@ -322,6 +388,8 @@ function drawGraph(data)
     }
     else
         console.log("shouldn't happen");
+
+    var canvas = d3.select("#timeline-canvas");
 
     var xAxis = d3.svg.axis()
         .scale(x_scale)
@@ -342,92 +410,101 @@ function drawGraph(data)
     canvas.select("#y-axis-label")
         .text("IMR");
 
-    var icon_size = 32;
-
-    d3.selectAll(".icons").remove()
-
-    var icons = canvas.selectAll(".icons")
-                    .data(data);
+    var icons = canvas.selectAll(".icon")
+                    .data(displayed_matches, function(d){return d["match-id"]});
 
     icons.enter()
         .append("g")
-        .attr("class","icons")
-        .attr("id", function(d,i){return "circle" + i;});
+        .attr("class", "icon")
+        .each(createIcon);
 
-    icons.append("circle")
-            .attr("fill",
-                function(d,i)
-                {
-                    if (i==data.length-1)
-                        { return "rgba(255,0,0,0.8)" }
-                    else if(d["status"]==="open")
-                        { return "rgba(140,140,140,0.5)"} 
-                    else if(d["status"]==="queued")
-                        {return "rgba(0,255,0,0.3)";}
-                    else if(d["status"]==="failed")
-                        {return "rgba(255,0,0,0.3)";}
-                    else if(d["status"]==="parsed")
-                        {return "rgba(0,0,0,0)";}
-                })
-            .attr("cx",function(d,i){return  x_scale(i+1)})
-            .attr("cy",function(d){if(d["IMR"]) return y_scale(d["IMR"]); else return height/2;})
-            .attr("r",20)
-            .on("click",function(d,i){
-                d3.selectAll("circle").attr("fill",
-                    function(d)
-                    {
-                        if(d["status"]==="open")
-                            { return "rgba(140,140,140,0.5)"}
-                        else if(d["status"]==="queued")
-                            {return "rgba(0,255,0,0.3)";}
-                        else if(d["status"]==="failed")
-                            {return "rgba(255,0,0,0.3)";}
-                        else if(d["status"]==="parsed")
-                            {return "rgba(0,0,0,0)";}
-                    });
-                displayMatch(i);
-                d3.select(this).attr("fill","rgba(236,151,31,0.8)");
-            })
-            .on("mouseenter",function(d,i){d3.select("#info-text_"+i.toString()).style("opacity",1);})
-            .on("mouseleave",function(d,i){d3.select("#info-text_"+i.toString()).style("opacity",0);});
+    icons.each(updateIcon);
 
-    icons.append("svg:image")
-            .attr("xlink:href",function(d){return hero_icons[d["hero"]];})
-            .attr("opacity", function(d){if(!d["IMR"]) return 0.5; else return 1;})
-            .attr("x", function(d,i){return  x_scale(i+1)-0.5*icon_size})
-            .attr("y", function(d){if(!d["IMR"])return height/2 -0.5*icon_size; else return y_scale(d["IMR"]) -0.5*icon_size})
-            .attr("width",icon_size)
-            .attr("height",icon_size)
-            .attr("pointer-events","none");
+    icons.exit()
+        .remove();
+}
 
-    icons.exit().remove();
+function createIcon(d,i)
+{
+    var group = d3.select(this);
 
-    var infoText = canvas.selectAll(".circle-text")
-                    .data(data);
+    group.append("circle")
+        .attr("id", "bg-circle")
+        .attr("cx",0)
+        .attr("cy",0)
+        .attr("r",20)
+        .on("click",function(d,i){
+            displayMatch(d);
+        })
+        .on("mouseenter",function(d,i){group.select("#info-text").style("opacity",1);})
+        .on("mouseleave",function(d,i){group.select("#info-text").style("opacity",0);});
 
-    var infoGroup = infoText.enter()
-                        .append("g")
-                        .attr("id",function(d,i){return "info-text_"+ i.toString();})
+    group.append("svg:image")
+        .attr("id", "image")
+        .attr("xlink:href",function(d){return hero_icons[d["hero"]];})
+        .attr("opacity", function(d){if(!d["IMR"]) return 0.5; else return 1;})
+        .attr("pointer-events", "none");
+
+    var infoGroup = group.append("g")
+                        .attr("id","info-text")
                         .style("opacity",0);
 
-    infoGroup.append("rect")
+    var text_bg = infoGroup.append("rect")
             .attr("class","textRect")
             .attr("height",30)
             .attr("width",40)
             .attr("fill","rgba(50,50,50,0.9)")  
             .attr("rx",4)
             .attr("ry",4)    
-            .attr("x",function(d,i){return x_scale(i+1)-20;})
-            .attr("y",function(d){if(!d["IMR"])return height/2-60; else return y_scale(d["IMR"])-60;});
+            .attr("x",-20)
+            .attr("y",-50);
 
-    infoGroup.append("text")                                           
-            .attr("x",function(d,i){return x_scale(i+1)-16;})
-            .attr("y",function(d){if(!d["IMR"])return height/2-40; else return y_scale(d["IMR"])-40;})
+    var text = infoGroup.append("text")
+            .attr("x",-16)
+            .attr("y",-32)
             .attr("fill","white")
-            .text(function(d){if(!d["IMR"])return "?"; else return Math.floor(d["IMR"]);});
+            .text(function(d){if(d["status"]==="parsed") return Math.floor(d["IMR"]); else return d["status"];});
 
-    infoText.exit().remove();
+    text_bg
+        .attr("height",text.node().getBBox().height +10)
+        .attr("width",text.node().getBBox().width +10);//40)
+    
 }
+
+function updateIcon(d,i)
+{
+    var group = d3.select(this);
+
+    var x = x_scale(i+1);
+    var y;
+    if(d["status"]==="parsed")
+        y = y_scale(d["IMR"]);
+    else
+        y = (y_scale.range()[0]+y_scale.range()[1]) /2
+    group.attr("transform", "translate("+x+", "+y+")");
+
+    group.select("#bg-circle")
+        .attr("fill",
+            function(d)
+                {
+                    if(d["match-id"] === selected_match)
+                        return "rgba(236,151,31,0.8)";
+                    else if(d["status"]==="open")
+                        return "rgba(140,140,140,0.5)"
+                    else if(d["status"]==="queued")
+                        return "rgba(0,255,0,0.3)";
+                    else if(d["status"]==="failed")
+                        return "rgba(255,0,0,0.3)";
+                    else if(d["status"]==="parsed")
+                        return "rgba(0,0,0,0)";
+                });
+    group.select("#image")
+        .attr("x", -0.5*icon_size)
+        .attr("y", -0.5*icon_size)
+        .attr("width", icon_size)
+        .attr("height", icon_size);
+}
+
 
 var skill_constants = {
     "n-checks":
@@ -510,15 +587,16 @@ var skill_constants = {
         }
 };
 
-function displayMatch(nr)
+function displayMatch(match)
 {
-    var match = data[nr];
-
+    selected_match = match["match-id"];
     if(match["status"] !== "parsed")
     {
         clearMatch();
         return;
     }
+
+    renderTimeline();
 
     renderPolygon(match);
     renderBars(match);
@@ -681,7 +759,10 @@ function updateSkillRow(d)
 function renderTips(dataPoint){
     if(dataPoint["ratings"].length ==0)
         return;
-    d3.select("#match-report-heading").html("Match <a href='/scoreboard/"+ dataPoint["match-id"]+"'>"+dataPoint["match-id"]+"</a>");
+
+    $("#current-match-id").text(dataPoint["match-id"]);
+    $("#scoreboard-link").attr("href", "/scoreboard/"+dataPoint["match-id"]);
+    $("#review-link").attr("href", "/match/"+dataPoint["match-id"]);
     $("#current-hero").html(names[dataPoint["hero"]]);
     $("#current-hero-icon").attr("src", hero_icons[dataPoint["hero"]]);
     $("#current-imr").html(Math.floor(dataPoint["IMR"]/10)*10);
@@ -723,7 +804,7 @@ function renderTips(dataPoint){
             " You achieved "+skillTwo[1]["value"].toFixed(3)+", a value of "+skillTwo[1]["improved-value"].toFixed(3)+" would result in "+Math.floor(skillTwo[1]["improved-score"])+" IMR.";
 
     $("#tip1").html(tip1_text);
-    $("#tip2").html(tip1_text);
+    $("#tip2").html(tip2_text);
 }
 
 function renderHeroImages(dataPoint) {
@@ -745,7 +826,7 @@ function renderHeroImages(dataPoint) {
 
 $(document).ready(function(){
     initPage();
-    d3.json("/api/get-player-matches?start="+indx+"&end="+(indx+numMatches), load);
+    d3.json("/api/get-player-matches?start="+load_offset+"&end="+(load_offset+load_num), load);
 });
 
 $("#analyse-matches-button" ).click(function() {
