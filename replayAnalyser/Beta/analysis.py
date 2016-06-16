@@ -41,6 +41,9 @@ def createParameters():
 
     parameters["processFights"] = {}
     parameters["processFights"]["initiation_window"] = 1
+    parameters["processFights"]["alpha"] = 150
+    parameters["processFights"]["kappa"] = 0.15
+    parameters["processFights"]["time_threshold"] = 2
 
     parameters["processCreepDeaths"] = {}
     parameters["processCreepDeaths"]["responsibility_distance"] = 1000
@@ -51,14 +54,6 @@ def createParameters():
     parameters["formAdjacencyMatrix"]["w_space1"] = 0.02
     parameters["formAdjacencyMatrix"]["w_space2"] = 0.3
     parameters["formAdjacencyMatrix"]["w_time"] = 80
-
-    parameters["fightEvaluation"] = {}
-    parameters["fightEvaluation"]["alpha"] = 150
-    parameters["fightEvaluation"]["kappa"] = 0.15
-    parameters["fightEvaluation"]["time_threshold"] = 2
-
-    parameters["initiationDamage"] = {}
-    parameters["initiationDamage"]["initiation_window"] = 1 #time window in seconds that we consider to be when initiating
 
     parameters["cameraEvaluation"] = {}
     parameters["cameraEvaluation"]["jump_threshold"] = 1500
@@ -84,16 +79,16 @@ def transformHeroName(name):
 def transformTime(match,t_string):
     return float(t_string) - match["times"]["match_start_time"]
 
-def findTimeTick(match,array,time):
+def findTimeTick(match,array_of_times,time):
     #find leftmost tick greater than or equal to x
-    i = bisect.bisect_left(array,time)
-    if i != len(array):
+    i = bisect.bisect_left(array_of_times,time)
+    if i != len(array_of_times):
         return i
     raise ValueError
 
 def lookupHeroPosition(match,hero,time):
     #find the [x,y] coordinates for a hero at a specified time
-    i = findTimeTick(match,match["raw"]["trajectories"][hero]["position"],time)
+    i = findTimeTick(match,match["raw"]["trajectories"]["time"],time)
     return  match["raw"]["trajectories"][hero]["position"][i]
 
 def loadFiles(match_id, match_directory):
@@ -660,8 +655,8 @@ def processFights(match):
         }
 
         # apply a crude filter to the fights
-        damage_threshold = match["parameters"]["fightEvaluation"]["alpha"] + match["parameters"]["fightEvaluation"]["kappa"]*fight["time_start"]
-        if ((len(fight["heroes_killed"]) > 0) or ((fight["damage_dealt_radiant"] + fight["damage_dealt_dire"] > damage_threshold)  and (fight["time_end"] - fight["time_start"] > match["parameters"]["fightEvaluation"]["time_threshold"]))) and len(heroes_involved) > 1:
+        damage_threshold = match["parameters"]["processFights"]["alpha"] + match["parameters"]["processFights"]["kappa"]*fight["time_start"]
+        if ((len(fight["heroes_killed"]) > 0) or ((fight["damage_dealt_radiant"] + fight["damage_dealt_dire"] > damage_threshold)  and (fight["time_end"] - fight["time_start"] > match["parameters"]["processFights"]["time_threshold"]))) and len(heroes_involved) > 1:
             fight["heroes_involved"] = list(fight["heroes_involved"])
             match["fight_list"].append(fight)
 
@@ -716,55 +711,66 @@ def processCreepDeaths(match):
             creep_kills["time"].append(row[0])
             creep_kills["rows"].append(row)
 
+    creep_kills["max_time"] = max(creep_kills["time"])
+
     for row in match["raw"]["death_rows"]:
         if row[2].startswith("npc_dota_creep_"):
-            creep_position = [float(row[5]),float(row[6])]
-            time = row[0]
-            creep_team_id = int(row[4])
-            entity_handle = row[3]
-            death_type = "none"
-            killed_by = "none"
+            if row[0] < creep_kills["max_time"]:
+                creep_position = [float(row[5]),float(row[6])]
+                time = row[0]
+                creep_team_id = int(row[4])
+                entity_handle = row[3]
+                death_type = "none"
+                killed_by = "none"
 
-            if creep_team_id == 2:
-                creep_side = "radiant"
-            elif creep_team_id == 3:
-                creep_side = "dire"
-            else: 
-                creep_side = "neutral"
+                if creep_team_id == 2:
+                    creep_side = "radiant"
+                elif creep_team_id == 3:
+                    creep_side = "dire"
+                else: 
+                    creep_side = "neutral"
 
-            contested_by = []
-            responsible_for = []
+                contested_by = []
+                responsible_for = []
 
-            for hero in match["heroes"]:
-                hero_position = lookupHeroPosition(match,hero,time)
-                d = math.sqrt((hero_position[0] - creep_position[0])**2 + (hero_position[1] - creep_position[1])**2)
-                if d < match["parameters"]["processCreepDeaths"]["responsibility_distance"]:
-                    if match["heroes"][hero]["side"] == creep_side:
-                        contested_by.append(match["heroes"][hero]["entity_id"])
-                    else:
-                        responsible_for.append(match["heroes"][hero]["entity_id"])
+                for hero in match["heroes"]:
+                    print hero
+                    hero_position = lookupHeroPosition(match,hero,time)
+                    print hero_position
+                    d = math.sqrt((hero_position[0] - creep_position[0])**2 + (hero_position[1] - creep_position[1])**2)
+                    print d
+                    if d < match["parameters"]["processCreepDeaths"]["responsibility_distance"]:
+                        print ""
+                        print "hero " + hero + " in responsibility range"
+                        if match["heroes"][hero]["side"] == creep_side:
+                            contested_by.append(match["heroes"][hero]["entity_id"])
+                        else:
+                            responsible_for.append(match["heroes"][hero]["entity_id"])
 
-            #if there is an overhead alert event associated with the death of that creep
-            if entity_handle in entity_handle_to_event_map:
-                #lookup who last hit or denied it (may not be a hero, e.g., dota_creep_ranged or hero illusion).
-                i = findTimeTick(match,creep_kills["time"],row[0])
-                killer = transformHeroName(creep_kills["rows"][i][3])
-                if killer in match["heroes"]:
-                    killed_by = match["heroes"][killer]["entity_id"]
-                    death_type = entity_handle_to_event_map[entity_handle]
+                print contested_by
+                print responsible_for
 
-            creep_death = {
-            "time": time,
-            "creep_type": row[2],
-            "entity_handle": entity_handle,
-            "creep_team_id": int(row[4]),
-            "position": creep_position,
-            "death_type": death_type,
-            "killed_by": killed_by,
-            "responsible_for": responsible_for,
-            "contested_by": contested_by
-            }
-            match["creep_deaths"].append(creep_death)
+                #if there is an overhead alert event associated with the death of that creep
+                if entity_handle in entity_handle_to_event_map:
+                    #lookup who last hit or denied it (may not be a hero, e.g., dota_creep_ranged or hero illusion).
+                    i = findTimeTick(match,creep_kills["time"],row[0])
+                    killer = transformHeroName(creep_kills["rows"][i][3])
+                    if killer in match["heroes"]:
+                        killed_by = match["heroes"][killer]["entity_id"]
+                        death_type = entity_handle_to_event_map[entity_handle]
+
+                creep_death = {
+                "time": time,
+                "creep_type": row[2],
+                "entity_handle": entity_handle,
+                "creep_team_id": int(row[4]),
+                "position": creep_position,
+                "death_type": death_type,
+                "killed_by": killed_by,
+                "responsible_for": responsible_for,
+                "contested_by": contested_by
+                }
+                match["creep_deaths"].append(creep_death)
 
 def makeStats(match):
     # instantiate the stats variables that will be filled in by subsequent evaluation functions
@@ -822,6 +828,7 @@ def makeStats(match):
                 "lasthit-contested": 0,
                 "contested-total": 0,
                 "missed-contested": 0,
+                "missed-free": 0,
 
                 #movement
                 "time-visible": 0,
@@ -1120,7 +1127,11 @@ def evaluateLastHits(match):
     creep_types = ["lane","neutral"]
 
     for creep_death in match["creep_deaths"]:
-        creep_type = transformHeroName(creep_death["creep_type"])
+        #print ""
+        #print creep_death
+
+        creep_type = creep_death["creep_type"].split("_")
+        creep_type = creep_type[3]
         if creep_death["death_type"] == "last-hit":
             match["stats"]["player-stats"][match["entities"][creep_death["killed_by"]]["control"]]["num-creeps-last-hit"] += 1
             creeps_lasthit += 1
@@ -1222,8 +1233,6 @@ def makeResults(match):
 
     match["results"]["timeseries"] = match["timeseries"]
 
-
-
 def evaluateMechanics(match):
     # evaluate different skills for the Mechanics attribute
     evaluateCameraControl(match)
@@ -1253,7 +1262,7 @@ def writeToJson(filename,dictionary):
     my_file.close()
 
 def process(match):
-    # extract information from the raw data 
+    # extract information from the raw data, create events/entities that we recognise in the game 
     makeUnits(match)
     processHeroVisibility(match)
     processHeroDeaths(match)
@@ -1293,6 +1302,8 @@ def main():
     writeToJson(stats_filename,match["stats"]) 
     #delete intermediate/input files
     #shutil.rmtree(match_directory)
+
+    print lookupHeroPosition(match,"dark_seer",2000)
 
 if __name__ == "__main__":
     #cProfile.run('main()')
