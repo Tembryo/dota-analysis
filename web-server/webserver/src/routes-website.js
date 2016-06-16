@@ -112,48 +112,6 @@ router.get('/user',
                 {
                     data["display_newsletter"] = !(parseInt(result.rows[0]["user_emails"]) > 0);
                 }
-                //console.log(data);
-
-                res.render("pages/user.ejs", data);
-                callback();
-            }
-        ]);
-    }
-);
-
-
-router.get('/dashboard',
-    authentication.ensureAuthenticated,
-    function(req, res)
-    {
-        var data = collectTemplatingData(req);
-        if(req.query.hasOwnProperty("start") && req.query.hasOwnProperty("end"))
-        {
-            data["start"] =  parseInt(req.query["start"]);
-            data["range"] =  parseInt(req.query["end"]) - parseInt(req.query["start"]);
-        }
-        else if(req.query.hasOwnProperty("start"))
-        {
-            data["start"] =  req.query["start"];
-            data["range"] =  5;
-        }
-        else
-        {
-            data["start"] =  0;
-            data["range"] =  5;
-        }
-
-        async.waterfall(
-        [
-            database.generateQueryFunction(
-                "SELECT COUNT(*) as user_emails  FROM Emails WHERE user_id=$1 AND verified=TRUE;",[req.user["id"]]),
-            function(result, callback){
-                data["display_newsletter"] = true;
-                //console.log(result);
-                if(result.rowCount > 0)
-                {
-                    data["display_newsletter"] = !(parseInt(result.rows[0]["user_emails"]) > 0);
-                }
                 callback();
             },
             database.generateQueryFunction(

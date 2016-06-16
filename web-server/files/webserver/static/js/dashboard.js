@@ -243,12 +243,11 @@ function createTimeline()
     $("#load-twenty").click(function(){
         if(numMatchesDisplayed != 20)
         {
-
+            load_num = 30;
             d3.json("/api/get-player-matches?start="+load_offset+"&end="+(load_offset+load_num),
             function(data){
                 numMatchesDisplayed = 20;
                 icon_size = 32;
-                load_num = 30;
                 load(data);
             } );
         }
@@ -257,11 +256,11 @@ function createTimeline()
     $("#load-fifty").click(function(){
         if(numMatchesDisplayed != 50)
         {
+            load_num = 70;
             d3.json("/api/get-player-matches?start="+load_offset+"&end="+(load_offset+load_num),
             function(data){
                 numMatchesDisplayed = 50;
                 icon_size = 24;
-                load_num = 70;
                 load(data);
             } );
         }

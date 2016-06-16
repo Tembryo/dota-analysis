@@ -87,3 +87,13 @@ WHERE smpl.matchid= m.matchid AND s.label='open' AND s.id=m.status
 AND to_timestamp((m.data->>'start_time')::bigint) > current_date - interval '7 days' GROUP BY m.matchid ORDER BY value DESC LIMIT 100;
 
 INSERT INTO jobs(started, data) VALUES (now(), '{"message":"Score", "id":2425170236}'::json);
+
+
+update matchretrievalrequests set retrieval_status=1 where id  in (SElECT id from matchretrievalrequests where retrieval_status=5 limit 6000);
+
+
+INSERT INTO MatchRetrievalRequests(id, retrieval_status, requester_id) 
+(SELECT umh.match_id, (SELECT mrs.id FROM MatchRetrievalStatuses mrs where mrs.label='requested'), 2839 
+FROM UserMatchHistory umh 
+WHERE umh.user_id = 2839 AND to_timestamp((umh.data->>'start_time')::int) > current_timestamp - interval '7 days' 
+AND NOT EXISTS (SELECT mrs.id FROM MatchRetrievalRequests mrs where mrs.id = umh.match_id) );
