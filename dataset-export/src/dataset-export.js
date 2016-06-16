@@ -62,7 +62,7 @@ function appedMatchSamples(matchid, csv_file, callback)
     [
         function(callback)
         {
-            database.query("SELECT mmr.solo_mmr,mmr.slot, ms.data as match_data, ps.data as player_data FROM mmrdata mmr, MatchStats ms, PlayerStats ps WHERE mmr.matchid=$1 AND ms.id=mmr.matchid AND ps.match_id=mmr.matchid AND ps.steam_identifier = mmr.player_steamid AND solo_mmr IS NOT NULL;", [matchid], callback);
+            database.query("SELECT mmr.solo_mmr, mmr.slot, ms.data as match_data, ps.data as player_data, md.data as match_details FROM mmrdata mmr, MatchStats ms, PlayerStats ps, MatchDetails md WHERE mmr.matchid=$1 AND ms.id=mmr.matchid AND ps.match_id=mmr.matchid  AND md.matchid=ms.id AND ps.steam_identifier = mmr.player_steamid AND solo_mmr IS NOT NULL;", [matchid], callback);
         },
         function(results, callback)
         {
@@ -76,6 +76,7 @@ function appedMatchSamples(matchid, csv_file, callback)
                 var match = 
                 {
                     "match-stats": results.rows[i]["match_data"], 
+                    "match-details": results.rows[i]["match_details"], 
                     "player-stats": {}
                 }
                 match["player-stats"][slot] = results.rows[i]["player_data"];

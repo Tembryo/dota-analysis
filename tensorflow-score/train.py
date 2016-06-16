@@ -16,13 +16,22 @@ logs_directory = "logs{:%Y-%m-%d_%H-%M}".format(datetime.datetime.now())
 settings_filename = "settings{:%Y-%m-%d_%H-%M}.p".format(datetime.datetime.now())
 eval_filename = "logs{:%Y-%m-%d_%H-%M}/evals.json".format(datetime.datetime.now())
 predictions_filename = "logs{:%Y-%m-%d_%H-%M}/predictions.json".format(datetime.datetime.now())
-error_filename = "logs{:%Y-%m-%d_%H-%M}/error.csv".format(datetime.datetime.now())
+best_model_filename = "logs{:%Y-%m-%d_%H-%M}/best-model.ckpt".format(datetime.datetime.now())
 parameters_file = "logs{:%Y-%m-%d_%H-%M}/pra".format(datetime.datetime.now())
+
+step_delay_after_minimum  = 500
 max_steps = 120000
 
-with open("files/data.csv") as  file:
-    rows = tf_load.importCSV(file)
-    data = tf_load.generateData(rows, )
+def main():
+    with open("files/data_train.csv") as  file:
+        rows = tf_load.importCSV(file)
+        data = tf_load.generateData(rows)
+        full_data = tf_load.get_batch(data, batched=False)
+
+    with open("files/data_test.csv") as test_file:
+        test_rows = tf_load.importCSV(test_file)
+        test_dataset = tf_load.generateData(test_rows)
+        test_data = tf_load.get_batch(test_dataset, batched=False)
 
     settings = {
         "logs-dir": logs_directory,
@@ -42,12 +51,13 @@ with open("files/data.csv") as  file:
     print "settings done"
     model = tf_model.Model(settings=settings)
 
-    with open(error_filename, "w") as error_file:
-        error_file.write("step,train_error_all,test_error_all,train_error_imr,test_error_imr\n")
     #model.load(logs_directory)
 
+    log_evals = False
     all_evals = {}
-    all_predictions = {}
+    best_test_error = float("inf")
+    best_step = 0
+    best_eval = {}
     for step in xrange(max_steps):
         start_time = time.time()
 
@@ -63,21 +73,37 @@ with open("files/data.csv") as  file:
             # Update the events file.
             model.update_log(step)
 
-        if step % 200 == 0 or (step + 1) == max_steps:
-            test_set = tf_load.get_test_set(data)
-            predictions = model.predict(test_set)
-            cost_test,evals = model.evaluate(test_set)
 
+        if step % 200 == 0 or (step + 1) == max_steps:
+            start_time_eval = time.time()
+            cost_all,evals = model.evaluate(full_data)
+            cost_all_test,evals_test = model.evaluate(test_data)
+            duration_eval = time.time() - start_time_eval
+            print "\n\n!Evaluation took %.3f sec"%duration_eval
+            print "\n!overall loss: {}".format(cost_all)
             for subset in evals:
                 evals[subset] = [float(evals[subset][i]) for i in range(len(evals[subset]))]
                 print "{}: {}".format(subset, evals[subset])
-            all_evals[step] = evals
-            print "!overall losses: train {} test {} \n\n".format(cost_value, cost_test)
-            with open(eval_filename, "w") as eval_file:
-                eval_file.write(json.dumps(all_evals))
+            
+            if log_evals:
+                all_evals[step] = evals
+                with open(eval_filename, "w") as eval_file:
+                    eval_file.write(json.dumps(all_evals))
 
-            with open(error_filename, "a") as error_file:
-                error_file.write("{},{},{},{},{}\n".format(step, float(cost_value), float(cost_test), float(imr_cost), evals["IMR"][2]))
+            print "\n!test loss: {}".format(cost_all_test)
+            for subset in evals_test:
+                evals_test[subset] = [float(evals_test[subset][i]) for i in range(len(evals_test[subset]))]
+                print "{}: {}".format(subset, evals_test[subset])
+
+            if cost_all_test < best_test_error:
+                print "new best model at {}".format(step)
+                model.save(step, filename=best_model_filename)
+                best_test_error = cost_all_test
+                best_step = step
+                best_eval = evals_test
+                
+            if step - best_step > step_delay_after_minimum:
+                break
             if step % 1000 == 0 or (step + 1) == max_steps:
                 #with open("{}/parameters_{}.json".format(logs_directory,step), "w") as parameters_file:
                 #    model_params = model.get_parameters()
@@ -85,4 +111,11 @@ with open("files/data.csv") as  file:
                 #        model_params[key] = model_params[key].tolist()
                 #    parameters_file.write(json.dumps(model_params))
                 model.save(step)
+    print "done"
 
+    print "Best model at step {}, cost {}".format(best_step, best_test_error)
+    for subset in best_eval:
+        print "{}: {}".format(subset, best_eval[subset])
+
+if __name__ == "__main__":
+    main()
