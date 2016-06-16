@@ -1,129 +1,15 @@
 {
     "draft": {},
-    "id": "2366032695",
-    "length": 2670.0,
-    "parameters": {
-        "cameraEvaluation": {
-            "jump_threshold": 1500,
-            "self_range": 1500
-        },
-        "datetime": {
-            "date": "2016-06-09",
-            "time": "16:34:50.959865"
-        },
-        "fightEvaluation": {
-            "alpha": 150,
-            "kappa": 0.15,
-            "time_threshold": 2
-        },
-        "formAdjacencyMatrix": {
-            "distance_threshold": 300,
-            "radius": 1500,
-            "w_space1": 0.02,
-            "w_space2": 0.3,
-            "w_time": 80
-        },
-        "general": {
-            "num_players": 10
-        },
-        "goldXPInfo": {
-            "bin_size": 2
-        },
-        "graphAttacks": {
-            "damage_threshold": 50
-        },
-        "heroPositions": {
-            "sample_step_size": 150,
-            "sample_step_size_hifi": 1
-        },
-        "heroTrajectories": {
-            "delta": 1000,
-            "min_timespan": 3
-        },
-        "initiationDamage": {
-            "initiation_window": 1
-        },
-        "makeAttackList": {
-            "bin_size": 1
-        },
-        "map": {
-            "num_box": 32,
-            "xmax": 8000,
-            "xmin": -8200,
-            "ymax": 8000,
-            "ymin": -8200
-        },
-        "namespace": {
-            "camera_namespace": 30000,
-            "creeps_namespace": 20000,
-            "fights_namespace": 15000,
-            "hero_namespace": 100,
-            "kills_namespace": 10000,
-            "normal_namespace": 11000
-        },
-        "pregame_time_shift": 60,
-        "version": "0.0.05"
-    },
-    "players": {
-        "0": {
-            "hero": "lion",
-            "name": "Sempfo",
-            "steam_id": "76561198010978448"
-        },
-        "1": {
-            "hero": "antimage",
-            "name": "HotGrill",
-            "steam_id": "76561198009804779"
-        },
-        "2": {
-            "hero": "spectre",
-            "name": "Zera|wisdota.com",
-            "steam_id": "76561198019532009"
-        },
-        "3": {
-            "hero": "pudge",
-            "name": "Fuckyoubuthaveaniceday",
-            "steam_id": "76561198131142608"
-        },
-        "4": {
-            "hero": "bounty_hunter",
-            "name": "KeRe",
-            "steam_id": "76561198196552534"
-        },
-        "5": {
-            "hero": "storm_spirit",
-            "name": "ultranasilie",
-            "steam_id": "76561198062862602"
-        },
-        "6": {
-            "hero": "riki",
-            "name": "Daze",
-            "steam_id": "76561198103115728"
-        },
-        "7": {
-            "hero": "necrolyte",
-            "name": "\u043f\u0435\u0440\u0441\u0438\u043a",
-            "steam_id": "76561198095582131"
-        },
-        "8": {
-            "hero": "gyrocopter",
-            "name": "flag",
-            "steam_id": "76561198059160303"
-        },
-        "9": {
-            "hero": "silencer",
-            "name": "e1337",
-            "steam_id": "76561198089866473"
-        }
-    },
+    "id": "1864290085",
+    "length": 2264.0,
     "teams": {
         "0": {
-            "name": " \n",
+            "name": " NiP",
             "short": "empty",
             "side": "radiant"
         },
         "1": {
-            "name": " \n",
+            "name": " (monkey)",
             "short": "empty",
             "side": "dire"
         }
