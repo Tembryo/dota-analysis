@@ -802,9 +802,9 @@ def processCreepDeaths(match):
 
     for row in match["raw"]["overhead_alert_events"]:
         if row[1] == "OVERHEAD_ALERT_GOLD":
-            entity_handle_to_event_map[row[4]] = {"death_type": "last-hit","killer_handle": row[5]}
+            entity_handle_to_event_map[int(row[4])] = {"death_type": "last-hit","killer_handle": int(row[5])}
         elif row[1] == "OVERHEAD_ALERT_DENY":
-            entity_handle_to_event_map[row[4]] = {"death_type": "denied", "killer_handle": row[5]}
+            entity_handle_to_event_map[int(row[4])] = {"death_type": "denied", "killer_handle": int(row[3])}
 
     max_time = max(match["raw"]["trajectories"]["time"])        
 
@@ -814,7 +814,7 @@ def processCreepDeaths(match):
                 creep_position = [float(row[5]),float(row[6])]
                 time = row[0]
                 creep_team_id = int(row[4])
-                entity_handle = row[3]
+                entity_handle = int(row[3])
                 death_type = "none"
                 killed_by = "none"
 
@@ -857,6 +857,7 @@ def processCreepDeaths(match):
                 "responsible_for": responsible_for,
                 "contested_by": contested_by
                 }
+
                 match["creep_deaths"].append(creep_death)
 
 def makeStats(match):
@@ -1027,8 +1028,6 @@ def evaluateHeroDeaths(match):
     for death in match["hero_deaths"]:
         # have to split killer name to handle kills by illusions
         killer = death["killer"].split()[0]
-        if killer == "pudge":
-            print death
         if killer in match["heroes"] and match["heroes"][killer]["side"] != match["heroes"][death["deceased"]]["side"]:
             match["stats"]["player-stats"][match["heroes"][killer]["player_index"]]["num-of-kills"] += 1
         if death["deceased"]in match["heroes"]:
@@ -1227,14 +1226,10 @@ def evaluateLastHits(match):
     creep_types = ["lane","neutral"]
 
     for creep_death in match["creep_deaths"]:
-        #print ""
-        #print creep_death
-
         creep_type = creep_death["creep_type"].split("_")
         creep_type = creep_type[3]
         if creep_death["death_type"] == "last-hit":
             match["stats"]["player-stats"][match["entities"][creep_death["killed_by"]]["control"]]["num-creeps-last-hit"] += 1
-            creeps_lasthit += 1
             if creep_type == "lane" or creep_type == "siege":
                 match["stats"]["player-stats"][match["entities"][creep_death["killed_by"]]["control"]]["num-lane-creeps-lasthit"] += 1
             elif creep_type == "neutral":
