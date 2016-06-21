@@ -87,6 +87,13 @@ def lookupHeroPosition(match,hero,time):
     i = findTimeTick(match,match["raw"]["trajectories"]["time"],time)
     return  match["raw"]["trajectories"][hero]["position"][i]
 
+def normalize(v):
+    #function for normalizing an array
+    norm = np.linalg.norm(v)
+    if norm == 0: 
+       return v
+    return v/norm
+
 def loadFiles(match_id, match_directory):
     #load in the raw data from the csv files
     match = {}
@@ -315,14 +322,12 @@ def processHeroDeaths(match):
         deceased = row[2]
         # now check if it was a hero that died
         if deceased.startswith("npc_dota_hero_"):
-            # look up which side the hero was on
             deceased_name = transformHeroName(deceased)
             # if killer was another hero transform the name (it may have been a tower)
             if killer.startswith("npc_dota_hero_"):
                 killer_name = transformHeroName(killer)
             else:
                 killer_name = killer
-            # is this to filter out illusions? not clear
             if not deceased_name in match["heroes"]:
                 logging.info("bad deceased name" + deceased)
                 continue
@@ -436,7 +441,6 @@ def processGoldXP(match):
     for row in match["raw"]["gold_events"]:
         hero_name = transformHeroName(row[2]) #receiver
         if not hero_name in match["heroes"]:
-            print hero_name
             continue
         gold_amount = row[4]
         side = match["heroes"][hero_name]["side"]
@@ -524,6 +528,9 @@ def processHeroAttacks(match):
             elif attacker.startswith("npc_dota_goodguys_tower") and victim.startswith("npc_dota_hero_"):
                 attacker = transformHeroName(attacker)
                 victim = transformHeroName(victim)
+                #filter out illusions and damage instances where heroes damage themselves (e.g., Pudge rot)
+                if attacker not in match["heroes"] or victim not in match["heroes"] or attacker == victim:
+                    continue
                 attack_method = "tower-attack"
 
                 if row[4] == "":
@@ -547,6 +554,9 @@ def processHeroAttacks(match):
             elif attacker.startswith("npc_dota_badguys_tower") and victim.startswith("npc_dota_hero_"):
                 attacker = transformHeroName(attacker)
                 victim = transformHeroName(victim)
+                #filter out illusions and damage instances where heroes damage themselves (e.g., Pudge rot)
+                if attacker not in match["heroes"] or victim not in match["heroes"] or attacker == victim:
+                    continue
                 attack_method = "tower-attack"
                 if row[4] == "":
                     damage = 0
@@ -715,9 +725,6 @@ def processFights(match):
         time_start_index = findTimeTick(match,match["raw"]["trajectories"]["time"],max(time_start,match["raw"]["trajectories"]["time"][0]))
         time_end_index = findTimeTick(match,match["raw"]["trajectories"]["time"],min(time_end,match["raw"]["trajectories"]["time"][-1]))
 
-        print time_start_index
-        print time_end_index
-
         for hero_entity_id in heroes_involved:
             hp_change[hero_entity_id] = {}
             if time_start_index != time_end_index:
@@ -757,9 +764,6 @@ def processFights(match):
 
         if hp_reduction > match["parameters"]["processFights"]["hp_change_threshold"] or hp_min < match["parameters"]["processFights"]["hp_min_threshold"]:
             match["fight_list"].append(fight)
-
-        print fight
-
 
 def processCreepSpawns(match):
     # extract the creep spawns from spawn_rows
@@ -1017,15 +1021,18 @@ def evaluateCameraControl(match):
         match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["percentSelf"] = time_self/time_total
         match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["percentFar"] = time_far/time_total
 
+
 def evaluateHeroDeaths(match):
     # evaluate the number of kills and deaths of each player (note that the killer might be a tower)
     for death in match["hero_deaths"]:
-        if death["killer"] in match["heroes"]:
-            match["stats"]["player-stats"][match["heroes"][death["killer"]]["player_index"]]["num-of-kills"] += 1
-        if death["deceased"] not in match["heroes"]:
-            logging.info("bad deceased name" + death["deceased"])
-            continue
-        match["stats"]["player-stats"][match["heroes"][death["deceased"]]["player_index"]]["num-of-deaths"] += 1
+        # have to split killer name to handle kills by illusions
+        killer = death["killer"].split()[0]
+        if killer == "pudge":
+            print death
+        if killer in match["heroes"] and match["heroes"][killer]["side"] != match["heroes"][death["deceased"]]["side"]:
+            match["stats"]["player-stats"][match["heroes"][killer]["player_index"]]["num-of-kills"] += 1
+        if death["deceased"]in match["heroes"]:
+            match["stats"]["player-stats"][match["heroes"][death["deceased"]]["player_index"]]["num-of-deaths"] += 1
 
 def evaluateHeroGoldExp(match):
     # evaluate the GPM and XPM for each hero
@@ -1081,13 +1088,6 @@ def evaluateBasicFightStats(match):
     # look up the total number of kills and subtract the solo kills to get the team kills for each player
     for hero in match["heroes"]:
         match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["team-kills"] =  match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["num-of-kills"] - match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["solo-kills"]
-
-def normalize(v):
-    #function for normalizing an array
-    norm = np.linalg.norm(v)
-    if norm == 0: 
-       return v
-    return v/norm
 
 def evaluateFightCoordination(match):
     #set bin size (seconds) for fight timeline
@@ -1275,7 +1275,6 @@ def evaluateObjectives(match):
 def evaluateBuildingDamage(match):
     # for each hero evaluate the amount of damage they do to enemy towers and rax
     for row in match["raw"]["damage_events"]:
-        print row
         attacker = transformHeroName(row[2])
         victim = transformHeroName(row[3]) 
         if attacker in match["heroes"] and "tower" in victim:
