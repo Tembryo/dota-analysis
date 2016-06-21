@@ -1,0 +1,135 @@
+{
+    "draft": {},
+    "id": "2440550364",
+    "length": 1812.0,
+    "parameters": {
+        "cameraEvaluation": {
+            "jump_threshold": 1500,
+            "self_range": 1500
+        },
+        "creepEvaluation": {
+            "responsibility_distance": 1000
+        },
+        "datetime": {
+            "date": "2016-06-16",
+            "time": "18:12:48.404790"
+        },
+        "fightEvaluation": {
+            "alpha": 150,
+            "kappa": 0.15,
+            "time_threshold": 2
+        },
+        "formAdjacencyMatrix": {
+            "distance_threshold": 300,
+            "radius": 1500,
+            "w_space1": 0.02,
+            "w_space2": 0.3,
+            "w_time": 80
+        },
+        "general": {
+            "num_players": 10
+        },
+        "goldXPInfo": {
+            "bin_size": 2
+        },
+        "graphAttacks": {
+            "damage_threshold": 50
+        },
+        "heroPositions": {
+            "sample_step_size": 150,
+            "sample_step_size_hifi": 1
+        },
+        "heroTrajectories": {
+            "delta": 1000,
+            "min_timespan": 3
+        },
+        "initiationDamage": {
+            "initiation_window": 1
+        },
+        "makeAttackList": {
+            "bin_size": 1
+        },
+        "map": {
+            "num_box": 32,
+            "xmax": 8000,
+            "xmin": -8200,
+            "ymax": 8000,
+            "ymin": -8200
+        },
+        "namespace": {
+            "camera_namespace": 30000,
+            "creeps_namespace": 20000,
+            "fights_namespace": 15000,
+            "hero_namespace": 100,
+            "kills_namespace": 10000,
+            "normal_namespace": 11000
+        },
+        "pregame_time_shift": 60,
+        "version": "0.1.00"
+    },
+    "players": {
+        "0": {
+            "hero": "ursa",
+            "name": "Bloo",
+            "steam_id": "76561198135467598"
+        },
+        "1": {
+            "hero": "sven",
+            "name": "Janker",
+            "steam_id": "76561198060930664"
+        },
+        "2": {
+            "hero": "centaur",
+            "name": "klondike.152",
+            "steam_id": "76561198072310452"
+        },
+        "3": {
+            "hero": "skywrath_mage",
+            "name": "klondike.pqtrcxw",
+            "steam_id": "76561198307230104"
+        },
+        "4": {
+            "hero": "zuus",
+            "name": "klondike.jxn.Oxygen",
+            "steam_id": "76561198170989573"
+        },
+        "5": {
+            "hero": "axe",
+            "name": "Buscandososamigos=)?",
+            "steam_id": "76561198309514529"
+        },
+        "6": {
+            "hero": "juggernaut",
+            "name": "DonGato....",
+            "steam_id": "76561198308414301"
+        },
+        "7": {
+            "hero": "omniknight",
+            "name": "Raku",
+            "steam_id": "76561198274976406"
+        },
+        "8": {
+            "hero": "pudge",
+            "name": "Soynop",
+            "steam_id": "76561198310954671"
+        },
+        "9": {
+            "hero": "lion",
+            "name": "ticse",
+            "steam_id": "76561198309246546"
+        }
+    },
+    "teams": {
+        "0": {
+            "name": " \n",
+            "short": "empty",
+            "side": "radiant"
+        },
+        "1": {
+            "name": " \n",
+            "short": "empty",
+            "side": "dire"
+        }
+    },
+    "winner": "radiant"
+}

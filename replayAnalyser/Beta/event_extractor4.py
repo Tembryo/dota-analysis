@@ -1112,16 +1112,8 @@ def initiationScoring(fight_event):
     initiation_score = side_indicator*((radiant_gold-dire_gold+ radiant_xp-dire_xp)/(radiant_gold+dire_gold+radiant_xp+dire_xp))
     involved = fight["involved"]
 
-<<<<<<< HEAD
-def camControlEvaluation(match):
-=======
-##############################################################################
-# code for retrieving personalised info about specific heroes
-
-
 
 def camControlEvaluation(match, state):
->>>>>>> c5e895b00d9472b58da051c29cb3e8e125c964b9
     last_selection = {}
     for player in match.players:
         last_selection[str(player)] = {"unit":None, "t":0}
