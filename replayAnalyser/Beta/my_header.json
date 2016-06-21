@@ -1,18 +1,18 @@
 {
     "draft": {},
-    "id": "1864290085",
-    "length": 2264.0,
+    "id": "2440550364",
+    "length": 1812.0,
     "teams": {
         "0": {
-            "name": " NiP",
+            "name": "",
             "short": "empty",
             "side": "radiant"
         },
         "1": {
-            "name": " (monkey)",
+            "name": "",
             "short": "empty",
             "side": "dire"
         }
     },
-    "winner": "dire"
+    "winner": "radiant"
 }
