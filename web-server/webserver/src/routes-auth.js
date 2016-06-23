@@ -18,17 +18,28 @@ var database = require("/shared-code/database.js");
 //   and deserialized.
 passport.serializeUser(function(user, done) {
     //console.log("serializing", user);
-    done(null, user.id);
+    var serialised = {"id": user.id, "admin": user.admin}
+    
+    done(null, serialised);
 });
 
+var admin_relogs = {};
+
 passport.deserializeUser(
-    function(obj, done)
+    function(serialised, done)
     {
-
         var locals = {};
-        locals.user_id = obj;
+        if(!serialised["id"])
+        {
+            done(null, null)
+            return;
+        }
+        else
+        {
+            locals.user_id = serialised["id"];
+        }
 
-        //console.log("deserializing", obj);
+        //console.log("deserializing", serialised);
 
         async.waterfall(
             [
@@ -38,8 +49,16 @@ passport.deserializeUser(
                 function(results, callback)
                 {
                     if(results.rowCount <1)
+                    {
                         callback("Couldn't find user");
-                    locals.user = results.rows[0];
+                        return;
+                    }
+
+                    locals.user = { "id":   results.rows[0]["id"],
+                                    "name": results.rows[0]["name"],
+                                    "admin": null,
+                                    "statuses": []
+                                };
                     database.query(
                         "SELECT json_agg(ust.label) as statuses FROM UserStatuses us, UserStatusTypes ust WHERE us.user_id=$1 AND us.statustype_id=ust.id;",
                         [locals.user_id],
@@ -47,20 +66,32 @@ passport.deserializeUser(
                 },
                 function(results, callback)
                 {
-                    if(results.rowCount == 0)
-                        locals.user.statuses = [];
-                    else if(results.rows[0].statuses == null)
-                        locals.user.statuses = [];
-                    else
+                    if(results.rowCount > 0 && results.rows[0].statuses)
+                    {
                         locals.user.statuses = results.rows[0].statuses;
+                        for(var i = 0; i < locals.user.statuses.length; ++i)
+                        {
+                            if(locals.user.statuses[i] === "admin")
+                                locals.user["admin"] = locals.user["id"];
+                        }
+                    }
+                    if(serialised["admin"] && locals.user["admin"] != serialised["admin"])
+                    {
+                        locals.user["admin"] = serialised["admin"];
+                        locals.user["name"] += "(A:"+serialised["admin"]+")";
+                    }
                     callback(null);
                 }
             ],
             function(err, result)
             {
                 if (err)
+                {
                     console.log(err);
-			    done(err, locals.user);
+                    done(null, null)
+                }
+			    else
+                    done(err, locals.user);
             }
         );
     }
@@ -240,11 +271,14 @@ function collectTemplatingData(req)
 //restrict access to admin accounts
 function ensureAdmin(req, res, next)
 {
+    var id = req.user["id"];
+    if(req.user["admin"])
+        id = req.user["admin"];
     async.waterfall(
         [
             database.generateQueryFunction(
                     "SELECT us.user_id FROM UserStatuses us, UserStatusTypes ust WHERE us.user_id=$1 AND us.statustype_id=ust.id And ust.label=$2",
-                    [req.user["id"], "admin"]),
+                    [id, "admin"]),
             function(results, callback)
             {
                 //allow access if admin entry found 

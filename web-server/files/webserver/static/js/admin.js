@@ -7,9 +7,9 @@ $('#main-tabs a').on('show.bs.tab',
 );
 
 $(document).on('click', '#refresh', function () {
-    var $link = $('li.active a[data-toggle="tab"]');
-    $link.parent().removeClass('active');
-    var tabLink = $link.attr('href');
+    var link = $('li.active a[data-toggle="tab"]');
+    link.parent().removeClass('active');
+    var tabLink = link.attr('href');
     console.log("refreshing");
     $('#main-tabs a[href="' + tabLink + '"]').tab('show');
 });
@@ -22,8 +22,21 @@ function showTab(tabref){
         $.getJSON("api/admin-stats/users",
             function(data)
             {
-                console.log("u", data);
                 d3.select("#users-nr").text(data.rows[0]["count"]);
+            }
+        );
+        $.getJSON("api/admin-stats/logins",
+            function(data)
+            {
+                displayTable(data, "#logins-table");
+            }
+        );
+        break;
+    case "#jobs":
+        $.getJSON("api/admin-stats/jobs",
+            function(data)
+            {
+                displayTable(data, "#jobs-table");
             }
         );
         break;
@@ -31,7 +44,6 @@ function showTab(tabref){
         $.getJSON("api/admin-stats/retrieval-statuses",
             function(data)
             {
-                console.log("rs", data);
                 displayTable(data, "#retrieval-statuses-table");
             }
         );
@@ -40,7 +52,6 @@ function showTab(tabref){
         $.getJSON("api/admin-stats/processing-statuses",
             function(data)
             {
-                console.log("ps", data)
                 displayTable(data, "#processing-statuses-table");
             }
         );
@@ -49,7 +60,6 @@ function showTab(tabref){
         $.getJSON("api/admin-stats/mmrs",
             function(data)
             {
-                console.log("ps", data)
                 displayTable(data, "#mmr-samples-table");
             }
         );
@@ -58,7 +68,6 @@ function showTab(tabref){
         $.getJSON("api/admin-stats/mmr-distribution",
             function(data)
             {
-                console.log("ps", data)
                 displayTable(data, "#mmr-distribution-table");
             }
         );
@@ -67,6 +76,56 @@ function showTab(tabref){
 }
 
 
+$(document).on('click', '#select-new-user', function () {
+    var new_id =  parseInt($('#new-user-id').val());
+    console.log("switching to user", new_id);
+    $.getJSON("/api/admin-switch-user/"+new_id,
+        function(data)
+        {
+            console.log("switched user", data)
+            alert("switched to "+data["new-id"])
+            location.reload();
+        }
+    );
+});
+
+$(document).on('click', '#find-user', function () {
+    var name = $('#user-name').val();
+    console.log("searching user", name);
+    $.getJSON("/api/admin-find-user/"+encodeURIComponent(name),
+        function(data)
+        {
+            console.log("found", data["users"].length)
+
+            displayUserList(data["users"]);
+        }
+    );
+});
+
+$(document).on('click', '#list-all-users', function () {
+
+    $.getJSON("/api/admin-list-users/?mode=all",
+        function(data)
+        {
+            console.log("found", data["users"].length)
+            displayUserList(data["users"]);
+        }
+    );
+});
+
+
+function displayUserList(list)
+{
+    var user_table = d3.select("#user_list");
+    var rows  = user_table.selectAll(".user-row").data(list, function(d,i){return d["id"]});
+    
+    rows.enter()
+        .append("tr")
+        .attr("class", "user-row")
+            .html(function(d){return "<td>"+d["id"]+"</td><td>"+d["name"]+"</td>";});
+
+    rows.exit().remove();
+}
 
 $(document).ready(function(){
     $('.nav-tabs a[href="#users"]').tab('show');

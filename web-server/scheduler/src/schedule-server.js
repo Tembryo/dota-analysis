@@ -586,9 +586,12 @@ function loadQueue()
                 locals.to_load = Math.max(locals.max_jobs - Object.keys(jobs_queue).length, 0);
                 callback();
             },
-            database.generateQueryFunction(
-                "SELECT id, data, extract(epoch from started) as started from Jobs WHERE finished IS NULL ORDER BY started DESC LIMIT $1;",
-                [locals.to_load]),
+            function(callback)
+            {
+                console.log("limit enqueue to ",locals.to_load);
+                database.query("SELECT id, data, extract(epoch from started) as started from Jobs WHERE finished IS NULL ORDER BY started DESC LIMIT $1;",
+                [locals.to_load], callback);
+            },
             function(results, callback)
             {
                 //TODO: Currently can load same job multiple times, will drop duplicates tho

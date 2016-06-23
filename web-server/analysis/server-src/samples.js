@@ -171,6 +171,10 @@ function createSampleData(match, slot)
         win = 1;
     //console.log(match, match["player-stats"],id, match["player-stats"][id], player_stats);
 
+    if(!match["match-details"])
+    {
+        console.log("bad details", match["match-details"]);
+    }
     var my_team = [];
     var enemy_team = [];
     for(var i = 0; i < match["match-details"]["players"].length; ++i)

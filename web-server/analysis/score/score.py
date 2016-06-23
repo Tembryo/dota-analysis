@@ -18,7 +18,7 @@ import os
 dn = os.path.dirname(os.path.realpath(__file__))
 
 settings_filename = dn+"/model_files/settings.p"
-model_path = dn+"/model_files/wisdota-model.ckpt-99999"
+model_path = dn+"/model_files/best-model.ckpt-2000"
 representatives_filename = dn+"/model_files/feature_representatives.json"
 samples_filename = sys.argv[1]
 
@@ -156,6 +156,7 @@ def feature_inv_map(value, feature, settings):
 
 with open(settings_filename) as settings_file:
     settings = pickle.load(settings_file)
+    settings["load_labels"] = False
     model = tf_model.Model(settings=settings["model-settings"], logging=False)
     model.load(model_path)
 
