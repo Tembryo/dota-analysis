@@ -28,6 +28,7 @@ def createParameters():
     parameters["general"] = {}
     parameters["general"]["num_players"] = 10
     parameters["general"]["passive_GPM"] = 100
+
     parameters["map"] = {}
     parameters["map"]["xmin"] = -8200
     parameters["map"]["xmax"] = 8000
@@ -122,15 +123,16 @@ def loadFiles(match_id, match_directory):
         "trajectories": {
             "time": []
         },
-        "ability_events": []
+        "ability_events": [],
+        "heal_events": []
     }
 
     match["header"]["teams"] = {
-        0:{
+        0: {
             "side":"radiant",
             "name":"empty",
             "short":"empty"},            
-        1:{
+        1: {
             "side":"dire",
             "name":"empty",
             "short":"empty"}
@@ -235,6 +237,8 @@ def loadFiles(match_id, match_directory):
                     match["player_index_by_handle"][row[3]] = row[2]
                 elif row[1] == "DOTA_COMBATLOG_ABILITY":
                     match["raw"]["ability_events"].append(row)
+                elif row[1] == "DOTA_COMBATLOG_HEAL":
+                    match["raw"]["heal_events"].append(row)
 
     trajectories_input_filename = match_directory+"/trajectories.csv"
     with open(trajectories_input_filename,'rb') as file:
@@ -346,11 +350,13 @@ def processHeroPosition(match):
     hero_spawns = {}
     hero_deaths = {}
     hero_lives = {}
+    match["hero_alive_status"] = {}
 
     for hero in match["heroes"]: 
         hero_spawns[hero] = []
         hero_deaths[hero] = []
         hero_lives[hero] = []
+        match["hero_alive_status"][hero] = np.zeros((len(match["raw"]["trajectories"]["time"]),1))
 
     for spawn_row in match["raw"]["spawn_rows"]:
         if spawn_row[2].startswith("npc_dota_hero_"):
@@ -375,13 +381,8 @@ def processHeroPosition(match):
                 #complete life for heros that are alive at the end of the match
                 end = match["raw"]["trajectories"]["time"][-1]
             else:
-                print hero_spawns[hero]
-                print hero_deaths[hero]
                 raise Exception("hero dies n times and spawns n+2 or more times")
             if start > end:
-                print hero
-                print hero_spawns[hero]
-                print hero_deaths[hero]
                 raise Exception("hero dies before they spawn!")
             else:
                 hero_lives[hero].append({"start":start,"end":end })
@@ -392,6 +393,8 @@ def processHeroPosition(match):
         for life in hero_lives[hero]:
             start_index = findTimeTick(match,match["raw"]["trajectories"]["time"],min(life["start"],max_time))
             end_index = findTimeTick(match,match["raw"]["trajectories"]["time"],min(life["end"],max_time))
+
+            match["hero_alive_status"][hero][start_index:end_index] = 1
 
             samples_list =[]
             i = start_index
@@ -874,6 +877,33 @@ def processHeroAbility(match):
         if ability not in match["entities"][match["heroes"][hero_name]["entity_id"]]["abilities"]:
             match["entities"][match["heroes"][hero_name]["entity_id"]]["abilities"].append(ability)
 
+def processHeroHeals(match):
+    # process instances when heroes heal other heroes
+    match["hero_heals"] = []
+    
+    for row in match["raw"]["heal_events"]:
+        healer = transformHeroName(row[2])
+        healed = transformHeroName(row[4])
+        if healer != healed:
+            if row[3].startswith("item_"):
+                heal_type = "item"
+                method = row[3][5:]
+            elif row[3].startswith(healer):
+                heal_type = "ability"
+                method = row[3][len(healer)+1:]
+            else:
+                heal_type = "empty"
+                method = "empty"
+
+            hero_heal_event = {
+                "healer": healer,
+                "healed": healed,
+                "time": row[0],
+                "hp_before": int(row[6]),
+                "hp_after": int(row[7])
+            }
+            match["hero_heals"].append(hero_heal_event)
+
 def makeStats(match):
     # instantiate the stats variables that will be filled in by subsequent evaluation functions
     match["stats"] = {
@@ -895,7 +925,7 @@ def makeStats(match):
                 #general
                 "steam-id": match["players"][player_index]["steam_id"],
                 "hero": match["players"][player_index]["hero"],
-  
+                      
                 #mechanics
                 "n-checks": 0,
                 "total-check-duration": 0,
@@ -921,7 +951,7 @@ def makeStats(match):
                 "average-fight-movement-speed": 0,
                 "fight-coordination": 0,
                 "average-fight-centroid-dist": 0,
-                "average-fight-centroid-dist-n": 0,
+                "average-fight-centroid-dist-team": 0,
 
                 #farming
                 "GPM": 0,
@@ -945,7 +975,10 @@ def makeStats(match):
             
                 #objectives
                 "tower-damage": 0,
-                "rax-damage": 0                
+                "rax-damage": 0, 
+
+                #other
+                "team_heal_amount": 0
             }
 
 def evaluateVisibility(match):
@@ -1284,23 +1317,76 @@ def sampleTimeseries(timeseries,sample_rate):
             j += 1
 
 def evaluateFightCentroid(match):
-    # for each fight in the fight list
 
-        for fight in match["fight_list"]:
-            #evaluate the centroid of the fight and the distance each hero is from the centroid
-            time_start_index = findTimeTick(match,match["raw"]["trajectories"]["time"],max(fight["time_start"],match["raw"]["trajectories"]["time"][0]))
-            time_end_index = findTimeTick(match,match["raw"]["trajectories"]["time"],min(fight["time_end"],match["raw"]["trajectories"]["time"][-1]))
-            n = len(fight["heroes_involved"])
-            for index in range(time_start_index,time_end_index):
-                centroid = [0,0]
-                for hero_entity_id in fight["heroes_involved"]:
-                    hero_position = match["raw"]["trajectories"][match["entities"][hero_entity_id]["unit"]]["position"][index]
-                    centroid[0] = centroid[0] + hero_position[0]/n
-                    centroid[1] = centroid[1] + hero_position[1]/n
-                    dist = math.sqrt((hero_position[0]-centroid[0])*(hero_position[0]-centroid[0]) + (hero_position[1]-centroid[1])*(hero_position[1]-centroid[1]))
-                    hero_distance_delta = (dist - match["stats"]["player-stats"][match["entities"][hero_entity_id]["control"]]["average-fight-centroid-dist"])
-                    match["stats"]["player-stats"][match["entities"][hero_entity_id]["control"]]["average-fight-centroid-dist-n"] += 1
-                    match["stats"]["player-stats"][match["entities"][hero_entity_id]["control"]]["average-fight-centroid-dist"] += hero_distance_delta /(match["stats"]["player-stats"][match["entities"][hero_entity_id]["control"]]["average-fight-centroid-dist-n"])
+    hero_centroid_dist = {}
+    for hero in match["heroes"]:
+        hero_centroid_dist[hero] = {"dist": 0, "n": 0, "team-dist": 0} 
+
+    #for each fight in the match
+    for fight in match["fight_list"]:
+        time_start_index = findTimeTick(match,match["raw"]["trajectories"]["time"],max(fight["time_start"],match["raw"]["trajectories"]["time"][0]))
+        time_end_index = findTimeTick(match,match["raw"]["trajectories"]["time"],min(fight["time_end"],match["raw"]["trajectories"]["time"][-1]))
+        # for each time tick between the start and end time indexes
+        for index in range(time_start_index,time_end_index):
+            #for each hero involved in the the fight
+            num_heroes_alive = 0
+            num_radiant_heroes_alive = 0
+            num_dire_heroes_alive = 0
+
+            centroid = [0,0]
+            radiant_centroid = [0,0]
+            dire_centroid = [0,0]
+
+            alive_heroes = [x for x in fight["heroes_involved"] if match["hero_alive_status"][match["entities"][x]["unit"]][index] == 1]
+            for hero_entity_id in alive_heroes:
+                hero_position = match["raw"]["trajectories"][match["entities"][hero_entity_id]["unit"]]["position"][index]
+                centroid[0] += hero_position[0]
+                centroid[1] += hero_position[1]
+                num_heroes_alive += 1
+                if match["entities"][hero_entity_id]["side"] == "radiant":
+                    radiant_centroid[0] += hero_position[0]
+                    radiant_centroid[1] += hero_position[1]
+                    num_radiant_heroes_alive +=1
+                elif match["entities"][hero_entity_id]["side"] == "dire":
+                    dire_centroid[0] += hero_position[0]
+                    dire_centroid[1] += hero_position[1]
+                    num_dire_heroes_alive +=1
+            #find the average location of the alive heroes in the fight
+            centroid[0] = centroid[0]/num_heroes_alive
+            centroid[1] = centroid[1]/num_heroes_alive
+
+            if num_radiant_heroes_alive != 0:
+                radiant_centroid[0] = radiant_centroid[0]/num_radiant_heroes_alive
+                radiant_centroid[1] = radiant_centroid[1]/num_radiant_heroes_alive
+
+            if num_dire_heroes_alive != 0:
+                dire_centroid[0] = dire_centroid[0]/num_dire_heroes_alive
+                dire_centroid[1] = dire_centroid[1]/num_dire_heroes_alive
+            #find the distance each hero is from this timestep's centroid 
+            for hero_entity_id in alive_heroes:
+                hero_position = match["raw"]["trajectories"][match["entities"][hero_entity_id]["unit"]]["position"][index]
+                hero_centroid_dist[match["entities"][hero_entity_id]["unit"]]["dist"] += math.sqrt( (centroid[0] - hero_position[0]) * (centroid[0] - hero_position[0]) + (centroid[1] - hero_position[1]) * (centroid[1] - hero_position[1]) )
+                if match["entities"][hero_entity_id]["side"] == "radiant":
+                    hero_centroid_dist[match["entities"][hero_entity_id]["unit"]]["team-dist"] += math.sqrt( (radiant_centroid[0] - hero_position[0]) * (radiant_centroid[0] - hero_position[0]) + (radiant_centroid[1] - hero_position[1]) * (radiant_centroid[1] - hero_position[1]) )
+                elif match["entities"][hero_entity_id]["side"] == "dire":
+                    hero_centroid_dist[match["entities"][hero_entity_id]["unit"]]["team-dist"] += math.sqrt( (dire_centroid[0] - hero_position[0]) * (dire_centroid[0] - hero_position[0]) + (dire_centroid[1] - hero_position[1]) * (dire_centroid[1] - hero_position[1]) )
+                #increment the number of time steps that hero has been alive during a fight               
+                hero_centroid_dist[match["entities"][hero_entity_id]["unit"]]["n"] += 1
+
+
+
+
+    for hero in match["heroes"]:
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["average-fight-centroid-dist"] = hero_centroid_dist[hero]["dist"]/hero_centroid_dist[hero]["n"]
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["average-fight-centroid-dist-team"] = hero_centroid_dist[hero]["team-dist"]/hero_centroid_dist[hero]["n"]
+
+
+
+def evaluateHeroHeals(match):
+    #evaluate the amount of hp each hero heals their teammates
+    for hero_heal_event in match["hero_heals"]:
+        if hero_heal_event["healer"] in match["heroes"]:
+            match["stats"]["player-stats"][match["heroes"][hero_heal_event["healer"]]["player_index"]]["team_heal_amount"] += (hero_heal_event["hp_after"] - hero_heal_event["hp_before"])
 
 def evaluateMechanics(match):
     # evaluate different skills for the Mechanics attribute
@@ -1345,11 +1431,13 @@ def process(match):
     processCreepSpawns(match)
     processCreepDeaths(match)
     processHeroAbility(match)
+    processHeroHeals(match)
 
 def computeStats(match):
     # compute the statistics that will be used as features in the machine learning model
     makeStats(match)
     evaluateHeroDeaths(match)
+    evaluateHeroHeals(match)
 
     evaluateMechanics(match)
     evaluateFighting(match)
@@ -1375,8 +1463,6 @@ def main():
     #delete intermediate/input files
     #shutil.rmtree(match_directory)
 
-    print match["ability_events"]
-
 if __name__ == "__main__":
-    cProfile.run('main()')
-    #main()
+    #cProfile.run('main()')
+    main()
