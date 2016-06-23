@@ -124,7 +124,9 @@ def loadFiles(match_id, match_directory):
             "time": []
         },
         "ability_events": [],
-        "heal_events": []
+        "heal_events": [],
+        "item_events": [],
+        "ward_rows": []
     }
 
     match["header"]["teams"] = {
@@ -239,6 +241,8 @@ def loadFiles(match_id, match_directory):
                     match["raw"]["ability_events"].append(row)
                 elif row[1] == "DOTA_COMBATLOG_HEAL":
                     match["raw"]["heal_events"].append(row)
+                elif row[1] == "DOTA_COMBATLOG_ITEM":
+                    match["raw"]["item_events"].append(row)
 
     trajectories_input_filename = match_directory+"/trajectories.csv"
     with open(trajectories_input_filename,'rb') as file:
@@ -270,18 +274,21 @@ def loadFiles(match_id, match_directory):
             #the time filtering is different in this case as otherwise can miss spawns
             if absolute_time <= match["times"]["match_end_time"]:
                 row[0] = transformTime(match,row[0])
-                if row[1]=="DEATH":
+                if row[1] == "DEATH":
                     match["raw"]["death_rows"].append(row)
-                elif row[1]=="SPAWN":
+                elif row[1] == "SPAWN":
                     row[4] = float(row[4])
                     row[5] = float(row[5])
                     match["raw"]["spawn_rows"].append(row)
-                elif row[1]=="PLAYER_CHANGE_SELECTION":
+                    if row[2].startswith("npc_dota_ward"):
+                        match["raw"]["ward_rows"].append(row)
+                elif row[1] == "PLAYER_CHANGE_SELECTION":
                     row[2] = int(row[2])
                     match["raw"]["unit_selection_rows"].append(row)
-                elif row[1]=="HERO_VISIBILITY":
+                elif row[1] == "HERO_VISIBILITY":
                     row[4] = int(row[4])
                     match["raw"]["visibility_rows"].append(row)
+
     return match
 
 def makeUnits(match):
@@ -904,6 +911,27 @@ def processHeroHeals(match):
             }
             match["hero_heals"].append(hero_heal_event)
 
+def processItems(match):
+    #extract item uses - for now just restricted to sentry and observer wards
+    match["item_events"] = []
+
+    ward_times = []
+    for row in match["raw"]["ward_rows"]:
+        ward_times.append(row[0])
+    
+    for row in match["raw"]["item_events"]:
+        if row[3].startswith("item_ward_"):
+            time = row[0]
+            time_index = findTimeTick(match,ward_times,time)
+
+            item_event = { 
+                "time": time,
+                "hero": transformHeroName(row[2]),
+                "ward_type": row[3][10:],
+                "position": [match["raw"]["ward_rows"][time_index][4],match["raw"]["ward_rows"][time_index][5]]
+            }
+            match["item_events"].append(item_event)
+
 def makeStats(match):
     # instantiate the stats variables that will be filled in by subsequent evaluation functions
     match["stats"] = {
@@ -1373,13 +1401,9 @@ def evaluateFightCentroid(match):
                 #increment the number of time steps that hero has been alive during a fight               
                 hero_centroid_dist[match["entities"][hero_entity_id]["unit"]]["n"] += 1
 
-
-
-
     for hero in match["heroes"]:
         match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["average-fight-centroid-dist"] = hero_centroid_dist[hero]["dist"]/hero_centroid_dist[hero]["n"]
         match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["average-fight-centroid-dist-team"] = hero_centroid_dist[hero]["team-dist"]/hero_centroid_dist[hero]["n"]
-
 
 
 def evaluateHeroHeals(match):
@@ -1432,6 +1456,7 @@ def process(match):
     processCreepDeaths(match)
     processHeroAbility(match)
     processHeroHeals(match)
+    processItems(match)
 
 def computeStats(match):
     # compute the statistics that will be used as features in the machine learning model
@@ -1462,6 +1487,10 @@ def main():
     writeToJson(stats_filename,match["stats"]) 
     #delete intermediate/input files
     #shutil.rmtree(match_directory)
+    
+    #need to check the ward code carefully as a few dispensers ending up in the item events...
+    print match["item_events"] 
+
 
 if __name__ == "__main__":
     #cProfile.run('main()')
