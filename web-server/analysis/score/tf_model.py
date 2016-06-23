@@ -7,8 +7,9 @@ flags.DEFINE_string('name', "wisdota-model", 'Number of steps to run trainer.')
 flags.DEFINE_float('learning_rate', 0.001, 'Initial learning rate.')
 
 hero_code_length  = 10
-regularisation_l2 = 1
-regularisation_l1 = 0.5
+regularisation_l1 = 20
+regularisation_l2 = 0
+factor_max_norm = 0
 class Model:
     def __init__(self, settings, logging=True):
         self.settings = settings
@@ -172,7 +173,7 @@ class Model:
         error = prediction-self.labels
         Model.variable_summaries(error, name+'/error')
 
-        cost  = tf.reduce_mean(error**2)
+        cost  = tf.reduce_mean(error**2) + factor_max_norm*tf.reduce_max(tf.abs(error))
         Model.variable_summaries(cost, name+'/cost')
 
         return cost
@@ -180,6 +181,10 @@ class Model:
     def build_evaluation(self, prediction, name):
         error = prediction-self.labels
         Model.variable_summaries(error, name+'/evaluation-error')
+
+
+        max_abs  = tf.reduce_max(tf.abs(error))
+        tf.scalar_summary(name+'/evaluation-max_abs', max_abs)
 
         mean_abs  = tf.reduce_mean(tf.abs(error))
         tf.scalar_summary(name+'/evaluation-mean_abs', mean_abs)
@@ -201,7 +206,7 @@ class Model:
         r2 = 1- (sum_residual_squares/total_sum_of_squares)
         tf.scalar_summary(name+'/evaluation-R2', tf.squeeze(r2))
 
-        return [r2, mean_abs, root_mean_sqr]
+        return [r2, mean_abs, root_mean_sqr, max_abs]
 
     def build_regulariser(self):
         all_parameters = tf.concat(0,self.all_parameters)
@@ -314,9 +319,11 @@ class Model:
         else:
             print "saving was disabled"
 
-    def save(self,step):
-        self.saver.save(self.sess, '{}/{}.ckpt'.format(self.settings["logs-dir"], FLAGS.name), global_step=step)
-
+    def save(self,step, filename=None):
+        if filename is None:
+            self.saver.save(self.sess, '{}/{}.ckpt'.format(self.settings["logs-dir"], FLAGS.name), global_step=step)
+        else:
+            self.saver.save(self.sess, filename, global_step=step)
 
     def set_data(self, batch):
         self.feed_dict = {

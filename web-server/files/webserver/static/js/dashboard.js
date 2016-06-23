@@ -29,20 +29,8 @@ var graph_height = 360;
 var graph_padding = 40;
 
 var selected_match = null;
-
-var ratings =[
-{   "key":      "Mechanics",
-    "label":    "Mechanics"
-},
-{
-    "key":      "Farming",
-    "label":    "Farming"
-},
-{
-    "key":      "Fighting",
-    "label":    "Fighting"
-}];
-
+var selected_match_data = null;
+var selected_skill = null;
 
 var xOffset = boxSize/2;
 var yOffset = boxSize/2;
@@ -65,6 +53,11 @@ var barScale = d3.scale.linear()
 
 var data = null;
 var average =  null;
+
+function formatIMR(value)
+{
+    return Math.floor(value/10)*10;
+}
 
 function initPage()
 {
@@ -273,19 +266,33 @@ function createRatingDivs(){
     var div = d3.select("#skills-container").append("div")
                     .attr("class","col-md-6 text-center");
 
-    div.append("h3")
-        .text(ratings[i]["label"]);
+    div.append("div")
+        .attr("class","row")
+            .append("h3")
+            .text(ratings[i]["label"]);
 
     var table_id = "rating-table-" + i.toString();
-    var table =  div.append("table")
-                    .attr("class", "skills-table")
-                    .attr("width", "100%");
+    var table =  div.append("div")
+                    .attr("class","row")
+                        .append("div")
+                        .attr("class", "col-xs-12 text-center");
 
-    table.append("thead")
-        .html("<tr><th>Skill</th><th colspan='2'>Rating</th></tr>")
+    var header  = table.append("div")
+                    .attr("class","row");
+    header
+        .append("div")
+        .attr("class", "col-xs-7")
+        .text("Skill");
+    header
+        .append("div")
+        .attr("class", "col-xs-5")
+        .text("Rating");      
 
-    table.append("tbody")
-        .attr("id",table_id);
+    table.append("div")
+        .attr("class","row")
+            .append("div")
+            .attr("class", "col-xs-12 text-center")
+            .attr("id",table_id);
     }
 }
 
@@ -330,7 +337,9 @@ function calculateAverage(data){
     for (i=0; i<averageData["ratings"].length; i++){
         averageData["ratings"][i]["rating"] =  0;
         for (var key in averageData["ratings"][i]["skills"]){
-            averageData["ratings"][i]["skills"][key] = 0;
+            averageData["ratings"][i]["skills"][key] = {};
+            averageData["ratings"][i]["skills"][key]["index"] = 0;
+            averageData["ratings"][i]["skills"][key]["value"] = 0;
         }
     }
 
@@ -345,7 +354,8 @@ function calculateAverage(data){
         for (j=0; j<data[i]["ratings"].length; j++){
             averageData["ratings"][j]["rating"] +=  (data[i]["ratings"][j]["rating"] - averageData["ratings"][j]["rating"]) /avg_counter;
             for (var key in data[i]["ratings"][j]["skills"]){
-                averageData["ratings"][j]["skills"][key] += (data[i]["ratings"][j]["skills"][key]["index"] - averageData["ratings"][j]["skills"][key] ) /avg_counter;
+                averageData["ratings"][j]["skills"][key]["index"] += (data[i]["ratings"][j]["skills"][key]["index"] - averageData["ratings"][j]["skills"][key]["index"] ) /avg_counter;
+                averageData["ratings"][j]["skills"][key]["value"] += (data[i]["ratings"][j]["skills"][key]["value"] - averageData["ratings"][j]["skills"][key]["value"] ) /avg_counter;
             }
         }
     }
@@ -505,90 +515,10 @@ function updateIcon(d,i)
 }
 
 
-var skill_constants = {
-    "n-checks":
-        {   "label": "Item Checks",
-            //"scale": d3.scale.linear().domain([0, 300]).range([0,100]).clamp(true),
-            "explanation": "measures how frequently you check items of opponents",
-            "tip": "Click enemies as often as possible so you know their current items and exact HP/Mana values.",
-            "fixed_direction": 0
-        },
-
-    "average-check-duration":
-        {   "label": "Check Speed",
-            //"scale": d3.scale.linear().domain([0.5, 3]).range([0,100]).clamp(true),
-            "explanation": "measures how quickly you check items of opponents",
-            "tip": "Checking enemy inventories should be as quick as possible, you have many other things to do!",
-            "fixed_direction": 0
-        },
-
-    "camera-jumps":
-        {   "label": "Camera Jumps",
-            //"scale": d3.scale.linear().domain([0, 400]).range([0,100]).clamp(true),
-            "explanation": "measures how often you reposition the camera to check things far away",
-            "tip": "Use the minimap to jump with your camera and view action happening somewhere else.",
-            "fixed_direction": 0
-        },
-    "movement-per-minute":
-        {   "label": "Camera Movement",
-            //"scale": d3.scale.linear().domain([500, 2000]).range([0,100]).clamp(true),
-            "explanation": "measures how much you move your camera around",
-            "tip": "Keep your camera moving to see as much as possible.",
-            "fixed_direction": 0
-        },
-    "GPM":
-        {   "label": "GPM",
-            //"scale": d3.scale.linear().domain([0, 900]).range([0,100]).clamp(true),
-            "explanation": "measures average gold gain per minute",
-            "tip": "Earning Gold is crucial to success.",
-            "fixed_direction": 1
-        },
-    "XPM":
-        {   "label": "XPM",
-            //"scale": d3.scale.linear().domain([0, 600]).range([0,100]).clamp(true),
-            "explanation": "measures average experience gain per minute",
-            "tip": "Make sure you collect enough experience, if you are underleveled your abilities will lose their impact."
-        },
-    "missed-free-lasthits":
-        {   "label": "Missed LH",
-            //"scale": d3.scale.linear().domain([100, 0]).range([0,100]).clamp(true),
-            "explanation": "Measures how many easy to get lasthits you missed",
-            "tip": "When nobody is around, you should be lasthitting every creep that dies. Every single one!",
-            "fixed_direction": -1
-        },
-    "percent-of-contested-lasthits-gotten":
-        {   "label": "Contested LH",
-            //"scale": d3.scale.linear().domain([0, 1]).range([0,100]).clamp(true),
-            "explanation": "measures how much of the lasthits you got when challenged by an enemy",
-            "tip": "Lasthitting creeps while competing with an enemy is a challenge, keep practicing.",
-            "fixed_direction": -1
-        },
-    "kills":
-        {   "label": "Kills",
-            //"scale": d3.scale.linear().domain([0, 20]).range([0,100]).clamp(true),
-            "explanation": "Number of opponents killed",
-            "tip": "Kill enemies and you will gain a significant advantage over them.",
-            "fixed_direction": 1
-        },
-    "deaths":
-        {   "label": "Deaths",
-            //"scale": d3.scale.linear().domain([20, 0]).range([0,100]).clamp(true),
-            "explanation": "Your number of deaths",
-            "tip": "Most deaths could be avoided with a little more careful play.",
-            "fixed_direction": -1
-        },
-    "fights":
-        {   "label": "Fights",
-            //"scale": d3.scale.linear().domain([0, 60]).range([0,100]).clamp(true),
-            "explanation": "measures how often you got involved in fights with enemy heroes.",
-            "tip": "Fight the enemy a lot to keep up pressure.",
-            "fixed_direction": 0
-        }
-};
-
 function displayMatch(match)
 {
     selected_match = match["match-id"];
+    selected_match_data = match;
     if(match["status"] !== "parsed")
     {
         clearMatch();
@@ -657,7 +587,7 @@ function renderPolygon(dataPoint)
   // make the user's score polygon for the match selected by index
     var averagePolygon = d3.select("#polygon-canvas").append("polygon")
                       .attr("points",averageDataPointString)
-                      .attr("fill","rgba(0,0,0,0.5)")
+                      .attr("fill","rgba(0,0,0,0.2)")
                       .attr("stroke","black")
                       .attr("stroke-width",0)
                       .attr("class","average-polygon")
@@ -699,17 +629,25 @@ function renderBars(dataPoint){
                         {
                             "skill":skill,
                             "score":dataPoint["ratings"][j]["skills"][skill].index,
-                            "avg": average["ratings"][j]["skills"][skill]
+                            "avg": average["ratings"][j]["skills"][skill],
+                            "data": dataPoint["ratings"][j]["skills"][skill]
                         })
                 }
                 break;
             }
 
+        skills.sort(function(a,b){
+            if(a["skill"] in skill_constants && b["skill"] in skill_constants)
+                return skill_constants[a["skill"]]["ordering"]-skill_constants[b["skill"]]["ordering"];
+            else
+                return a["skill"].localeCompare(b["skill"]);
+        });
+
         var skill_rows = d3.select(table_string).selectAll(".skill-row")
                         .data(skills, function(d){return d.skill});
 
         skill_rows.enter()
-            .append("tr")
+            .append("div")
             .attr("class", "skill-row")
             .each(createSkillRow);
 
@@ -722,20 +660,42 @@ function renderBars(dataPoint){
 
 function createSkillRow(d)
 {
-    var row = d3.select(this);
+    var row_container = d3.select(this);
 
-    row.append("td")
-        .attr("class", "skill-name");
-    row.append("td")
-        .attr("class", "skill-score");
-    var bar_container = row.append("td")
-        .append("div")
-            .attr("style", "width: 120px;")
-            .attr("class", "skill-bar");
+    var content_row = row_container.append("div")
+                                    .attr("class", "row");
+    
+    var skill_name  = content_row.append("div")
+        .attr("class", "col-xs-7")
+            .append("span")
+            .attr("class", "skill-name");
+    content_row.append("div")
+        .attr("class", "col-xs-1 skill-score");
+
+    var bar_container  = content_row.append("div")
+                                    .attr("class", "col-xs-4")
+                                        .append("div")
+                                        .attr("style", "width: 120px;")
+                                        .attr("class", "skill-bar");
+
     bar_container.append("div")
         .attr("class", "skill-bar-value");
     bar_container.append("div")
         .attr("class", "skill-bar-average");
+
+
+    var details_row = row_container.append("div")
+                                    .attr("class", "row")
+                                        .append("div")
+                                        .attr("class", "col-xs-12 skill-details");
+    skill_name
+        .on("click",function(d,i){
+            if(selected_skill === d.skill)
+                selected_skill = null;
+            else
+                selected_skill = d.skill;
+            displayMatch(selected_match_data);
+        });
 }
 
 function updateSkillRow(d)
@@ -743,7 +703,7 @@ function updateSkillRow(d)
     var row = d3.select(this);
 
     row.select(".skill-name")
-        .text(d.skill);
+        .text((d.skill in skill_constants? skill_constants[d.skill]["label"] : d.skill));
 
     row.select(".skill-score")
         .text(d.score);
@@ -752,7 +712,25 @@ function updateSkillRow(d)
         .attr("style", "width:"+d.score+"px");
 
     row.select(".skill-bar-average")
-        .attr("style", "width:"+d.avg+"px");
+        .attr("style", "width:"+d.avg["index"]+"px");
+
+    if(selected_skill === d.skill)
+    {
+        var detail_text = "";
+        if(d.skill in skill_constants)
+            detail_text = "<p>"+ skill_constants[d.skill]["explanation"]+"</br>"+
+                "Value: "+skill_constants[d.skill]["format"](d["data"]["value"])+"</br>"+
+                "Average: "+skill_constants[d.skill]["format"](d["avg"]["value"])+"</p>";
+        else
+            detail_text = "<p> TODO </p><p>Value: "+d["data"]["value"]+" Average: "+d["avg"]["value"]+ "</p>";
+        row.select(".skill-details")
+            .html(detail_text);
+    }
+    else
+    {
+        row.select(".skill-details")
+            .html("");
+    }
 }
 
 function renderTips(dataPoint){
@@ -764,7 +742,7 @@ function renderTips(dataPoint){
     $("#review-link").attr("href", "/match/"+dataPoint["match-id"]);
     $("#current-hero").html(names[dataPoint["hero"]]);
     $("#current-hero-icon").attr("src", hero_icons[dataPoint["hero"]]);
-    $("#current-imr").html(Math.floor(dataPoint["IMR"]/10)*10);
+    $("#current-imr").html(formatIMR(dataPoint["IMR"]));
     // find the two weakest skills of user in selected match
 
     skillsList = [];
@@ -774,6 +752,16 @@ function renderTips(dataPoint){
             skillsList.push( [skill, dataPoint["ratings"][j]["skills"][skill] ]);
             //sort descending
             skillsList.sort(function(a, b) {
+                if(a[0] in skill_constants && "fixed_direction" in skill_constants[a[0]])
+                {
+                    if( (a[1]["improved-value"] - a[1]["value"])*skill_constants[a[0]]["fixed_direction"] < 0)
+                        return 1; //Sort a to the back
+                }
+                if(b[0] in skill_constants && "fixed_direction" in skill_constants[b[0]])
+                {
+                    if( (b[1]["improved-value"] - b[1]["value"])*skill_constants[b[0]]["fixed_direction"] < 0)
+                        return -1; //Sort b to the back
+                }
                 var value_a = (Math.abs(a[1]["impact"]) * (a[1]["improved-score"] - dataPoint["IMR"]) ) / Math.sqrt(a[1]["certainty"]);
                 var value_b = (Math.abs(b[1]["impact"]) * (b[1]["improved-score"] - dataPoint["IMR"]) ) / Math.sqrt(b[1]["certainty"]);
 
@@ -787,20 +775,20 @@ function renderTips(dataPoint){
     var tip1_text = "";
     if(skillOne[0] in skill_constants)
         tip1_text = "Work on your <b>" + skill_constants[skillOne[0]]["label"] +"</b>:<br/>"+
-            " You achieved "+skillOne[1]["value"].toFixed(3)+", a value of "+skillOne[1]["improved-value"].toFixed(3)+" would result in "+Math.floor(skillOne[1]["improved-score"])+" IMR. <br/> " +
+            " You had "+skill_constants[skillOne[0]]["format"]( skillOne[1]["value"])+", a value of "+skill_constants[skillOne[0]]["format"]( skillOne[1]["improved-value"])+" would result in "+formatIMR(skillOne[1]["improved-score"])+" IMR. <br/> " +
              skill_constants[skillOne[0]]["tip"] + "";
     else
         tip1_text = "Work on your <b>" + skillOne[0] +"</b>:<br/>"+
-            " You achieved "+skillOne[1]["value"].toFixed(3)+", a value of "+skillOne[1]["improved-value"].toFixed(3)+" would result in "+Math.floor(skillOne[1]["improved-score"])+" IMR.";
+            " You had "+skillOne[1]["value"].toFixed(3)+", a value of "+skillOne[1]["improved-value"].toFixed(3)+" would result in "+formatIMR(skillOne[1]["improved-score"])+" IMR.";
     
     var tip2_text = "";
     if(skillTwo[0] in skill_constants)
         tip2_text = "Work on your <b>" + skill_constants[skillTwo[0]]["label"] +"</b>:<br/>"+
-            " You achieved "+skillTwo[1]["value"].toFixed(3)+", a value of "+skillTwo[1]["improved-value"].toFixed(3)+" would result in "+Math.floor(skillTwo[1]["improved-score"])+" IMR. <br/> " +
+            " You had "+skill_constants[skillTwo[0]]["format"]( skillTwo[1]["value"])+", a value of "+skill_constants[skillTwo[0]]["format"]( skillTwo[1]["improved-value"])+" would result in "+formatIMR(skillTwo[1]["improved-score"])+" IMR. <br/> " +
              skill_constants[skillTwo[0]]["tip"] + "";
     else
         tip2_text = "Work on your <b>" + skillTwo[0] +"</b>:<br/>"+
-            " You achieved "+skillTwo[1]["value"].toFixed(3)+", a value of "+skillTwo[1]["improved-value"].toFixed(3)+" would result in "+Math.floor(skillTwo[1]["improved-score"])+" IMR.";
+            " You had "+skillTwo[1]["value"].toFixed(3)+", a value of "+skillTwo[1]["improved-value"].toFixed(3)+" would result in "+formatIMR(skillTwo[1]["improved-score"])+" IMR.";
 
     $("#tip1").html(tip1_text);
     $("#tip2").html(tip2_text);

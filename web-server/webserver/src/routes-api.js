@@ -660,7 +660,12 @@ router.route('/admin-stats/:query')
             case "mmr-distribution":
                 query_string = "SELECT COUNT(*) as n_samples,floor(AVG(d.solo_mmr)/250)*250 as mmr_bin FROM mmrdata d WHERE d.solo_mmr IS NOT NULL GROUP BY floor(d.solo_mmr/250)*250 ORDER BY AVG(d.solo_mmr);";
                 break;
-            
+            case "jobs":
+                query_string = "select count(*) as n_open, data->>'message' as job_name from jobs where finished is null group by data->>'message';";
+                break;
+            case "logins":
+                query_string = "select count(*) as n, floor(date_part('day', now()- last_login)/7) as weeks_since_login from (select max(time) last_login, count(*) as logins, data->>'user' as id from events where event_type=2 group by data->>'user') as userlogins group by date_part('day', now() - last_login) ORDER BY date_part('day', now() - last_login);";
+                break;
             default:
                 res.json({});
                 return;
@@ -689,6 +694,79 @@ router.route('/admin-stats/:query')
             );
         }
     );
+
+router.route('/admin-switch-user/:new_id')
+    .get(authentication.ensureAuthenticated,
+        authentication.ensureAdmin,
+        function(req, res) 
+        {
+            var new_id = parseInt(req.params.new_id);
+            var new_user = req.user;
+            new_user["id"] = new_id;
+            req.login(new_user, function(err){
+                if (err) console.log("relog err", err);
+                console.log("After relogin: ",req.user);
+                res.json({"new-id": new_id});
+            })
+            req.user.id = new_id;
+            console.log("switched id" + new_id);
+        }
+    );
+
+router.route('/admin-list-users/')
+    .get(authentication.ensureAuthenticated,
+        authentication.ensureAdmin,
+        function(req, res) 
+        {
+            var selection_string  = "";
+            if(req.query.hasOwnProperty("mode") && req.query.mode === "all")
+                selection_string = "";
+
+            async.waterfall(
+                [
+                    database.generateQueryFunction("SELECT id, name FROM Users "+selection_string+";",[])
+                ],
+                function(err, result)
+                {
+                    //console.log(result);
+                    if(err)
+                    {
+                        console.log("error retrieving admin user list data "+query_string, err, result);
+                        
+                        res.json({"users":[]});
+                    }
+                    else
+                        res.json({"users":result.rows});
+                }
+            );
+        }
+    );
+
+router.route('/admin-find-user/:name')
+    .get(authentication.ensureAuthenticated,
+        authentication.ensureAdmin,
+        function(req, res) 
+        {
+            async.waterfall(
+                [
+                    database.generateQueryFunction("SELECT id, name FROM Users WHERE name=$1;",[req.params.name])
+                ],
+                function(err, result)
+                {
+                    //console.log(result);
+                    if(err)
+                    {
+                        console.log("error retrieving admin user list data "+query_string, err, result);
+                        
+                        res.json({"users":[]});
+                    }
+                    else
+                        res.json({"users":result.rows});
+                }
+            );
+        }
+    );
+
 
 
 router.route("/score_result/:request_id")

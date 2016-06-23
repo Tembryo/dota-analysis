@@ -11,23 +11,29 @@
         <div class="col-xs-8 col-xs-offset-2">
             <ul id="main-tabs" class="nav nav-tabs">
                 <li>
-                    <a data-toggle="tab" href="#users">Users</a>
-                </li>
-                <li class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">Tables<span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li><a data-toggle="tab" href="#retrieval-statuses">Retrieval statuses</a></li>
-                        <li><a data-toggle="tab" href="#processing-statuses">Processing statuses</a></li>
-                    </ul>
+                    <a data-toggle="tab" href="#user-switch">User Switch</a>
                 </li>
                 <li>
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">MMR data<span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li><a data-toggle="tab" href="#mmr-samples">MMR samples</a></li>
-                        <li><a data-toggle="tab" href="#mmr-distribution">MMR distribution</a></li>
-                    </ul>                   
+                    <a data-toggle="tab" href="#users">Users</a>
                 </li>
 
+                <li>
+                    <a data-toggle="tab" href="#retrieval-statuses">Retrieval</a>
+                </li>
+                <li>
+                    <a data-toggle="tab" href="#processing-statuses">Processing</a>
+                </li>
+
+               <li>
+                    <a data-toggle="tab" href="#jobs">Jobs</a>
+                </li>
+
+                <li>
+                    <a data-toggle="tab" href="#mmr-samples">MMR samples</a>
+                </li>
+                <li>
+                    <a data-toggle="tab" href="#mmr-distribution">MMR distribution</a>
+                </li>
                 <li style="float:right;" ><button id="refresh" type="button" class="btn btn-default dashboard-button"><span class="glyphicon glyphicon-refresh"></span></button></li>
             </ul>
         </div>
@@ -35,10 +41,31 @@
     <div class="row">
         <div class="col-xs-8 col-xs-offset-2">
             <div class="tab-content">
+                <div id="user-switch" class="tab-pane fade">
+                    <h3>Switch the selected user</h3>
+                    <p>Admin account id: <%= user["admin"]%></p>
+                    <p>Current user <b> <%= user["name"]%></b>(ID:<%= user["id"]%>)</p>
+                    <p>Select new user ID: <input id="new-user-id" type="text"> <input id="select-new-user" type="submit" value="Select"></p>
+                    <p>Find user ID by Name: <input id="user-name" type="text"> <input id="find-user" type="submit" value="Search"> <input id="list-all-users" type="submit" value="List All"></p>
+                    <table class="table">
+                        <thead><tr><th>User ID</th><th>Name</th></tr></thead>
+                        <tbody id="user_list"></tbody>
+                    </table>
+                </div>
                 <div id="users" class="tab-pane fade">
                     <h3>Users</h3>
                     <p>Number of signed up steam accounts: <span style="font-weight: bold;" id="users-nr"></span></p>
+
+                    <table class="table" id="logins-table">
+                       <thead>
+                            <tr>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
                 </div>
+
                 <div id="retrieval-statuses" class="tab-pane fade">
                     <h3>Retrieval requests overview</h3>
                     <table class="table" id="retrieval-statuses-table">
@@ -61,6 +88,18 @@
                         </tbody>
                     </table>
                 </div>
+                <div id="jobs" class="tab-pane fade">
+                    <h3>Users</h3>
+                   <table class="table" id="jobs-table">
+                       <thead>
+                            <tr>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+
                 <div id="mmr-samples" class="tab-pane fade">
                     <h3>MMR samples data</h3>
                     <table class="table" id="mmr-samples-table">

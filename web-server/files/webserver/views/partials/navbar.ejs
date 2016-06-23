@@ -31,10 +31,26 @@
             <a href="/auth/logout" class="glyphicon glyphicon-log-out" aria-hidden="true">
             </a>
         </li>
+<%
+
+      if(user["admin"])
+      {
+%>
+        <li class="navbar-right">
+            <a href="/admin" class="glyphicon glyphicon-briefcase" aria-hidden="true">
+            </a>
+        </li>
+
+<%
+      } 
+%>
+
         <li class="navbar-right">
             <a class="page-scroll" href="/user">
                 <%= user["name"] %>
             </a>
+        </li>
+
 
 <%
     }

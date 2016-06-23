@@ -28,11 +28,15 @@ Dataset = collections.namedtuple('Dataset', ['labels','steamids', 'features', 'f
 def generateData(rows, settings = None):
     labels = [] #either MMRs for training or steamids for rating
     heroes = []
+    own_team_heroes = [ [] for i in range(5) ]
+    enemy_team_heroes = [ [] for i in range(5) ]
     parsed_features = []
     for row in rows:
         #print row
         label = None
         hero_dict = None
+        own_team = []
+        enemy_team = []
         parsed_row = {}
         for key in row:
             if key == "MMR":
@@ -41,12 +45,27 @@ def generateData(rows, settings = None):
                 label = row[key] 
             elif key == "hero":
                 hero_dict = {"hero": row[key]}
+            elif key == "own_team":
+                own_team = row[key].split("#")
+            elif key == "enemy_team":
+                enemy_team = row[key].split("#")
             else:
                 try:
                     parsed_row[key] = float(row[key])
                 except ValueError:
                     parsed_row[key] = row[key]
+
         heroes.append(hero_dict)
+        for i in range(5):
+            if i < len(own_team):
+                own_team_heroes[i].append( {"hero": own_team[i]} )
+            else:
+                own_team_heroes[i].append( {} )
+            if i < len(enemy_team):
+                enemy_team_heroes[i].append( {"hero": enemy_team[i]} )
+            else:
+                enemy_team_heroes[i].append( {} )
+
         labels.append(label)
         parsed_features.append(parsed_row)
 
@@ -57,6 +76,13 @@ def generateData(rows, settings = None):
         hero_encoder = settings["hero-encoder"]
         heroes_encoded = hero_encoder.transform(heroes).todense()
 
+    own_team_encoded =  np.zeros(heroes_encoded.shape, dtype=np.float32)
+    enemy_team_encoded =  np.zeros(heroes_encoded.shape, dtype=np.float32)
+    for i in range(5):
+        own_team_encoded += hero_encoder.transform(own_team_heroes[i]).todense()
+        enemy_team_encoded += hero_encoder.transform(enemy_team_heroes[i]).todense()
+
+    collected_hero_features = np.concatenate([heroes_encoded, own_team_encoded, enemy_team_encoded], axis=1)
 
     if settings is None:
         feature_encoder = DictVectorizer(dtype=np.float32)

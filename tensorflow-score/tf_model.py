@@ -7,7 +7,7 @@ flags.DEFINE_string('name', "wisdota-model", 'Number of steps to run trainer.')
 flags.DEFINE_float('learning_rate', 0.001, 'Initial learning rate.')
 
 hero_code_length  = 10
-regularisation_l1 = 0
+regularisation_l1 = 20
 regularisation_l2 = 0
 factor_max_norm = 0
 class Model:

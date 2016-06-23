@@ -224,6 +224,22 @@ function processReplay(message, callback_replay)
             },
             function(results, callback)
             {
+                database.query("SELECT md.data as match_details FROM MatchDetails md WHERE md.matchid=$1;", [locals.match_id], callback);
+            },
+            function(results, callback)
+            {
+                if(results.rowCount!= 1)
+                {
+                    callback("bad match detailes from DB"+results.rows);   
+                    return;
+                }
+                else if(!checkMatchDetails(results.rows[0]["match_details"]))
+                {
+                    callback("bad match details "+results.rows);   
+                    return;
+                }
+                locals.match_details = results.rows[0]["match_details"];
+                
                 var stats_filename = config.shared+"/"+locals.stats_file;
                 console.log("stats at", stats_filename);
                 fs.readFile(stats_filename, 'utf8', callback);
@@ -234,11 +250,12 @@ function processReplay(message, callback_replay)
                 locals.csv_file = fs.createWriteStream(locals.sample_filename);
                 samples.writeSample(locals.csv_file, samples.header());
                 locals.csv_file.on("close", function(){console.log("finished writing samples");callback();});
-
+                match["match-details"] = locals.match_details;
                 for(var slot = 0; slot < 10; slot++)
                 {
                     if(!match["player-stats"].hasOwnProperty(slot))
                         continue;
+                    //TODO fix match details
                     locals.csv_file.write("\n");
                     console.log("steamid", match["player-stats"][slot]["steamid"]);
                     var fullsample = {"label": match["player-stats"][slot]["steamid"], "data": samples.createSampleData(match, slot)};
@@ -504,7 +521,8 @@ function appedMatchSamples(matchid, csv_file, match_callback)
     [
         function(callback)
         {
-            database.query("SELECT ps.steam_identifier as steam_identifier, ms.data as match_data, ps.data as player_data, md.data as match_details FROM MatchStats ms, PlayerStats ps, MatchDetails md WHERE ms.id=$1 AND ps.match_id=ms.id  AND md.matchid=ms.id;", [matchid], callback);
+            database.query("SELECT ps.steam_identifier as steam_identifier, ms.data as match_data, ps.data as player_data, md.data as match_details "+
+                "FROM MatchStats ms, PlayerStats ps, MatchDetails md WHERE ms.id=$1 AND ps.match_id=ms.id  AND md.matchid=ms.id;", [matchid], callback);
         },
         function(results, callback)
         {
@@ -517,6 +535,16 @@ function appedMatchSamples(matchid, csv_file, match_callback)
                 if(slot >= 128)
                     slot = slot - 128 + 5;
 
+                if(!checkMatchDetails(results.rows[i]["match_details"]))
+                {
+                    callback("bad match details:"+(results.rows[i]["match_details"]));
+                    return;
+                }
+                else
+                {
+                    //console.log("good match details");
+                }
+
                 var match = 
                 {
                     "match-stats": results.rows[i]["match_data"], 
@@ -524,7 +552,7 @@ function appedMatchSamples(matchid, csv_file, match_callback)
                     "player-stats": {}
                 }
                 match["player-stats"][slot] = results.rows[i]["player_data"];
-                //console.log(match);
+                
                 var fullsample = {"label": results.rows[i]["steam_identifier"], "data": samples.createSampleData(match, slot)};
                 samples.writeSample(csv_file,fullsample);
             }
@@ -532,4 +560,16 @@ function appedMatchSamples(matchid, csv_file, match_callback)
         }
     ],
     match_callback);
+}
+
+function checkMatchDetails(details)
+{
+    if(!details)
+        return false;
+    else if(!details["players"])
+        return false;
+    else if(details["players"].length < 10)
+        return false;
+    else
+        return true;
 }

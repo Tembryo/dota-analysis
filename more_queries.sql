@@ -97,3 +97,24 @@ INSERT INTO MatchRetrievalRequests(id, retrieval_status, requester_id)
 FROM UserMatchHistory umh 
 WHERE umh.user_id = 2839 AND to_timestamp((umh.data->>'start_time')::int) > current_timestamp - interval '7 days' 
 AND NOT EXISTS (SELECT mrs.id FROM MatchRetrievalRequests mrs where mrs.id = umh.match_id) );
+
+
+SELECT umh.match_id, umh.data as history_data, EXISTS(SELECT id FROM MatchRetrievalRequests where id = umh.match_id) as requested, 
+COALESCE( (SELECT ps.label FROM ProcessingStatuses ps, Replayfiles rf where rf.match_id = umh.match_id AND ps.id=rf.processing_status),
+'unknown') AS processing_status, 
+COALESCE( (SELECT mrs.label FROM MatchRetrievalStatuses mrs, MatchRetrievalRequests mrr where mrr.id = umh.match_id AND mrs.id=mrr.retrieval_status),
+'unknown') AS retrieval_status, 
+COALESCE( (SELECT ps.data FROM PlayerStats ps WHERE umh.match_id = ps.match_id AND ps.steam_identifier = u.steam_identifier),
+'null'::json) AS player_stats, 
+COALESCE( (SELECT ms.data FROM MatchStats ms WHERE umh.match_id = ms.id ),
+'null'::json) AS match_stats, 
+COALESCE( (SELECT r.data FROM Results r WHERE umh.match_id = r.match_id AND r.steam_identifier = u.steam_identifier),
+'null'::json) AS score_data, 
+COALESCE( (SELECT md.data FROM MatchDetails md WHERE umh.match_id = md.matchid),
+'null'::json) AS match_details 
+FROM Users u, UserMatchHistory umh
+WHERE u.id = 2 
+AND u.id = umh.user_id 
+ORDER BY umh.match_id DESC 
+LIMIT 30 OFFSET 0;
+
