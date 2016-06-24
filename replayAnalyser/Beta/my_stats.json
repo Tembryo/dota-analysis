@@ -13,6 +13,11 @@
         "0": {
             "GPM": 713.0,
             "XPM": 747.0,
+            "abilities": {
+                "earthshock": 14,
+                "enrage": 7,
+                "overpower": 64
+            },
             "average-check-duration": 2.9780810546875,
             "average-fight-centroid-dist": 1845.3112720539339,
             "average-fight-centroid-dist-team": 1659.8693596788773,
@@ -59,6 +64,11 @@
         "1": {
             "GPM": 712.0,
             "XPM": 683.0,
+            "abilities": {
+                "gods_strength": 6,
+                "storm_bolt": 11,
+                "warcry": 19
+            },
             "average-check-duration": 2.5993927001953123,
             "average-fight-centroid-dist": 956.2990059324317,
             "average-fight-centroid-dist-team": 1092.903250623329,
@@ -105,6 +115,11 @@
         "2": {
             "GPM": 515.0,
             "XPM": 439.0,
+            "abilities": {
+                "double_edge": 30,
+                "hoof_stomp": 26,
+                "stampede": 10
+            },
             "average-check-duration": 2.561323438371931,
             "average-fight-centroid-dist": 1319.3439808295025,
             "average-fight-centroid-dist-team": 1030.082192427224,
@@ -151,6 +166,12 @@
         "3": {
             "GPM": 389.0,
             "XPM": 265.0,
+            "abilities": {
+                "ancient_seal": 13,
+                "arcane_bolt": 39,
+                "concussive_shot": 17,
+                "mystic_flare": 5
+            },
             "average-check-duration": 2.222071493825605,
             "average-fight-centroid-dist": 1492.8983911629186,
             "average-fight-centroid-dist-team": 1099.932217757651,
@@ -197,6 +218,11 @@
         "4": {
             "GPM": 559.0,
             "XPM": 591.0,
+            "abilities": {
+                "arc_lightning": 126,
+                "lightning_bolt": 42,
+                "thundergods_wrath": 9
+            },
             "average-check-duration": 2.0034502814797794,
             "average-fight-centroid-dist": 1729.7590369169784,
             "average-fight-centroid-dist-team": 1427.6097336407863,
@@ -243,6 +269,11 @@
         "5": {
             "GPM": 357.0,
             "XPM": 478.0,
+            "abilities": {
+                "battle_hunger": 24,
+                "berserkers_call": 20,
+                "culling_blade": 7
+            },
             "average-check-duration": 2.5770041887150255,
             "average-fight-centroid-dist": 1012.1185813000761,
             "average-fight-centroid-dist-team": 735.9531033718405,
@@ -289,6 +320,10 @@
         "6": {
             "GPM": 193.0,
             "XPM": 272.0,
+            "abilities": {
+                "blade_fury": 17,
+                "omni_slash": 5
+            },
             "average-check-duration": 2.576710026438643,
             "average-fight-centroid-dist": 1389.416533423885,
             "average-fight-centroid-dist-team": 938.4413191661374,
@@ -335,6 +370,11 @@
         "7": {
             "GPM": 195.0,
             "XPM": 194.0,
+            "abilities": {
+                "guardian_angel": 2,
+                "purification": 24,
+                "repel": 3
+            },
             "average-check-duration": 0.8151902418870193,
             "average-fight-centroid-dist": 1157.3869360507078,
             "average-fight-centroid-dist-team": 798.0801310638859,
@@ -381,6 +421,11 @@
         "8": {
             "GPM": 163.0,
             "XPM": 295.0,
+            "abilities": {
+                "dismember": 8,
+                "meat_hook": 37,
+                "rot": 81
+            },
             "average-check-duration": 1.92177734375,
             "average-fight-centroid-dist": 1696.1016617776386,
             "average-fight-centroid-dist-team": 1263.0898601264742,
@@ -427,6 +472,12 @@
         "9": {
             "GPM": 186.0,
             "XPM": 195.0,
+            "abilities": {
+                "finger_of_death": 3,
+                "impale": 27,
+                "mana_drain": 18,
+                "voodoo": 16
+            },
             "average-check-duration": 2.307822418212891,
             "average-fight-centroid-dist": 1698.7711085004464,
             "average-fight-centroid-dist-team": 923.2781488866163,
