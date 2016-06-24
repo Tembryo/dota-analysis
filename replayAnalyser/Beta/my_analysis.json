@@ -124767,6 +124767,60 @@
             ],
             "time": 1811.5595703125,
             "type": "creep_death"
+        },
+        "50000": {
+            "building_type": "bad_rax_range_mid",
+            "position": [
+                4336.0,
+                4182.9688
+            ],
+            "time": 1453.846923828125,
+            "type": "building_death"
+        },
+        "50001": {
+            "building_type": "bad_rax_melee_mid",
+            "position": [
+                4702.0,
+                3824.0
+            ],
+            "time": 1460.4453125,
+            "type": "building_death"
+        },
+        "50002": {
+            "building_type": "bad_rax_range_top",
+            "position": [
+                3894.0,
+                6040.9688
+            ],
+            "time": 1548.6904296875,
+            "type": "building_death"
+        },
+        "50003": {
+            "building_type": "bad_rax_melee_top",
+            "position": [
+                3898.0,
+                5511.9688
+            ],
+            "time": 1581.415771484375,
+            "type": "building_death"
+        },
+        "50004": {
+            "building_type": "bad_rax_range_bot",
+            "position": [
+                6008.0,
+                3375.9688
+            ],
+            "time": 1768.703369140625,
+            "type": "building_death"
+        },
+        "50005": {
+            "building_type": "bad_rax_melee_bot",
+            "position": [
+                6535.9688,
+                3392.0
+            ],
+            "time": 1783.43310546875,
+            "type": "building_death"
         }
     },
     "header": {
