@@ -3,6 +3,11 @@ var numMatchesDisplayed = 20;
 var load_offset = 0
 var load_num = 30;
 
+function reloadMatches(callback)
+{
+    d3.json("/api/get-player-matches?start="+load_offset+"&end="+(load_offset+load_num), callback);
+}
+
 var boxSize = 275;   // size of the SVG container
 var polyScale = 0.6;  // size of polygon as proportion of SVG container
 var textPaddingScale = 0.12; // padding for text around polygon
@@ -39,7 +44,8 @@ var textPadding = textPaddingScale*boxSize/2;
 var thetaOffset = Math.PI/2;
 
 // make a linear scale mapping MMR to pixel scale of polygon
-var scale = d3.scale.linear()
+var polygon_range_stepping = 500;
+var polygon_scale = d3.scale.linear()
               .domain([0,maxMMR])
               .range([0,radius]);
 
@@ -62,6 +68,7 @@ function formatIMR(value)
 function initPage()
 {
     createPolygonBase();
+    createLegend();
     createRatingDivs();
     createTimeline();
 }
@@ -121,6 +128,50 @@ function createPolygonBase()
                     .attr("transform",translateString);
 
     }
+}
+
+function createLegend()
+{
+    var legend_container = d3.select("#legend-container");
+    
+    var row_1 = legend_container.append("div")
+                        .attr("class", "row")
+    
+    row_1.append("div")
+        .attr("class", "col-xs-6 col-xs-offset-2")
+            .append("span")
+            .attr("class", "skill-name")
+            .text("Match value");
+
+    var bar_container_1  = row_1.append("div")
+                                .attr("class", "col-xs-2")
+                                    .append("div")
+                                    .attr("style", "width: 120px;")
+                                    .attr("class", "skill-bar");
+
+    bar_container_1.append("div")
+        .attr("class", "skill-bar-value")
+        .attr("style", "width:100%");
+
+    var row_2 = legend_container.append("div")
+                .attr("class", "row")
+    
+    row_2.append("div")
+        .attr("class", "col-xs-6 col-xs-offset-2")
+            .append("span")
+            .attr("class", "skill-name")
+            .text("Average over last games");
+
+    var bar_container_2  = row_2.append("div")
+                                .attr("class", "col-xs-2")
+                                    .append("div")
+                                    .attr("style", "width: 120px;")
+                                    .attr("class", "skill-bar");
+
+    bar_container_2.append("div")
+        .attr("class", "skill-bar-average")
+        .attr("style", "width:100%");
+
 }
 
 function createTimeline()
@@ -197,7 +248,7 @@ function createTimeline()
         if(numMatchesDisplayed+indx > load_num)
         {
             load_offset = load_offset+indx;
-            d3.json("/api/get-player-matches?start="+load_offset+"&end="+(load_offset+load_num),
+            reloadMatches(
             function(data){
                 indx = 0;
                 load(data);
@@ -217,11 +268,12 @@ function createTimeline()
             if(load_offset > 0)
             {
                 load_offset = Math.max(0, load_offset-(load_num - numMatchesDisplayed));
-                d3.json("/api/get-player-matches?start="+load_offset+"&end="+(load_offset+load_num),
-                function(data){
-                    indx = load_num- numMatchesDisplayed;
-                    load(data);
-                } );
+                reloadMatches(
+                    function(data)
+                    {
+                        indx = load_num- numMatchesDisplayed;
+                        load(data);
+                    } );
             }
             else
                 //ignore
@@ -237,12 +289,13 @@ function createTimeline()
         if(numMatchesDisplayed != 20)
         {
             load_num = 30;
-            d3.json("/api/get-player-matches?start="+load_offset+"&end="+(load_offset+load_num),
-            function(data){
-                numMatchesDisplayed = 20;
-                icon_size = 32;
-                load(data);
-            } );
+            reloadMatches (
+                function(data)
+                {
+                    numMatchesDisplayed = 20;
+                    icon_size = 32;
+                    load(data);
+                } );
         }
     });
 
@@ -250,12 +303,13 @@ function createTimeline()
         if(numMatchesDisplayed != 50)
         {
             load_num = 70;
-            d3.json("/api/get-player-matches?start="+load_offset+"&end="+(load_offset+load_num),
-            function(data){
-                numMatchesDisplayed = 50;
-                icon_size = 24;
-                load(data);
-            } );
+            reloadMatches(
+                function(data)
+                {
+                    numMatchesDisplayed = 50;
+                    icon_size = 24;
+                    load(data);
+                } );
         }
     });
 }
@@ -305,10 +359,29 @@ function genPointString(vectorArray,radius){
     return pointString
 }
 
+var reload_interval = 60*1000;
+
 function load(new_data)
 {
     data = new_data;
     average = calculateAverage(data);
+
+    var some_queued = false;
+    for(var i = 0; i < data.length; ++i)
+        if(data[i]["status"] === "queued")
+        {
+            some_queued = true; 
+            break;
+        }
+    if(some_queued)
+    {
+        setTimeout(
+            function(){
+                //console.log("reload");
+                reloadMatches(load);
+            },
+            reload_interval);
+    }
 
     renderTimeline();
 
@@ -344,6 +417,9 @@ function calculateAverage(data){
     }
 
     var avg_counter = 0;
+    var min_rating = 10000;
+    var max_rating = 0;
+
     for (i=0; i<data.length; i++){
         if(data[i]["status"] === "parsed")
             avg_counter++;
@@ -351,14 +427,27 @@ function calculateAverage(data){
             continue;
 
         averageData["IMR"] += (data[i]["IMR"] - averageData["IMR"]) /avg_counter;
+
         for (j=0; j<data[i]["ratings"].length; j++){
             averageData["ratings"][j]["rating"] +=  (data[i]["ratings"][j]["rating"] - averageData["ratings"][j]["rating"]) /avg_counter;
+
+            min_rating = Math.min(min_rating, data[i]["ratings"][j]["rating"]);
+            max_rating = Math.max(max_rating, data[i]["ratings"][j]["rating"]);
+
             for (var key in data[i]["ratings"][j]["skills"]){
                 averageData["ratings"][j]["skills"][key]["index"] += (data[i]["ratings"][j]["skills"][key]["index"] - averageData["ratings"][j]["skills"][key]["index"] ) /avg_counter;
                 averageData["ratings"][j]["skills"][key]["value"] += (data[i]["ratings"][j]["skills"][key]["value"] - averageData["ratings"][j]["skills"][key]["value"] ) /avg_counter;
             }
         }
     }
+
+    var stepped_min = Math.floor(min_rating/polygon_range_stepping)*polygon_range_stepping;
+    var stepped_max = Math.ceil(max_rating/polygon_range_stepping)*polygon_range_stepping;
+
+    polygon_scale = d3.scale.linear()
+                  .domain([stepped_min,stepped_max])
+                  .range([0,radius]);
+
 
     return averageData;
 }
@@ -557,8 +646,8 @@ function renderPolygon(dataPoint)
     var dataPointString = "";
     for (i=0;i<ratings.length; i++){
         // make string of points to describe the user's score polygon
-        var x = scale(dataPoint["ratings"][i].rating*vectorArray[i][0]);
-        var y = scale(dataPoint["ratings"][i].rating*vectorArray[i][1]);
+        var x = polygon_scale(dataPoint["ratings"][i].rating)*vectorArray[i][0];
+        var y = polygon_scale(dataPoint["ratings"][i].rating)*vectorArray[i][1];
 
         dataPointString += " " + x.toString() +"," + y.toString();
     }
@@ -566,8 +655,8 @@ function renderPolygon(dataPoint)
     var averageDataPointString = "";
     for (i=0;i<ratings.length; i++){
         // make string of points to describe the user's score polygon
-        var x = scale(average["ratings"][i].rating*vectorArray[i][0]);
-        var y = scale(average["ratings"][i].rating*vectorArray[i][1]);
+        var x = polygon_scale(average["ratings"][i].rating)*vectorArray[i][0];
+        var y = polygon_scale(average["ratings"][i].rating)*vectorArray[i][1];
 
         averageDataPointString += " " + x.toString() +"," + y.toString();
     }
@@ -719,10 +808,10 @@ function updateSkillRow(d)
         var detail_text = "";
         if(d.skill in skill_constants)
             detail_text = "<p>"+ skill_constants[d.skill]["explanation"]+"</br>"+
-                "Value: "+skill_constants[d.skill]["format"](d["data"]["value"])+"</br>"+
-                "Average: "+skill_constants[d.skill]["format"](d["avg"]["value"])+"</p>";
+                "Match value: <span class='skill-value'>"+skill_constants[d.skill]["format"](d["data"]["value"])+"</span></br>"+
+                "Overall average: <span class='skill-value'>"+skill_constants[d.skill]["format"](d["avg"]["value"])+"</span></p>";
         else
-            detail_text = "<p> TODO </p><p>Value: "+d["data"]["value"]+" Average: "+d["avg"]["value"]+ "</p>";
+            detail_text = "<p> TODO </p><p>Value: <span class='skill-value'>"+d["data"]["value"]+"</span><br/> Average: <span class='skill-value'>"+d["avg"]["value"]+ "</span></p>";
         row.select(".skill-details")
             .html(detail_text);
     }
@@ -762,8 +851,13 @@ function renderTips(dataPoint){
                     if( (b[1]["improved-value"] - b[1]["value"])*skill_constants[b[0]]["fixed_direction"] < 0)
                         return -1; //Sort b to the back
                 }
-                var value_a = (Math.abs(a[1]["impact"]) * (a[1]["improved-score"] - dataPoint["IMR"]) ) / Math.sqrt(a[1]["certainty"]);
-                var value_b = (Math.abs(b[1]["impact"]) * (b[1]["improved-score"] - dataPoint["IMR"]) ) / Math.sqrt(b[1]["certainty"]);
+                if(a[1]["improved-score"] == null)
+                    return 1; 
+                if(b[1]["improved-score"] == null)
+                    return -1; 
+
+                var value_a = (Math.abs(a[1]["impact"]) * (a[1]["improved-score"] - dataPoint["IMR"])*(a[1]["improved-score"] - dataPoint["IMR"]) ) / Math.sqrt(a[1]["certainty"]);
+                var value_b = (Math.abs(b[1]["impact"]) * (b[1]["improved-score"] - dataPoint["IMR"])*(b[1]["improved-score"] - dataPoint["IMR"]) ) / Math.sqrt(b[1]["certainty"]);
 
                 return value_b - value_a;
             });
@@ -775,20 +869,20 @@ function renderTips(dataPoint){
     var tip1_text = "";
     if(skillOne[0] in skill_constants)
         tip1_text = "Work on your <b>" + skill_constants[skillOne[0]]["label"] +"</b>:<br/>"+
-            " You had "+skill_constants[skillOne[0]]["format"]( skillOne[1]["value"])+", a value of "+skill_constants[skillOne[0]]["format"]( skillOne[1]["improved-value"])+" would result in "+formatIMR(skillOne[1]["improved-score"])+" IMR. <br/> " +
+            " You had <span class='skill-value'> "+skill_constants[skillOne[0]]["format"]( skillOne[1]["value"])+"</span>, a value of <span class='skill-value'>"+skill_constants[skillOne[0]]["format"]( skillOne[1]["improved-value"])+"</span> would result in "+formatIMR(skillOne[1]["improved-score"])+" IMR. <br/> " +
              skill_constants[skillOne[0]]["tip"] + "";
     else
         tip1_text = "Work on your <b>" + skillOne[0] +"</b>:<br/>"+
-            " You had "+skillOne[1]["value"].toFixed(3)+", a value of "+skillOne[1]["improved-value"].toFixed(3)+" would result in "+formatIMR(skillOne[1]["improved-score"])+" IMR.";
+            " You had <span class='skill-value'>"+skillOne[1]["value"].toFixed(3)+"</span>, a value of <span class='skill-value'>"+skillOne[1]["improved-value"].toFixed(3)+"</span> would result in "+formatIMR(skillOne[1]["improved-score"])+" IMR.";
     
     var tip2_text = "";
     if(skillTwo[0] in skill_constants)
         tip2_text = "Work on your <b>" + skill_constants[skillTwo[0]]["label"] +"</b>:<br/>"+
-            " You had "+skill_constants[skillTwo[0]]["format"]( skillTwo[1]["value"])+", a value of "+skill_constants[skillTwo[0]]["format"]( skillTwo[1]["improved-value"])+" would result in "+formatIMR(skillTwo[1]["improved-score"])+" IMR. <br/> " +
+            " You had <span class='skill-value'>"+skill_constants[skillTwo[0]]["format"]( skillTwo[1]["value"])+"</span>, a value of <span class='skill-value'>"+skill_constants[skillTwo[0]]["format"]( skillTwo[1]["improved-value"])+"</span> would result in "+formatIMR(skillTwo[1]["improved-score"])+" IMR. <br/> " +
              skill_constants[skillTwo[0]]["tip"] + "";
     else
         tip2_text = "Work on your <b>" + skillTwo[0] +"</b>:<br/>"+
-            " You had "+skillTwo[1]["value"].toFixed(3)+", a value of "+skillTwo[1]["improved-value"].toFixed(3)+" would result in "+formatIMR(skillTwo[1]["improved-score"])+" IMR.";
+            " You had <span class='skill-value'>"+skillTwo[1]["value"].toFixed(3)+"</span>, a value of <span class='skill-value'>"+skillTwo[1]["improved-value"].toFixed(3)+"</span> would result in "+formatIMR(skillTwo[1]["improved-score"])+" IMR.";
 
     $("#tip1").html(tip1_text);
     $("#tip2").html(tip2_text);
@@ -811,9 +905,26 @@ function renderHeroImages(dataPoint) {
     }
 }
 
+var history_job_check_interval = 1000;
+
 $(document).ready(function(){
     initPage();
-    d3.json("/api/get-player-matches?start="+load_offset+"&end="+(load_offset+load_num), load);
+    d3.json("/api/update-history", 
+        function(data)
+        {
+            console.log("update history", data);
+            if(data["result"] === "success")
+            {
+                console.log("checking");
+                setTimeout(
+                    function(){
+                        checkHistoryJob(data["job-id"]);
+                    },
+                    history_job_check_interval);
+            }
+        }
+    );
+    reloadMatches(load);
 });
 
 $("#analyse-matches-button" ).click(function() {
@@ -823,9 +934,36 @@ $("#analyse-matches-button" ).click(function() {
         if(data["n-requested"] == 0)
             alert("Up to date, no matches to queue.");
         else           
-            alert("Queued "+data["n-requested"]+" matches for analysis.");
+        {
+            alert("Queued "+data["n-requested"]+" matches for analysis. Games can take ~5 minutes to parse."); 
+            reloadMatches(load);
+        }
+
     }
     else
         alert("Sorry, failure queueing matches. Leave us a message and we will look into it.");
   });
 });
+
+function checkHistoryJob(job_id)
+{
+    //console.log("checking!");
+    d3.json("/api/check-job-finished/"+job_id,
+        function(data)
+        {
+            if(data["is-finished"])
+            {
+                //console.log("done!");
+                reloadMatches(load);
+            }
+            else
+            {
+                setTimeout(
+                    function(){
+                        checkHistoryJob(job_id);
+                    },
+                    history_job_check_interval);
+            }
+        }
+    );
+}

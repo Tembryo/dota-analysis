@@ -4,7 +4,7 @@ var database        = require("/shared-code/database.js"),
 // retrieve - server.js
 var async       = require("async");
 
-var retrieve_concurrency =  require("semaphore")(3);
+var retrieve_concurrency =  require("semaphore")(1);
     //Only one dota client, so the history updates are sequential anyway - no sema needed
 
 

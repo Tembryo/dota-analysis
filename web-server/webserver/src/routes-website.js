@@ -18,7 +18,14 @@ router.use(function(req, res, next)
                 var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
                 var user = null;
                 if(req.user)
-                    user = req.user["id"];
+                {
+                    if(!req.user["admin"])
+                        user = req.user["id"];
+                    else if(req.user["id"] === req.user["admin"])
+                        user = req.user["id"];
+                    else
+                        user = req.user["admin"];
+                }
 
                 var data = {
                     "page": req.path,

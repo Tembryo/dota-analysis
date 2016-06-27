@@ -228,6 +228,104 @@ router.route("/queue-matches")
 
 
 
+
+router.route("/update-history")
+    .get(authentication.ensureAuthenticated,
+        function(req, res)
+        {
+
+            var job_data = {
+                    "message":      "UpdateHistory",
+                    "range-start":  req.user["id"],
+                    "range-end":    req.user["id"],
+                };
+
+            database.query("INSERT INTO Jobs(started, data) VALUES (now(), $1) RETURNING id;", [job_data],
+                function(err, results){
+                    if(err || results.rowCount != 1)
+                    {
+                        console.log(err);
+                        var error_result = {
+                            "result": "error",
+                            "message": err,
+                            "info": results
+                            };
+                        res.json(error_result);
+                    }
+                    else
+                    {
+                        var new_job_message = {
+                            "message":"Load"
+                        };               
+                        communication.publish("jobs", new_job_message,
+                            function()
+                            {
+                                var success_result = {
+                                    "result": "success",
+                                    "job-id": results.rows[0]["id"]
+                                    };
+                                res.json(success_result);
+                            });
+                    }
+                });
+
+
+        }
+    );
+
+router.route("/check-job-finished/:job_id")
+    .get(authentication.ensureAuthenticated,
+        function(req, res)
+        {
+            var job_id;
+            if(req.params.hasOwnProperty("job_id"))
+            {
+                job_id= parseInt(req.params.job_id);
+            }
+            else
+            {
+                res.json({});
+                return;
+            }
+
+            async.waterfall(
+                [
+                    database.generateQueryFunction("SELECT (finished IS NULL) as is_finished FROM jobs where id=$1;",
+                            [job_id]),
+                    function(results, callback)
+                    {
+                        if(results.rowCount != 1)
+                            callback("job not found");
+                        else
+                            callback(null, results.rows[0]["is_finished"]);
+                    }
+                ],
+                function(err, is_finished)
+                {
+                    if(err)
+                    {
+                        console.log(err);
+                        var error_result = {
+                            "result": "error",
+                            "message": err
+                            };
+                        res.json(error_result);
+                    }
+                    else
+                    {
+                        var success_result = {
+                            "result": "success",
+                            "is-finished": is_finished
+                            };
+                        res.json(success_result);
+                    }
+                }
+            );
+        }
+    );
+
+
+
 //Match Data Serving
 // =============================================================================
 
@@ -664,7 +762,10 @@ router.route('/admin-stats/:query')
                 query_string = "select count(*) as n_open, data->>'message' as job_name from jobs where finished is null group by data->>'message';";
                 break;
             case "logins":
-                query_string = "select count(*) as n, floor(date_part('day', now()- last_login)/7) as weeks_since_login from (select max(time) last_login, count(*) as logins, data->>'user' as id from events where event_type=2 group by data->>'user') as userlogins group by date_part('day', now() - last_login) ORDER BY date_part('day', now() - last_login);";
+                query_string = "select count(*) as n, floor(date_part('day', now()- last_action)/7) as weeks_since_login from "+
+                                    "(select max(time) last_action, count(*) as actions, data->>'user' as id "+
+                                    "from events where (data->>'user')::int > 0 group by data->>'user') as useractivity"+
+                                " group by floor(date_part('day', now()- last_action)/7) ORDER BY floor(date_part('day', now()- last_action)/7);";
                 break;
             default:
                 res.json({});
@@ -811,73 +912,6 @@ router.route("/score_result/:request_id")
                             };
                         res.json(success_result);
                     }
-                }
-            );
-        }
-    );
-
-
-router.route("/history")
-    .get(authentication.ensureAuthenticated,
-        function(req, res)
-        {
-            var offset = 0;
-            var n_matches = 10;
-            if(req.query.hasOwnProperty("start") && req.query.hasOwnProperty("end"))
-            {
-                var start = parseInt(req.query.start);
-                var end = parseInt(req.query.end);
-                if(start < end && start >= 0)
-                {
-                    offset = start;
-                    n_matches = end - start;
-                }
-            }
-            
-            var refresh_message = 
-                {
-                    "message": "RefreshHistory",
-                    "id": req.user["id"]
-                };
-
-            communication.publish("match_history", refresh_message,
-                function()
-                {
-                    //console.log("requested history refresh");
-                });
-
-
-            async.waterfall(
-                [
-                    database.generateQueryFunction(
-                        "SELECT umh.match_id, umh.data,"+
-                           "COALESCE("+
-                            "(SELECT r.id FROM Results r, Users u WHERE r.steam_identifier = u.steam_identifier AND r.match_id = umh.match_id AND u.id = $1),"+
-                            "-1) AS result_id, "+
-                            "COALESCE("+
-                                "(SELECT TEXT('scored') FROM Results r, Users u WHERE r.steam_identifier = u.steam_identifier AND r.match_id = umh.match_id AND u.id = $1), "+
-                                "(SELECT TEXT('parsed') FROM Matches m WHERE m.id=umh.match_id), "+
-                                "(SELECT ps.label FROM ReplayFiles rf, ProcessingStatuses ps WHERE rf.match_id=umh.match_id AND rf.processing_status = ps.id),"+
-                                "(SELECT mrs.label FROM MatchRetrievalRequests mrr, MatchRetrievalStatuses mrs WHERE mrr.retrieval_status = mrs.id AND mrr.id=umh.match_id),"+
-                                "'untried') as match_status "+
-                        "FROM UserMatchHistory umh "+
-                        "WHERE umh.user_id = $1 "+
-                        "ORDER BY umh.match_id DESC "+
-                        "LIMIT $2 OFFSET $3;",
-                        [req.user["id"], n_matches, offset]),
-                    function(results, callback)
-                    {
-                        //just give out the rows?
-                        callback(null, results.rows);
-                    }
-                ],
-                function(err, results)
-                {
-                    if(err)
-                    {
-                        console.log(err);
-                    }
-                    res.json(results);
                 }
             );
         }
