@@ -35,6 +35,9 @@
                     <a id= "scoreboard-link" href='/scoreboard/"+ dataPoint["match-id"]+"'>Scoreboard</a>
                     &mdash;
                     <a id= "review-link" href='/match/"+ dataPoint["match-id"]+"'>Review</a>
+
+
+
                 </div>
                 <div class= "col-lg-8 text-center">
                     <div class="hero-image-container">
@@ -55,26 +58,33 @@
             </div>
             <div class="row">
                 <div class="col-lg-12">
-                    <div class="col-lg-4 text-center"> 
-
-                        <div class="row">
-                            <h3>
-                                <img id="current-hero-icon" width="32px" style="margin:0px 10px 0px 10px">
-                                <span id="current-hero"></span>: <span id="current-imr"></span> IMR 
-                            </h3>
+                    <div class="row">
+                        <div class="col-lg-4 text-center"> 
+                            <div class="row">
+                                <h3>
+                                    <img id="current-hero-icon" width="32px" style="margin:0px 10px 0px 10px">
+                                    <span id="current-hero"></span>: <span id="current-imr"></span> IMR 
+                                </h3>
+                            </div>
+                            <div class="row" id="polygon-container">
+                                <svg id="polygon-canvas"></svg>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-12" id="legend-container"></div>
+                            </div>
                         </div>
-                        <div class="row" id="polygon-container">
-                            <svg id="polygon-canvas"></svg>
-                            <p>Yellow polygon = rating for selected match. <br> Grey polygon = average over your matches.</p>
+                        <div class="col-lg-8" id="tips-container" >
+                            <div class="row">
+                                <div class="col-lg-12" id="tips-container" style="margin:15px">
+                                    <h3>Tips</h3>
+                                    <p id="tip1"></p>
+                                    <p id="tip2"></p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div id="skills-container" class="col-lg-12 text-center"></div>
+                            </div>
                         </div>
-                        <div class="row" id="tips-container">
-                            <h3>Tips</h3>
-                            <p id="tip1"></p>
-                            <p id="tip2"></p>
-                        </div>
-
-                    </div>
-                    <div id="skills-container" class="col-lg-8 text-center">
                     </div>
                 </div>
             </div>

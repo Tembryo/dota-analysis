@@ -118,3 +118,41 @@ AND u.id = umh.user_id
 ORDER BY umh.match_id DESC 
 LIMIT 30 OFFSET 0;
 
+select count(*), data->>'message' from jobs where finished is null group by data->>'message';
+
+
+select count(*) as n, floor(date_part('day', now()- last_login)/7) as weeks_since_login 
+from (select max(time) last_login, count(*) as logins, data->>'user' as id 
+    from events 
+    where event_type=2 and 
+    floor(date_part('day',now() - time)/7)>=1 group by data->>'user')
+ as userlogins 
+ group by floor(date_part('day', now()- last_login)/7) 
+ ORDER BY floor(date_part('day', now()- last_login)/7);
+
+ select count(*) as n, floor(date_part('day', now()- last_login)/7) as weeks_since_login 
+from (select max(time) last_login, count(*) as logins, data->>'user' as id 
+    from events 
+    where event_type=2 and 
+    floor(date_part('day',now() - time)/7)>=2 group by data->>'user')
+ as userlogins 
+ group by floor(date_part('day', now()- last_login)/7) 
+ ORDER BY floor(date_part('day', now()- last_login)/7);
+
+  select count(*) as n, floor(date_part('day', now()- last_login)/7) as weeks_since_login 
+from (select max(time) last_login, count(*) as logins, data->>'user' as id 
+    from events 
+    where event_type=2 and 
+    floor(date_part('day',now() - time)/7)>=5 group by data->>'user')
+ as userlogins 
+ group by floor(date_part('day', now()- last_login)/7) 
+ ORDER BY floor(date_part('day', now()- last_login)/7);
+
+   select count(*) as n, floor(date_part('day', now()- last_login)/7) as weeks_since_login 
+from (select max(time) last_login, count(*) as logins, data->>'user' as id 
+    from events 
+    where event_type=2 and 
+    floor(date_part('day',now() - time)/7)>=6 group by data->>'user')
+ as userlogins 
+ group by floor(date_part('day', now()- last_login)/7) 
+ ORDER BY floor(date_part('day', now()- last_login)/7);

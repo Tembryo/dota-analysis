@@ -77,7 +77,7 @@ function startTasks(callback)
 {
     setTimeout(function()
         {
-            loadQueue();
+            runQueueLoader();
         },
         startup_delay);
 
@@ -120,11 +120,14 @@ function registerListeners(final_callback)
             function(callback)
             {
                 subscriber.listen("scheduler",          handleSchedulerMsg);
+                subscriber.listen("jobs",               handleJobMsg);
                 subscriber.listen("retrieval_watchers", handleRetrievalMsg);
                 subscriber.listen("newuser_watchers",   handleNewUserMsg);
                 subscriber.listen("download_watchers",  handleDownloadMsg);
                 subscriber.listen("replay_watchers",    handleReplayMsg);
                 subscriber.listen("match_history",      handleMatchHistoryMsg);
+
+
 
                 //clean up score_watchers
                 callback();
@@ -193,9 +196,7 @@ function handleNewUserMsg(channel, message)
                         "range-start":  message["id"],
                         "range-end":    message["id"],
                     };
-                createTemporaryJob(job_data, function(job_id){
-                        jobs_queue[job_id]["callback"] = function(){};
-                    });
+                createTemporaryJob(job_data, function(job_id){});
             break;
         default:
             console.log("Unknown new user message", message);
@@ -268,15 +269,29 @@ function handleMatchHistoryMsg(channel, message)
                         "range-start":  message["id"],
                         "range-end":    message["id"],
                     };
-                createTemporaryJob(job_data, function(job_id){
-                        jobs_queue[job_id]["callback"] = function(){};
-                    });
+                createTemporaryJob(job_data, function(job_id){});
             break;
         default:
             console.log("Unknown match history message", message);
             break;
     }
 }
+
+
+function handleJobMsg(channel, message)
+{
+    switch(message["message"])
+    {
+        case "Load":
+            loadQueue();
+            break;
+        default:
+            console.log("Unknown match history message", message);
+            break;
+    }
+}
+
+
 
 var retrieve_capacity_block = 120*60*1000; //block server for 2 hours before retry
 
@@ -326,8 +341,9 @@ function handleRetrieveServerMsg(server_identifier, message) //channel name is t
                     console.log("failed to updated history", job);
                     break;
             }
-            closeTemporaryJob(server_identifier, message["job"]);
-            job["callback"]();//made a copy, so this works after cleaning up the job
+            closeJob(server_identifier, message["job"]);
+            if(job["callback"])
+                job["callback"]();//made a copy, so this works after cleaning up the job
             break;
 
         case "GetSteamAccount":
@@ -487,8 +503,9 @@ function handleCrawlServerMsg(server_identifier, message) //channel name is the 
                     console.log("failed crawl", job);
                     break;
             }
-            closeTemporaryJob(server_identifier, message["job"]);
-            job["callback"]();//made a copy, so this works after cleaning up the job
+            closeJob(server_identifier, message["job"]);
+            if(job["callback"])
+                job["callback"]();//made a copy, so this works after cleaning up the job
             break;
 
         case "AddSampleMatchesResponse":
@@ -502,8 +519,9 @@ function handleCrawlServerMsg(server_identifier, message) //channel name is the 
                     console.log("failed add samples", job);
                     break;
             }
-            closeTemporaryJob(server_identifier, message["job"]);
-            job["callback"]();//made a copy, so this works after cleaning up the job
+            closeJob(server_identifier, message["job"]);
+            if(job["callback"])
+                job["callback"]();//made a copy, so this works after cleaning up the job
             break;
         case "GetSteamAccount":
             //free old acc
@@ -573,7 +591,14 @@ function registerService(type, identifier)
     }
 }
 
-var queue_load_interval = 20*1000;
+var queue_load_interval = 30*1000;
+function runQueueLoader()
+{
+    loadQueue();
+    setTimeout(runQueueLoader, queue_load_interval);
+}
+
+
 function loadQueue()
 {
     var locals = {};
@@ -596,7 +621,8 @@ function loadQueue()
             {
                 //TODO: Currently can load same job multiple times, will drop duplicates tho
                 // Track executed jobs and only pull free ones
-                console.log("Rerunning queue of ", results.rowCount);
+                var n_loaded_jobs = results.rowCount;
+                console.log("Rerunning queue of ", n_loaded_jobs);
                 async.each(results.rows,
                     function(row, callback)
                     {
@@ -606,14 +632,19 @@ function loadQueue()
                             }
                         );
                     },
-                    callback);
+                    function(err, results)
+                    {
+                        if(n_loaded_jobs > 0)
+                            schedulerTick();
+
+                         callback(err, results);
+                    });
             }
         ],
         function(err, results)
         {
             if (err)
                 console.log(err, results);
-            setTimeout(loadQueue, queue_load_interval);
         }
     );
 }
@@ -898,7 +929,7 @@ function chooseServer(server_type)
 
 function createTemporaryJob(data, callback)
 {
-    createJob(data, shortid.generate(), null, callback);
+    createJob(data, "temp"+shortid.generate(), null, callback);
 }
 
 function createJob(data, id, started, callback_job)
@@ -978,25 +1009,17 @@ function createJob(data, id, started, callback_job)
     }
 }
 
-function closeTemporaryJob(server_identifier, job_id)
-{
-    job_queue_block.take(
-        function()
-        {
-            delete jobs_queue[job_id];
-            servers[server_identifier]["busy"] = false;
-            console.log("freed ", server_identifier);
-            job_queue_block.leave();
-
-            schedulerTick();
-        });
-}
-
 function closeJob(server_identifier, job_id)
 {
     async.waterfall(
         [
-            database.generateQueryFunction("UPDATE Jobs SET finished = now() WHERE id=$1;",[job_id]),
+            function(callback)
+            {
+                if (job_id.substring(0, "temp".length) == "temp")
+                    callback("temp-job");
+                else
+                    database.query("UPDATE Jobs SET finished = now() WHERE id=$1;",[job_id], callback);
+            },
             function(results, callback)
             {
                 if(results.rowCount == 1)
@@ -1010,11 +1033,7 @@ function closeJob(server_identifier, job_id)
         ],
         function(err, results)
         {
-            if (err)
-            {
-                console.log("failure closing job", err, results);
-            }
-            else
+            if(!err || err === "temp-job")
             {
                 job_queue_block.take(
                     function()
@@ -1026,7 +1045,10 @@ function closeJob(server_identifier, job_id)
                         schedulerTick();
                     });
             }
-
+            else
+            {
+                console.log("failure closing job", err, results);
+            }
         }
     );
 }

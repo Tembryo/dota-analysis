@@ -36,6 +36,7 @@ var skill_constants = {
             //"scale": d3.scale.linear().domain([0, 400]).range([0,100]).clamp(true),
             "explanation": "Number of big camera jumps (e.g. via minimap).",
             "tip": "Use the minimap to jump with your camera and view action happening somewhere else.",
+            "fixed_direction": 0,
             "format": function(value){return value.toFixed(2)+" jumps per minute";},
             "ordering": 2
         },
@@ -44,6 +45,7 @@ var skill_constants = {
             //"scale": d3.scale.linear().domain([500, 2000]).range([0,100]).clamp(true),
             "explanation": "Distance covered as you move your camera.",
             "tip": "Keep your camera moving to see as much as possible.",
+            "fixed_direction": 0,
             "format": function(value){return Math.floor(value)+" units moved per second";},
             "ordering": 3
         },
@@ -52,6 +54,7 @@ var skill_constants = {
             //"scale": d3.scale.linear().domain([500, 2000]).range([0,100]).clamp(true),
             "explanation": "Average distance from your camera to your hero.",
             "tip": "You need to keep an eye on your hero, but sometimes you better look somewhere else.",
+            "fixed_direction": 0,
             "format": function(value){return Math.floor(value)+" units average distance";},
             "ordering": 4
         },
@@ -60,6 +63,7 @@ var skill_constants = {
             //"scale": d3.scale.linear().domain([500, 2000]).range([0,100]).clamp(true),
             "explanation": "Standard deviation of the distance from your camera to your hero.",
             "tip": "You alternate looking at things close to your hero and keeping track of action far away.",
+            "fixed_direction": 0,
             "format": function(value){return Math.floor(value)+" units deviation";},
             "ordering": 5
         },
@@ -68,6 +72,7 @@ var skill_constants = {
             //"scale": d3.scale.linear().domain([0, 1]).range([0,100]).clamp(true),
             "explanation": "Time you spent looking at your hero.",
             "tip": "You need to keep an eye on your hero, but sometimes you better look somewhere else.",
+            "fixed_direction": 0,
             "format": function(value){return Math.floor(value*100)+"% time close";},
             "ordering": 6
         },
@@ -76,6 +81,7 @@ var skill_constants = {
             //"scale": d3.scale.linear().domain([0, 1]).range([0,100]).clamp(true),
             "explanation": "Time you spent moving the camera.",
             "tip": "Keep your camera moving to see as much as possible.",
+            "fixed_direction": 0,
             "format": function(value){return Math.floor(value*100)+"% time moving";},
             "ordering": 7
         },
@@ -84,6 +90,7 @@ var skill_constants = {
             //"scale": d3.scale.linear().domain([0, 1]).range([0,100]).clamp(true),
             "explanation": "Time you spent looking at things far away from your hero.",
             "tip": "You need to keep an eye on your hero, but sometimes you better look somewhere else.",
+            "fixed_direction": 0,
             "format": function(value){return Math.floor(value*100)+"% time far";},
             "ordering": 8
         },
@@ -93,6 +100,7 @@ var skill_constants = {
             //"scale": d3.scale.linear().domain([0, 900]).range([0,100]).clamp(true),
             "explanation": "Average gold gained per minute.",
             "tip": "Earning Gold is crucial to success.",
+            "fixed_direction": 0,
             "format": function(value){return Math.floor(value)+" GPM";},
             "ordering": 0
         },
@@ -101,6 +109,7 @@ var skill_constants = {
             //"scale": d3.scale.linear().domain([0, 600]).range([0,100]).clamp(true),
             "explanation": "Average experience gained per minute.",
             "tip": "Make sure you collect enough experience, if you are underleveled your abilities will lose their impact.",
+            "fixed_direction": 0,
             "format": function(value){return Math.floor(value)+" XPM";},
             "ordering": 1
         },
@@ -109,6 +118,7 @@ var skill_constants = {
             //"scale": d3.scale.linear().domain([100, 0]).range([0,100]).clamp(true),
             "explanation": "Number of creeps you lasthit.",
             "tip": "Creeps are money. More money -  more win.",
+            "fixed_direction": 0,
             "format": function(value){return value.toFixed(2)+" lasthits per minute";},
             "fixed_direction": 1,
             "ordering": 2
@@ -118,6 +128,7 @@ var skill_constants = {
             //"scale": d3.scale.linear().domain([100, 0]).range([0,100]).clamp(true),
             "explanation": "Number of enemy lasthits you contested.",
             "tip": "We you are strong, prevent the enemy from taking farm.",
+            "fixed_direction": 0,
             "format": function(value){return Math.floor(value)+" lasthits contested";},
             "ordering": 6
         },
@@ -126,6 +137,7 @@ var skill_constants = {
             //"scale": d3.scale.linear().domain([0, 1]).range([0,100]).clamp(true),
             "explanation": "Percentage of the lasthits an enemy got when you contested him.",
             "tip": "When you are nearby, make sure the enemy doesn't get the lasthit on your creeps.",
+            "fixed_direction": -1,
             "format": function(value){return Math.floor(value*100)+"% lost lasthits";},
             "ordering": 7
         },
@@ -134,6 +146,7 @@ var skill_constants = {
             //"scale": d3.scale.linear().domain([0, 1]).range([0,100]).clamp(true),
             "explanation": "Percentage of your lasthits that were free to take.",
             "tip": "Sometimes it is better to just go to a safe place and hit creeps.",
+            "fixed_direction": 0,
             "format": function(value){return Math.floor(value*100)+"% free lasthits";},
             "ordering": 4
         },
@@ -151,6 +164,7 @@ var skill_constants = {
             //"scale": d3.scale.linear().domain([0, 1]).range([0,100]).clamp(true),
             "explanation": "Percentage of the lasthits you got when challenged by an enemy.",
             "tip": "Lasthitting creeps while competing with an enemy is a challenge, keep practicing.",
+            "fixed_direction": 1,
             "format": function(value){return Math.floor(value*100)+"% lasthits taken";},
             "ordering": 5
         },
@@ -178,6 +192,7 @@ var skill_constants = {
             //"scale": d3.scale.linear().domain([0, 60]).range([0,100]).clamp(true),
             "explanation": "Frequency of engagements you were involved in .",
             "tip": "Fight the enemy a lot to keep up pressure.",
+            "fixed_direction": 0,
             "format": function(value){return (1/value).toFixed(2)+" minutes inbetween fights";},
             "ordering": 2
         },
@@ -186,6 +201,7 @@ var skill_constants = {
             //"scale": d3.scale.linear().domain([0, 60]).range([0,100]).clamp(true),
             "explanation": "Success of fights that you initiated.<br/> Higher the more gold and exp your team gained from fights that your side started.",
             "tip": "Take fights when you know you will win.",
+            "fixed_direction": 0,
             "format": function(value){return value.toFixed(2);},
             "ordering": 3
         }      
