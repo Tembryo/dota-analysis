@@ -947,6 +947,18 @@ def processWards(match):
                 }
                 match["ward_events"].append(ward_event)
 
+def processItemUse(match):
+    #extract events where heroes use items
+    match["item_events"] = []
+    for row in match["raw"]["item_events"]:
+        item_event = {
+            "time": row[0],
+            "hero": transformHeroName(row[2]),
+            "item": row[3][5:]
+        }
+        match["item_events"].append(item_event)
+
+
 def processTPScrolls(match):
     #extract events where heroes use a tp scroll 
     match["tp_events"] = []
@@ -1137,7 +1149,6 @@ def makeStats(match):
                 #general
                 "steam-id": match["players"][player_index]["steam_id"],
                 "hero": match["players"][player_index]["hero"],
-                "abilities": {},
                       
                 #mechanics
                 "n-checks": 0,
@@ -1159,9 +1170,9 @@ def makeStats(match):
                 "team-kills": 0,
                 "team-deaths": 0,
                 "num-of-fights": 0,
-                "total-melee-damage": 0,
+                "total-right-click-damage": 0,
                 "total-spell-damage": 0,
-                "fight-melee-damage": 0,
+                "fight-right-click-damage": 0,
                 "fight-spell-damage": 0,
                 "initiation_score": 0,
                 "average-fight-movement-speed": 0,
@@ -1169,6 +1180,7 @@ def makeStats(match):
                 "average-fight-centroid-dist": 0,
                 "average-fight-centroid-dist-team": 0,
                 "team_heal_amount": 0,
+                "lane-harassment-damage": 0,
 
                 #farming
                 "GPM": 0,
@@ -1189,6 +1201,12 @@ def makeStats(match):
                 "total-distance-traveled": 0,
                 "total-time-alive": 0,
                 "average-distance-from-centroid": 0,
+                "percentage-moving": 0,
+                "num-of-rotations": 0,
+                "percentage-moving": 0,
+                "percentage-stationary": 0,
+                "percentage-stationary-farming": 0,
+                "percentage-stationary-fighting": 0,
 
                 #Miscellaneous
                 "tower-damage": 0,
@@ -1196,6 +1214,11 @@ def makeStats(match):
                 "roshan-damage": 0, 
                 "num-sentry-wards-placed": 0,
                 "num-observer-wards-placed": 0,
+                "abilities": {},
+
+                #itemization
+                "items-purchased": {},
+                "items-used": {},
                 "num-of-tp-used": 0,
                 "total-tp-distance": 0,
                 "num-tp-bought": 0
@@ -1316,7 +1339,7 @@ def evaluateFightDamage(match):
             if attack["attacker"] in match["heroes"]:
                 player_index = match["heroes"][attack["attacker"]]["player_index"]
                 if attack["attack_method"] == "melee":
-                    match["stats"]["player-stats"][player_index]["fight-melee-damage"] += attack["damage"]
+                    match["stats"]["player-stats"][player_index]["fight-right-click-damage"] += attack["damage"]
                 else:
                     match["stats"]["player-stats"][player_index]["fight-spell-damage"] += attack["damage"]
 
@@ -1326,9 +1349,9 @@ def evaluateHeroDamage(match):
         if attack["attacker"] in match["heroes"]:
             player_index = match["heroes"][attack["attacker"]]["player_index"]
             if attack["attack_method"] == "melee":
-                match["stats"]["player-stats"][player_index]["total-melee-damage"] += attack["damage"]
+                match["stats"]["player-stats"][player_index]["total-right-click-damage"] += attack["damage"]
             else:
-                match["stats"]["player-stats"][player_index]["total-spell-damage"] += attack["damage"]
+                match["stats"]["player-stats"][player_index]["total-right-click-damage"] += attack["damage"]
 
 def evaluateBasicFightStats(match):
     # evaluate whether players get solo/team kills/deaths
@@ -1624,6 +1647,17 @@ def evaluateRoshanDamage(match):
         if damage_event["attacker"] in match["heroes"]:
             match["stats"]["player-stats"][match["heroes"][damage_event["attacker"]]["player_index"]]["roshan-damage"] += damage_event["damage"]
 
+def evaluateItemPurchases(match):
+    #for each hero form a dictionary with "item":"time" key-value pairs, takings the first instance of purchasing a particular item only
+    for purchase_event in match["purchase_events"]:
+        if purchase_event["item"] not in match["stats"]["player-stats"][match["heroes"][purchase_event["hero"]]["player_index"]]["items-purchased"]:
+            match["stats"]["player-stats"][match["heroes"][purchase_event["hero"]]["player_index"]]["items-purchased"][purchase_event["item"]] = purchase_event["time"]
+
+def evaluateItemUses(match):
+    #for each hero form a dictionary with "item":"time" key-value pairs, takings the first instance of using a particular item only
+    for item_event in match["item_events"]:
+        if item_event["item"] not in match["stats"]["player-stats"][match["heroes"][item_event["hero"]]["player_index"]]["items-used"]:
+            match["stats"]["player-stats"][match["heroes"][item_event["hero"]]["player_index"]]["items-used"][item_event["item"]] = item_event["time"]
 
 def makeResults(match):
     # sample the data and place into the match["results"]
@@ -1720,6 +1754,7 @@ def process(match):
     processTPScrolls(match)
     processPurchases(match)
     processRoshanAttacks(match)
+    processItemUse(match)
 
 def computeStats(match):
     # compute the statistics that will be used as features in the machine learning model
@@ -1730,6 +1765,8 @@ def computeStats(match):
     evaluateWardUse(match)
     evaluateTPScrollUse(match)
     evaluateRoshanDamage(match)
+    evaluateItemPurchases(match)
+    evaluateItemUses(match)
 
     evaluateMechanics(match)
     evaluateFighting(match)
@@ -1754,9 +1791,6 @@ def main():
     writeToJson(stats_filename,match["stats"]) 
     #delete intermediate/input files
     #shutil.rmtree(match_directory)
-
-    for item in match["roshan_attack_list"]:
-        print item
     
 if __name__ == "__main__":
     #cProfile.run('main()')
