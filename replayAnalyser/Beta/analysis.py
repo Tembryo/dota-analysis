@@ -7,7 +7,8 @@ import json
 import bisect
 import numpy as np
 import scipy.sparse
-import cProfile
+import matplotlib.pyplot as plt
+#import cProfile
 
 def createParameters():
     # set variables that determine how the data is analysed - need to include all parameters
@@ -24,6 +25,8 @@ def createParameters():
     parameters["namespace"]["creep_spawn_namespace"] = 20000
     parameters["namespace"]["creep_death_namespace"] = 30000
     parameters["namespace"]["camera_namespace"] = 40000
+    parameters["namespace"]["buildings_namespace"] = 50000
+
 
     parameters["general"] = {}
     parameters["general"]["num_players"] = 10
@@ -95,6 +98,49 @@ def normalize(v):
        return v
     return v/norm
 
+def dist_nD(P,A,B):
+    #Calculates the distance from the point ``P`` to the line given by the points ``A`` and ``B``.
+    pa = P - A
+    ba = B - A
+    t = np.dot(pa,ba)/np.dot(ba,ba)
+    d = np.linalg.norm(pa - t * ba)
+    return d
+
+def rdp(M,epsilon,dist):
+    """
+    Pure Python implementation of the Ramer-Douglas-Peucker algorithm.
+
+    :copyright: (c) 2014 Fabian Hirschmann <fabian@hirschmann.email>
+    :license: MIT, see LICENSE.txt for more details.
+
+    Simplifies a given array of points.
+
+    :param M: an array
+    :type M: Nx3 numpy array
+    :param epsilon: epsilon in the rdp algorithm
+    :type epsilon: float
+    :param dist: distance function
+    :type dist: function with signature ``f(x1, x2, x3)``
+    """
+
+    dmax = 0.0
+    index = -1
+
+    for i in xrange(1, M.shape[0]):
+        d = dist(M[i], M[0], M[-1])
+
+        if d > dmax:
+            index = i
+            dmax = d
+
+    if dmax > epsilon:
+        r1 = rdp(M[:index + 1], epsilon, dist)
+        r2 = rdp(M[index:], epsilon, dist)
+
+        return np.vstack((r1[:-1], r2))
+    else:
+        return np.vstack((M[0], M[-1]))
+
 def loadFiles(match_id, match_directory):
     #load in the raw data from the csv files
     match = {}
@@ -126,7 +172,8 @@ def loadFiles(match_id, match_directory):
         "ability_events": [],
         "heal_events": [],
         "item_events": [],
-        "ward_rows": []
+        "ward_rows": [],
+        "purchase_events": []
     }
 
     match["header"]["teams"] = {
@@ -243,6 +290,8 @@ def loadFiles(match_id, match_directory):
                     match["raw"]["heal_events"].append(row)
                 elif row[1] == "DOTA_COMBATLOG_ITEM":
                     match["raw"]["item_events"].append(row)
+                elif row[1] == "DOTA_COMBATLOG_PURCHASE":
+                    match["raw"]["purchase_events"].append(row)
 
     trajectories_input_filename = match_directory+"/trajectories.csv"
     with open(trajectories_input_filename,'rb') as file:
@@ -280,8 +329,6 @@ def loadFiles(match_id, match_directory):
                     row[4] = float(row[4])
                     row[5] = float(row[5])
                     match["raw"]["spawn_rows"].append(row)
-                    if row[2].startswith("npc_dota_ward"):
-                        match["raw"]["ward_rows"].append(row)
                 elif row[1] == "PLAYER_CHANGE_SELECTION":
                     row[2] = int(row[2])
                     match["raw"]["unit_selection_rows"].append(row)
@@ -352,6 +399,18 @@ def processHeroDeaths(match):
             # put kill event in the events dictionary
             match["hero_deaths"].append(new_death)
 
+def processBuildingDeaths(match):
+    #extract the events when buildings (Towers, Barracks) are destroyed
+    match["building_deaths"] = []
+    for row in match["raw"]["death_rows"]:
+        if row[2].startswith("npc_dota_goodguys_tower") or row[2].startswith("npc_dota_badguys_tower") or row[2].startswith("good_rax") or row[2].startswith("bad_rax"):
+            building_death = {
+                "time": row[0],
+                "building_type": row[2],
+                "position": [float(row[5]),float(row[6])]
+            }
+            match["building_deaths"].append(building_death)
+
 def processHeroPosition(match):
     # extract the [x,y] coordinates for each hero and collect into trajectories 
     hero_spawns = {}
@@ -413,9 +472,11 @@ def processHeroPosition(match):
                 i += 1
 
             stored = {
+                "start-index": start_index,
+                "end-index": end_index,
                 "time-start": life["start"],
                 "time-end": life["end"],
-                "timeseries":{"format":"samples","samples":samples_list}
+                "timeseries": {"format":"samples","samples":samples_list}
                 }
 
             match["entities"][match["heroes"][hero]["entity_id"]]["position"].append(stored)
@@ -550,7 +611,6 @@ def processHeroAttacks(match):
                     damage = 0
                 else:
                     damage = int(row[4])
-
 
                 attack = {
                         "attacker": attacker,
@@ -870,19 +930,19 @@ def processHeroAbility(match):
     # process the abilities used by heroes and store them in a list
     match["ability_events"] = []
     for row in match["raw"]["ability_events"]:
-        hero_name = transformHeroName(row[2])
-        if hero_name not in match["heroes"]:
+        hero = transformHeroName(row[2])
+        if hero not in match["heroes"]:
             continue
-        ability = row[4][len(hero_name) + 1:]
+        ability = row[4][len(hero) + 1:]
         ability_event = {
             "time": row[0],
-            "hero-name": hero_name,
+            "hero": hero,
             "ability": ability,
-            "position": lookupHeroPosition(match,hero_name,row[0])
+            "position": lookupHeroPosition(match,hero,row[0])
         }
         match["ability_events"].append(ability_event)
-        if ability not in match["entities"][match["heroes"][hero_name]["entity_id"]]["abilities"]:
-            match["entities"][match["heroes"][hero_name]["entity_id"]]["abilities"].append(ability)
+        if ability not in match["entities"][match["heroes"][hero]["entity_id"]]["abilities"]:
+            match["entities"][match["heroes"][hero]["entity_id"]]["abilities"].append(ability)
 
 def processHeroHeals(match):
     # process instances when heroes heal other heroes
@@ -911,26 +971,248 @@ def processHeroHeals(match):
             }
             match["hero_heals"].append(hero_heal_event)
 
-def processItems(match):
-    #extract item uses - for now just restricted to sentry and observer wards
-    match["item_events"] = []
+def processWards(match):
+    #extract ward placements (time,hero,ward type and position)
+    match["ward_events"] = []
 
-    ward_times = []
-    for row in match["raw"]["ward_rows"]:
-        ward_times.append(row[0])
-    
+    item_times = []
     for row in match["raw"]["item_events"]:
-        if row[3].startswith("item_ward_"):
-            time = row[0]
-            time_index = findTimeTick(match,ward_times,time)
+        item_times.append(row[0])
+    
+    for row in match["raw"]["spawn_rows"]:
+        if row[2].startswith("npc_dota_ward"):
+            time_index = findTimeTick(match,item_times,row[0])
+            ward_type = match["raw"]["item_events"][time_index][3][10:]
+            if ward_type == "observer" or ward_type == "sentry":
+                hero = transformHeroName(match["raw"]["item_events"][time_index][2])
+                ward_event = { 
+                    "time": row[0],
+                    "hero": hero,
+                    "ward_type": ward_type,
+                    "position": [row[4],row[5]]
+                }
+                match["ward_events"].append(ward_event)
 
-            item_event = { 
+def processItemUse(match):
+    #extract events where heroes use items
+    match["item_events"] = []
+    for row in match["raw"]["item_events"]:
+        item_event = {
+            "time": row[0],
+            "hero": transformHeroName(row[2]),
+            "item": row[3][5:]
+        }
+        match["item_events"].append(item_event)
+
+
+def processTPScrolls(match):
+    #extract events where heroes use a tp scroll 
+    match["tp_events"] = []
+
+    for row in match["raw"]["item_events"]:
+        if row[3] == "item_tpscroll":
+            time = row[0]
+            time_index_cast = findTimeTick(match,match["raw"]["trajectories"]["time"],time)
+            time_index_end = findTimeTick(match,match["raw"]["trajectories"]["time"],time + 10)
+            hero = transformHeroName(row[2])
+            readable_time =  str(int(math.floor(time/60))) + ":" +  str(int(time % 60))
+            end_position = None
+            for index in range(time_index_cast,time_index_end):
+                # find squared distance between consecutive points 
+                dist_squared = ((match["raw"]["trajectories"][hero]["position"][index][0] - match["raw"]["trajectories"][hero]["position"][index - 1][0]) * (match["raw"]["trajectories"][hero]["position"][index][0] - match["raw"]["trajectories"][hero]["position"][index - 1][0]) + (match["raw"]["trajectories"][hero]["position"][index][1] - match["raw"]["trajectories"][hero]["position"][index - 1][1]) * (match["raw"]["trajectories"][hero]["position"][index][1] - match["raw"]["trajectories"][hero]["position"][index - 1][1]) )
+                if dist_squared > 10000:
+                    end_position = match["raw"]["trajectories"][hero]["position"][index]
+                    break
+     
+            tp_event = {
                 "time": time,
-                "hero": transformHeroName(row[2]),
-                "ward_type": row[3][10:],
-                "position": [match["raw"]["ward_rows"][time_index][4],match["raw"]["ward_rows"][time_index][5]]
+                "readable-time": readable_time,
+                "hero": hero,
+                "start-position": match["raw"]["trajectories"][hero]["position"][time_index_cast],
+                "end-position": end_position
             }
-            match["item_events"].append(item_event)
+            match["tp_events"].append(tp_event)
+
+def processPurchases(match):
+    #extract events where heroes purchase an item
+    match["purchase_events"] = []
+    for row in match["raw"]["purchase_events"]:
+        purchase_event = {
+            "time": row[0],
+            "hero": transformHeroName(row[2]),
+            "item": row[3][5:]
+        }
+        match["purchase_events"].append(purchase_event)
+
+def processCreepEquilibrium(match):
+    # will define the rolling average position of creep deaths for a window of T seconds as the equlirium point for the lane
+    n = 5
+    match["creep_equilibrium"] = {"top": [], "mid": [], "bot": []}
+    towers = {
+        "rad_tower1_top":    [-6116.9688,  1805.9062],
+        "rad_tower1_mid":    [-1657.625,   -1512.5],
+        "rad_tower1_bot":    [4887.9375,   -6080.5938],
+
+        "rad_tower2_top":    [-6164.9688,  -866.09375],
+        "rad_tower2_mid":    [-3549.625,   -2785.5],
+        "rad_tower2_bot":    [-106.09375,  -6234.0625],
+
+        "rad_tower3_top":    [-6616.9688,  -3409.0938],
+        "rad_tower3_mid":    [-4693.625, -4152.5],
+        "rad_tower3_bot":    [-3953.0938, -6091.0625],
+
+        "rad_tower4_top":    [-5738.625,   -4860.5],
+        "rad_tower4_bot":    [-5389.625,   -5216.5],
+
+        "dir_tower1_top":     [-4736,   6015.9688],
+        "dir_tower1_mid":     [1023.96875,  319.96875],
+        "dir_tower1_bot":     [6208, -1664.0312],
+
+        "dir_tower2_top":     [0,   6015.9688],
+        "dir_tower2_mid":     [2496,    2111.9688],
+        "dir_tower2_bot":     [6272,    383.96875],
+       
+
+        "dir_tower3_top":     [3552,    5775.9688],
+        "dir_tower3_mid":     [4272,    3758.9688],
+        "dir_tower3_bot":     [6276,    3031.9688],
+
+        "dir_tower4_top":     [4962,    4783.9688],
+        "dir_tower4_bot":     [5280,    4431.9688]
+    }
+
+    top_x = []
+    top_y = []
+    mid_x = []
+    mid_y = []
+    bot_x = []
+    bot_y = []
+
+    last_creep_position = 0
+    for creep_death in match["creep_deaths"]:
+        nearest_tower = None
+        min_dist = 10000
+        for tower in towers:
+            dist = math.sqrt( (towers[tower][0] - creep_death["position"][0]) * (towers[tower][0] - creep_death["position"][0]) + (towers[tower][1] - creep_death["position"][1]) * (towers[tower][1] - creep_death["position"][1]) )
+            if dist < min_dist:
+                nearest_tower = tower
+                min_dist = dist
+        lane = nearest_tower[11:]
+        if lane == "top":
+            top_x.append(creep_death["position"][0])
+            top_y.append(creep_death["position"][1])
+        elif lane == "mid":
+            mid_x.append(creep_death["position"][0])
+            mid_y.append(creep_death["position"][1])
+        elif lane == "bot":
+            bot_x.append(creep_death["position"][0])
+            bot_y.append(creep_death["position"][1])
+
+    mean_top_x = np.convolve(top_x, np.ones((n,))/n, mode='valid')
+    mean_top_y = np.convolve(top_y, np.ones((n,))/n, mode='valid')
+
+    mean_mid_x = np.convolve(mid_x, np.ones((n,))/n, mode='valid')
+    mean_mid_y = np.convolve(mid_y, np.ones((n,))/n, mode='valid')
+
+    mean_bot_x = np.convolve(bot_x, np.ones((n,))/n, mode='valid')
+    mean_bot_y = np.convolve(bot_y, np.ones((n,))/n, mode='valid')
+
+    for i in range(len(mean_top_x)):
+        match["creep_equilibrium"]["top"].append([mean_top_x[i],mean_top_y[i]])
+
+    for i in range(len(mean_mid_x)):
+        match["creep_equilibrium"]["mid"].append([mean_mid_x[i],mean_mid_y[i]])
+
+    for i in range(len(mean_bot_x)):
+        match["creep_equilibrium"]["bot"].append([mean_bot_x[i],mean_bot_y[i]])
+
+def processRoshanAttacks(match):
+    # extract attacks involving heroes and roshan
+    match["roshan_attack_list"] = []
+    for row in match["raw"]["damage_events"]:
+        attacker = row[2]
+        victim = row[3]
+        # filter out attacks involving enties other than heroes
+        if attacker.startswith("npc_dota_hero_") and victim == "npc_dota_roshan": 
+            attacker = transformHeroName(attacker)
+            victim = "roshan"
+            #filter out illusions 
+            if attacker not in match["heroes"]:
+                continue
+            side = match["heroes"][attacker]["side"]
+            # set position to be the position of the attacker - this is not ideal as convention in processHeroAttacks is to use the victim location
+            position = match["raw"]["trajectories"][attacker]["position"][findTimeTick(match,match["raw"]["trajectories"]["time"],row[0])]
+        elif attacker == "npc_dota_roshan" and victim.startswith("npc_dota_hero_"):
+            attacker = "roshan"
+            victim = transformHeroName(victim)
+            if victim not in match["heroes"]:
+                continue
+            side = "neutral"
+            position = match["raw"]["trajectories"][victim]["position"][findTimeTick(match,match["raw"]["trajectories"]["time"],row[0])]
+        else:
+            continue
+        attack_method = row[4]
+        if (attack_method == " ") or (attack_method == ""):
+            attack_method = "melee"
+        else:
+            attack_method = attack_method.split()
+            attack_method = attack_method[1]
+            attack_method = attack_method[len(attacker)+1:]
+
+        attack = {
+                "attacker": attacker,
+                "side": side,
+                "victim": victim,
+                "damage": int(row[5]),
+                "health_delta": row[6],
+                "time": row[0],
+                "attack_method": attack_method,
+                "position": position
+                }
+        match["roshan_attack_list"].append(attack)
+
+def processMovement(match):
+    #for each hero trajectory segement the trajectory into moving and stationary
+    #match["entities"][match["heroes"][hero]["entity_id"]]["position"][i]:
+    step = 50
+    w0 = 0.01 # x of the order [-8000,8000]
+    w1 = 0.01 # y of th order [-8000,8000]
+    w2 = 1 # of the order [0,2400]
+    w3 = 100 
+    N = len(match["raw"]["trajectories"]["time"])
+    index_list = [x for x in range(0,N,step)]
+    hero_paths = {}
+    hero_fight_indicators = {}
+    #create indicator for whether hero was in a fight
+    for hero in match["heroes"]:
+        hero_fight_indicators[hero] = np.zeros((N,1))
+
+    for fight in match["fight_list"]:
+        time_start_index = findTimeTick(match,match["raw"]["trajectories"]["time"],fight["time_start"])
+        time_end_index = findTimeTick(match,match["raw"]["trajectories"]["time"],fight["time_end"])
+        for hero_entity_id in fight["heroes_involved"]:
+            hero_fight_indicators[match["entities"][hero_entity_id]["unit"]][time_start_index:time_end_index] = 1
+
+    for hero in match["heroes"]:
+        #load the trajectory data into a numpy array
+        hero_trajectory = np.zeros((len(index_list),4))
+        for i,j in enumerate(index_list):
+            hero_trajectory[i,0] = w0 * match["raw"]["trajectories"][hero]["position"][j][0]
+            hero_trajectory[i,1] = w1 * match["raw"]["trajectories"][hero]["position"][j][1]
+            hero_trajectory[i,2] = w2 * match["raw"]["trajectories"]["time"][j]
+            hero_trajectory[i,3] = w3 * hero_fight_indicators[hero][j]        
+        hero_paths[hero] = rdp(hero_trajectory,10,dist_nD)
+
+    desired_hero = "ursa"
+    print hero_paths[desired_hero][1:10,2]/w2
+    print hero_paths[desired_hero][1:10,3]/w3
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(hero_paths[desired_hero][1:10,0],hero_paths[desired_hero][1:10,1])
+    for i in range(len(hero_paths[desired_hero][1:10,2])):
+        ax.annotate(str(math.floor(hero_paths[desired_hero][i,2])),(hero_paths[desired_hero][i,0],hero_paths["ursa"][i,1]))
+    plt.show()
+
 
 def makeStats(match):
     # instantiate the stats variables that will be filled in by subsequent evaluation functions
@@ -962,6 +1244,9 @@ def makeStats(match):
                 "avg_camera_movement": 0,
                 "percentSelf": 0,
                 "percentFar": 0,
+                "average_camera_distance": 0,
+                "distance_std_dev": 0,
+                "percentMove": 0,
 
                 #fighting
                 "num-of-kills": 0,
@@ -971,15 +1256,17 @@ def makeStats(match):
                 "team-kills": 0,
                 "team-deaths": 0,
                 "num-of-fights": 0,
-                "total-melee-damage": 0,
+                "total-right-click-damage": 0,
                 "total-spell-damage": 0,
-                "fight-melee-damage": 0,
+                "fight-right-click-damage": 0,
                 "fight-spell-damage": 0,
                 "initiation_score": 0,
                 "average-fight-movement-speed": 0,
                 "fight-coordination": 0,
                 "average-fight-centroid-dist": 0,
                 "average-fight-centroid-dist-team": 0,
+                "team_heal_amount": 0,
+                "lane-harassment-damage": 0,
 
                 #farming
                 "GPM": 0,
@@ -997,16 +1284,30 @@ def makeStats(match):
                 #movement
                 "time-visible": 0,
                 "time-visible-first10": 0,
-                "average_distance": 0,
-                "distance_std_dev": 0,
-                "percentMove": 0,
-            
-                #objectives
-                "tower-damage": 0,
-                "rax-damage": 0, 
+                "total-distance-traveled": 0,
+                "total-time-alive": 0,
+                "average-distance-from-centroid": 0,
+                "num-of-rotations": 0,
+                "percentage-moving": 0,
+                "percentage-stationary": 0,
+                "percentage-stationary-farming": 0,
+                "percentage-stationary-fighting": 0,
 
-                #other
-                "team_heal_amount": 0
+                #Miscellaneous
+                "tower-damage": 0,
+                "rax-damage": 0,
+                "roshan-damage": 0, 
+                "num-sentry-wards-placed": 0,
+                "num-observer-wards-placed": 0,
+                "abilities": {},
+
+                #itemization
+                "items-purchased": {},
+                "items-used": {},
+                "num-of-tp-used": 0,
+                "total-tp-distance": 0,
+                "num-tp-bought": 0
+
             }
 
 def evaluateVisibility(match):
@@ -1092,7 +1393,7 @@ def evaluateCameraControl(match):
             last_time = time
 
         match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["avg_camera_movement"] = total_camera_movement/time_total
-        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["average_distance"] = average_hero_distance
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["average_camera_distance"] = average_hero_distance
         match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["distance_std_dev"] = math.sqrt(average_hero_distance_M2/average_hero_distance_n)
         match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["num-camera-jumps"] = len(jumps)
         match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["percentMove"] = time_moving/time_total
@@ -1123,7 +1424,7 @@ def evaluateFightDamage(match):
             if attack["attacker"] in match["heroes"]:
                 player_index = match["heroes"][attack["attacker"]]["player_index"]
                 if attack["attack_method"] == "melee":
-                    match["stats"]["player-stats"][player_index]["fight-melee-damage"] += attack["damage"]
+                    match["stats"]["player-stats"][player_index]["fight-right-click-damage"] += attack["damage"]
                 else:
                     match["stats"]["player-stats"][player_index]["fight-spell-damage"] += attack["damage"]
 
@@ -1133,9 +1434,9 @@ def evaluateHeroDamage(match):
         if attack["attacker"] in match["heroes"]:
             player_index = match["heroes"][attack["attacker"]]["player_index"]
             if attack["attack_method"] == "melee":
-                match["stats"]["player-stats"][player_index]["total-melee-damage"] += attack["damage"]
+                match["stats"]["player-stats"][player_index]["total-right-click-damage"] += attack["damage"]
             else:
-                match["stats"]["player-stats"][player_index]["total-spell-damage"] += attack["damage"]
+                match["stats"]["player-stats"][player_index]["total-right-click-damage"] += attack["damage"]
 
 def evaluateBasicFightStats(match):
     # evaluate whether players get solo/team kills/deaths
@@ -1291,10 +1592,6 @@ def evaluateLastHits(match):
     match["stats"]["match-stats"]["creeps-missed"] = creeps_missed
     match["stats"]["match-stats"]["creeps-killed"] = len(match["creep_deaths"])
 
-def evaluateObjectives(match):
-    # evaluate the features for the Objectives attribute
-    evaluateBuildingDamage(match)
-
 def evaluateBuildingDamage(match):
     # for each hero evaluate the amount of damage they do to enemy towers and rax
     for row in match["raw"]["damage_events"]:
@@ -1304,45 +1601,6 @@ def evaluateBuildingDamage(match):
             match["stats"]["player-stats"][match["heroes"][attacker]["player_index"]]["tower-damage"] += int(row[5])
         elif attacker in match["heroes"] and "rax" in victim:
             match["stats"]["player-stats"][match["heroes"][attacker]["player_index"]]["rax-damage"] += int(row[5])
-
-def makeResults(match):
-    # sample the data and place into the match["results"]
-    match["results"] = {}
-    match["results"]["header"] = match["header"]
-    match["results"]["events"] = {}
-
-    iterateEventList(match,match["hero_deaths"],"kill",match["parameters"]["namespace"]["kills_namespace"])
-    iterateEventList(match,match["creep_spawns"],"creep_spawn",match["parameters"]["namespace"]["creep_spawn_namespace"])
-    iterateEventList(match,match["creep_deaths"],"creep_death",match["parameters"]["namespace"]["creep_death_namespace"])
-    iterateEventList(match,match["fight_list"],"fight",match["parameters"]["namespace"]["fights_namespace"])
-
-    # sample the timeseries by deleting points
-    for entity in match["entities"]:
-        for i in range(0,len(match["entities"][entity]["position"])):
-            sampleTimeseries(match["entities"][entity]["position"][i]["timeseries"]["samples"],match["parameters"]["makeResults"]["sample_rate_position"])
-    match["results"]["entities"] = match["entities"]
-
-    #sample the gold and exp timeseries
-    sampleTimeseries(match["timeseries"]["gold-advantage"]["samples"],match["parameters"]["makeResults"]["sample_rate_gold_exp"])
-    sampleTimeseries(match["timeseries"]["exp-advantage"]["samples"],match["parameters"]["makeResults"]["sample_rate_gold_exp"])
-    match["results"]["timeseries"] = match["timeseries"]
-
-def iterateEventList(match,array,event_type,namespace):
-    for i, item in enumerate(array):
-        item["type"] = event_type
-        match["results"]["events"][namespace + i] = item
-
-def sampleTimeseries(timeseries,sample_rate):
-    #function for sampling a timeseries at a specified sample rate
-    previous_time = timeseries[0]["t"]
-    sample_period = 1/sample_rate
-    j = 0
-    while j < len(timeseries):
-        if timeseries[j]["t"] - previous_time < sample_period:
-            del timeseries[j]
-        else:
-            previous_time = timeseries[j]["t"]
-            j += 1
 
 def evaluateFightCentroid(match):
 
@@ -1412,6 +1670,120 @@ def evaluateHeroHeals(match):
         if hero_heal_event["healer"] in match["heroes"]:
             match["stats"]["player-stats"][match["heroes"][hero_heal_event["healer"]]["player_index"]]["team_heal_amount"] += (hero_heal_event["hp_after"] - hero_heal_event["hp_before"])
 
+def evaluateHeroAbilities(match):
+    # evaluate how each player uses their hero abilities
+    for hero in match["heroes"]:
+        for ability in match["entities"][match["heroes"][hero]["entity_id"]]["abilities"]:
+            match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["abilities"][ability] = 0
+
+    for ability_event in match["ability_events"]:
+        match["stats"]["player-stats"][match["heroes"][ability_event["hero"]]["player_index"]]["abilities"][ability_event["ability"]] += 1
+
+def evaluateWardUse(match):
+    # evaluate how many wards each player places during the match
+    for ward_event in match["ward_events"]:
+        if ward_event["ward_type"] == "observer":
+            match["stats"]["player-stats"][match["heroes"][ward_event["hero"]]["player_index"]]["num-observer-wards-placed"] += 1
+        elif ward_event["ward_type"] == "sentry":
+            match["stats"]["player-stats"][match["heroes"][ward_event["hero"]]["player_index"]]["num-sentry-wards-placed"] += 1
+
+def evaluateTPScrollUse(match):
+    # evaluate the number of tp scrolls each hero buys, uses and the total distance travelled using them
+    for purchase_event in match["purchase_events"]:
+        if purchase_event["item"] == "tpscroll":
+            match["stats"]["player-stats"][match["heroes"][purchase_event["hero"]]["player_index"]]["num-tp-bought"] += 1
+
+    for tp_event in match["tp_events"]:
+        match["stats"]["player-stats"][match["heroes"][tp_event["hero"]]["player_index"]]["num-of-tp-used"] += 1
+        if tp_event["end-position"] != None:
+            match["stats"]["player-stats"][match["heroes"][tp_event["hero"]]["player_index"]]["total-tp-distance"] += math.sqrt( (tp_event["start-position"][0] - tp_event["end-position"][0]) * (tp_event["start-position"][0] - tp_event["end-position"][0]) + (tp_event["start-position"][1] - tp_event["end-position"][1]) * (tp_event["start-position"][1] - tp_event["end-position"][1]) )
+
+def evaluateDistanceTraveled(match):
+    for hero in match["heroes"]:
+        total_distance_traveled = 0
+        total_time_alive = 0
+        average_position = [0,0]
+        n = 0
+        for trajectory in match["entities"][match["heroes"][hero]["entity_id"]]["position"]:
+            last_position = trajectory["timeseries"]["samples"][0]["v"]
+            total_time_alive += trajectory["time-end"] - trajectory["time-start"]
+            for i in range(1,len(trajectory["timeseries"]["samples"])):
+                total_distance_traveled += math.sqrt((trajectory["timeseries"]["samples"][i]["v"][0] - last_position[0])*(trajectory["timeseries"]["samples"][i]["v"][0] - last_position[0]) + (trajectory["timeseries"]["samples"][i]["v"][1] - last_position[1])*(trajectory["timeseries"]["samples"][i]["v"][1] - last_position[1]) )   
+                average_position[0] += trajectory["timeseries"]["samples"][i]["v"][0]
+                average_position[1] += trajectory["timeseries"]["samples"][i]["v"][1]
+                last_position[0] = trajectory["timeseries"]["samples"][i]["v"][0]
+                last_position[1] = trajectory["timeseries"]["samples"][i]["v"][1]
+                n += 1
+
+        average_position[0] = average_position[0]/n
+        average_position[1] = average_position[1]/n
+        average_distance_from_centroid = 0
+        for trajectory in match["entities"][match["heroes"][hero]["entity_id"]]["position"]:
+            for i in range(1,len(trajectory["timeseries"]["samples"])):
+                average_distance_from_centroid += math.sqrt((average_position[0] - trajectory["timeseries"]["samples"][i]["v"][0]) * (average_position[0] - trajectory["timeseries"]["samples"][i]["v"][0]) + (average_position[1] - trajectory["timeseries"]["samples"][i]["v"][1]) * (average_position[1] - trajectory["timeseries"]["samples"][i]["v"][1]))/n
+
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["total-distance-traveled"] = total_distance_traveled
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["total-time-alive"] = total_time_alive
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["average-distance-from-centroid"] = average_distance_from_centroid
+ 
+def evaluateRoshanDamage(match):
+    # evaluate the amount of damage each hero does to roshan during the match
+    for damage_event in match["roshan_attack_list"]:
+        if damage_event["attacker"] in match["heroes"]:
+            match["stats"]["player-stats"][match["heroes"][damage_event["attacker"]]["player_index"]]["roshan-damage"] += damage_event["damage"]
+
+def evaluateItemPurchases(match):
+    #for each hero form a dictionary with "item":"time" key-value pairs, takings the first instance of purchasing a particular item only
+    for purchase_event in match["purchase_events"]:
+        if purchase_event["item"] not in match["stats"]["player-stats"][match["heroes"][purchase_event["hero"]]["player_index"]]["items-purchased"]:
+            match["stats"]["player-stats"][match["heroes"][purchase_event["hero"]]["player_index"]]["items-purchased"][purchase_event["item"]] = purchase_event["time"]
+
+def evaluateItemUses(match):
+    #for each hero form a dictionary with "item":"time" key-value pairs, takings the first instance of using a particular item only
+    for item_event in match["item_events"]:
+        if item_event["item"] not in match["stats"]["player-stats"][match["heroes"][item_event["hero"]]["player_index"]]["items-used"]:
+            match["stats"]["player-stats"][match["heroes"][item_event["hero"]]["player_index"]]["items-used"][item_event["item"]] = item_event["time"]
+
+def makeResults(match):
+    # sample the data and place into the match["results"]
+    match["results"] = {}
+    match["results"]["header"] = match["header"]
+    match["results"]["events"] = {}
+
+    iterateEventList(match,match["hero_deaths"],"kill",match["parameters"]["namespace"]["kills_namespace"])
+    iterateEventList(match,match["creep_spawns"],"creep_spawn",match["parameters"]["namespace"]["creep_spawn_namespace"])
+    iterateEventList(match,match["creep_deaths"],"creep_death",match["parameters"]["namespace"]["creep_death_namespace"])
+    iterateEventList(match,match["fight_list"],"fight",match["parameters"]["namespace"]["fights_namespace"])
+    iterateEventList(match,match["building_deaths"],"building_death",match["parameters"]["namespace"]["buildings_namespace"])
+
+    # sample the timeseries by deleting points
+    for entity in match["entities"]:
+        for i in range(0,len(match["entities"][entity]["position"])):
+            sampleTimeseries(match["entities"][entity]["position"][i]["timeseries"]["samples"],match["parameters"]["makeResults"]["sample_rate_position"])
+    match["results"]["entities"] = match["entities"]
+
+    #sample the gold and exp timeseries
+    sampleTimeseries(match["timeseries"]["gold-advantage"]["samples"],match["parameters"]["makeResults"]["sample_rate_gold_exp"])
+    sampleTimeseries(match["timeseries"]["exp-advantage"]["samples"],match["parameters"]["makeResults"]["sample_rate_gold_exp"])
+    match["results"]["timeseries"] = match["timeseries"]
+
+def iterateEventList(match,array,event_type,namespace):
+    for i, item in enumerate(array):
+        item["type"] = event_type
+        match["results"]["events"][namespace + i] = item
+
+def sampleTimeseries(timeseries,sample_rate):
+    #function for sampling a timeseries at a specified sample rate
+    previous_time = timeseries[0]["t"]
+    sample_period = 1/sample_rate
+    j = 0
+    while j < len(timeseries):
+        if timeseries[j]["t"] - previous_time < sample_period:
+            del timeseries[j]
+        else:
+            previous_time = timeseries[j]["t"]
+            j += 1
+
 def evaluateMechanics(match):
     # evaluate different skills for the Mechanics attribute
     evaluateCameraControl(match)
@@ -1435,6 +1807,11 @@ def evaluateFarming(match):
 def evaluateMovement(match):
     # evaluate different skills for the Movement attribute
     evaluateVisibility(match)
+    evaluateDistanceTraveled(match)
+
+def evaluateObjectives(match):
+    # evaluate the features for the Objectives attribute
+    evaluateBuildingDamage(match)
 
 def writeToJson(filename,dictionary):
     # given a filename and a dictionary write the dictionary to a JSON file named filename.json
@@ -1456,13 +1833,26 @@ def process(match):
     processCreepDeaths(match)
     processHeroAbility(match)
     processHeroHeals(match)
-    processItems(match)
+    processWards(match)
+    processBuildingDeaths(match)
+    processCreepEquilibrium(match)
+    processTPScrolls(match)
+    processPurchases(match)
+    processRoshanAttacks(match)
+    processItemUse(match)
+    processMovement(match)
 
 def computeStats(match):
     # compute the statistics that will be used as features in the machine learning model
     makeStats(match)
     evaluateHeroDeaths(match)
     evaluateHeroHeals(match)
+    evaluateHeroAbilities(match)
+    evaluateWardUse(match)
+    evaluateTPScrollUse(match)
+    evaluateRoshanDamage(match)
+    evaluateItemPurchases(match)
+    evaluateItemUses(match)
 
     evaluateMechanics(match)
     evaluateFighting(match)
@@ -1487,11 +1877,10 @@ def main():
     writeToJson(stats_filename,match["stats"]) 
     #delete intermediate/input files
     #shutil.rmtree(match_directory)
+
+    # for fight in match["fight_list"]:
+    #     print fight
     
-    #need to check the ward code carefully as a few dispensers ending up in the item events...
-    print match["item_events"] 
-
-
 if __name__ == "__main__":
     #cProfile.run('main()')
     main()
