@@ -5,7 +5,7 @@ if(process.env.VERSION === "DEV")
 else    
     exports.database_host   = "wisdota.com";
 
-exports.database_auth   = "wisdota:"+sensitive.database_pw;
+exports.database_pw   = sensitive.database_pw;
 
 exports.files           = "/files";
 exports.shared          = "/shared";

@@ -114,6 +114,57 @@ $(document).on('click', '#list-all-users', function () {
 });
 
 
+$(document).on('click', '#logs-by-time', function () {
+    var timewindow =  parseInt($('#logs-timewindow').val());
+    $.getJSON("/api/admin-get-logs/?timewindow="+timewindow,
+        function(data)
+        {
+            displayLogs(data["logs"]);
+        }
+    );
+});
+
+$(document).on('click', '#logs-by-id', function () {
+    var idstart =  parseInt($('#logs-idstart').val());
+    var idend =  parseInt($('#logs-idstop').val());
+    $.getJSON("/api/admin-get-logs/?id_start="+idstart+"&id_end="+idend,
+        function(data)
+        {
+            displayLogs(data["logs"]);
+        }
+    );
+});
+
+
+function displayLogs(list)
+{
+    var user_table = d3.select("#logs_list");
+    var rows  = user_table.selectAll(".user-row").data(list, function(d,i){return d["id"]});
+    
+    rows.enter()
+        .append("tr")
+        .attr("class", "user-row")
+            .html(function(d){
+                var time = new Date(d["time"]*1000);
+                var timestring= time.getUTCHours()+":"+time.getUTCMinutes()+":"+time.getUTCSeconds()+"."+time.getUTCMilliseconds();
+                return "<td>"+d["id"]+"</td><td>"+timestring+"</td>"+"<td>"+transformDict(d["filters"])+"</td>"+"<td>"+transformDict(d["entry"])+"</td>";
+            });
+
+    rows.exit().remove();
+}
+
+function transformDict(d){
+    var result="";
+    for (var k in d)
+    {
+        if(d[k] instanceof Object)
+            result+= k+": <br/><span style='margin-left:10px'>"+transformDict(d[k])+"</span>";
+        else
+        result+= k+": "+d[k]+"<br/>";
+    }
+    return result;
+}
+
 function displayUserList(list)
 {
     var user_table = d3.select("#user_list");

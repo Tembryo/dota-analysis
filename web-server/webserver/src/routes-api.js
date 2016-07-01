@@ -112,6 +112,10 @@ router.route("/get-player-matches")
                                 else
                                     next_result["status"] = "queued";
                             }
+                            else if(results.rows[i]["history_data"]["start_time"] < Date.now()/1000 - 7*24*60*60)
+                            {
+                                next_result["status"] = "too-old";
+                            }
                             else
                                 next_result["status"] = "open";
 
@@ -838,6 +842,38 @@ router.route('/admin-list-users/')
                     }
                     else
                         res.json({"users":result.rows});
+                }
+            );
+        }
+    );
+
+
+router.route('/admin-get-logs/')
+    .get(authentication.ensureAuthenticated,
+        authentication.ensureAdmin,
+        function(req, res) 
+        {
+            var selection_string  = "";
+            if(req.query.hasOwnProperty("timewindow"))
+                selection_string = "WHERE time > now() - interval '"+parseInt(req.query.timewindow)+" minutes'";
+            if(req.query.hasOwnProperty("id_start") && req.query.hasOwnProperty("id_end"))
+                selection_string = "WHERE id >= "+parseInt(req.query.id_start)+" AND id <= "+parseInt(req.query.id_end);
+
+            async.waterfall(
+                [
+                    database.generateQueryFunction("SELECT id, extract(epoch from time) as time , filters, entry FROM LogEntries "+selection_string+" ORDER BY time desc;",[])
+                ],
+                function(err, result)
+                {
+                    //console.log(result);
+                    if(err)
+                    {
+                        console.log("error retrieving logs ", err, result);
+                        
+                        res.json({"logs":[]});
+                    }
+                    else
+                        res.json({"logs":result.rows});
                 }
             );
         }

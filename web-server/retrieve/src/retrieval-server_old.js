@@ -1,7 +1,6 @@
 var database        = require("/shared-code/database.js"),
     services        = require("/shared-code/services.js"),
-    dota            = require("/shared-code/dota.js"),
-    logging         = require("/shared-code/logging.js")("retrieve-server");
+    dota            = require("/shared-code/dota.js");
 // retrieve - server.js
 var async       = require("async");
 
@@ -26,8 +25,8 @@ function markAccountStart(callback)
     if(steam_account == null)
     {
         steam_account_callback = function(){
+            console.log("callbacked for marking login ", steam_account);
             account_stop_id = steam_account["id"];
-            logging.log({"message": "marking login (cb)", "account_stop_id":account_stop_id});
             callback();
         }
         var account_request = 
@@ -38,8 +37,8 @@ function markAccountStart(callback)
     }
     else
     {
+        console.log("marking login ", steam_account);
         account_stop_id = steam_account["id"];
-        logging.log({"message": "marking login", "account_stop_id":account_stop_id});
         callback();
     }
 }
@@ -49,7 +48,7 @@ function getLogin(callback)
     if(steam_account == null)
     {
         steam_account_callback = function(){
-            logging.log({"message": "using login (cb)", "account":steam_account});
+            console.log("callbacked login ", steam_account);
             callback(null, steam_account);
         }
         var account_request = 
@@ -60,16 +59,17 @@ function getLogin(callback)
     }
     else
     {
-        logging.log({"message": "using login", "account":steam_account});
+        console.log("giving out login ", steam_account);
         callback(null, steam_account);
     }
 }
 
 function iterateAccount(callback)
 {
-    logging.log("iterating account");
+    console.log("iterating account");
 
     steam_account_callback = function(){
+        console.log("iterateAccount cb", account_stop_id, " new ", steam_account["id"])
         if(account_stop_id === steam_account["id"])
             callback(false);
         else
@@ -98,7 +98,7 @@ async.series(
         },
         function(callback)
         {
-            logging.log("Retrieve service started");
+            console.log("Retrieve service started");
         },
         function(callback)
         {
@@ -114,7 +114,7 @@ async.series(
 
 function handleRetrieveServerMsg(server_identifier, message)
 {
-
+    //console.log("got message", channel, message);
     switch(message["message"])
     {
         case "RetrieveResponse":
@@ -124,21 +124,18 @@ function handleRetrieveServerMsg(server_identifier, message)
             break;
 
         case "Retrieve":
-            logging.log({"message": "Retrieve job", "job-id": message["id"]});
             retrieve_concurrency.take(
                 function(){
                     processRequest(message, 
                         function()
                         {
-                            logging.log({"message": "finished retrieve", "id": message["id"]});
+                            console.log("finished retrieve reqid", message["id"]);
                             retrieve_concurrency.leave();
                         });
                 });
             break;
 
         case "UpdateHistory":
-            logging.log({"message": "History job", "job-id": message["id"]});
-
             checkAPIHistoryData(message);
             break;
 
@@ -152,7 +149,7 @@ function handleRetrieveServerMsg(server_identifier, message)
             steam_account_callback();
             break;
         default:
-            logging.log({"message": "unknown message", "server": server_identifier, "sent_message": message});
+            console.log("unknown message:", server_identifier, message);
             break;
     }
 }
@@ -169,6 +166,7 @@ function checkAPIHistoryData(message)
             function(login, callback)
             {
                 locals.login = login;
+                console.log("got login", locals.login );
                 database.query(
                     "SELECT u.id, u.steam_identifier, u.last_match FROM Users u WHERE u.id >= $1 AND u.id <= $2;",
                     [message["range-start"], message["range-end"]],
@@ -176,7 +174,7 @@ function checkAPIHistoryData(message)
             },
             function(users, jobs_callback)
             {
-                logging.log({"message": "updating user histories", "n": users.rowCount});
+                console.log("updating user histories", users.rowCount);
                 if(users.rowCount > 0)
                 {
                     dota.performAction(
@@ -209,6 +207,7 @@ function checkAPIHistoryData(message)
             },
             function(results, callback)
             {
+                console.log("auto request added:", results.rowCount)
                 var finished_message = 
                 {
                     "message":"UpdateHistoryResponse",
@@ -233,7 +232,7 @@ function checkAPIHistoryData(message)
             }
             else
             {
-                logging.log({"message": "finished updating user histories", "job": message["job"]});
+                //console.log("finished check_jobs");
             }
 
 
@@ -302,15 +301,18 @@ function processMatchHistory(history, locals, callback)
 
             locals.user_min_match_checked = Math.min(locals.user_min_match_checked, fixed_match_id);
 
+            //console.log("fixed", fixed_match_id);
+            //console.log(match["match_id"]);
             if(fixed_match_id > locals.user_last_match)
             {           
+                console.log("inserting matchhist", fixed_match_id);
                 database.query(
                     "INSERT INTO UserMatchHistory (user_id, match_id, data) VALUES ($1, $2, $3);",
                     [locals.user_id, fixed_match_id, match],
                     function(err, results)
                         {
                             if(err)
-                                logging.error({"message": "inserting matchhist failed", "matchid": fixed_match_id, "err": err, "result": result});
+                                console.log("inserting matchhist failed", locals.user_id, fixed_match_id, err, results);
                             callback_foreach();
                         });
             }
@@ -323,13 +325,13 @@ function processMatchHistory(history, locals, callback)
         function(err, result){
             if(err)
             {
-                logging.error({"message": "got err processing history", "err": err, "result": result});
+                console.log("got err", err, result);
                 callback(err, result);
             }
             else if(locals.user_min_match_checked >  locals.user_last_match &&
                     history["matches"].length == matches_per_request)
             {
-                //console.log("keep fetching", locals.user_id, locals.user_last_match, locals.user_new_last_match, locals.user_min_match_checked);
+                console.log("keep fetching", locals.user_id, locals.user_last_match, locals.user_new_last_match, locals.user_min_match_checked);
                 setTimeout(function()
                     {
                         locals.dota_client.requestPlayerMatchHistory(
@@ -342,7 +344,7 @@ function processMatchHistory(history, locals, callback)
                             {
                                 if(err)
                                 {
-                                    logging.error({"message": "got err fetching history", "err": err, "history": next_history});
+                                    console.log(err, next_history);
                                     callback(err, next_history);
                                 }
                                 else
@@ -364,7 +366,7 @@ function processMatchHistory(history, locals, callback)
 
 function processRequest(message, callback_request)
 {
-    logging.log({"message": "retrieval start", "matchid": message["id"], "job": message["job"]});
+    console.log("processing replay", message["id"], "job", message["job"]);
     var locals = {};
     locals.request_id = message["id"];
     async.waterfall(
@@ -381,11 +383,12 @@ function processRequest(message, callback_request)
             },
             function(results, callback)
             {
+                console.log("set to retrieving");
                 if(results.rowCount!=1)
                     callback("bad update result", results);
                 else
                 {
-                    //console.log("getting details #id for #u", results.rows[0].id, results.rows[0].requester_id);
+                    console.log("getting details #id for #u", results.rows[0].id, results.rows[0].requester_id);
                     locals.match_id = results.rows[0].id;
 
                     fetchMatchDetails(locals, callback); 
@@ -400,7 +403,7 @@ function processRequest(message, callback_request)
             },
             function(replay_data, callback)
             {
-                //console.log("inserted replayfile");
+                console.log("inserted replayfile");
                 database.query(
                     "UPDATE MatchRetrievalRequests mrr SET data=$2, retrieval_status=(SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label=$3) WHERE mrr.id=$1;",
                     [locals.request_id, replay_data, "download"],
@@ -450,11 +453,11 @@ function processRequest(message, callback_request)
                     {
                         if(err2 || results2.rowsCount != 1)
                         {
-                            logging.error({"message": "putting match as unavailable failed", "matchid": locals.request_id, "err": err2, "result": results2});
+                            console.log("put request unavailable failed", locals.request_id, err, results, err2, results2);
                         }
                         else
                         {
-                            logging.log({"message": "put match as unavailable", "matchid": locals.request_id});
+                            console.log("put request as unavailable", locals.request_id, err, results);
                         }
 
                         var finished_message = 
@@ -473,7 +476,6 @@ function processRequest(message, callback_request)
             }
             else if(err === "no-capacity-left")
             {
-                logging.log("sending no capacity left");
                 var finished_message = 
                     {
                         "message":"RetrieveResponse",
@@ -495,19 +497,11 @@ function processRequest(message, callback_request)
                     {
                         if(err2 || results2.rowCount != 1)
                         {
-                            logging.error({
-                                "message": "put request as failed - failed again",
-                                "matchid": locals.request_id,
-                                "err": err2,
-                                "result": results2});
+                            console.log("put request as failed - failed again", locals.request_id, err, results, err2, results2);
                         }
                         else
                         {
-                            logging.error({
-                                "message": "retrieval failed",
-                                "matchid": locals.request_id,
-                                "err": err,
-                                "result": results});
+                            console.log("put request as failed", locals.request_id, err, results);
                         }
 
                         var finished_message = 
@@ -525,9 +519,7 @@ function processRequest(message, callback_request)
             }
             else
             {
-                logging.log({
-                    "message": "successfull retrieve",
-                    "matchid": locals.request_id});
+                console.log("put replay data for", locals.request_id);
 
                 var finished_message = 
                     {
@@ -565,6 +557,7 @@ function fetchMatchDetails(locals, callback)
                     login,
                     function(dota_client, callback_dota)
                     {
+                        console.log("before dl");
                         replay_dl.getReplayData(dota_client, locals.match_id, callback_dota);
                     },
                     callback);
@@ -574,8 +567,6 @@ function fetchMatchDetails(locals, callback)
         {
             if(err)
             {
-                logging.log({"message": "got error fetching replay data", "err": err});
-
                 //error, retry with next account for details
                 iterateAccount(
                     function(result)

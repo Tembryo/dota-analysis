@@ -1,11 +1,13 @@
 var config          = require("./config.js"),
-    database        = require("/shared-code/database.js");
+    database        = require("/shared-code/database.js"),
     communication   = require("/shared-code/communication.js");
+    logging         = require("/shared-code/logging.js")("schedule-server");
 
 var async           = require("async");
 var shortid         = require("shortid");
 
 var job_queue_block = require('semaphore')(1);
+var steam_accounts_block = require('semaphore')(1);
 
 var servers = {};
 var servers_by_type = {};
@@ -29,7 +31,7 @@ var retrieve_requests = {};
 var retry_delay = 1000;
 
 var steam_accounts = [];
-var next_steam_account = 0;
+var next_steam_account = {};
 
 //THIS IS MAIN
 async.series(
@@ -54,18 +56,22 @@ function initialise(callback)
                 []),
             function(results, callback)
             {
-                for(var i = 0; i < results.rowCount; ++i)
-                {
+                steam_accounts_block.take(
+                    function(){
+                        for(var i = 0; i < results.rowCount; ++i)
+                        {
 
-                    steam_accounts.push(
-                    {
-                        "name": results.rows[i]["name"],
-                        "password": results.rows[i]["password"],
-                        "used-by": null 
-                    });
-                }
-                next_steam_account = 0;
-                callback();
+                            steam_accounts.push(
+                            {
+                                "name": results.rows[i]["name"],
+                                "password": results.rows[i]["password"],
+                                "used-by": null 
+                            });
+                        }
+                        next_steam_account = {};
+                        steam_accounts_block.leave();
+                        callback();
+                    })
             }
         ],
         callback);
@@ -152,10 +158,10 @@ function handleSchedulerMsg(channel, message)
 
             break;
         case "UnregisterService":
-            console.log("Unregistering not supported yet", message);
+            logging.log("Unregistering not supported yet");
             break;
         default:
-            console.log("Unknown scheduler message", message);
+            logging.log({"message":"Unknown scheduler message", "data":message});
             break;
     }
 }
@@ -167,7 +173,7 @@ function handleRetrievalMsg(channel, message)
         case "Retrieve":
             if(message["id"] in retrieve_requests)
             {
-                console.log("trying to requeue ",message)
+                logging.log({"message":"trying to requeue ","data":message})
             }
             else
             {
@@ -180,7 +186,7 @@ function handleRetrievalMsg(channel, message)
             }
             break;
         default:
-            console.log("Unknown retrieve message", message);
+            logging.log({"message":"Unknown retrieve message","data":message})
             break;
     }
 }
@@ -199,7 +205,7 @@ function handleNewUserMsg(channel, message)
                 createTemporaryJob(job_data, function(job_id){});
             break;
         default:
-            console.log("Unknown new user message", message);
+            logging.log("Unknown new user message", message);
             break;
     }
 }
@@ -217,7 +223,7 @@ function handleDownloadMsg(channel, message)
                 createJob(job_data);
             break;
         default:
-            console.log("Unknown download message", message);
+            logging.log({"message":"Unknown download message","data":message})
             break;
     }
 }
@@ -228,7 +234,7 @@ function handleReplayMsg(channel, message)
     switch(message["message"])
     {
         case "Analyse":
-                console.log("new replay file -  analysing");
+                logging.log("new replay file -  analysing");
                 var job_data = {
                         "message":      "Analyse",
                         "id":  message["id"]
@@ -236,7 +242,7 @@ function handleReplayMsg(channel, message)
                 createJob(job_data);
             break;
         default:
-            console.log("Unknown replay message", message);
+            logging.log({"message":"Unknown replay message","data":message})
             break;
     }
 }
@@ -249,7 +255,7 @@ function handleMatchHistoryMsg(channel, message)
     switch(message["message"])
     {
         case "RefreshHistory":
-                //console.log("requesting user history refresh");
+            logging.log("requesting history refresh message", message);
                 if(message["id"] in user_last_refresh)
                 {
                     var new_time = Date.now();
@@ -272,7 +278,7 @@ function handleMatchHistoryMsg(channel, message)
                 createTemporaryJob(job_data, function(job_id){});
             break;
         default:
-            console.log("Unknown match history message", message);
+            logging.log({"message":"Unknown match history message","data":message})
             break;
     }
 }
@@ -286,7 +292,7 @@ function handleJobMsg(channel, message)
             loadQueue();
             break;
         default:
-            console.log("Unknown match history message", message);
+            logging.log({"message":"Unknown job message","data":message})
             break;
     }
 }
@@ -299,7 +305,7 @@ function handleRetrieveServerMsg(server_identifier, message) //channel name is t
 {
     if(("job" in message) && !(message["job"] in jobs_queue))
     {
-        console.log("couldnt find retrieve job", message);
+        logging.log("couldnt find retrieve job");
         return;
     }
 
@@ -316,7 +322,7 @@ function handleRetrieveServerMsg(server_identifier, message) //channel name is t
             {
                 case "finished":
                     closeJob(server_identifier, message["job"]);
-                    console.log("finished retrieve", message);
+                    logging.log({"message":"finished retrieve", "data":message});
                     break;
                 case "no-capacity":
                     servers[server_identifier]["over-capacity-timeout"] = Date.now() + retrieve_capacity_block;
@@ -325,7 +331,7 @@ function handleRetrieveServerMsg(server_identifier, message) //channel name is t
                     schedulerTick();
                     break;
                 default:
-                    console.log("bad retrieve response:", server_identifier, message);
+                    logging.log({"message":"bad retrieve response:", "data": message});
                     break;
             }
             break;
@@ -335,10 +341,10 @@ function handleRetrieveServerMsg(server_identifier, message) //channel name is t
             switch(message["result"])
             {
                 case "finished":
-                    console.log("updated history", message["job"]);
+                    logging.log({"message": "updated history", "job-id":message["job"]});
                     break;
                 case "failed":
-                    console.log("failed to updated history", job);
+                    logging.log({"message":"failed to updated history", "data":message, "job": job});
                     break;
             }
             closeJob(server_identifier, message["job"]);
@@ -348,32 +354,42 @@ function handleRetrieveServerMsg(server_identifier, message) //channel name is t
 
         case "GetSteamAccount":
             //free old acc
-            for(var i = 0; i < steam_accounts.length; ++i)
-            {
-                if(steam_accounts[i]["used-by"] === server_identifier)
-                    steam_accounts[i]["used-by"] = null;
-            }
-
-            //iterate account
-            next_steam_account = (next_steam_account+1)%steam_accounts.length;
-            while(steam_accounts[next_steam_account]["used-by"] != null)
-            {
-                next_steam_account = (next_steam_account+1)%steam_accounts.length;
-            }
-
-            var steam_acc_message = 
+            steam_accounts_block.take(function(){
+                for(var i = 0; i < steam_accounts.length; ++i)
                 {
-                    "message": "SteamAccount",
-                    "id": next_steam_account,
-                    "name": steam_accounts[next_steam_account]["name"],
-                    "password": steam_accounts[next_steam_account]["password"]
-                };
-            steam_accounts[next_steam_account]["used-by"] = server_identifier;
-            communication.publish(server_identifier, steam_acc_message);
+                    if(steam_accounts[i]["used-by"] === server_identifier)
+                        steam_accounts[i]["used-by"] = null;
+                }
+
+                //iterate account
+                if(server_identifier in next_steam_account)
+                    next_steam_account[server_identifier] = (next_steam_account[server_identifier]+1)%steam_accounts.length;
+                else
+                    next_steam_account[server_identifier] = 0;
+                while(steam_accounts[next_steam_account[server_identifier]]["used-by"] != null)
+                {
+                    next_steam_account[server_identifier] = (next_steam_account[server_identifier]+1)%steam_accounts.length;
+                }
+
+                logging.log({"message": "giving out steam account ","steam_account":next_steam_account[server_identifier], "server": server_identifier});
+
+                var steam_acc_message = 
+                    {
+                        "message": "SteamAccount",
+                        "id": next_steam_account[server_identifier],
+                        "name": steam_accounts[next_steam_account[server_identifier]]["name"],
+                        "password": steam_accounts[next_steam_account[server_identifier]]["password"]
+                    };
+                steam_accounts[next_steam_account[server_identifier]]["used-by"] = server_identifier;
+                steam_accounts_block.leave();
+
+                communication.publish(server_identifier, steam_acc_message);
+            })
+
             break;
 
         default:
-            console.log("unknown response:", server_identifier, message);
+            logging.log({"message": "unknown response:", "server": server_identifier, "message":message});
             break;
     }
 }
@@ -383,7 +399,7 @@ function handleDownloadServerMsg(server_identifier, message) //channel name is t
 {
     if(("job" in message) && !(message["job"] in jobs_queue))
     {
-        console.log("couldnt find download job", message);
+        logging.log("couldnt find download job");
         return;
     }
 
@@ -398,16 +414,16 @@ function handleDownloadServerMsg(server_identifier, message) //channel name is t
             switch(message["result"])
             {
                 case "finished":
-                    console.log("finished download", message["job"]);
+                    logging.log({"message": "finished download", "job-id": message["job"]});
                     break;
                 case "failed":
-                    console.log("failed download", job);
+                    logging.log({"message": "failed download", "job":job});
                     break;
             }
             closeJob(server_identifier, message["job"]);
             break;
         default:
-            console.log("unknown response:", server_identifier, message);
+            logging.log({"message": "unknown response:", "server": server_identifier, "message":message});
             break;
     }
 }
@@ -416,7 +432,7 @@ function handleAnalysisServerMsg(server_identifier, message) //channel name is t
 {
     if(("job" in message) && !(message["job"] in jobs_queue))
     {
-        console.log("couldnt find analysis job", message);
+        logging.log({"message":"couldnt find analysis job", "data":message});
         return;
     }
 
@@ -429,22 +445,22 @@ function handleAnalysisServerMsg(server_identifier, message) //channel name is t
 
         case "AnalyseResponse":
             
-            console.log("got analysis response");
+            logging.log("got analysis response");
             var job =  jobs_queue[message["job"]]; 
             switch(message["result"])
             {
                 case "finished":
-                    console.log("finished analysis", message["job"]);
+                    logging.log({"message": "finished analysis", "job-id":message["job"]});
                     break;
                 case "failed":
-                    console.log("failed analysis", job);
+                    logging.log({"message":"failed analysis", "job":job});
                     break;
                 default:
-                    console.log("weird result ", message["result"]);
+                    logging.log({"message":"weird result ", "data":message});
             }
             if(! (message["message"]==="AnalyseResponse"))
             {
-                console.log("WHAT THE FUCK");
+                logging.log("WHAT THE FUCK");
                 return;
             }
 
@@ -453,24 +469,24 @@ function handleAnalysisServerMsg(server_identifier, message) //channel name is t
             break;
 
         case "ScoreResponse":
-            console.log("got score response");
+            logging.log("got score response");
             var job =  jobs_queue[message["job"]]; 
             switch(message["result"])
             {
                 case "finished":
-                    console.log("finished score", message["job"]);
+                    logging.log({"message": "finished score", "job-id":message["job"]});
                     break;
                 case "failed":
-                    console.log("failed score", job);
+                    logging.log({"message":"failed score", "job":job});
                     break;
                 default:
-                    console.log("weird result ", message["result"]);
+                    logging.log({"message":"weird score result ", "data":message});
             }
             closeJob(server_identifier, message["job"]);
 
             break;
         default:
-            console.log("unknown response:", server_identifier, message);
+            logging.log({"message": "unknown response:", "server": server_identifier, "message":message});
             break;
     }
 }
@@ -479,7 +495,7 @@ function handleCrawlServerMsg(server_identifier, message) //channel name is the 
 {
     if(("job" in message) && !(message["job"] in jobs_queue))
     {
-        console.log("couldnt find crawl job", message);
+        logging.log("couldnt find crawl job");
         return;
     }
 
@@ -497,10 +513,10 @@ function handleCrawlServerMsg(server_identifier, message) //channel name is the 
             switch(message["result"])
             {
                 case "finished":
-                    console.log("crawled", message["job"]);
+                    logging.log({"message":"crawled","job":message["job"]});
                     break;
                 case "failed":
-                    console.log("failed crawl", job);
+                    logging.log({"message":"failed crawl", "job":job});
                     break;
             }
             closeJob(server_identifier, message["job"]);
@@ -513,10 +529,10 @@ function handleCrawlServerMsg(server_identifier, message) //channel name is the 
             switch(message["result"])
             {
                 case "finished":
-                    console.log("added samples", message["job"]);
+                    logging.log({"message":"added samples","job":message["job"]});
                     break;
                 case "failed":
-                    console.log("failed add samples", job);
+                    logging.log("failed add samples", job);
                     break;
             }
             closeJob(server_identifier, message["job"]);
@@ -524,33 +540,43 @@ function handleCrawlServerMsg(server_identifier, message) //channel name is the 
                 job["callback"]();//made a copy, so this works after cleaning up the job
             break;
         case "GetSteamAccount":
-            //free old acc
-            for(var i = 0; i < steam_accounts.length; ++i)
-            {
-                if(steam_accounts[i]["used-by"] === server_identifier)
-                    steam_accounts[i]["used-by"] = null;
-            }
-
-            //iterate account
-            next_steam_account = (next_steam_account+1)%steam_accounts.length;
-            while(steam_accounts[next_steam_account]["used-by"] != null)
-            {
-                next_steam_account = (next_steam_account+1)%steam_accounts.length;
-            }
-
-            var steam_acc_message = 
+            steam_accounts_block.take(function(){
+                //free old acc
+                for(var i = 0; i < steam_accounts.length; ++i)
                 {
-                    "message": "SteamAccount",
-                    "id": next_steam_account,
-                    "name": steam_accounts[next_steam_account]["name"],
-                    "password": steam_accounts[next_steam_account]["password"]
-                };
-            steam_accounts[next_steam_account]["used-by"] = server_identifier;
-            communication.publish(server_identifier, steam_acc_message);
+                    if(steam_accounts[i]["used-by"] === server_identifier)
+                        steam_accounts[i]["used-by"] = null;
+                }
+
+                //iterate account
+                if(server_identifier in next_steam_account)
+                    next_steam_account[server_identifier] = (next_steam_account[server_identifier]+1)%steam_accounts.length;
+                else
+                    next_steam_account[server_identifier] = Math.floor(Math.random() * steam_accounts.length);
+                while(steam_accounts[next_steam_account[server_identifier]]["used-by"] != null)
+                {
+                    next_steam_account[server_identifier] = (next_steam_account[server_identifier]+1)%steam_accounts.length;
+                }
+
+                logging.log({"message": "giving out steam account ","steam_account":next_steam_account[server_identifier], "server": server_identifier});
+
+                var steam_acc_message = 
+                    {
+                        "message": "SteamAccount",
+                        "id": next_steam_account[server_identifier],
+                        "name": steam_accounts[next_steam_account[server_identifier]]["name"],
+                        "password": steam_accounts[next_steam_account[server_identifier]]["password"]
+                    };
+                steam_accounts[next_steam_account[server_identifier]]["used-by"] = server_identifier;
+                steam_accounts_block.leave();
+
+                communication.publish(server_identifier, steam_acc_message);
+            })
+            
             break;
 
         default:
-            console.log("unknown response:", server_identifier, message);
+            logging.log({"message": "unknown response:", "server": server_identifier, "message":message});
             break;
     }
 }
@@ -576,18 +602,18 @@ function registerService(type, identifier)
             function (err, results)
             {
                 if(err)
-                    console.log("failed listening on server channel", err, results);
+                    logging.log("failed listening on server channel");
                 else
                 {
                     servers[identifier] = server;
                     servers_by_type[type].push(identifier);
-                    console.log("registered service", servers_by_type);
+                    logging.log({"message":"registered service", "servers by type":servers_by_type});
                 }
             });
     }
     else
     {
-        console.log("trying to register for unmanaged service type", type, identifier);
+        logging.log("trying to register for unmanaged service type "+ type+" "+identifier);
     }
 }
 
@@ -613,7 +639,7 @@ function loadQueue()
             },
             function(callback)
             {
-                console.log("limit enqueue to ",locals.to_load);
+                //logging.log("limit enqueue to ",locals.to_load);
                 database.query("SELECT id, data, extract(epoch from started) as started from Jobs WHERE finished IS NULL ORDER BY started DESC LIMIT $1;",
                 [locals.to_load], callback);
             },
@@ -622,7 +648,7 @@ function loadQueue()
                 //TODO: Currently can load same job multiple times, will drop duplicates tho
                 // Track executed jobs and only pull free ones
                 var n_loaded_jobs = results.rowCount;
-                console.log("Rerunning queue of ", n_loaded_jobs);
+                logging.log("Rerunning queue of "+ n_loaded_jobs);
                 async.each(results.rows,
                     function(row, callback)
                     {
@@ -644,7 +670,7 @@ function loadQueue()
         function(err, results)
         {
             if (err)
-                console.log(err, results);
+                logging.error({"err":err, "result":results});
         }
     );
 }
@@ -664,7 +690,7 @@ function updateAllHistories()
             {
                 if(results.rowCount == 1)
                 {
-                    console.log("user range", results.rows[0]["min"], results.rows[0]["max"]);
+                    logging.log("user range "+ results.rows[0]["min"]+" - "+ results.rows[0]["max"]);
                     //TODO
                     var ranges = [];
                     var start =  results.rows[0]["min"];
@@ -700,7 +726,7 @@ function updateAllHistories()
         {
             if (err)
             {
-                console.log("failure", err, results, user_id_range);
+                logging.error({"message":"updateAllHistories failed", "err":err, "result":results});
             }
 
             setTimeout(updateAllHistories, check_interval_history);
@@ -734,7 +760,7 @@ function crawlCandidateMatches()
         {
             if (err)
             {
-                console.log("failure", err, results, user_id_range);
+                logging.error({"err": err, "result": results});
             }
     
             setTimeout(crawlCandidateMatches, crawl_interval);
@@ -769,7 +795,7 @@ function addSampleMatches()
         {
             if (err)
             {
-                console.log("failure", err, results, user_id_range);
+                logging.error({"err": err, "result": results});
             }
     
             setTimeout(addSampleMatches, add_interval);
@@ -807,11 +833,11 @@ function schedulerTick()
             }*/
             var job_keys =  Object.keys(jobs_queue);
             //console.log("tick, n jobs:", job_keys.length);
-            job_keys.sort(
+            /*job_keys.sort(
                 function(a, b){
                     return jobs_queue[b]["time"] - jobs_queue[a]["time"];
-                })
-            //console.log("after", job_keys.length);
+                })*/
+            job_keys = shuffleArray(job_keys);
             async.eachSeries(
                 job_keys,
                 function(job_id, callback)
@@ -834,6 +860,16 @@ function schedulerTick()
         }
     );
     //console.log("Jobs queue", jobs_queue);
+}
+
+function shuffleArray(array) {
+    for (var i = array.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+    return array;
 }
 
 function scheduleJob(job_id, callback)
@@ -861,13 +897,13 @@ function scheduleJob(job_id, callback)
             server_identifier = chooseServer("Crawl");
             break;
         default:
-            console.log("unknown job scheduled", job_id, job);
+            logging.log({"message": "unknown job scheduled", "job-id":job_id, "job":job});
             return;
     }
 
     if(server_identifier)
     {
-        console.log("assigned ", job["data"]["message"], "job ", job_id, " to ", server_identifier);
+        logging.log({"message":"assigned job", "job-id": job_id, "server-id": server_identifier});
     
         //dispatch message to server to handle job
         var message = job["data"];
@@ -875,7 +911,7 @@ function scheduleJob(job_id, callback)
 
         communication.publish(server_identifier, message,
             function(){
-                console.log("message sent");
+                logging.log({"message":"job message sent", "job-id":job_id});
                 job["state"] = "in-progress";
                 jobs_queue[String(job_id)] = job;
                 servers[server_identifier]["busy"] = true;
@@ -901,7 +937,7 @@ function chooseRetrieveServer(capacity_required)
             (!capacity_required || servers[server_identifier]["over-capacity-timeout"] < Date.now() )
             )
         {
-            console.log("OK");
+            //console.log("OK");
             return server_identifier;
         }
     }
@@ -919,7 +955,7 @@ function chooseServer(server_type)
             !servers[server_identifier]["busy"]
             )
         {
-            console.log("OK");
+            //console.log("OK");
             return server_identifier;
         }
     }
@@ -953,7 +989,7 @@ function createJob(data, id, started, callback_job)
     //console.log("creating job", id, data);
     if(id != null)
     {
-        console.log("only queued");
+        //logging.log("only queued");
         job_queue_block.take(
             function()
             {
@@ -968,7 +1004,7 @@ function createJob(data, id, started, callback_job)
     }
     else
     {
-        console.log("putting into db");
+        //console.log("putting into db");
         async.waterfall(
             [
                 database.generateQueryFunction("INSERT INTO Jobs(started, data) VALUES(now(),$1) RETURNING id;", [data]),
@@ -976,7 +1012,7 @@ function createJob(data, id, started, callback_job)
                 {
                     if(results.rowCount == 1)
                     {
-                        console.log("created job", results.rows[0]["id"]);
+                        logging.log({"message":"created job", "job-id": results.rows[0]["id"]});
                         callback(null, results.rows[0]["id"]);
                     }
                     else
@@ -987,7 +1023,7 @@ function createJob(data, id, started, callback_job)
             {
                 if (err)
                 {
-                    console.log("failure creating job", err, results);
+                    logging.error({"message":"failure creating job", "err":err, "result":results});
                 }
                 else 
                 {
@@ -1024,7 +1060,7 @@ function closeJob(server_identifier, job_id)
             {
                 if(results.rowCount == 1)
                 {
-                    console.log("closed job", job_id);
+                    logging.log({"message":"closed job", "job-id":job_id});
                     callback();
                 }
                 else
@@ -1041,13 +1077,13 @@ function closeJob(server_identifier, job_id)
                         delete jobs_queue[job_id];
                         servers[server_identifier]["busy"] = false;
                         job_queue_block.leave();
-                        console.log("freed rserver", server_identifier);
+                        logging.log({"message":"freed server", "server_id": server_identifier});
                         schedulerTick();
                     });
             }
             else
             {
-                console.log("failure closing job", err, results);
+                logging.error({"message":"failure closing job", "err": err, "result":results});
             }
         }
     );

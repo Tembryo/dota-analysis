@@ -2,3 +2,5 @@ storage/*
 **/node_modules/*
 !storage/api/README.md
 !storage/db/README.md
+start-minis.sh
+update-minis.sh

@@ -588,7 +588,9 @@ function updateIcon(d,i)
                     if(d["match-id"] === selected_match)
                         return "rgba(236,151,31,0.8)";
                     else if(d["status"]==="open")
-                        return "rgba(140,140,140,0.5)"
+                        return "rgba(140,140,140,0.7)"
+                    else if(d["status"]==="too-old")
+                        return "rgba(200,200,200,0.2)"
                     else if(d["status"]==="queued")
                         return "rgba(0,255,0,0.3)";
                     else if(d["status"]==="failed")
@@ -624,7 +626,7 @@ function displayMatch(match)
 
 function  clearMatch()
 {
-    alert("clear");
+    //alert("clear");
 }
 
 function renderPolygon(dataPoint)
@@ -866,27 +868,32 @@ function renderTips(dataPoint){
 
     var skillOne = skillsList[0];
     var skillTwo = skillsList[1];
-    var tip1_text = "";
-    if(skillOne[0] in skill_constants)
-        tip1_text = "Work on your <b>" + skill_constants[skillOne[0]]["label"] +"</b>:<br/>"+
-            " You had <span class='skill-value'> "+skill_constants[skillOne[0]]["format"]( skillOne[1]["value"])+"</span>, a value of <span class='skill-value'>"+skill_constants[skillOne[0]]["format"]( skillOne[1]["improved-value"])+"</span> would result in "+formatIMR(skillOne[1]["improved-score"])+" IMR. <br/> " +
-             skill_constants[skillOne[0]]["tip"] + "";
-    else
-        tip1_text = "Work on your <b>" + skillOne[0] +"</b>:<br/>"+
-            " You had <span class='skill-value'>"+skillOne[1]["value"].toFixed(3)+"</span>, a value of <span class='skill-value'>"+skillOne[1]["improved-value"].toFixed(3)+"</span> would result in "+formatIMR(skillOne[1]["improved-score"])+" IMR.";
-    
-    var tip2_text = "";
-    if(skillTwo[0] in skill_constants)
-        tip2_text = "Work on your <b>" + skill_constants[skillTwo[0]]["label"] +"</b>:<br/>"+
-            " You had <span class='skill-value'>"+skill_constants[skillTwo[0]]["format"]( skillTwo[1]["value"])+"</span>, a value of <span class='skill-value'>"+skill_constants[skillTwo[0]]["format"]( skillTwo[1]["improved-value"])+"</span> would result in "+formatIMR(skillTwo[1]["improved-score"])+" IMR. <br/> " +
-             skill_constants[skillTwo[0]]["tip"] + "";
-    else
-        tip2_text = "Work on your <b>" + skillTwo[0] +"</b>:<br/>"+
-            " You had <span class='skill-value'>"+skillTwo[1]["value"].toFixed(3)+"</span>, a value of <span class='skill-value'>"+skillTwo[1]["improved-value"].toFixed(3)+"</span> would result in "+formatIMR(skillTwo[1]["improved-score"])+" IMR.";
 
-    $("#tip1").html(tip1_text);
-    $("#tip2").html(tip2_text);
+    $("#tip1").html(generateTipText(skillOne));
+    $("#tip2").html(generateTipText(skillTwo));
 }
+
+function generateTipText(skill_pair)
+{
+    var text = "";
+    if(skill_pair[0] in skill_constants)
+    {
+        text = "Work on your <b>" + skill_constants[skill_pair[0]]["label"] +"</b>:<br/>"+
+            " You had <span class='skill-value'> "+skill_constants[skill_pair[0]]["format"]( skill_pair[1]["value"])+
+            "</span>, a value of <span class='skill-value'>"+skill_constants[skill_pair[0]]["format"]( skill_pair[1]["improved-value"])+
+            "</span> would result in "+formatIMR(skill_pair[1]["improved-score"])+" IMR. <br/> ";
+        var change_dir = Math.sign(skill_pair[1]["improved-value"] - skill_pair[1]["value"]);
+        text += skill_constants[skill_pair[0]]["tips"][change_dir];
+    }    
+    else
+        text = "Work on your <b>" + skill_pair[0] +"</b>:<br/>"+
+            " You had <span class='skill-value'>"+skill_pair[1]["value"].toFixed(3)+
+            "</span>, a value of <span class='skill-value'>"+skill_pair[1]["improved-value"].toFixed(3)+
+            "</span> would result in "+formatIMR(skill_pair[1]["improved-score"])+" IMR.";
+
+    return text;
+}
+
 
 function renderHeroImages(dataPoint) {
     var players = dataPoint["players"];
@@ -932,7 +939,7 @@ $("#analyse-matches-button" ).click(function() {
     if(data["result"]==="success")
     {
         if(data["n-requested"] == 0)
-            alert("Up to date, no matches to queue.");
+            alert("No more matches to queue, please wait.");
         else           
         {
             alert("Queued "+data["n-requested"]+" matches for analysis. Games can take ~5 minutes to parse."); 

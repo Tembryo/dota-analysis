@@ -1,13 +1,17 @@
 var async       = require("async"),
-    fs              = require("fs");
+    fs          = require("fs");
 
-var config = require("./config.js"),
-    database = require("./database.js");
+var loaded_block = require('semaphore')(1);
+
+var config      = require("./config.js"),
+    database    = require("./database.js");
+
 
 var machine_filename = "machine_config.json";
 
 var machine_config =  null;
-var loaded = false;
+var loaded = "Loading";
+var callbacks = [];
 function load()
 {
     var full_machine_filepath = config.shared+"/"+machine_filename;
@@ -74,27 +78,71 @@ function load()
         ],
         function (err, result)
         {
-            if(err)
-                console.log(err);
-            else
-            {
-                loaded = true;
-            }
+            loaded_block.take(function()
+                {
+                    if(err)
+                    {
+                        console.log(err);
+                        for(var i = 0; i < callbacks.length; i++)
+                        {
+                            callbacks[i](err,result);
+                        }
+                        loaded = "Failed";
+                    }
+                    else
+                    {
+                        loaded = "Ready";
+                        console.log("loaded machineID, running cbs", callbacks.length)
+                        for(var i = 0; i < callbacks.length; i++)
+                        {
+                            callbacks[i](null, machine_config["id"]);
+                        }
+                    }    
+                    loaded_block.leave();
+                });
         }
     );
 }
 
 load();
 
-exports.getMachineConfig = function(callback){
-    if(!loaded)
-        callback("machine config not loaded yet");
-    else
-        callback(null, machine_config);
+exports.getMachineConfig = function(callback)
+{
+    loaded_block.take(function()
+        {
+            switch(loaded)
+            {
+                case "Loading":
+                    console.log("machine config not loaded yet");
+                    callbacks.push(callback);
+                    break;
+                case "Ready":
+                    callback(null, machine_config);
+                    break;
+                case "Failed":
+                    callback(loaded);
+                    break;
+            }
+            loaded_block.leave();
+        });
 };
-exports.getMachineID = function(callback){
-    if(!loaded)
-        callback("machine config not loaded yet");
-    else
-        callback(null, machine_config["id"]);
+exports.getMachineID = function(callback)
+{
+    loaded_block.take(function()
+        {
+            switch(loaded)
+            {
+                case "Loading":
+                    console.log("machine config not loaded yet");
+                    callbacks.push(callback);
+                    break;
+                case "Ready":
+                    callback(null, machine_config["id"]);
+                    break;
+                case "Failed":
+                    callback(loaded);
+                    break;
+            }
+            loaded_block.leave();
+        });
 };
