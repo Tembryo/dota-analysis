@@ -7,6 +7,7 @@ import json
 import bisect
 import numpy as np
 import scipy.sparse
+import matplotlib.pyplot as plt
 #import cProfile
 
 def createParameters():
@@ -96,6 +97,49 @@ def normalize(v):
     if norm == 0: 
        return v
     return v/norm
+
+def dist_nD(P,A,B):
+    #Calculates the distance from the point ``P`` to the line given by the points ``A`` and ``B``.
+    pa = P - A
+    ba = B - A
+    t = np.dot(pa,ba)/np.dot(ba,ba)
+    d = np.linalg.norm(pa - t * ba)
+    return d
+
+def rdp(M,epsilon,dist):
+    """
+    Pure Python implementation of the Ramer-Douglas-Peucker algorithm.
+
+    :copyright: (c) 2014 Fabian Hirschmann <fabian@hirschmann.email>
+    :license: MIT, see LICENSE.txt for more details.
+
+    Simplifies a given array of points.
+
+    :param M: an array
+    :type M: Nx3 numpy array
+    :param epsilon: epsilon in the rdp algorithm
+    :type epsilon: float
+    :param dist: distance function
+    :type dist: function with signature ``f(x1, x2, x3)``
+    """
+
+    dmax = 0.0
+    index = -1
+
+    for i in xrange(1, M.shape[0]):
+        d = dist(M[i], M[0], M[-1])
+
+        if d > dmax:
+            index = i
+            dmax = d
+
+    if dmax > epsilon:
+        r1 = rdp(M[:index + 1], epsilon, dist)
+        r2 = rdp(M[index:], epsilon, dist)
+
+        return np.vstack((r1[:-1], r2))
+    else:
+        return np.vstack((M[0], M[-1]))
 
 def loadFiles(match_id, match_directory):
     #load in the raw data from the csv files
@@ -428,6 +472,8 @@ def processHeroPosition(match):
                 i += 1
 
             stored = {
+                "start-index": start_index,
+                "end-index": end_index,
                 "time-start": life["start"],
                 "time-end": life["end"],
                 "timeseries": {"format":"samples","samples":samples_list}
@@ -1000,9 +1046,8 @@ def processPurchases(match):
 
 def processCreepEquilibrium(match):
     # will define the rolling average position of creep deaths for a window of T seconds as the equlirium point for the lane
+    n = 5
     match["creep_equilibrium"] = {"top": [], "mid": [], "bot": []}
-
-
     towers = {
         "rad_tower1_top":    [-6116.9688,  1805.9062],
         "rad_tower1_mid":    [-1657.625,   -1512.5],
@@ -1036,7 +1081,6 @@ def processCreepEquilibrium(match):
         "dir_tower4_bot":     [5280,    4431.9688]
     }
 
-    n = 5
     top_x = []
     top_y = []
     mid_x = []
@@ -1127,6 +1171,48 @@ def processRoshanAttacks(match):
                 }
         match["roshan_attack_list"].append(attack)
 
+def processMovement(match):
+    #for each hero trajectory segement the trajectory into moving and stationary
+    #match["entities"][match["heroes"][hero]["entity_id"]]["position"][i]:
+    step = 50
+    w0 = 0.01 # x of the order [-8000,8000]
+    w1 = 0.01 # y of th order [-8000,8000]
+    w2 = 1 # of the order [0,2400]
+    w3 = 100 
+    N = len(match["raw"]["trajectories"]["time"])
+    index_list = [x for x in range(0,N,step)]
+    hero_paths = {}
+    hero_fight_indicators = {}
+    #create indicator for whether hero was in a fight
+    for hero in match["heroes"]:
+        hero_fight_indicators[hero] = np.zeros((N,1))
+
+    for fight in match["fight_list"]:
+        time_start_index = findTimeTick(match,match["raw"]["trajectories"]["time"],fight["time_start"])
+        time_end_index = findTimeTick(match,match["raw"]["trajectories"]["time"],fight["time_end"])
+        for hero_entity_id in fight["heroes_involved"]:
+            hero_fight_indicators[match["entities"][hero_entity_id]["unit"]][time_start_index:time_end_index] = 1
+
+    for hero in match["heroes"]:
+        #load the trajectory data into a numpy array
+        hero_trajectory = np.zeros((len(index_list),4))
+        for i,j in enumerate(index_list):
+            hero_trajectory[i,0] = w0 * match["raw"]["trajectories"][hero]["position"][j][0]
+            hero_trajectory[i,1] = w1 * match["raw"]["trajectories"][hero]["position"][j][1]
+            hero_trajectory[i,2] = w2 * match["raw"]["trajectories"]["time"][j]
+            hero_trajectory[i,3] = w3 * hero_fight_indicators[hero][j]        
+        hero_paths[hero] = rdp(hero_trajectory,10,dist_nD)
+
+    desired_hero = "ursa"
+    print hero_paths[desired_hero][1:10,2]/w2
+    print hero_paths[desired_hero][1:10,3]/w3
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(hero_paths[desired_hero][1:10,0],hero_paths[desired_hero][1:10,1])
+    for i in range(len(hero_paths[desired_hero][1:10,2])):
+        ax.annotate(str(math.floor(hero_paths[desired_hero][i,2])),(hero_paths[desired_hero][i,0],hero_paths["ursa"][i,1]))
+    plt.show()
+
 
 def makeStats(match):
     # instantiate the stats variables that will be filled in by subsequent evaluation functions
@@ -1201,7 +1287,6 @@ def makeStats(match):
                 "total-distance-traveled": 0,
                 "total-time-alive": 0,
                 "average-distance-from-centroid": 0,
-                "percentage-moving": 0,
                 "num-of-rotations": 0,
                 "percentage-moving": 0,
                 "percentage-stationary": 0,
@@ -1755,6 +1840,7 @@ def process(match):
     processPurchases(match)
     processRoshanAttacks(match)
     processItemUse(match)
+    processMovement(match)
 
 def computeStats(match):
     # compute the statistics that will be used as features in the machine learning model
@@ -1791,6 +1877,9 @@ def main():
     writeToJson(stats_filename,match["stats"]) 
     #delete intermediate/input files
     #shutil.rmtree(match_directory)
+
+    # for fight in match["fight_list"]:
+    #     print fight
     
 if __name__ == "__main__":
     #cProfile.run('main()')
