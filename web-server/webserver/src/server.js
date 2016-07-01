@@ -5,6 +5,7 @@ var express         = require("express"),
     cookieParser    = require("cookie-parser"),
     session         = require("express-session"),
     morgan          = require("morgan"),
+    favicon         = require('serve-favicon'),
     ejs_mate        = require('ejs-mate'),
     methodOverride  = require("method-override"),
     passport        = require("passport"),
@@ -29,7 +30,9 @@ app.engine('ejs', ejs_mate);
 app.set('view engine', 'ejs');
 app.set('views', config.files+"/views");
 
+app.use(favicon(config.files+"/static/img/favicon.ico"));
 app.use("/static", express.static(config.files+"/static"));
+
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

@@ -4,7 +4,7 @@
     "author": "fischerq",
     "main": "dota.js",
     "dependencies": {
-        "pg": "^4.4.3",
+        "pg": "^6.0.1",
         "async": "^1.5.0",
         "request": "^2.67.0",
         "unbzip2-stream": "^1.0.8", 

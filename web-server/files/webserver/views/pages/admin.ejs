@@ -29,6 +29,9 @@
                 </li>
 
                 <li>
+                    <a data-toggle="tab" href="#logs">Logs</a>
+                </li>
+                <li>
                     <a data-toggle="tab" href="#mmr-samples">MMR samples</a>
                 </li>
                 <li>
@@ -99,7 +102,15 @@
                         </tbody>
                     </table>
                 </div>
-
+                <div id="logs" class="tab-pane fade">
+                    <h3>Logs</h3>
+                    <p>Logs for the last minutes <input id="logs-timewindow" type="text"> <input id="logs-by-time" type="submit" value="Get"></p>
+                    <p>Logs for the last minutes <input id="logs-idstart" type="text"><input id="logs-idstop" type="text"> <input id="logs-by-id" type="submit" value="Get"></p>
+                    <table class="table">
+                        <thead><tr><th>ID</th><th>time</th><th>filters</th><th>entry</th></tr></thead>
+                        <tbody id="logs_list"></tbody>
+                    </table>
+                </div>
                 <div id="mmr-samples" class="tab-pane fade">
                     <h3>MMR samples data</h3>
                     <table class="table" id="mmr-samples-table">

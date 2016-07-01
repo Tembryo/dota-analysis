@@ -3,7 +3,7 @@ var pg          = require("pg"),
 
 var config      = require("./config.js");
 
-var connection_string = "postgres://"+config.database_auth+"@"+config.database_host+"/wisdota";
+var connection_string = "postgres://wisdota:"+config.database_pw+"@"+config.database_host+"/wisdota";
 
 pg.on('error', function(error, client)
     {
