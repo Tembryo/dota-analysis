@@ -8,7 +8,7 @@
         "async": "^1.5.0",
         "request": "^2.67.0",
         "unbzip2-stream": "^1.0.8", 
-        "steam": "^1.4.0",
+        "steam-user": "^3.9.0",
         "dota2": "git://github.com/RJacksonm1/node-dota2.git",
         "semaphore": "^1.0.3",
         "shortid": "^2.2.4",
