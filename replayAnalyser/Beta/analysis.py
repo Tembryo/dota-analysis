@@ -50,7 +50,7 @@ def createParameters():
     parameters["processFights"]["hp_min_threshold"] = 100
 
     parameters["processCreepDeaths"] = {}
-    parameters["processCreepDeaths"]["responsibility_distance"] = 1000
+    parameters["processCreepDeaths"]["experience_range"] = 1300 
 
     parameters["formAdjacencyMatrix"] = {}
     parameters["formAdjacencyMatrix"]["edge_threshold"] = 1 
@@ -112,17 +112,7 @@ def rdp(M,epsilon,dist):
 
     :copyright: (c) 2014 Fabian Hirschmann <fabian@hirschmann.email>
     :license: MIT, see LICENSE.txt for more details.
-
-    Simplifies a given array of points.
-
-    :param M: an array
-    :type M: Nx3 numpy array
-    :param epsilon: epsilon in the rdp algorithm
-    :type epsilon: float
-    :param dist: distance function
-    :type dist: function with signature ``f(x1, x2, x3)``
     """
-
     dmax = 0.0
     index = -1
 
@@ -648,8 +638,9 @@ def processHeroAttacks(match):
                         }
                 match["attack_list"].append(attack)
 
-def fightDistMetric(match,attack1,attack2,alpha,beta,gamma):
-
+def fightDistMetric(match,attack1,attack2):
+    # calculate the distance between two attacks
+    params = [0.002,0.2,-3.5]
     r = math.sqrt((attack1["position"][0] - attack2["position"][0]) * (attack1["position"][0] - attack2["position"][0]) + (attack1["position"][1]-attack2["position"][1]) * (attack1["position"][1]-attack2["position"][1]))
     t = (abs(attack1["time"] - attack2["time"])) 
     v1 = np.zeros([11])
@@ -667,18 +658,20 @@ def fightDistMetric(match,attack1,attack2,alpha,beta,gamma):
 
     v =  np.dot(v1,v2)
 
-    return alpha*r/2000 + beta*t/20 + gamma*v
+    return params[0]*r + params[1]*t + params[2]*v
 
-def formAdjacencyMatrix(match):
-    n = len(match["attack_list"])
+def formAdjacencyMatrix(match,my_list,dist):
+    # find distance between each attack in the attack list
+    # dist is a distance metric function the form f(match,my_list[i],my_list[j]) i.e., it finds distance between two elements i,j in the list
+    n = len(my_list)
     A = np.zeros(shape = (n,n))
 
     for i in range(0,n):
         for j in range(i+1,n):
-            if match["attack_list"][j]["time"] - match["attack_list"][i]["time"] > match["parameters"]["formAdjacencyMatrix"]["time_threshold"]:
+            if my_list[j]["time"] - my_list[i]["time"] > match["parameters"]["formAdjacencyMatrix"]["time_threshold"]:
                 break
             else:            
-                p = fightDistMetric(match,match["attack_list"][i],match["attack_list"][j],4,4,-3.5)
+                p = dist(match,my_list[i],my_list[j])
                 if p < 1:
                     A[i,j] = 1
     
@@ -688,7 +681,7 @@ def processFights(match):
     #return a list of fights 
     match["fight_list"] = []
 
-    A = formAdjacencyMatrix(match)
+    A = formAdjacencyMatrix(match,match["attack_list"],fightDistMetric)
     n_components, labels = scipy.sparse.csgraph.connected_components(A, directed=False, return_labels=True)
 
     gold_time = []
@@ -896,8 +889,8 @@ def processCreepDeaths(match):
 
                 for hero in match["heroes"]:
                     hero_position = lookupHeroPosition(match,hero,time)
-                    d = math.sqrt((hero_position[0] - creep_position[0])*(hero_position[0] - creep_position[0]) + (hero_position[0] - creep_position[0])*(hero_position[0] - creep_position[0]))
-                    if d < match["parameters"]["processCreepDeaths"]["responsibility_distance"]:
+                    d = math.sqrt((hero_position[0] - creep_position[0])*(hero_position[0] - creep_position[0]) + (hero_position[1] - creep_position[1])*(hero_position[1] - creep_position[1]))
+                    if d < match["parameters"]["processCreepDeaths"]["experience_range"]:
                         if match["heroes"][hero]["side"] == creep_side:
                             contested_by.append(match["heroes"][hero]["entity_id"])
                         else:
@@ -925,6 +918,67 @@ def processCreepDeaths(match):
                 }
 
                 match["creep_deaths"].append(creep_death)
+
+
+def farmDistMetric(match,death1,death2):
+    # calculate the distance between two creep deaths
+    params = [0.002,0.04,0.5]
+    r = math.sqrt((death1["position"][0] - death2["position"][0])*(death1["position"][0] - death2["position"][0]) + (death1["position"][1] - death2["position"][1]) * (death1["position"][1] - death2["position"][1]))
+    t = (abs(death1["time"] - death2["time"])) 
+
+    death1_heroes_involved = set([])
+    death1_heroes_involved = death1_heroes_involved.union(death1["responsible_for"],death1["contested_by"])
+
+    death2_heroes_involved = set([])
+    death2_heroes_involved = death2_heroes_involved.union(death2["responsible_for"],death2["contested_by"])
+
+    #if the two sets are equal
+    if death1_heroes_involved.issubset(death2_heroes_involved) and death2_heroes_involved.issubset(death1_heroes_involved):
+        #incentivise to bring points closer together
+        v = -1
+    else:
+        v = 1
+
+    return params[0]*r + params[1]*t + params[2]*v
+
+def processFarming(match):
+    #extract events where heroes are farming creeps
+    match["farm_events"] = []
+    A = formAdjacencyMatrix(match,match["creep_deaths"],farmDistMetric)
+    n_components, labels = scipy.sparse.csgraph.connected_components(A, directed=False, return_labels=True)
+
+    #for each connected component make a list of attacks
+    for i in range(0,n_components):
+        death_sequence = [j for j, k in enumerate(labels) if k == i ]
+        heroes_involved = set([])
+        time_start = match["creep_deaths"][death_sequence[0]]["time"]
+        time_end = match["creep_deaths"][death_sequence[-1]]["time"]
+        readable_time_start =  str(int(math.floor(time_start/60))) + ":" +  str(int(time_start % 60))
+        readable_time_end =  str(int(math.floor(time_end/60))) + ":" +  str(int(time_end % 60))
+        death_positions = []
+        death_list = []
+
+        for death_index in death_sequence:
+            death = match["creep_deaths"][death_index]
+            death_positions.append(death["position"]) 
+            creeps_killed = len(death_sequence)
+            if death["killed_by"] in match["entities"]:
+                if match["entities"][death["killed_by"]]["unit"] in match["heroes"]:
+                    heroes_involved = heroes_involved.union([death["killed_by"]],death["responsible_for"],death["contested_by"])     
+        
+        if len(heroes_involved) != 0 and creeps_killed > 1:       
+            farm_event = {
+                "time-start": time_start,
+                "time-end": time_end,
+                "readable-time-start": readable_time_start,
+                "readable-time-end": readable_time_end,
+                "heroes_involved": heroes_involved,
+                "creeps-killed": creeps_killed,
+                "death-positions": death_positions,
+                "component": i
+            }
+                       
+            match["farm_events"].append(farm_event)
 
 def processHeroAbility(match):
     # process the abilities used by heroes and store them in a list
@@ -1182,37 +1236,34 @@ def processMovement(match):
     N = len(match["raw"]["trajectories"]["time"])
     index_list = [x for x in range(0,N,step)]
     hero_paths = {}
-    hero_fight_indicators = {}
+    hero_state_indicators = {}
     #create indicator for whether hero was in a fight
     for hero in match["heroes"]:
-        hero_fight_indicators[hero] = np.zeros((N,1))
+        hero_state_indicators[hero] = np.zeros((N,1))
+
+    for farm_event in match["farm_events"]:
+        time_start_index = findTimeTick(match,match["raw"]["trajectories"]["time"],farm_event["time-start"])
+        time_end_index = findTimeTick(match,match["raw"]["trajectories"]["time"],farm_event["time-end"])
+        for hero_entity_id in farm_event["heroes_involved"]:
+            hero_state_indicators[match["entities"][hero_entity_id]["unit"]][time_start_index:time_end_index] = -1
 
     for fight in match["fight_list"]:
         time_start_index = findTimeTick(match,match["raw"]["trajectories"]["time"],fight["time_start"])
         time_end_index = findTimeTick(match,match["raw"]["trajectories"]["time"],fight["time_end"])
         for hero_entity_id in fight["heroes_involved"]:
-            hero_fight_indicators[match["entities"][hero_entity_id]["unit"]][time_start_index:time_end_index] = 1
+            hero_state_indicators[match["entities"][hero_entity_id]["unit"]][time_start_index:time_end_index] = 1
 
     for hero in match["heroes"]:
         #load the trajectory data into a numpy array
-        hero_trajectory = np.zeros((len(index_list),4))
+        hero_trajectory = np.zeros((len(index_list),5))
         for i,j in enumerate(index_list):
             hero_trajectory[i,0] = w0 * match["raw"]["trajectories"][hero]["position"][j][0]
             hero_trajectory[i,1] = w1 * match["raw"]["trajectories"][hero]["position"][j][1]
             hero_trajectory[i,2] = w2 * match["raw"]["trajectories"]["time"][j]
-            hero_trajectory[i,3] = w3 * hero_fight_indicators[hero][j]        
+            hero_trajectory[i,3] = w3 * hero_state_indicators[hero][j]       
         hero_paths[hero] = rdp(hero_trajectory,10,dist_nD)
 
-    desired_hero = "ursa"
-    print hero_paths[desired_hero][1:10,2]/w2
-    print hero_paths[desired_hero][1:10,3]/w3
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.plot(hero_paths[desired_hero][1:10,0],hero_paths[desired_hero][1:10,1])
-    for i in range(len(hero_paths[desired_hero][1:10,2])):
-        ax.annotate(str(math.floor(hero_paths[desired_hero][i,2])),(hero_paths[desired_hero][i,0],hero_paths["ursa"][i,1]))
-    plt.show()
-
+    match["hero_paths"] = hero_paths
 
 def makeStats(match):
     # instantiate the stats variables that will be filled in by subsequent evaluation functions
@@ -1744,6 +1795,39 @@ def evaluateItemUses(match):
         if item_event["item"] not in match["stats"]["player-stats"][match["heroes"][item_event["hero"]]["player_index"]]["items-used"]:
             match["stats"]["player-stats"][match["heroes"][item_event["hero"]]["player_index"]]["items-used"][item_event["item"]] = item_event["time"]
 
+def evaluateHeroMovementTimes(match):
+    #for each hero look at the sequence of points in their hero_path and add up time spent moving, fighting and farming
+    for hero in match["heroes"]:
+        total_time = match["hero_paths"][hero][-1,2] - match["hero_paths"][hero][0,2]
+        for i in range(0,len(match["hero_paths"][hero])-1):
+            if match["hero_paths"][hero][i,3] == 100:
+                match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["percentage-stationary-fighting"] += match["hero_paths"][hero][i+1,2] - match["hero_paths"][hero][i,2]
+            elif match["hero_paths"][hero][i,3] == -100:
+                match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["percentage-stationary-farming"] += match["hero_paths"][hero][i+1,2] - match["hero_paths"][hero][i,2]
+            else:
+                match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["percentage-moving"] += match["hero_paths"][hero][i+1,2] - match["hero_paths"][hero][i,2]
+
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["percentage-stationary-fighting"] = 100*match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["percentage-stationary-fighting"]/total_time
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["percentage-stationary-farming"] = 100*match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["percentage-stationary-farming"]/total_time
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["percentage-moving"] = 100 * match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["percentage-moving"]/total_time
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["percentage-stationary"] = 100 - match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["percentage-moving"]
+
+def plotHeroPath(match,hero,start_index,stop_index):
+
+    w0 = 0.01
+    w1 = 0.01
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(match["hero_paths"][hero][a:b,0]/w0,hero_paths[hero][start_index:stop_index,1]/w0)
+    for i in range(start_index,stop_index):
+        if hero_paths[hero][i,3] == 100:
+            ax.annotate(str(math.floor(paths[hero][i,2])) + " Fight" ,(hero_paths[hero][i,0]/w0,hero_paths[hero][i,1]/w1))
+        elif hero_paths[hero][i,3] == -100:
+            ax.annotate(str(math.floor(hero_paths[hero][i,2])) + " Farm" ,(hero_paths[hero][i,0]/w0,hero_paths[hero][i,1]/w1))
+        else:
+            ax.annotate(str(math.floor(hero_paths[hero][i,2])) + " Move" ,(hero_paths[hero][i,0]/w0,hero_paths[hero][i,1]/w1))
+    plt.show()
+
 def makeResults(match):
     # sample the data and place into the match["results"]
     match["results"] = {}
@@ -1808,6 +1892,7 @@ def evaluateMovement(match):
     # evaluate different skills for the Movement attribute
     evaluateVisibility(match)
     evaluateDistanceTraveled(match)
+    evaluateHeroMovementTimes(match)
 
 def evaluateObjectives(match):
     # evaluate the features for the Objectives attribute
@@ -1840,6 +1925,7 @@ def process(match):
     processPurchases(match)
     processRoshanAttacks(match)
     processItemUse(match)
+    processFarming(match)
     processMovement(match)
 
 def computeStats(match):
@@ -1877,9 +1963,6 @@ def main():
     writeToJson(stats_filename,match["stats"]) 
     #delete intermediate/input files
     #shutil.rmtree(match_directory)
-
-    # for fight in match["fight_list"]:
-    #     print fight
     
 if __name__ == "__main__":
     #cProfile.run('main()')
