@@ -8,7 +8,7 @@ import bisect
 import numpy as np
 import scipy.sparse
 import matplotlib.pyplot as plt
-#import cProfile
+import cProfile
 
 def createParameters():
     # set variables that determine how the data is analysed - need to include all parameters
@@ -284,6 +284,8 @@ def loadFiles(match_id, match_directory):
         "gold_events": [],
         "exp_events": [],
         "overhead_alert_events": [],
+        "player_entities_rows": [],
+        "last_hit_events": [],
         "death_events": [],
         "spawn_rows": [],
         "death_rows": [],
@@ -384,7 +386,6 @@ def loadFiles(match_id, match_directory):
     match["times"]["total_match_time"] = match["times"]["match_end_time"] - match["times"]["match_start_time"] 
     match["header"]["length"] = match["times"]["total_match_time"]
 
-    match["player_index_by_handle"] = {}
     #extract events and shift timestamps
     with open(events_input_filename,'rb') as f:
         for i, row in enumerate(f):
@@ -400,14 +401,12 @@ def loadFiles(match_id, match_directory):
                     match["raw"]["exp_events"].append(row) 
                 elif row[1] == "OVERHEAD_ALERT_GOLD" or row[1] == "OVERHEAD_ALERT_DENY":
                     match["raw"]["overhead_alert_events"].append(row)
+                    match["raw"]["last_hit_events"].append(row)
                 elif row[1]=="DOTA_COMBATLOG_DAMAGE" and row[2] != "null":
                     match["raw"]["damage_events"].append(row)
                 elif row[1] == "DOTA_COMBATLOG_DEATH":
                     match["raw"]["death_events"].append(row)
-                elif row[1] == "PLAYER_ENT":
-                    row[2] = int(row[2])
-                    row[3] = int(row[3])
-                    match["player_index_by_handle"][row[3]] = row[2]
+                    match["raw"]["last_hit_events"].append(row)
                 elif row[1] == "DOTA_COMBATLOG_ABILITY":
                     match["raw"]["ability_events"].append(row)
                 elif row[1] == "DOTA_COMBATLOG_HEAL":
@@ -416,6 +415,10 @@ def loadFiles(match_id, match_directory):
                     match["raw"]["item_events"].append(row)
                 elif row[1] == "DOTA_COMBATLOG_PURCHASE":
                     match["raw"]["purchase_events"].append(row)
+                elif row[1] == "PLAYER_ENT":
+                    row[2] = int(row[2])
+                    row[3] = int(row[3])
+                    match["raw"]["player_entities_rows"].append(row)
 
     trajectories_input_filename = match_directory+"/trajectories.csv"
     with open(trajectories_input_filename,'rb') as file:
@@ -956,7 +959,7 @@ def processFights(match):
                 hp_min = min(hp_min,hp_change[hero_entity_id]["hp_min"])
 
         if hp_reduction > match["parameters"]["processFights"]["hp_change_threshold"] or hp_min < match["parameters"]["processFights"]["hp_min_threshold"]:
-            match["fight_list"].append(fight)
+            match["fight_list"].append(fight)   
 
 def processCreepSpawns(match):
     # extract the creep spawns from spawn_rows
@@ -987,6 +990,40 @@ def processCreepSpawns(match):
                 "time": row[0]
             }    
             match["creep_spawns"].append(creep_spawn) 
+
+def processHeroEntityHandle(match):
+    match["player_index_by_handle"] = {}
+
+    for row in match["raw"]["player_entities_rows"]:
+        match["player_index_by_handle"][row[3]] = row[2]
+
+    print match["player_index_by_handle"]
+    handle_tally = {}
+    for i in range(0,len(match["raw"]["last_hit_events"])-1):
+        if match["raw"]["last_hit_events"][i][1] == "OVERHEAD_ALERT_GOLD" and match["raw"]["last_hit_events"][i+1][1] == "DOTA_COMBATLOG_DEATH":  
+            handle = int(match["raw"]["last_hit_events"][i][5])
+            if handle in match["player_index_by_handle"]:
+                continue
+            else: 
+                if handle in handle_tally:
+                    killer_name = transformHeroName(match["raw"]["last_hit_events"][i+1][3])
+                    if killer_name in match["heroes"]:
+                        handle_tally[handle][killer_name] += 1
+                else:
+                    handle_tally[handle] = {}
+                    for hero in match["heroes"]:
+                        handle_tally[handle][hero] = 0
+
+    for handle in handle_tally:
+        max_tally = 0
+        selected_hero = "none"
+        for hero in handle_tally[handle]:
+            if handle_tally[handle][hero] > max_tally:
+                selected_hero = hero
+                max_tally = handle_tally[handle][hero]
+        match["player_index_by_handle"][handle] = match["heroes"][selected_hero]["player_index"]
+
+    print match["player_index_by_handle"]
 
 def processCreepDeaths(match):
     # extract the creep death events from the death_rows 
@@ -1114,6 +1151,68 @@ def processFarming(match):
                        
             match["farm_events"].append(farm_event)
 
+
+def processFarming2(match):
+    #extract events where heroes are farming creeps
+    match["farm_events"] = []
+
+    component_list = [[match["creep_deaths"][0]]]
+    open_list = [0]
+    num_components = 0
+    for creep_death in match["creep_deaths"]:
+        to_close = []
+        for index in open_list:
+            # if the gap in time between the death and the end of the list indexed then close that list
+            if creep_death["time"] - component_list[index][-1]["time"] > 20:
+                to_close.append(index)
+                continue
+            # otherise check the distance between the death and the last creep death in the indexed list
+            else:
+                d = farmDistMetric(match,component_list[index][-1],creep_death)
+                # if the threshold is satisfied, append that death to the indexed list and switch to next creep death
+                if d < 1:
+                    component_list[index].append(creep_death)
+                    break
+        #delete indexes of any lists that should be closed
+        for i in to_close:
+            open_list.remove(i)
+        # if the distance threshold is not satisfied by any of the existing lists, make a new list and append this creep death to it    
+        num_components += 1
+        component_list.append([creep_death])
+        open_list.append(num_components)
+
+    #for each connected component make a list of attacks
+    for i in range(0,len(component_list)):
+        death_sequence = component_list[i]
+        heroes_involved = set([])
+        time_start = death_sequence[0]["time"]
+        time_end = death_sequence[-1]["time"]
+        readable_time_start = readableTime(time_start) 
+        readable_time_end = readableTime(time_end)
+        death_positions = []
+        death_list = []
+        creeps_killed = len(death_sequence)
+
+        for death in death_sequence:
+            death_positions.append(death["position"])      
+            if death["killed_by"] in match["entities"]:
+                if match["entities"][death["killed_by"]]["unit"] in match["heroes"]:
+                    heroes_involved = heroes_involved.union([death["killed_by"]],death["responsible_for"],death["contested_by"])     
+        
+        if len(heroes_involved) != 0 and creeps_killed > 1:       
+            farm_event = {
+                "time-start": time_start,
+                "time-end": time_end,
+                "readable-time-start": readable_time_start,
+                "readable-time-end": readable_time_end,
+                "heroes_involved": heroes_involved,
+                "creeps-killed": creeps_killed,
+                "death-positions": death_positions,
+                "component": i
+            }
+                       
+            match["farm_events"].append(farm_event)
+
 def processHeroAbility(match):
     # process the abilities used by heroes and store them in a list
     match["ability_events"] = []
@@ -1185,13 +1284,14 @@ def processItemUse(match):
     #extract events where heroes use items
     match["item_events"] = []
     for row in match["raw"]["item_events"]:
-        item_event = {
-            "time": row[0],
-            "hero": transformHeroName(row[2]),
-            "item": row[3][5:]
-        }
-        match["item_events"].append(item_event)
-
+        hero = transformHeroName(row[2])
+        if hero in match["heroes"]:
+            item_event = {
+                "time": row[0],
+                "hero": transformHeroName(row[2]),
+                "item": row[3][5:]
+            }
+            match["item_events"].append(item_event)
 
 def processTPScrolls(match):
     #extract events where heroes use a tp scroll 
@@ -1464,7 +1564,6 @@ def makeStats(match):
                 "average-fight-centroid-dist": 0,
                 "average-fight-centroid-dist-team": 0,
                 "team_heal_amount": 0,
-                "lane-harassment-damage": 0,
 
                 #farming
                 "GPM": 0,
@@ -1635,7 +1734,7 @@ def evaluateHeroDamage(match):
             if attack["attack_method"] == "melee":
                 match["stats"]["player-stats"][player_index]["total-right-click-damage"] += attack["damage"]
             else:
-                match["stats"]["player-stats"][player_index]["total-right-click-damage"] += attack["damage"]
+                match["stats"]["player-stats"][player_index]["total-spell-damage"] += attack["damage"]
 
 def evaluateBasicFightStats(match):
     # evaluate whether players get solo/team kills/deaths
@@ -2093,6 +2192,7 @@ def process(match):
     processHeroAttacks(match)
     processFights(match)
     processCreepSpawns(match)
+    processHeroEntityHandle(match)
     processCreepDeaths(match)
     processHeroAbility(match)
     processHeroHeals(match)
@@ -2103,7 +2203,7 @@ def process(match):
     processPurchases(match)
     processRoshanAttacks(match)
     processItemUse(match)
-    processFarming(match)
+    processFarming2(match)
     processMovement(match)
 
 def computeStats(match):
@@ -2143,5 +2243,5 @@ def main():
     #shutil.rmtree(match_directory)
 
 if __name__ == "__main__":
-    #cProfile.run('main()')
-    main()
+    cProfile.run('main()')
+    #main()
