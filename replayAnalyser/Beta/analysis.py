@@ -8,7 +8,7 @@ import bisect
 import numpy as np
 import scipy.sparse
 import matplotlib.pyplot as plt
-import cProfile
+#import cProfile
 
 def createParameters():
     # set variables that determine how the data is analysed - need to include all parameters
@@ -1687,10 +1687,6 @@ def evaluateFightDamage(match):
     # evaluate the total amount of melee and spell based damage done by each hero across all fights
     for fight in match["fight_list"]:
         for attack in fight["attack_sequence"]:
-            if attack["attacker"] == "pudge":
-                print ""
-                print attack
-
             if attack["attacker"] in match["heroes"]:
                 player_index = match["heroes"][attack["attacker"]]["player_index"]
                 if attack["attack_method"] == "melee":
@@ -1738,16 +1734,23 @@ def evaluateFightCoordination(match):
     #set bin size (seconds) for fight timeline
     n_steps = int(math.floor(1/match["parameters"]["evaluatefightCoordination"]["time_delta"]))
 
+    fight_counter = {}
+    for hero in match["heroes"]:
+        fight_counter[match["heroes"][hero]["entity_id"]] = 0
+
     for fight in match["fight_list"]:
         if len(fight["heroes_involved"]) > 2:
             fight_length = fight["time_end"] - fight["time_start"]
             n = math.floor(fight_length/match["parameters"]["evaluatefightCoordination"]["time_delta"]) + n_steps
             radiant_involved = [x for x in fight["heroes_involved"] if match["entities"][x]["side"] == "radiant"]
             dire_involved = [x for x in fight["heroes_involved"] if match["entities"][x]["side"] == "dire"]
-            R = np.zeros((len(radiant_involved),n*len(dire_involved)))
-            S = np.zeros((len(dire_involved),n*len(radiant_involved)))
-            p = np.zeros(n*len(dire_involved))
-            q = np.zeros(n*len(radiant_involved))
+            num_radiant_involved = len(radiant_involved)
+            num_dire_involved = len(dire_involved)
+
+            R = np.zeros((num_radiant_involved,n*num_dire_involved))
+            S = np.zeros((num_dire_involved,n*num_radiant_involved))
+            p = np.zeros(n*num_dire_involved)
+            q = np.zeros(n*num_radiant_involved)
             #loop over all attacks in fight assigning them to correct signal
             for attack in fight["attack_sequence"]:
                 if attack["attacker"] in match["heroes"] and attack["victim"] in match["heroes"]:
@@ -1766,20 +1769,26 @@ def evaluateFightCoordination(match):
                             for k in range(0,n_steps):
                                 S[i,j*n + start_index + k] = attack["damage"]*math.exp(-k * match["parameters"]["evaluatefightCoordination"]["time_delta"] * match["parameters"]["evaluatefightCoordination"]["decay_rate"]) 
                             
-            for i in range(len(radiant_involved)):
-                for j in range(len(dire_involved)):
-                    R[i,j*n:(j+1)*n] = normalize(R[i,j*n:(j+1)*n])
-                    p[j*n:(j+1)*n] = p[j*n:(j+1)*n] + R[i,j*n:(j+1)*n]
-            for i in range(len(dire_involved)):
-                for j in range(len(radiant_involved)):
-                    S[i,j*n:(j+1)*n] = normalize(S[i,j*n:(j+1)*n])
-                    q[j*n:(j+1)*n] = q[j*n:(j+1)*n] + S[i,j*n:(j+1)*n]             
+            for i in range(0,num_radiant_involved):
+                for j in range(0,num_dire_involved):
+                    R[i,j*n:(j+1)*n] = normalize(R[i,j*n:(j+1)*n])/len(dire_involved)
+                    p[j*n:(j+1)*n] = p[j*n:(j+1)*n] + R[i,j*n:(j+1)*n]/len(radiant_involved)
+            for i in range(0,num_dire_involved):
+                for j in range(0,num_radiant_involved):
+                    S[i,j*n:(j+1)*n] = normalize(S[i,j*n:(j+1)*n])/len(radiant_involved)
+                    q[j*n:(j+1)*n] = q[j*n:(j+1)*n] + S[i,j*n:(j+1)*n]/len(dire_involved)             
             v = np.dot(R,p)
-            for i in range(0,len(radiant_involved)):
+            for i in range(0,num_radiant_involved):
                 match["stats"]["player-stats"][match["entities"][radiant_involved[i]]["control"]]["fight-coordination"] += v[i]
+                fight_counter[radiant_involved[i]] += 1
             w = np.dot(S,q)
-            for i in range(0,len(dire_involved)):
-                match["stats"]["player-stats"][match["entities"][dire_involved[i]]["control"]]["fight-coordination"] += w[i]
+            for i in range(0,num_dire_involved):
+                match["stats"]["player-stats"][match["entities"][dire_involved[i]]["control"]]["fight-coordination"] += w[i] 
+                fight_counter[dire_involved[i]] += 1
+
+    #normalise the fight coordination score by the number of fights with > 2 heroes that each hero was part of
+    for hero in match["heroes"]:
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["fight-coordination"] = match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["fight-coordination"]/fight_counter[match["heroes"][hero]["entity_id"]]
 
 def evaluateFightMovementSpeed(match):
     #calculates the average speed a player/hero moves at during a fight
@@ -1883,29 +1892,30 @@ def evaluateFightCentroid(match):
         time_end_index = findTimeTick(match,match["raw"]["trajectories"]["time"],min(fight["time_end"],match["raw"]["trajectories"]["time"][-1]))
         # for each time tick between the start and end time indexes
         for index in range(time_start_index,time_end_index):
+            alive_heroes = [x for x in fight["heroes_involved"] if match["hero_alive_status"][match["entities"][x]["unit"]][index] == 1]
+            num_heroes_alive = len(alive_heroes)
+            if num_heroes_alive == 0:
+                continue
             #for each hero involved in the the fight
-            num_heroes_alive = 0
             num_radiant_heroes_alive = 0
             num_dire_heroes_alive = 0
 
             centroid = [0,0]
             radiant_centroid = [0,0]
             dire_centroid = [0,0]
-
-            alive_heroes = [x for x in fight["heroes_involved"] if match["hero_alive_status"][match["entities"][x]["unit"]][index] == 1]
+            
             for hero_entity_id in alive_heroes:
                 hero_position = match["raw"]["trajectories"][match["entities"][hero_entity_id]["unit"]]["position"][index]
                 centroid[0] += hero_position[0]
                 centroid[1] += hero_position[1]
-                num_heroes_alive += 1
                 if match["entities"][hero_entity_id]["side"] == "radiant":
                     radiant_centroid[0] += hero_position[0]
                     radiant_centroid[1] += hero_position[1]
-                    num_radiant_heroes_alive +=1
+                    num_radiant_heroes_alive += 1
                 elif match["entities"][hero_entity_id]["side"] == "dire":
                     dire_centroid[0] += hero_position[0]
                     dire_centroid[1] += hero_position[1]
-                    num_dire_heroes_alive +=1
+                    num_dire_heroes_alive += 1
             #find the average location of the alive heroes in the fight
             centroid[0] = centroid[0]/num_heroes_alive
             centroid[1] = centroid[1]/num_heroes_alive
@@ -2214,10 +2224,6 @@ def main():
     #delete intermediate/input files
     #shutil.rmtree(match_directory)
 
-    for fight in match["fight_list"]:
-        print ""
-        print fight["heroes_involved"], fight["heroes_killed"], fight["readable_time_start"], fight["readable_time_end"]
-
 if __name__ == "__main__":
-    cProfile.run('main()')
-    #main()
+    #cProfile.run('main()','cumtime')
+    main()
