@@ -53,8 +53,6 @@ public class ReplayProcessor {
 	boolean init = false;
     int num_players = 10;
     int[] valid_indices = new int[num_players];
-    boolean[] hero_units_valid = new boolean[num_players];
-	int n_hero_units_valid = 0;
 	
 	Map<String, Integer> hero_indices;
 	Map<Integer, Integer> player_handles;
@@ -78,7 +76,6 @@ public class ReplayProcessor {
           	data_fields.put(i+"MouseY", 0.0);
     		data_fields.put(i+"CamX", 0.0);
     		data_fields.put(i+"CamY", 0.0);
-    		hero_units_valid[i] = false;
     	}
 		this.output = output;
 		this.output.init(data_fields);
@@ -202,24 +199,23 @@ public class ReplayProcessor {
             }
         }
         
-        if(n_hero_units_valid < num_players)
+        //update player entities
+        Iterator<Entity> players = ctx.getProcessor(Entities.class).getAllByDtName("CDOTAPlayer");
+        while(players.hasNext())
         {
-	        Iterator<Entity> players = ctx.getProcessor(Entities.class).getAllByDtName("CDOTAPlayer");
-	        while(players.hasNext())
-	        {
 
-	        	Entity p = players.next();
+        	Entity p = players.next();
 
-	        	int id = (int)getEntityProperty(p,"m_iPlayerID", null);
-	        	if(id >= 0 && id <num_players && !hero_units_valid[id])
-	        	{
+        	int id = (int)getEntityProperty(p,"m_iPlayerID", null);
+        	if(id >= 0 && id <num_players)
+        	{
+        		if(!player_handles.containsKey(id) || !player_handles.get(id).equals(p.getHandle()) )
+        		{
 		            output.writeEvent(time, "PLAYER_ENT,"+id+","+p.getHandle());
-		            //System.out.println(id);
-		            hero_units_valid[id] = true;
 	            	player_handles.put(id, p.getHandle());
-		            n_hero_units_valid++;
-	        	}
-	        }
+        		}
+	            //System.out.println(id);
+        	}
         }
     }
 
