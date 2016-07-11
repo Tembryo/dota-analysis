@@ -514,6 +514,18 @@ def processHeroDeaths(match):
             # if killer was another hero transform the name (it may have been a tower)
             if killer.startswith("npc_dota_hero_"):
                 killer_name = transformHeroName(killer)
+            # if killer was of the form npc_dota_xxxx_xxxx_yyyy_yyyy where xxxx_xxxx is a hero name
+            elif killer.startswith("npc_dota"):
+                killer_name_list = killer.split("_")
+                killer_name_list_1 = killer_name_list[2:3]
+                killer_name_list_2 = killer_name_list[2:4]
+                killer_name_1 = "_".join(killer_name_list_1)
+                killer_name_2 = "_".join(killer_name_list_2)
+
+                if killer_name_1 in match["heroes"]:
+                    killer_name = killer_name_1
+                if killer_name_2 in match["heroes"]:
+                    killer_name = killer_name_2
             else:
                 killer_name = killer
             if not deceased_name in match["heroes"]:
@@ -797,29 +809,30 @@ def fightDistMetric(match,attack1,attack2):
 
     return params[0]*r + params[1]*t + params[2]*v
 
-def formAdjacencyMatrix(match,my_list,dist):
-    # find distance between each attack in the attack list
-    # dist is a distance metric function the form f(match,my_list[i],my_list[j]) i.e., it finds distance between two elements i,j in the list
-    n = len(my_list)
-    A = np.zeros(shape = (n,n))
-
-    for i in range(0,n):
-        for j in range(i+1,n):
-            if my_list[j]["time"] - my_list[i]["time"] > match["parameters"]["formAdjacencyMatrix"]["time_threshold"]:
-                break
-            else:            
-                p = dist(match,my_list[i],my_list[j])
-                if p < 1:
-                    A[i,j] = 1
-    
-    return A + np.transpose(A)
-
 def processFights(match): 
     #return a list of fights 
     match["fight_list"] = []
 
-    A = formAdjacencyMatrix(match,match["attack_list"],fightDistMetric)
-    n_components, labels = scipy.sparse.csgraph.connected_components(A, directed=False, return_labels=True)
+    component_list = [[match["attack_list"][0]]]
+    open_list = [0]
+    num_components = 0
+    for attack in match["attack_list"]:
+        to_close = []
+        for index in open_list:
+            if attack["time"] - component_list[index][-1]["time"] > 20:
+                to_close.append(index)
+                continue
+            else:
+                d = fightDistMetric(match,component_list[index][-1],attack)
+                if d < 1:
+                    component_list[index].append(attack)
+                    break
+        for i in to_close:
+            open_list.remove(i)  
+        num_components += 1
+        component_list.append([attack])
+        open_list.append(num_components)  
+
 
     gold_time = []
     for row in match["raw"]["gold_events"]:
@@ -830,8 +843,8 @@ def processFights(match):
         exp_time.append(row[0])
 
     #for each fight make a list of attacks
-    for i in range(0,n_components):
-        attack_sequence = [j for j, k in enumerate(labels) if k == i ]
+    for i in range(0,len(component_list)):
+        attack_sequence = component_list[i]
         damage_dealt_radiant = 0
         damage_dealt_dire = 0
         heroes_involved = set([])
@@ -840,16 +853,15 @@ def processFights(match):
         position_y = []
         radiant_initiation_damage = 0
         dire_initiation_damage = 0
-        time_start = match["attack_list"][attack_sequence[0]]["time"]
-        time_end = match["attack_list"][attack_sequence[-1]]["time"]
+        time_start = attack_sequence[0]["time"]
+        time_end = attack_sequence[-1]["time"]
         radiant_gold_gained = 0
         dire_gold_gained = 0
         radiant_exp_gained = 0
         dire_exp_gained = 0
         hp_change = {}
 
-        for attack_index in attack_sequence:
-            attack = match["attack_list"][attack_index]
+        for attack in attack_sequence:
             if attack["side"] == "radiant":
                 damage_dealt_radiant += attack["damage"]
             elif attack["side"] == "dire":
@@ -959,7 +971,7 @@ def processFights(match):
                 hp_min = min(hp_min,hp_change[hero_entity_id]["hp_min"])
 
         if hp_reduction > match["parameters"]["processFights"]["hp_change_threshold"] or hp_min < match["parameters"]["processFights"]["hp_min_threshold"]:
-            match["fight_list"].append(fight)   
+            match["fight_list"].append(fight) 
 
 def processCreepSpawns(match):
     # extract the creep spawns from spawn_rows
@@ -997,7 +1009,6 @@ def processHeroEntityHandle(match):
     for row in match["raw"]["player_entities_rows"]:
         match["player_index_by_handle"][row[3]] = row[2]
 
-    print match["player_index_by_handle"]
     handle_tally = {}
     for i in range(0,len(match["raw"]["last_hit_events"])-1):
         if match["raw"]["last_hit_events"][i][1] == "OVERHEAD_ALERT_GOLD" and match["raw"]["last_hit_events"][i+1][1] == "DOTA_COMBATLOG_DEATH":  
@@ -1022,8 +1033,6 @@ def processHeroEntityHandle(match):
                 selected_hero = hero
                 max_tally = handle_tally[handle][hero]
         match["player_index_by_handle"][handle] = match["heroes"][selected_hero]["player_index"]
-
-    print match["player_index_by_handle"]
 
 def processCreepDeaths(match):
     # extract the creep death events from the death_rows 
@@ -1093,7 +1102,7 @@ def processCreepDeaths(match):
 
 def farmDistMetric(match,death1,death2):
     # calculate the distance between two creep deaths
-    params = [0.002,0.04,0.5]
+    params = [0.0005,0.04,0.5]
     r = math.sqrt((death1["position"][0] - death2["position"][0])*(death1["position"][0] - death2["position"][0]) + (death1["position"][1] - death2["position"][1]) * (death1["position"][1] - death2["position"][1]))
     t = (abs(death1["time"] - death2["time"])) 
 
@@ -1113,46 +1122,6 @@ def farmDistMetric(match,death1,death2):
     return params[0]*r + params[1]*t + params[2]*v
 
 def processFarming(match):
-    #extract events where heroes are farming creeps
-    match["farm_events"] = []
-    A = formAdjacencyMatrix(match,match["creep_deaths"],farmDistMetric)
-    n_components, labels = scipy.sparse.csgraph.connected_components(A, directed=False, return_labels=True)
-
-    #for each connected component make a list of attacks
-    for i in range(0,n_components):
-        death_sequence = [j for j, k in enumerate(labels) if k == i ]
-        heroes_involved = set([])
-        time_start = match["creep_deaths"][death_sequence[0]]["time"]
-        time_end = match["creep_deaths"][death_sequence[-1]]["time"]
-        readable_time_start = readableTime(time_start) 
-        readable_time_end = readableTime(time_end)
-        death_positions = []
-        death_list = []
-
-        for death_index in death_sequence:
-            death = match["creep_deaths"][death_index]
-            death_positions.append(death["position"]) 
-            creeps_killed = len(death_sequence)
-            if death["killed_by"] in match["entities"]:
-                if match["entities"][death["killed_by"]]["unit"] in match["heroes"]:
-                    heroes_involved = heroes_involved.union([death["killed_by"]],death["responsible_for"],death["contested_by"])     
-        
-        if len(heroes_involved) != 0 and creeps_killed > 1:       
-            farm_event = {
-                "time-start": time_start,
-                "time-end": time_end,
-                "readable-time-start": readable_time_start,
-                "readable-time-end": readable_time_end,
-                "heroes_involved": heroes_involved,
-                "creeps-killed": creeps_killed,
-                "death-positions": death_positions,
-                "component": i
-            }
-                       
-            match["farm_events"].append(farm_event)
-
-
-def processFarming2(match):
     #extract events where heroes are farming creeps
     match["farm_events"] = []
 
@@ -1717,8 +1686,11 @@ def evaluateHeroGoldExp(match):
 def evaluateFightDamage(match):
     # evaluate the total amount of melee and spell based damage done by each hero across all fights
     for fight in match["fight_list"]:
-        for attack_index in fight["attack_sequence"]:
-            attack = match["attack_list"][attack_index]
+        for attack in fight["attack_sequence"]:
+            if attack["attacker"] == "pudge":
+                print ""
+                print attack
+
             if attack["attacker"] in match["heroes"]:
                 player_index = match["heroes"][attack["attacker"]]["player_index"]
                 if attack["attack_method"] == "melee":
@@ -1777,8 +1749,7 @@ def evaluateFightCoordination(match):
             p = np.zeros(n*len(dire_involved))
             q = np.zeros(n*len(radiant_involved))
             #loop over all attacks in fight assigning them to correct signal
-            for attack_index in fight["attack_sequence"]:
-                attack = match["attack_list"][attack_index]
+            for attack in fight["attack_sequence"]:
                 if attack["attacker"] in match["heroes"] and attack["victim"] in match["heroes"]:
                     attacker_id = match["heroes"][attack["attacker"]]["entity_id"]
                     victim_id = match["heroes"][attack["victim"]]["entity_id"]
@@ -2061,18 +2032,19 @@ def evaluateHeroMovementTimes(match):
 
 def plotHeroPath(match,hero,start_index,stop_index):
 
+    hero_path = match["hero_paths"][hero]
     w0 = 0.01
     w1 = 0.01
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.plot(match["hero_paths"][hero][a:b,0]/w0,hero_paths[hero][start_index:stop_index,1]/w0)
+    ax.plot(hero_path[start_index:stop_index,0]/w0,hero_path[start_index:stop_index,1]/w0)
     for i in range(start_index,stop_index):
-        if hero_paths[hero][i,3] == 100:
-            ax.annotate(str(math.floor(paths[hero][i,2])) + " Fight" ,(hero_paths[hero][i,0]/w0,hero_paths[hero][i,1]/w1))
-        elif hero_paths[hero][i,3] == -100:
-            ax.annotate(str(math.floor(hero_paths[hero][i,2])) + " Farm" ,(hero_paths[hero][i,0]/w0,hero_paths[hero][i,1]/w1))
+        if hero_path[i,3] == 100:
+            ax.annotate(str(math.floor(hero_path[i,2])) + " Fight" ,(hero_path[i,0]/w0,hero_path[i,1]/w1))
+        elif hero_path[i,3] == -100:
+            ax.annotate(str(math.floor(hero_path[i,2])) + " Farm" ,(hero_path[i,0]/w0,hero_path[i,1]/w1))
         else:
-            ax.annotate(str(math.floor(hero_paths[hero][i,2])) + " Move" ,(hero_paths[hero][i,0]/w0,hero_paths[hero][i,1]/w1))
+            ax.annotate(str(math.floor(hero_path[i,2])) + " Move" ,(hero_path[i,0]/w0,hero_path[i,1]/w1))
     plt.show()
 
 def evaluateRotations(match):
@@ -2190,7 +2162,8 @@ def process(match):
     processGoldXP(match)
     processCameraControl(match)
     processHeroAttacks(match)
-    processFights(match)
+    #processFights(match)
+    processFights2(match)
     processCreepSpawns(match)
     processHeroEntityHandle(match)
     processCreepDeaths(match)
@@ -2203,7 +2176,7 @@ def process(match):
     processPurchases(match)
     processRoshanAttacks(match)
     processItemUse(match)
-    processFarming2(match)
+    processFarming(match)
     processMovement(match)
 
 def computeStats(match):
@@ -2241,6 +2214,10 @@ def main():
     writeToJson(stats_filename,match["stats"]) 
     #delete intermediate/input files
     #shutil.rmtree(match_directory)
+
+    for fight in match["fight_list"]:
+        print ""
+        print fight["heroes_involved"], fight["heroes_killed"], fight["readable_time_start"], fight["readable_time_end"]
 
 if __name__ == "__main__":
     cProfile.run('main()')
