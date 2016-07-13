@@ -30,7 +30,9 @@ def createParameters():
 
     parameters["general"] = {}
     parameters["general"]["num_players"] = 10
-    parameters["general"]["passive_GPM"] = 100
+
+    parameters["processGoldXP"] = {}
+    parameters["processGoldXP"]["passive_GPM"] = 100
 
     parameters["map"] = {}
     parameters["map"]["xmin"] = -8200
@@ -284,7 +286,6 @@ def loadFiles(match_id, match_directory):
         "gold_events": [],
         "exp_events": [],
         "overhead_alert_events": [],
-        "player_entities_rows": [],
         "last_hit_events": [],
         "death_events": [],
         "spawn_rows": [],
@@ -322,6 +323,8 @@ def loadFiles(match_id, match_directory):
         "match_end_time": 0,
         "total_match_time": 0
     }
+
+    match["player_index_by_handle"] = {}
 
     header_input_filename = match_directory+"/header.csv"
     with open(header_input_filename,'rb') as f:
@@ -418,7 +421,8 @@ def loadFiles(match_id, match_directory):
                 elif row[1] == "PLAYER_ENT":
                     row[2] = int(row[2])
                     row[3] = int(row[3])
-                    match["raw"]["player_entities_rows"].append(row)
+                    match["player_index_by_handle"][row[3]] = row[2]
+
 
     trajectories_input_filename = match_directory+"/trajectories.csv"
     with open(trajectories_input_filename,'rb') as file:
@@ -654,6 +658,7 @@ def processGoldXP(match):
     for row in match["raw"]["gold_events"]:
         hero_name = transformHeroName(row[2]) #receiver
         if not hero_name in match["heroes"]:
+            print hero_name
             continue
         gold_amount = row[4]
         side = match["heroes"][hero_name]["side"]
@@ -664,18 +669,16 @@ def processGoldXP(match):
             elif side == "dire":
                 dire_gold_total += gold_amount
         elif row[3] == "looses":
-            hero_gold[hero_name] -= gold_amount
             if side == "radiant":
                 radiant_gold_total -= gold_amount
             elif side == "dire":
                 dire_gold_total -= gold_amount
         else:
-            logging.info("was expecting 'receives' or 'looses' but got" + row[3])
             continue
         gold.append({"t":row[0],"v":radiant_gold_total - dire_gold_total})
 
     for hero in match["heroes"]:
-        match["entities"][match["heroes"][hero]["entity_id"]]["GPM"] = math.floor(60*hero_gold[hero]/match["times"]["total_match_time"] + match["parameters"]["general"]["passive_GPM"])
+        match["entities"][match["heroes"][hero]["entity_id"]]["GPM"] = math.floor(60*hero_gold[hero]/match["times"]["total_match_time"]) + match["parameters"]["processGoldXP"]["passive_GPM"]
         match["entities"][match["heroes"][hero]["entity_id"]]["XPM"] = math.floor(60*hero_exp[hero]/match["times"]["total_match_time"])
 
     match["timeseries"] = {"gold-advantage":{"format":"samples","samples":gold},"exp-advantage":{"format":"samples","samples":exp}}
@@ -833,6 +836,7 @@ def processFights(match):
         component_list.append([attack])
         open_list.append(num_components)  
 
+    assigned_deaths = np.zeros((len(match["hero_deaths"]),1))
 
     gold_time = []
     for row in match["raw"]["gold_events"]:
@@ -852,14 +856,15 @@ def processFights(match):
         position_x = []
         position_y = []
         radiant_initiation_damage = 0
-        dire_initiation_damage = 0
-        time_start = attack_sequence[0]["time"]
-        time_end = attack_sequence[-1]["time"]
         radiant_gold_gained = 0
         dire_gold_gained = 0
         radiant_exp_gained = 0
         dire_exp_gained = 0
         hp_change = {}
+        dire_initiation_damage = 0
+        time_start = attack_sequence[0]["time"]
+        time_end = attack_sequence[-1]["time"]
+        death_list = []
 
         for attack in attack_sequence:
             if attack["side"] == "radiant":
@@ -879,21 +884,28 @@ def processFights(match):
                 elif attack["side"] == "dire":
                     dire_initiation_damage += attack["damage"]
 
-        mean_position = [np.mean(position_x),np.mean(position_y)]   
+        mean_position = [np.mean(position_x),np.mean(position_y)]  
+        radiant_involved = [x for x in heroes_involved if match["entities"][x]["side"] == "radiant"]
+        dire_involved = [x for x in heroes_involved if match["entities"][x]["side"] == "dire"]
+        num_radiant_involved = len(radiant_involved)
+        num_dire_involved = len(dire_involved)
+
+
         if dire_initiation_damage + radiant_initiation_damage != 0:
             side_indicator = (radiant_initiation_damage - dire_initiation_damage)/(dire_initiation_damage + radiant_initiation_damage)
         else:
             side_indicator = 0
 
-        # find which heroes were killed during the fight - this should be changed to assign death to the nearest cluster perhaps?
-        for death in match["hero_deaths"]:
-            if match["heroes"][death["deceased"]]["entity_id"] in heroes_involved and death["time"] >= time_start and death["time"] <= time_end:
+        for i,death in enumerate(match["hero_deaths"]):
+            if match["heroes"][death["deceased"]]["entity_id"] in heroes_involved and death["time"] >= time_start and death["time"] <= time_end and assigned_deaths[i] == 0:
+                death_list.append(death)
                 heroes_killed = heroes_killed.union([match["heroes"][death["deceased"]]["entity_id"]])
+                assigned_deaths[i] = 1
 
         if len(heroes_killed) > 0:
 
             #calculate amount of gold and exp exchanged during fight
-            start_index = findTimeTick(match,gold_time,max(time_start,gold_time[0]))
+            start_index = findTimeTick(match,gold_time,min(time_start,gold_time[-1]))
             end_index = findTimeTick(match,gold_time,min(time_end + 1,gold_time[-1]))
 
             for i in range(start_index,end_index):
@@ -913,7 +925,7 @@ def processFights(match):
                         elif side == "dire":
                             dire_gold_gained -= gold_amount
 
-            start_index = findTimeTick(match,exp_time,max(time_start,exp_time[0]))
+            start_index = findTimeTick(match,exp_time,min(time_start,exp_time[-1]))
             end_index = findTimeTick(match,exp_time,min(time_end + 1,exp_time[-1]))
 
             for i in range(start_index,end_index):
@@ -930,7 +942,7 @@ def processFights(match):
         readable_time_start = readableTime(time_start)
         readable_time_end = readableTime(time_end) 
 
-        time_start_index = findTimeTick(match,match["raw"]["trajectories"]["time"],max(time_start,match["raw"]["trajectories"]["time"][0]))
+        time_start_index = findTimeTick(match,match["raw"]["trajectories"]["time"],min(time_start,match["raw"]["trajectories"]["time"][-1]))
         time_end_index = findTimeTick(match,match["raw"]["trajectories"]["time"],min(time_end,match["raw"]["trajectories"]["time"][-1]))
 
         for hero_entity_id in heroes_involved:
@@ -941,6 +953,13 @@ def processFights(match):
                     hp_change[hero_entity_id]["hp_min"] = 0
                 else:
                     hp_change[hero_entity_id]["hp_min"] = min(match["raw"]["trajectories"][match["entities"][hero_entity_id]["unit"]]["hp"][time_start_index:time_end_index])
+
+        if num_radiant_involved == 1 and num_dire_involved == 1:
+            fight_type = "1-vs-1"
+        elif num_radiant_involved > 1 and num_dire_involved == 1 or num_radiant_involved == 1 and num_dire_involved >1:
+            fight_type = "many-vs-1"
+        else:
+            fight_type = "many-vs-many"
 
         fight = {
                 "attack_sequence": attack_sequence,
@@ -958,7 +977,9 @@ def processFights(match):
                 "dire_gold_gained": dire_gold_gained,
                 "radiant_exp_gained": radiant_exp_gained,
                 "dire_exp_gained": dire_exp_gained,
-                "hp_change": hp_change
+                "hp_change": hp_change,
+                "fight_type": fight_type,
+                "death_list": death_list
         }
 
         hp_min = match["parameters"]["processFights"]["hp_min_threshold"]
@@ -1002,37 +1023,6 @@ def processCreepSpawns(match):
                 "time": row[0]
             }    
             match["creep_spawns"].append(creep_spawn) 
-
-def processHeroEntityHandle(match):
-    match["player_index_by_handle"] = {}
-
-    for row in match["raw"]["player_entities_rows"]:
-        match["player_index_by_handle"][row[3]] = row[2]
-
-    handle_tally = {}
-    for i in range(0,len(match["raw"]["last_hit_events"])-1):
-        if match["raw"]["last_hit_events"][i][1] == "OVERHEAD_ALERT_GOLD" and match["raw"]["last_hit_events"][i+1][1] == "DOTA_COMBATLOG_DEATH":  
-            handle = int(match["raw"]["last_hit_events"][i][5])
-            if handle in match["player_index_by_handle"]:
-                continue
-            else: 
-                if handle in handle_tally:
-                    killer_name = transformHeroName(match["raw"]["last_hit_events"][i+1][3])
-                    if killer_name in match["heroes"]:
-                        handle_tally[handle][killer_name] += 1
-                else:
-                    handle_tally[handle] = {}
-                    for hero in match["heroes"]:
-                        handle_tally[handle][hero] = 0
-
-    for handle in handle_tally:
-        max_tally = 0
-        selected_hero = "none"
-        for hero in handle_tally[handle]:
-            if handle_tally[handle][hero] > max_tally:
-                selected_hero = hero
-                max_tally = handle_tally[handle][hero]
-        match["player_index_by_handle"][handle] = match["heroes"][selected_hero]["player_index"]
 
 def processCreepDeaths(match):
     # extract the creep death events from the death_rows 
@@ -1518,10 +1508,12 @@ def makeStats(match):
                 #fighting
                 "num-of-kills": 0,
                 "num-of-deaths": 0,
-                "solo-kills": 0,
-                "solo-deaths": 0,
-                "team-kills": 0,
-                "team-deaths": 0,
+                "1-vs-1-kills": 0,
+                "1-vs-1-deaths": 0,
+                "many-vs-1-kills": 0,
+                "many-vs-1-deaths": 0,
+                "many-vs-many-kills": 0,
+                "many-vs-many-deaths": 0,
                 "num-of-fights": 0,
                 "total-right-click-damage": 0,
                 "total-spell-damage": 0,
@@ -1532,7 +1524,7 @@ def makeStats(match):
                 "fight-coordination": 0,
                 "average-fight-centroid-dist": 0,
                 "average-fight-centroid-dist-team": 0,
-                "team_heal_amount": 0,
+                "team-heal-amount": 0,
 
                 #farming
                 "GPM": 0,
@@ -1711,24 +1703,26 @@ def evaluateBasicFightStats(match):
             match["stats"]["player-stats"][match["entities"][hero_id]["control"]]["num-of-fights"] += 1
         # did a hero get killed in this fight?
         if len(fight["heroes_killed"]) != 0:
-            if len(fight["heroes_involved"]) == 2:
-                # 1 vs 1 fight
-                killed = fight["heroes_killed"]
-                match["stats"]["player-stats"][match["entities"][killed[0]]["control"]]["solo-deaths"] += 1
-                killer = [x for x in fight["heroes_involved"] if x != killed[0]]
-                match["stats"]["player-stats"][match["entities"][killer[0]]["control"]]["solo-kills"] += 1
-            elif len(fight["heroes_involved"]) > 2:
-                #team fight
-                for hero_id in fight["heroes_killed"]:
-                    match["stats"]["player-stats"][match["entities"][hero_id]["control"]]["team-deaths"] += 1 
+            if fight["fight_type"] == "1-vs-1":
+                for death in fight["death_list"]:
+                    match["stats"]["player-stats"][match["heroes"][death["deceased"]]["player_index"]]["1-vs-1-deaths"] += 1
+                    if death["killer"] in match["heroes"]:
+                        match["stats"]["player-stats"][match["heroes"][death["killer"]]["player_index"]]["1-vs-1-kills"] += 1
+            elif fight["fight_type"] == "many-vs-1":
+                for death in fight["death_list"]:
+                    match["stats"]["player-stats"][match["heroes"][death["deceased"]]["player_index"]]["many-vs-1-deaths"] += 1
+                    if death["killer"] in match["heroes"]:
+                        match["stats"]["player-stats"][match["heroes"][death["killer"]]["player_index"]]["many-vs-1-kills"] += 1
+            elif fight["fight_type"] == "many-vs-many":
+                for death in fight["death_list"]:
+                    match["stats"]["player-stats"][match["heroes"][death["deceased"]]["player_index"]]["many-vs-many-deaths"] += 1
+                    if death["killer"] in match["heroes"]:
+                        match["stats"]["player-stats"][match["heroes"][death["killer"]]["player_index"]]["many-vs-many-kills"] += 1
             else:
-                logging.info("bad number of heroes involved in fight: fight['heroes_involved'] < 2") 
+                logging.info("fight_type") 
 
     match["stats"]["match-stats"]["total-num-of-fights"] = len(match["fight_list"])
 
-    # look up the total number of kills and subtract the solo kills to get the team kills for each player
-    for hero in match["heroes"]:
-        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["team-kills"] =  match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["num-of-kills"] - match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["solo-kills"]
 
 def evaluateFightCoordination(match):
     #set bin size (seconds) for fight timeline
@@ -1947,7 +1941,7 @@ def evaluateHeroHeals(match):
     #evaluate the amount of hp each hero heals their teammates
     for hero_heal_event in match["hero_heals"]:
         if hero_heal_event["healer"] in match["heroes"]:
-            match["stats"]["player-stats"][match["heroes"][hero_heal_event["healer"]]["player_index"]]["team_heal_amount"] += (hero_heal_event["hp_after"] - hero_heal_event["hp_before"])
+            match["stats"]["player-stats"][match["heroes"][hero_heal_event["healer"]]["player_index"]]["team-heal-amount"] += (hero_heal_event["hp_after"] - hero_heal_event["hp_before"])
 
 def evaluateHeroAbilities(match):
     # evaluate how each player uses their hero abilities
@@ -2174,7 +2168,6 @@ def process(match):
     processHeroAttacks(match)
     processFights(match)
     processCreepSpawns(match)
-    processHeroEntityHandle(match)
     processCreepDeaths(match)
     processHeroAbility(match)
     processHeroHeals(match)
