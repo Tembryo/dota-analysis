@@ -51,9 +51,10 @@ async.series(
         {
             var account_request = 
                 {
-                    "message":"GetSteamAccount"
+                    "message": "GetSteamAccount",
+                    "service": service._identifier
                 };
-            service.send(account_request, callback);    
+            services.notifyScheduler(account_request, callback);    
         }
     ]
 );
@@ -65,12 +66,6 @@ function handleCrawlServerMsg(server_identifier, message)
 {
     switch(message["message"])
     {
-        case "CrawlCandidatesResponse":
-        case "AddSampleMatchesResponse":
-        case "GetSteamAccount":
-            //Sent by myself
-            break;
-
         case "CrawlCandidates":
             performCrawling(message,
                 function()
@@ -108,7 +103,6 @@ var mmr_bin_size = 250;
 function addSampleMatches(message, callback_request)
 {
     var locals = {};
-
 
     async.waterfall(
         [
@@ -161,11 +155,11 @@ function addSampleMatches(message, callback_request)
             {
                 var finished_message = 
                     {
-                        "message":"AddSampleMatchesResponse",
+                        "message":"JobResponse",
                         "result": "failed",
                         "job": message["job"]
                     };
-                service.send(finished_message,
+                services.notifyScheduler(finished_message,
                     function(){
                         callback_request(null, "");
                     }
@@ -177,11 +171,11 @@ function addSampleMatches(message, callback_request)
 
                 var finished_message = 
                     {
-                        "message":"AddSampleMatchesResponse",
+                        "message":"JobResponse",
                         "result": "finished",
                         "job": message["job"]
                     };
-                service.send(finished_message,
+                services.notifyScheduler(finished_message,
                     function(){
                         callback_request(null, "");
                     }
@@ -234,11 +228,11 @@ function performCrawling(message, callback_request)
 
                 var finished_message = 
                     {
-                        "message":"CrawlCandidatesResponse",
+                        "message":"JobResponse",
                         "result": "failed",
                         "job": message["job"]
                     };
-                service.send(finished_message,
+                services.notifyScheduler(finished_message,
                     function(){
                         callback_request(null, "");
                     }
@@ -250,11 +244,11 @@ function performCrawling(message, callback_request)
 
                 var finished_message = 
                     {
-                        "message":"CrawlCandidatesResponse",
+                        "message":"JobResponse",
                         "result": "finished",
                         "job": message["job"]
                     };
-                service.send(finished_message,
+                services.notifyScheduler(finished_message,
                     function(){
                         callback_request(null, "");
                     }

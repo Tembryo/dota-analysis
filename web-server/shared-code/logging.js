@@ -19,7 +19,7 @@ function combineFilters(a, b)
     return combined;
 }
 
-
+var global_filters = {};//For all modules in this program
 
 function writeLogMessage(filters, entry)
 {
@@ -67,8 +67,12 @@ function writeLogMessage(filters, entry)
 
 }
 
-module.exports = function(identifier){
+module.exports = function(module_name, added_global_filters){
+    if(added_global_filters)
+        global_filters = combineFilters(global_filters, added_global_filters);
+
     var fixed_filters = {};
+    fixed_filters = combineFilters(fixed_filters, global_filters);
 
     var generated_exports = {};
 
@@ -81,8 +85,9 @@ module.exports = function(identifier){
                 fixed_filters["machine"] = id;
             }
 
-        })
-    fixed_filters["module"] = identifier;
+        });
+
+    fixed_filters["module"] = module_name;
 
     generated_exports.log = function(message, filters){
         var combined_filters = {};
@@ -90,6 +95,8 @@ module.exports = function(identifier){
             combined_filters = fixed_filters;
         else
             combined_filters = combineFilters(filters, fixed_filters);
+
+        combined_filters = combineFilters(combined_filters, global_filters);
 
         var json_message = {};
         if(typeof message === 'string')
@@ -113,6 +120,10 @@ module.exports = function(identifier){
             annotated_filters = combineFilters(filters,error_filter);
 
         generated_exports.log(message, annotated_filters);
+    }
+
+    generated_exports.addGlolbalFilter = function(filters){
+        global_filters = combineFilters(global_filters, filters);
     }
 
     return generated_exports;

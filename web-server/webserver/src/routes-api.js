@@ -10,7 +10,9 @@ var	authentication  = require("./routes-auth.js"),
 
 var communication   = require("/shared-code/communication.js"),
     storage         = require("/shared-code/storage.js"),
-    database        = require("/shared-code/database.js");
+    database        = require("/shared-code/database.js"),
+    jobs            = require("/shared-code/jobs.js"),
+    logging         = require("/shared-code/logging.js")("api-server");
 
 
 // ROUTES FOR OUR API
@@ -180,7 +182,7 @@ router.route("/get-player-matches")
                 {
                     if(err)
                     {
-                        console.log(err);
+                        logging.error({"message": "error getting player matches", "err":err, "response": response});
                     }
                     res.json(response);
                 }
@@ -193,23 +195,35 @@ router.route("/queue-matches")
     .get(authentication.ensureAuthenticated,
         function(req, res)
         {
+            var locals = {}
             async.waterfall(
                 [
                     database.generateQueryFunction("INSERT INTO MatchRetrievalRequests(id, retrieval_status, requester_id) "+
                         "(SELECT umh.match_id, (SELECT mrs.id FROM MatchRetrievalStatuses mrs where mrs.label=$2), $1 "+
                         "FROM UserMatchHistory umh WHERE umh.user_id = $1 AND to_timestamp((umh.data->>'start_time')::int) > current_timestamp - interval '7 days' AND NOT EXISTS (SELECT mrs.id FROM MatchRetrievalRequests mrs where mrs.id = umh.match_id) ) "+
-                        "RETURNING *;",
+                        "RETURNING id;",
                             [req.user["id"], "requested"]),
                     function(results, callback)
                     {
-                        callback(null, results.rowCount);
+                        locals.n_queued = results.rowCount;
+
+                        async.each(results.rows,
+                            function(row, callback)
+                            {
+                                var job_data =  
+                                    {
+                                        "message": "Retrieve",
+                                        "id": row["id"]
+                                    };
+                                jobs.startJob(job_data, callback);
+                            }, callback);
                     }
                 ],
                 function(err, results)
                 {
                     if(err)
                     {
-                        console.log(err);
+                        logging.error({"message": "queue matches failed", "err": err, "result": results});
                         var error_result = {
                             "result": "error",
                             "message": err,
@@ -221,7 +235,7 @@ router.route("/queue-matches")
                     {
                         var success_result = {
                             "result": "success",
-                            "n-requested": results
+                            "n-requested": locals.n_queued
                             };
                         res.json(success_result);
                     }
@@ -237,43 +251,36 @@ router.route("/update-history")
     .get(authentication.ensureAuthenticated,
         function(req, res)
         {
-
             var job_data = {
                     "message":      "UpdateHistory",
                     "range-start":  req.user["id"],
                     "range-end":    req.user["id"],
                 };
 
-            database.query("INSERT INTO Jobs(started, data) VALUES (now(), $1) RETURNING id;", [job_data],
-                function(err, results){
-                    if(err || results.rowCount != 1)
+            jobs.startJob(job_data,
+                function(err, job_id)
+                {
+                    if(err)
                     {
-                        console.log(err);
+                        logging.error({"message": "error updating history", "err": err})
+                        
                         var error_result = {
                             "result": "error",
-                            "message": err,
-                            "info": results
+                            "message": err
                             };
-                        res.json(error_result);
+
+                        res.json(error_result); 
                     }
                     else
                     {
-                        var new_job_message = {
-                            "message":"Load"
-                        };               
-                        communication.publish("jobs", new_job_message,
-                            function()
-                            {
-                                var success_result = {
-                                    "result": "success",
-                                    "job-id": results.rows[0]["id"]
-                                    };
-                                res.json(success_result);
-                            });
+                        var success_result = {
+                                "result": "success",
+                                "job-id": job_id
+                            };
+
+                        res.json(success_result);
                     }
                 });
-
-
         }
     );
 
@@ -294,7 +301,7 @@ router.route("/check-job-finished/:job_id")
 
             async.waterfall(
                 [
-                    database.generateQueryFunction("SELECT (finished IS NULL) as is_finished FROM jobs where id=$1;",
+                    database.generateQueryFunction("SELECT (finished IS NOT NULL) as is_finished FROM Jobs where id=$1;",
                             [job_id]),
                     function(results, callback)
                     {
@@ -308,7 +315,7 @@ router.route("/check-job-finished/:job_id")
                 {
                     if(err)
                     {
-                        console.log(err);
+                        logging.error({"message": "error checking job", "err":err, "result": results});
                         var error_result = {
                             "result": "error",
                             "message": err
@@ -366,22 +373,22 @@ router.route('/match-header')
                                     [
                                         function (callback)
                                         {
-                                            console.log("retrievign header");
+                                            logging.log("retrievign header");
                                             storage.retrieve(row.header_file, callback);
                                         },
                                         function(local_path, callback)
                                         {
-                                            console.log("reading header");
+                                            logging.log("reading header");
                                             fs.readFile(local_path,'utf-8', callback);
                                         },
                                         function(json, callback)
                                         {
-                                            console.log("load "+row.header_file);
+                                            logging.log("load "+row.header_file);
                                             var header = JSON.parse(json);
                                             if(row.label)
                                                 header["label"] = row.label;
                                             locals.header_files.push(header);
-                                            console.log("added header json to list "+row.header_file);
+                                            logging.log("added header json to list "+row.header_file);
                                             callback(null);
                                         }
                                     ],
@@ -394,7 +401,7 @@ router.route('/match-header')
                 function(err)
                 {
                     if(err)
-                        console.log(err);
+                        logging.error({"message": "error getting match header", "err": err});
                     res.json(locals.header_files);
                 }
             );
@@ -411,11 +418,11 @@ router.route('/results')
             }
             else
             {
-                console.log("no matchid", req.query);
+                logging.log("no matchid"+req.query);
                 res.json([]);
                 return;
             }
-            console.log("results for match",match_id);
+            logging.log("results for match",match_id);
             async.waterfall(
                 [
                     database.generateQueryFunction(
@@ -432,9 +439,7 @@ router.route('/results')
                     //console.log(result);
                     if(err)
                     {
-                        console.log("error retrieving scores for "+match_id);
-                        console.log(err);
-                        
+                        logging.error({"error": "error retrieving scores for "+match_id, "err": err});
                         res.json({});
                     }
                     else
@@ -476,8 +481,7 @@ router.route('/result/:result_id')
                     //console.log(result);
                     if(err)
                     {
-                        console.log("error retrieving result "+req.params.match_id);
-                        console.log(err);
+                        logging.error({"message": "error retrieving result "+req.params.match_id, "err": err});
                         
                         res.json({});
                     }
@@ -515,10 +519,8 @@ router.route('/match/:match_id')
                 {
                     if(err)
                     {
-                        console.log("error retrieving match "+req.params.match_id);
-                        console.log(err);
-                        console.log(result);
-                        
+                        logging.error({"message": "error retrieving match "+req.params.match_id, "err": err, "result": results});
+                       
                         res.send(err);
                     }
                     else
@@ -537,7 +539,7 @@ router.route("/upload")
 
             form.parse(req, function(err, fields, files)
             {
-                console.log("finished upload of "+identifier);
+                logging.log("finished upload of "+identifier);
                 var response = {
                     "id": identifier                    
                     };
@@ -553,7 +555,7 @@ router.route("/upload")
 
             form.on('error', function(err)
             {
-                console.error(err);
+                logging.error({"message": "error in file upload", "err": err});
             });
 
             form.on('end', function(fields, files)
@@ -576,8 +578,7 @@ router.route("/upload")
                     {
                         if(err)
                         {
-                            console.log(err);
-                            console.log("success " + identifier + "!");
+                            logging.error({"message": "err in upload end", "err": err});
                         }
                     }
                 );
@@ -603,7 +604,7 @@ router.route("/uploads")
                 {
                     if(err)
                     {
-                        console.log(err);
+                        logging.error({"message": "uploads err", "err": err});
                     }
                     res.json(results);
                 }
@@ -612,40 +613,16 @@ router.route("/uploads")
     );
 
 
-router.route("/retrieve")
+router.route("/retrieve/:match_id")
     .get(authentication.ensureAuthenticated,
         function(req, res)
         {
-            async.waterfall(
-                [
-                    database.generateQueryFunction("SELECT mrr.id, mrs.label as status FROM MatchRetrievalRequests mrr, MatchRetrievalStatuses mrs WHERE mrr.retrieval_status = mrs.id AND mrr.requester_id=$1;",
-                            [req.user["id"]]),
-                    function(results, callback)
-                    {
-                        //just give out the rows?
-                        callback(null, results.rows);
-                    }
-                ],
-                function(err, results)
-                {
-                    if(err)
-                    {
-                        console.log(err);
-                    }
-                    res.json(results);
-                }
-            );
-        }
-    );
+            var match_id = req.params.match_id;
 
-router.route("/retrieve/:match_id")
-    .post(authentication.ensureAuthenticated,
-        function(req, res)
-        {
             async.waterfall(
                 [
                     database.generateQueryFunction("SELECT rf.id FROM ReplayFiles rf WHERE rf.id=$1;",
-                            [req.params.match_id]),
+                            [match_id]),
                     function(results, callback)
                     {
                         if(results.rowCount > 0)
@@ -653,7 +630,7 @@ router.route("/retrieve/:match_id")
                         else
                         {
                             database.query("INSERT INTO MatchRetrievalRequests(id, retrieval_status, requester_id) VALUES ($1, (SELECT mrs.id FROM MatchRetrievalStatuses mrs where mrs.label=$2), $3);",
-                            [req.params.match_id, "requested", req.user["id"]],callback);
+                            [match_id, "requested", req.user["id"]],callback);
                         }
                     },
                     function(results, callback)
@@ -661,14 +638,22 @@ router.route("/retrieve/:match_id")
                         if(results.rowCount != 1)
                             callack("inserting request failed", results);
                         else
-                            callback();
+                        {
+                            var job_data =  
+                                {
+                                    "message": "Retrieve",
+                                    "id": match_id
+                                };
+                            
+                            jobs.createJob(job_data, callback);
+                        }
                     }
                 ],
-                function(err, results)
+                function(err, job_id)
                 {
                     if(err)
                     {
-                        console.log(err);
+                        logging.error({"message": "retrieve match err", "err": err});
                         var error_result = {
                             "result": "error",
                             "message": err,
@@ -679,7 +664,8 @@ router.route("/retrieve/:match_id")
                     else
                     {
                         var success_result = {
-                            "result": "success"
+                            "result": "success",
+                            "job-id": results
                             };
                         res.json(success_result);
                     }
@@ -718,7 +704,7 @@ router.route("/score/:match_id")
                 {
                     if(err)
                     {
-                        console.log(err);
+                        logging.error({"message": "score match err", "err": err});
                         var error_result = {
                             "result": "error",
                             "message": err,
@@ -789,7 +775,7 @@ router.route('/admin-stats/:query')
                     //console.log(result);
                     if(err)
                     {
-                        console.log("error retrieving admin data "+query_string, err, result);
+                        logging.error({"message": "error retrieving admin data "+query_string, "err": err, "result": result});
                         
                         res.json({});
                     }
@@ -809,12 +795,13 @@ router.route('/admin-switch-user/:new_id')
             var new_user = req.user;
             new_user["id"] = new_id;
             req.login(new_user, function(err){
-                if (err) console.log("relog err", err);
-                console.log("After relogin: ",req.user);
+                if (err)
+                    logging.error({"message": "relog err", "err": err});
+                logging.log("After relogin: "+req.user);
                 res.json({"new-id": new_id});
             })
             req.user.id = new_id;
-            console.log("switched id" + new_id);
+            logging.log("switched id" + new_id);
         }
     );
 
@@ -836,7 +823,7 @@ router.route('/admin-list-users/')
                     //console.log(result);
                     if(err)
                     {
-                        console.log("error retrieving admin user list data "+query_string, err, result);
+                        logging.error({"message": "error retrieving admin user list data "+query_string, "err": err, "result": result});
                         
                         res.json({"users":[]});
                     }
@@ -868,7 +855,7 @@ router.route('/admin-get-logs/')
                     //console.log(result);
                     if(err)
                     {
-                        console.log("error retrieving logs ", err, result);
+                        logging.error({"message": "error retrieving logs "+query_string, "err": err, "result": result});
                         
                         res.json({"logs":[]});
                     }
@@ -893,7 +880,7 @@ router.route('/admin-find-user/:name')
                     //console.log(result);
                     if(err)
                     {
-                        console.log("error retrieving admin user list data "+query_string, err, result);
+                        logging.error({"message": "error find user "+req.params.name, "err": err, "result": result});
                         
                         res.json({"users":[]});
                     }
@@ -904,6 +891,41 @@ router.route('/admin-find-user/:name')
         }
     );
 
+router.route('/admin-scheduler-state/')
+    .get(authentication.ensureAuthenticated,
+        authentication.ensureAdmin,
+        function(req, res) 
+        {
+            var locals = {};
+            async.waterfall(
+                [
+                    database.generateQueryFunction("SELECT identifier, type, extract(epoch from last_heartbeat) as last_heartbeat, status, COALESCE( (SELECT data FROM Jobs WHERE id=current_job), '{}'::json) AS job  FROM Services;",[]),
+                    function(results, callback)
+                    {
+                        locals.services = results.rows;
+                        database.query("SELECT * FROM Jobs WHERE finished IS NULL;", [], callback);
+                    },
+                    function(results, callback)
+                    {
+                        locals.jobs = results.rows;  
+                        callback();
+                    }
+                ],
+                function(err, result)
+                {
+                    //console.log(result);
+                    if(err)
+                    {
+                        logging.error({"message": "error getting scheduler data ", "err": err, "result": result});
+                        
+                        res.json({"result": "failed"});
+                    }
+                    else
+                        res.json({"result": "success", "services": locals.services, "jobs": locals.jobs});
+                }
+            );
+        }
+    );
 
 
 router.route("/score_result/:request_id")
@@ -931,7 +953,7 @@ router.route("/score_result/:request_id")
                 {
                     if(err)
                     {
-                        console.log(err, results);
+                        logging.error({"message": "err getting score result", "err": err, "result": results});
                         var error_result = {
                             "result": "error",
                             "message": err,
@@ -941,7 +963,6 @@ router.route("/score_result/:request_id")
                     }
                     else
                     {
-                        console.log("found score res",results);
                         var success_result = {
                             "result": "success",
                             "id": results
@@ -997,7 +1018,7 @@ router.route("/stats")
                 {
                     if(err)
                     {
-                        console.log(err);
+                        logging.error({"message": "", "err": err});
                     }
                     res.json(results);
                 }
@@ -1041,7 +1062,7 @@ router.route("/download/:match_id")
                 {
                     if(err)
                     {
-                        console.log("download err ", err);
+                        logging.error({"message": "download err ", "err": err});
                         var error_result = {
                             "result": "error",
                             "message": err
@@ -1049,13 +1070,12 @@ router.route("/download/:match_id")
                     }
                     else
                     {
-                        console.log("download success",match_id);
+                        logging.log("download success"+match_id);
                     }
                 }
             );
         }
     );
-
 
 
 router.route("/verify/:verification_code")
@@ -1080,9 +1100,9 @@ router.route("/verify/:verification_code")
                         }
                         else if(results.rowCount == 1)
                         {
-                            console.log("execute verified action");
+                            logging.log("execute verified action");
                             locals.action = results.rows[0].action;
-                            console.log(locals.action);
+                            logging.log(locals.action);
                             switch(locals.action)
                             {
                             case "SetEmail":
@@ -1103,7 +1123,7 @@ router.route("/verify/:verification_code")
 
                             case "ConfirmNewsletter":
                                 var email_id = results.rows[0].args["id"];
-                                console.log("confirming newsletter for email", email_id);
+                                logging.log("confirming newsletter for email"+ email_id);
                                 database.query(
                                     "UPDATE Emails e SET verified=TRUE WHERE e.id=$1;",
                                     [email_id],
@@ -1161,7 +1181,7 @@ router.route("/verify/:verification_code")
                         err_result["info"] = err;
                         err_result["result"] = "failure";
                         err_result["data"] = result;
-                        console.log(err_result);
+                        logging.error({"message":"", "err": err, "result": result});
                         res.json(err_result);
                     }
                     else
@@ -1222,7 +1242,7 @@ router.route("/add-email/:email_address")
                     transporter.sendMail.bind(transporter, mail),
                     function(info, callback)
                     {
-                        console.log('Confirmation mail sent: ' + info.response);
+                        logging.log('Confirmation mail sent: ' + info.response);
                         if(req.user)
                             database.query("INSERT INTO Emails(user_id, email, verified) VALUES ($1, $2, FALSE) RETURNING id;", [req.user["id"], req.params.email_address], callback);
                         else

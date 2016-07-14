@@ -95,7 +95,12 @@ function load()
                         console.log("loaded machineID, running cbs", callbacks.length)
                         for(var i = 0; i < callbacks.length; i++)
                         {
-                            callbacks[i](null, machine_config["id"]);
+                            if(callbacks[i] instanceof Function)
+                                callbacks[i](null, machine_config["id"]);
+                            else
+                            {
+                                console.log("BAD CALLBACK", callbacks[i]);
+                            }
                         }
                     }    
                     loaded_block.leave();
@@ -128,6 +133,8 @@ exports.getMachineConfig = function(callback)
 };
 exports.getMachineID = function(callback)
 {
+    if(! (callback instanceof Function))
+        console.log("bad callback", callback);
     loaded_block.take(function()
         {
             switch(loaded)

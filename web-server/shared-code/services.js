@@ -1,21 +1,28 @@
 var communication   = require("/shared-code/communication.js"),
-    utils           = require("/shared-code/utils.js");
+    database        = require("/shared-code/database.js"),
+    utils           = require("/shared-code/utils.js"),
+    machine         = require("/shared-code/machine.js"),
+    logging         = require("/shared-code/logging.js")("services-lib");
 
 var async       = require("async");
 
-function Service(service_type, service_handler, final_callback, register_callback) {
+var scheduler_listening_channel = "scheduler";
+var scheduler_broadcast_channel = "scheduler_broadcast";
+
+function Service(service_type, service_handler, final_callback)
+{
     this._type = service_type;
     this._identifier = utils.safe_generate();
-    this._register_callback = register_callback;
     var self = this;
-    async.series(
+
+    async.waterfall(
         [
             function(callback){
                 self._subscriber = new communication.Subscriber(callback);
             },
             function(callback){
                 self._subscriber.listen(self._identifier, service_handler);
-                self._subscriber.listen("scheduler_broadcast", 
+                self._subscriber.listen(scheduler_broadcast_channel, 
                     function(channel, message)
                     {
                         self._handleSchedulerMsg(channel, message);
@@ -25,14 +32,23 @@ function Service(service_type, service_handler, final_callback, register_callbac
             },
             function(callback)
             {
-                var registration_message = {
-                    "message": "RegisterService",
-                    "type": self._type,
-                    "identifier": self._identifier
+                database.query("INSERT INTO Services (identifier, type, last_heartbeat, status) VALUES ($1, $2, now(), '{}');",[self._identifier, self._type],callback);
+            },
+            function(results, callback)
+            {
+                machine.getMachineID(callback)
+            },
+            function(machine_id, callback)
+            {
+                self.setStatus({"machine":machine_id}, callback);
+            },
+            function(results, callback)
+            {
+                var add_message = {
+                    "message": "AddService"
                 };
 
-                communication.publish("scheduler", registration_message, self._register_callback);
-                callback();
+                communication.publish(scheduler_listening_channel, add_message, callback);
             }
         ],
         final_callback
@@ -44,20 +60,15 @@ Service.prototype._handleSchedulerMsg =  function(channel, message)
     var self = this;
     switch(message["message"])
     {
-        case "SchedulerReset":
-            
-            var new_message = {
-                    "message": "RegisterService",
-                    "type": this._type,
-                    "identifier": this._identifier
-                };
-            communication.publish("scheduler", new_message,
-                function()
-                {
-                    console.log("re-registered retriever as ", self._identifier);
-                    if(self._register_callback)
-                        self._register_callback();
-
+        case "Heartbeat":
+            database.query("UPDATE Services SET last_heartbeat=now() WHERE identifier=$1;",[this._identifier],
+                function(err, results){
+                    if(err)
+                        logging.error({"message": "error while updating heartbeat of service", "identifier": self._identifier, "err":err, "result": results});
+                    else
+                    {
+                        
+                    }
                 });
             break;
         default:
@@ -66,11 +77,59 @@ Service.prototype._handleSchedulerMsg =  function(channel, message)
     }
 }
 
-Service.prototype.send = function(message, callback)
+Service.prototype.setStatus = function(update_object, callback)
 {
-    console.log("sending", message);
-    communication.publish(this._identifier, message, callback);
+    var self = this;
+    async.waterfall(
+        [
+            function(callback)
+            {
+                database.query("SELECT status FROM Services WHERE identifier=$1;", [self._identifier], callback);
+            },
+            function(results, callback)
+            {
+                if(results.rowCount != 1)
+                {
+                    callback("couldn't find service status in db", results);
+                    return;
+                }
+
+                var new_status = results.rows[0]["status"];
+                if(!new_status)
+                    new_status = {};
+
+                for(var key in update_object)
+                {
+                    new_status[key] = update_object[key];
+                }
+
+                database.query("UPDATE Services SET status=$2 WHERE identifier=$1;", [self._identifier, new_status], callback);
+            },
+            function(results, callback)
+            {
+                if(results.rowCount != 1)
+                    callback("couldn't update service status", results);
+                else
+                    callback(null, results);
+            }
+        ],
+        function(err, result)
+        {
+            if(err)
+                logging.error({"message": "setStatus failed", "err": err, "result": result});
+
+            callback(err);
+        }
+    );
 }
 
+function notifyScheduler(message, callback)
+{
+    logging.log({"message": "notifying scheduler with", "data":message});
+    communication.publish(scheduler_listening_channel, message, callback);
+}
 
 exports.Service = Service;
+exports.notifyScheduler = notifyScheduler;
+exports.scheduler_listening_channel = scheduler_listening_channel; //This is the channel which the scheduler will listen on for messages from the services
+exports.scheduler_broadcast_channel = scheduler_broadcast_channel; //Tis is the channel the scheduler uses to notify the services 

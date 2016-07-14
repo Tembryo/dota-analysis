@@ -57,7 +57,7 @@ FROM mmrdata d,
 Candidates as (SELECT m.matchid, SUM(COALESCE(bin.entropy, (SELECT MAX(entropy) FROM SampleBins) )) AS value, json_agg(bin.mmr_bin) as bins, json_agg(bin.hero) as heroes 
 FROM CrawlingMatches m, CrawlingMatchStatuses s, CrawlingSamples smpl LEFT JOIN SampleBins bin ON floor(smpl.solo_mmr/250)*250=bin.mmr_bin AND bin.hero=smpl.hero
 WHERE smpl.matchid= m.matchid AND s.label='open' AND s.id=m.status 
-AND to_timestamp((m.data->>'start_time')::bigint) > current_date - interval '7 days' GROUP BY m.matchid ORDER BY value DESC LIMIT 100)
+AND to_timestamp((m.data->>'start_time')::bigint) > current_date - interval '7 days' GROUP BY m.matchid ORDER BY value DESC LIMIT 500);
 
 INSERT INTO matchretrievalrequests(id) (SELECT matchid from Candidates);
 
@@ -65,7 +65,7 @@ INSERT INTO matchretrievalrequests(id) (SELECT matchid from Candidates);
 INSERT INTO jobs(started, data) VALUES (now(), '{"message":"Retrieve", "id":2418509989}'::json);
 
 
-INSERT INTO jobs(started, data) VALUES (now(), '{"message":"AddSampleMatches", "n":200}'::json);
+INSERT INTO jobs(started, data) VALUES (now(), '{"message":"AddSampleMatches", "n":1000}'::json);
 
 INSERT INTO jobs(started, data) (SELECT now(), ('{"message":"Score", "id":'||m.id||'}')::json FROM (SELECT * FROM Matches ORDER BY id DESC) m WHERE m.analysis_version = '24/05/16');
 
@@ -84,7 +84,7 @@ FROM mmrdata d,
 SELECT m.matchid, SUM(COALESCE(bin.entropy, (SELECT MAX(entropy) FROM SampleBins) )) AS value, json_agg(bin.mmr_bin) as bins, json_agg(bin.hero) as heroes 
 FROM CrawlingMatches m, CrawlingMatchStatuses s, CrawlingSamples smpl LEFT JOIN SampleBins bin ON floor(smpl.solo_mmr/250)*250=bin.mmr_bin AND bin.hero=smpl.hero
 WHERE smpl.matchid= m.matchid AND s.label='open' AND s.id=m.status 
-AND to_timestamp((m.data->>'start_time')::bigint) > current_date - interval '7 days' GROUP BY m.matchid ORDER BY value DESC LIMIT 100;
+AND to_timestamp((m.data->>'start_time')::bigint) > current_date - interval '7 days' GROUP BY m.matchid ORDER BY value DESC LIMIT 1000;
 
 INSERT INTO jobs(started, data) VALUES (now(), '{"message":"Score", "id":2425170236}'::json);
 
@@ -198,11 +198,16 @@ SELECT match_id, processing_status, retrieval_status FROM
         COALESCE( (SELECT md.data FROM MatchDetails md WHERE umh.match_id = md.matchid),
       'null'::json) AS match_details 
  FROM Users u, UserMatchHistory umh 
- WHERE u.id = 2995 
+ WHERE u.id = 3548 
  AND u.id = umh.user_id 
 ORDER BY umh.match_id DESC 
 ) md;
 
-select count(*) from
+select count(*), json_agg(processing_status), upload_filename from replayfiles group by upload_filename having count(*)>1;
 
-delete from replayfiles where id in  (select distinct rf1.id from replayfiles rf1, replayfiles rf2 where rf1.upload_filename=rf2.upload_filename and rf1.id < rf2.id and not exists (Select id from matches where replayfile_id=rf1.id));
+delete from replayfiles where id in  (select distinct rf1.id from replayfiles rf1, replayfiles rf2 where rf1.upload_filename=rf2.upload_filename and rf1.id <> rf2.id and not exists (Select id from matches where replayfile_id=rf1.id));
+
+wisdota-bot@tembryo.com
+insert into steamaccounts(name, password) values ('wisdota_bot_59', 'crawley-the-bot-59');
+
+  insert into jobs (started, data) (SELECT NOW(), ('{"message":"Analyse", "id":'||id||', "machine":1}')::json FROM Replayfiles where processing_status=1);

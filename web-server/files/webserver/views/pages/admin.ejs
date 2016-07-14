@@ -31,6 +31,11 @@
                 <li>
                     <a data-toggle="tab" href="#logs">Logs</a>
                 </li>
+
+                <li>
+                    <a data-toggle="tab" href="#scheduler">Scheduler</a>
+                </li>
+
                 <li>
                     <a data-toggle="tab" href="#mmr-samples">MMR samples</a>
                 </li>
@@ -111,6 +116,15 @@
                         <tbody id="logs_list"></tbody>
                     </table>
                 </div>
+
+                <div id="scheduler" class="tab-pane fade">
+                    <h3>Services</h3>
+                    <table class="table">
+                        <thead><tr><th>identifier</th><th>type</th><th>last_heartbeat</th><th>job</th><th>status</th></tr></thead>
+                        <tbody id="services_list"></tbody>
+                    </table>
+                </div>
+
                 <div id="mmr-samples" class="tab-pane fade">
                     <h3>MMR samples data</h3>
                     <table class="table" id="mmr-samples-table">

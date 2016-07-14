@@ -394,12 +394,16 @@ function load(new_data)
                 first_parsed = i; 
                 break;
             }
-        displayMatch(data[i]);
+        if(first_parsed >= 0)
+            displayMatch(data[i]);
     }
 }
 
 function calculateAverage(data){
-    var averageData = null;
+    var averageData = {
+        "IMR": 0,
+        "ratings": []
+    };
     for (i=0; i<data.length; i++){
         if (data[i]["status"] === "parsed"){
             averageData = JSON.parse(JSON.stringify(data[i]));
@@ -485,7 +489,9 @@ function renderTimeline()
         mypath.attr("d","M "+x_scale.range()[0]+" "+vertical_center+" L "+x_scale.range()[1]+" "+vertical_center);
     }
     else
-        console.log("shouldn't happen");
+    {
+        console.log("no analysed matches at all");
+    }    
 
     var canvas = d3.select("#timeline-canvas");
 
@@ -540,7 +546,6 @@ function createIcon(d,i)
     group.append("svg:image")
         .attr("id", "image")
         .attr("xlink:href",function(d){return hero_icons[d["hero"]];})
-        .attr("opacity", function(d){if(!d["IMR"]) return 0.5; else return 1;})
         .attr("pointer-events", "none");
 
     var infoGroup = group.append("g")
@@ -602,7 +607,8 @@ function updateIcon(d,i)
         .attr("x", -0.5*icon_size)
         .attr("y", -0.5*icon_size)
         .attr("width", icon_size)
-        .attr("height", icon_size);
+        .attr("height", icon_size)
+        .attr("opacity", function(d){if(!d["IMR"]) return 0.5; else return 1;});
 }
 
 
@@ -912,7 +918,7 @@ function renderHeroImages(dataPoint) {
     }
 }
 
-var history_job_check_interval = 1000;
+var history_job_check_interval = 5000;
 
 $(document).ready(function(){
     initPage();
