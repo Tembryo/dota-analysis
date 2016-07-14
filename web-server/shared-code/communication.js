@@ -1,6 +1,7 @@
 var async       = require("async");
 
-var database = require("./database.js");
+var database = require("./database.js"),
+    logging = require("./logging.js")("communication-lib");
 
 var retry_interval = 10000;
 
@@ -31,12 +32,13 @@ Subscriber.prototype._processNotification = function(notification)
         {
             var message = decode(notification.payload);
             //console.log("received message", notification.channel, message);
-            this._channels[notification.channel](notification.channel, message);
         }
         catch(e)
         {
-            console.log("error parsing message", notification, e);
-        } 
+            logging.log("error parsing message", notification, e);
+        }
+
+        this._channels[notification.channel](notification.channel, message);
     }
     else
     {

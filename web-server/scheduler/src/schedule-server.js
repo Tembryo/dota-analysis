@@ -1,7 +1,10 @@
 var config          = require("./config.js"),
     database        = require("/shared-code/database.js"),
-    communication   = require("/shared-code/communication.js");
-    logging         = require("/shared-code/logging.js")("schedule-server");
+    communication   = require("/shared-code/communication.js"),
+    services        = require("/shared-code/services.js"),
+    logging         = require("/shared-code/logging.js")("schedule-server"),
+    jobs            = require("/shared-code/jobs.js"),
+    settings        = require("/shared-code/settings.js");
 
 var async           = require("async");
 var shortid         = require("shortid");
@@ -9,22 +12,10 @@ var shortid         = require("shortid");
 var job_queue_block = require('semaphore')(1);
 var steam_accounts_block = require('semaphore')(1);
 
-var servers = {};
-var servers_by_type = {};
-
 var subscriber = null;
-var serviceHandlers =
-    {
-        "Retrieve": handleRetrieveServerMsg,
-        "Download": handleDownloadServerMsg,
-        "Analysis": handleAnalysisServerMsg,
-        "Crawl":    handleCrawlServerMsg
-    };
+
 //TODO introduce sema for queue
 var jobs_queue = {};
-
-
-var listener_client;
 
 var retrieve_requests = {};
 
@@ -44,10 +35,6 @@ async.series(
 
 function initialise(callback)
 {
-    for (service in serviceHandlers) 
-    {
-        servers_by_type[service] = [];
-    }
     //init steam accounts
     async.waterfall(
         [
@@ -83,13 +70,7 @@ function startTasks(callback)
 {
     setTimeout(function()
         {
-            runQueueLoader();
-        },
-        startup_delay);
-
-    setTimeout(function()
-        {
-            updateAllHistories();
+            //updateAllHistories();
         },
         startup_delay);
 
@@ -111,6 +92,18 @@ function startTasks(callback)
         },
         startup_delay);
 
+    setTimeout(function()
+        {
+            runHeartbeatRefresh();
+        },
+        startup_delay);
+
+    setTimeout(function()
+        {
+            runTimeoutJobs();
+        },
+        startup_delay);
+
     callback();
 }
 
@@ -125,22 +118,14 @@ function registerListeners(final_callback)
             },
             function(callback)
             {
-                subscriber.listen("scheduler",          handleSchedulerMsg);
-                subscriber.listen("jobs",               handleJobMsg);
-                subscriber.listen("retrieval_watchers", handleRetrievalMsg);
-                subscriber.listen("newuser_watchers",   handleNewUserMsg);
-                subscriber.listen("download_watchers",  handleDownloadMsg);
-                subscriber.listen("replay_watchers",    handleReplayMsg);
-                subscriber.listen("match_history",      handleMatchHistoryMsg);
-
-
+                subscriber.listen(services.scheduler_listening_channel, handleSchedulerMsg);
 
                 //clean up score_watchers
                 callback();
             },
             function(callback)
             {
-                communication.publish("scheduler_broadcast",{"message":"SchedulerReset"});
+                communication.publish(services.scheduler_broadcast_channel,{"message":"SchedulerReset"});
                 callback();
             }
         ],
@@ -152,13 +137,50 @@ function handleSchedulerMsg(channel, message)
 {
     switch(message["message"])
     {
-        case "RegisterService":
-            registerService(message["type"], message["identifier"]);
+        case "AddService":
             schedulerTick();
-
             break;
-        case "UnregisterService":
-            logging.log("Unregistering not supported yet");
+        case "NewJob":
+            schedulerTick();
+            break;
+        
+        case "JobResponse":
+            processJobResponse(message);
+            break;
+        case "GetSteamAccount":
+            //free old acc
+            steam_accounts_block.take(function(){
+                for(var i = 0; i < steam_accounts.length; ++i)
+                {
+                    if(steam_accounts[i]["used-by"] === message["service"])
+                        steam_accounts[i]["used-by"] = null;
+                }
+
+                //iterate account
+                if(message["service"] in next_steam_account)
+                    next_steam_account[message["service"]] = (next_steam_account[message["service"]]+1)%steam_accounts.length;
+                else
+                    next_steam_account[message["service"]] = Math.floor(Math.random() * steam_accounts.length);
+                while(steam_accounts[next_steam_account[message["service"]]]["used-by"] != null)
+                {
+                    next_steam_account[message["service"]] = (next_steam_account[message["service"]]+1)%steam_accounts.length;
+                }
+
+                logging.log({"message": "giving out steam account ","steam_account":next_steam_account[message["service"]], "service": message["service"]});
+
+                var steam_acc_message = 
+                    {
+                        "message": "SteamAccount",
+                        "id": next_steam_account[message["service"]],
+                        "name": steam_accounts[next_steam_account[message["service"]]]["name"],
+                        "password": steam_accounts[next_steam_account[message["service"]]]["password"]
+                    };
+                steam_accounts[next_steam_account[message["service"]]]["used-by"] = message["service"];
+                steam_accounts_block.leave();
+
+                communication.publish(message["service"], steam_acc_message);
+            })
+
             break;
         default:
             logging.log({"message":"Unknown scheduler message", "data":message});
@@ -166,515 +188,263 @@ function handleSchedulerMsg(channel, message)
     }
 }
 
-function handleRetrievalMsg(channel, message)
+function processJobResponse(message)
 {
-    switch(message["message"])
+    switch(message["result"])
     {
-        case "Retrieve":
-            if(message["id"] in retrieve_requests)
+        case "finished":
+        case "failed":
+            var result_data = {};
+            for( var result_entry in message)
             {
-                logging.log({"message":"trying to requeue ","data":message})
-            }
-            else
-            {
-                var job_data =  
-                    {
-                        "message": "Retrieve",
-                        "id": message["id"]
-                    };
-                createJob(job_data);
-            }
-            break;
-        default:
-            logging.log({"message":"Unknown retrieve message","data":message})
-            break;
-    }
-}
-
-function handleNewUserMsg(channel, message)
-{
-    switch(message["message"])
-    {
-        case "User":
-                //console.log("requesting new user history");
-                var job_data = {
-                        "message":      "UpdateHistory",
-                        "range-start":  message["id"],
-                        "range-end":    message["id"],
-                    };
-                createTemporaryJob(job_data, function(job_id){});
-            break;
-        default:
-            logging.log("Unknown new user message", message);
-            break;
-    }
-}
-
-function handleDownloadMsg(channel, message)
-{
-    switch(message["message"])
-    {
-        case "Download":
-                //console.log("requesting new user history");
-                var job_data = {
-                        "message":      "Download",
-                        "id":  message["id"]
-                    };
-                createJob(job_data);
-            break;
-        default:
-            logging.log({"message":"Unknown download message","data":message})
-            break;
-    }
-}
-
-
-function handleReplayMsg(channel, message)
-{
-    switch(message["message"])
-    {
-        case "Analyse":
-                logging.log("new replay file -  analysing");
-                var job_data = {
-                        "message":      "Analyse",
-                        "id":  message["id"]
-                    };
-                createJob(job_data);
-            break;
-        default:
-            logging.log({"message":"Unknown replay message","data":message})
-            break;
-    }
-}
-
-var user_last_refresh = {};
-var min_refresh_interval = 60*1000;
-
-function handleMatchHistoryMsg(channel, message)
-{
-    switch(message["message"])
-    {
-        case "RefreshHistory":
-            logging.log("requesting history refresh message", message);
-                if(message["id"] in user_last_refresh)
-                {
-                    var new_time = Date.now();
-                    if(new_time - user_last_refresh[message["id"]] < min_refresh_interval)
-                    {
-                       //console.log("refresh declined");
-                       break;
-                    }
-                    else
-                        user_last_refresh[message["id"]] = new_time;
-                }
+                if(result_entry === "message" || result_entry === "job")
+                    continue;
                 else
-                    user_last_refresh[message["id"]] = Date.now();
+                    result_data[result_entry] = message[result_entry];
+            }
 
-                var job_data = {
-                        "message":      "UpdateHistory",
-                        "range-start":  message["id"],
-                        "range-end":    message["id"],
-                    };
-                createTemporaryJob(job_data, function(job_id){});
+            async.waterfall(
+                [
+                    database.generateQueryFunction("UPDATE Jobs SET finished = now(), result=$2 WHERE id=$1;", [message["job"], result_data]),
+                    function(results, callback)
+                    {
+                        if(results.rowCount != 1)
+                        {
+                            callback("couldn't find job to close", results);
+                            return;
+                        }
+                        database.query("UPDATE Services SET current_job=NULL WHERE current_job=$1;", [message["job"]], callback);
+                    },
+                    function(results, callback)
+                    {
+                        if(results.rowCount != 1)
+                        {
+                            callback("couldn't find service to free", results);
+                            return;
+                        }
+
+                        callback();
+                    }
+                ],
+                function(err, results)
+                {
+                    if(err)
+                        logging.error({"message":"error closing job", "err": err, "result": results});
+                    else
+                        logging.log({"message":"finished job", "data":message});
+
+                    schedulerTick();
+                });  
+            break;
+
+        case "reschedule":
+            async.waterfall(
+                [
+                    database.generateQueryFunction("UPDATE Jobs SET assigned=NULL WHERE id=$1;", [message["job"]]),
+                    function(results, callback)
+                    {
+                        if(results.rowCount != 1)
+                        {
+                            callback("couldn't find job to reschedule", results);
+                            return;
+                        }
+
+                        database.query("UPDATE Services SET current_job=NULL WHERE current_job=$1;", [message["job"]], callback);
+                    },
+                    function(results, callback)
+                    {
+                        if(results.rowCount != 1)
+                        {
+                            callback("couldn't find service to free", results);
+                            return;
+                        }
+
+                        callback();
+                    }
+                ],
+                function(err, results)
+                {
+                    if(err)
+                    {
+                        logging.error({"message":"error resetting job", "err": err, "result": results});
+                    }
+
+                    schedulerTick();
+                });    
             break;
         default:
-            logging.log({"message":"Unknown match history message","data":message})
+            logging.log({"message":"bad job response:", "data": message});
             break;
     }
 }
-
-
-function handleJobMsg(channel, message)
-{
-    switch(message["message"])
-    {
-        case "Load":
-            loadQueue();
-            break;
-        default:
-            logging.log({"message":"Unknown job message","data":message})
-            break;
-    }
-}
-
 
 
 var retrieve_capacity_block = 120*60*1000; //block server for 2 hours before retry
 
-function handleRetrieveServerMsg(server_identifier, message) //channel name is the server identifier
+
+var service_heartbeat_timeout   = "22 seconds";
+var heartbeat_interval  = 10000;
+var heartbeat_check_delay  = 1000;
+function runHeartbeatRefresh()
 {
-    if(("job" in message) && !(message["job"] in jobs_queue))
-    {
-        logging.log("couldnt find retrieve job");
-        return;
-    }
-
-    switch(message["message"])
-    {
-        case "Retrieve":
-        case "UpdateHistory":
-        case "SteamAccount":
-            //Sent by myself
-            break;
-
-        case "RetrieveResponse":
-            switch(message["result"])
-            {
-                case "finished":
-                    closeJob(server_identifier, message["job"]);
-                    logging.log({"message":"finished retrieve", "data":message});
-                    break;
-                case "no-capacity":
-                    servers[server_identifier]["over-capacity-timeout"] = Date.now() + retrieve_capacity_block;
-                    servers[server_identifier]["busy"] = false;
-                    jobs_queue[message["job"]]["state"] = "open"; //rertry this job somewhere else
-                    schedulerTick();
-                    break;
-                default:
-                    logging.log({"message":"bad retrieve response:", "data": message});
-                    break;
-            }
-            break;
-
-        case "UpdateHistoryResponse":
-            var job =  jobs_queue[message["job"]]; 
-            switch(message["result"])
-            {
-                case "finished":
-                    logging.log({"message": "updated history", "job-id":message["job"]});
-                    break;
-                case "failed":
-                    logging.log({"message":"failed to updated history", "data":message, "job": job});
-                    break;
-            }
-            closeJob(server_identifier, message["job"]);
-            if(job["callback"])
-                job["callback"]();//made a copy, so this works after cleaning up the job
-            break;
-
-        case "GetSteamAccount":
-            //free old acc
-            steam_accounts_block.take(function(){
-                for(var i = 0; i < steam_accounts.length; ++i)
-                {
-                    if(steam_accounts[i]["used-by"] === server_identifier)
-                        steam_accounts[i]["used-by"] = null;
-                }
-
-                //iterate account
-                if(server_identifier in next_steam_account)
-                    next_steam_account[server_identifier] = (next_steam_account[server_identifier]+1)%steam_accounts.length;
-                else
-                    next_steam_account[server_identifier] = 0;
-                while(steam_accounts[next_steam_account[server_identifier]]["used-by"] != null)
-                {
-                    next_steam_account[server_identifier] = (next_steam_account[server_identifier]+1)%steam_accounts.length;
-                }
-
-                logging.log({"message": "giving out steam account ","steam_account":next_steam_account[server_identifier], "server": server_identifier});
-
-                var steam_acc_message = 
-                    {
-                        "message": "SteamAccount",
-                        "id": next_steam_account[server_identifier],
-                        "name": steam_accounts[next_steam_account[server_identifier]]["name"],
-                        "password": steam_accounts[next_steam_account[server_identifier]]["password"]
-                    };
-                steam_accounts[next_steam_account[server_identifier]]["used-by"] = server_identifier;
-                steam_accounts_block.leave();
-
-                communication.publish(server_identifier, steam_acc_message);
-            })
-
-            break;
-
-        default:
-            logging.log({"message": "unknown response:", "server": server_identifier, "message":message});
-            break;
-    }
+    heartbeatRefresh();
+    setTimeout(runHeartbeatRefresh, heartbeat_interval);
 }
 
-
-function handleDownloadServerMsg(server_identifier, message) //channel name is the server identifier
+function heartbeatRefresh()
 {
-    if(("job" in message) && !(message["job"] in jobs_queue))
-    {
-        logging.log("couldnt find download job");
-        return;
-    }
-
-    switch(message["message"])
-    {
-        case "Download":
-            //Sent by myself
-            break;
-
-        case "DownloadResponse":
-            var job =  jobs_queue[message["job"]]; 
-            switch(message["result"])
-            {
-                case "finished":
-                    logging.log({"message": "finished download", "job-id": message["job"]});
-                    break;
-                case "failed":
-                    logging.log({"message": "failed download", "job":job});
-                    break;
-            }
-            closeJob(server_identifier, message["job"]);
-            break;
-        default:
-            logging.log({"message": "unknown response:", "server": server_identifier, "message":message});
-            break;
-    }
-}
-
-function handleAnalysisServerMsg(server_identifier, message) //channel name is the server identifier
-{
-    if(("job" in message) && !(message["job"] in jobs_queue))
-    {
-        logging.log({"message":"couldnt find analysis job", "data":message});
-        return;
-    }
-
-    switch(message["message"])
-    {
-        case "Analyse":
-        case "Score":
-            //Sent by myself
-            break;
-
-        case "AnalyseResponse":
-            
-            logging.log("got analysis response");
-            var job =  jobs_queue[message["job"]]; 
-            switch(message["result"])
-            {
-                case "finished":
-                    logging.log({"message": "finished analysis", "job-id":message["job"]});
-                    break;
-                case "failed":
-                    logging.log({"message":"failed analysis", "job":job});
-                    break;
-                default:
-                    logging.log({"message":"weird result ", "data":message});
-            }
-            if(! (message["message"]==="AnalyseResponse"))
-            {
-                logging.log("WHAT THE FUCK");
-                return;
-            }
-
-            closeJob(server_identifier, message["job"]);
-
-            break;
-
-        case "ScoreResponse":
-            logging.log("got score response");
-            var job =  jobs_queue[message["job"]]; 
-            switch(message["result"])
-            {
-                case "finished":
-                    logging.log({"message": "finished score", "job-id":message["job"]});
-                    break;
-                case "failed":
-                    logging.log({"message":"failed score", "job":job});
-                    break;
-                default:
-                    logging.log({"message":"weird score result ", "data":message});
-            }
-            closeJob(server_identifier, message["job"]);
-
-            break;
-        default:
-            logging.log({"message": "unknown response:", "server": server_identifier, "message":message});
-            break;
-    }
-}
-
-function handleCrawlServerMsg(server_identifier, message) //channel name is the server identifier
-{
-    if(("job" in message) && !(message["job"] in jobs_queue))
-    {
-        logging.log("couldnt find crawl job");
-        return;
-    }
-
-    switch(message["message"])
-    {
-        case "CrawlCandidates":
-        case "AddSampleMatches":
-        case "SteamAccount":
-            //Sent by myself
-            break;
-
-
-        case "CrawlCandidatesResponse":
-            var job =  jobs_queue[message["job"]]; 
-            switch(message["result"])
-            {
-                case "finished":
-                    logging.log({"message":"crawled","job":message["job"]});
-                    break;
-                case "failed":
-                    logging.log({"message":"failed crawl", "job":job});
-                    break;
-            }
-            closeJob(server_identifier, message["job"]);
-            if(job["callback"])
-                job["callback"]();//made a copy, so this works after cleaning up the job
-            break;
-
-        case "AddSampleMatchesResponse":
-            var job =  jobs_queue[message["job"]]; 
-            switch(message["result"])
-            {
-                case "finished":
-                    logging.log({"message":"added samples","job":message["job"]});
-                    break;
-                case "failed":
-                    logging.log("failed add samples", job);
-                    break;
-            }
-            closeJob(server_identifier, message["job"]);
-            if(job["callback"])
-                job["callback"]();//made a copy, so this works after cleaning up the job
-            break;
-        case "GetSteamAccount":
-            steam_accounts_block.take(function(){
-                //free old acc
-                for(var i = 0; i < steam_accounts.length; ++i)
-                {
-                    if(steam_accounts[i]["used-by"] === server_identifier)
-                        steam_accounts[i]["used-by"] = null;
-                }
-
-                //iterate account
-                if(server_identifier in next_steam_account)
-                    next_steam_account[server_identifier] = (next_steam_account[server_identifier]+1)%steam_accounts.length;
-                else
-                    next_steam_account[server_identifier] = Math.floor(Math.random() * steam_accounts.length);
-                while(steam_accounts[next_steam_account[server_identifier]]["used-by"] != null)
-                {
-                    next_steam_account[server_identifier] = (next_steam_account[server_identifier]+1)%steam_accounts.length;
-                }
-
-                logging.log({"message": "giving out steam account ","steam_account":next_steam_account[server_identifier], "server": server_identifier});
-
-                var steam_acc_message = 
-                    {
-                        "message": "SteamAccount",
-                        "id": next_steam_account[server_identifier],
-                        "name": steam_accounts[next_steam_account[server_identifier]]["name"],
-                        "password": steam_accounts[next_steam_account[server_identifier]]["password"]
-                    };
-                steam_accounts[next_steam_account[server_identifier]]["used-by"] = server_identifier;
-                steam_accounts_block.leave();
-
-                communication.publish(server_identifier, steam_acc_message);
-            })
-            
-            break;
-
-        default:
-            logging.log({"message": "unknown response:", "server": server_identifier, "message":message});
-            break;
-    }
-}
-
-
-
-function registerService(type, identifier)
-{
-    if(type in serviceHandlers)
-    {
-        var server = {}
-        server["busy"] = false;
-        switch(type)
-        {
-        case "Retrieve":
-            server["over-capacity-timeout"] = Date.now(); //otherwise timestamp from when there will be capacity available
-            break;
-        default:
-            break;
-        }
-
-        subscriber.listen(identifier, serviceHandlers[type],
-            function (err, results)
-            {
-                if(err)
-                    logging.log("failed listening on server channel");
-                else
-                {
-                    servers[identifier] = server;
-                    servers_by_type[type].push(identifier);
-                    logging.log({"message":"registered service", "servers by type":servers_by_type});
-                }
-            });
-    }
-    else
-    {
-        logging.log("trying to register for unmanaged service type "+ type+" "+identifier);
-    }
-}
-
-var queue_load_interval = 30*1000;
-function runQueueLoader()
-{
-    loadQueue();
-    setTimeout(runQueueLoader, queue_load_interval);
-}
-
-
-function loadQueue()
-{
-    var locals = {};
     async.waterfall(
         [
-            database.generateQueryFunction("SELECT data FROM Settings WHERE name=$1;", ["max_jobs"]),
+            database.generateQueryFunction("SELECT identifier FROM Services;", []),
             function(results, callback)
             {
-                locals.max_jobs = results.rows[0]["data"]["value"];
-                locals.to_load = Math.max(locals.max_jobs - Object.keys(jobs_queue).length, 0);
-                callback();
+                var heartbeat_message = {
+                    "message": "Heartbeat"
+                };
+                communication.publish(services.scheduler_broadcast_channel, heartbeat_message, callback);
+            },
+            function(result, callback)
+            {
+                setTimeout(callback,heartbeat_check_delay);
             },
             function(callback)
             {
-                //logging.log("limit enqueue to ",locals.to_load);
-                database.query("SELECT id, data, extract(epoch from started) as started from Jobs WHERE finished IS NULL ORDER BY started DESC LIMIT $1;",
-                [locals.to_load], callback);
+                database.query("DELETE FROM Services WHERE now() - last_heartbeat > $1::interval RETURNING *;", [service_heartbeat_timeout], callback);
             },
             function(results, callback)
             {
-                //TODO: Currently can load same job multiple times, will drop duplicates tho
-                // Track executed jobs and only pull free ones
-                var n_loaded_jobs = results.rowCount;
-                logging.log("Rerunning queue of "+ n_loaded_jobs);
-                async.each(results.rows,
-                    function(row, callback)
+                if(results.rowCount > 0)
+                {
+                    for(var i= 0; i < results.rowCount; i++)
                     {
-                        createJob(row["data"], row["id"], row["started"],
-                            function(id){
-                                callback();
-                            }
-                        );
-                    },
-                    function(err, results)
-                    {
-                        if(n_loaded_jobs > 0)
-                            schedulerTick();
-
-                         callback(err, results);
-                    });
+                        logging.log({"message": "timeouted service", "service": results.rows[i]});
+                    }
+                    timeoutJobs(); 
+                }
+                callback();
             }
         ],
         function(err, results)
         {
-            if (err)
-                logging.error({"err":err, "result":results});
-        }
-    );
+            if(err)
+                logging.error({"message": "error during heartbeat", "err": err, "result": results});
+        });
+
 }
 
+var timeout_interval  = 2000;
+var max_timeout_retries = 5;
+
+function runTimeoutJobs()
+{
+    timeoutJobs();
+    setTimeout(runTimeoutJobs, heartbeat_interval);
+}
+
+function timeoutJobs()
+{
+    var locals = {};
+    async.waterfall(
+        [
+            database.generateQueryFunction("SELECT id, date_part('epoch',assigned) as assigned ,data->>'message' as type FROM Jobs WHERE assigned IS NOT NULL AND finished IS NULL;", []),
+            function(results, callback)
+            {
+                var current_time = Math.floor(Date.now() / 1000);
+
+                locals["timeouted"] = 0;
+                async.each(results.rows,
+                    function(row, callback)
+                    {
+
+                        var timeout = 0;
+                        switch(row["type"])
+                        {
+                        case "UpdateHistory":
+                            timeout = 5;
+                            break;
+                        case "Retrieve":
+                            timeout = 40;
+                            break;
+
+                        case "Download":
+                            timeout = 5*60;
+                            break;
+
+                        case "Analyse":
+                            timeout = 10*60;
+                            break;
+                        case "Score":
+                            timeout = 3*60;
+                            break;
+
+                        case "CrawlCandidates":
+                            timeout = 10*60;
+                            break;
+                        case "AddSampleMatches":
+                            timeout = 5*60;
+                            break;
+                        default:
+                            timeout = 5*60;
+                            break;
+                        }
+
+                        if(current_time - row["assigned"] > timeout)
+                        {
+                            locals["timeouted"] += 1;
+                            async.waterfall(
+                                [
+                                    function(callback)
+                                    {
+                                        database.query("SELECT result FROM Jobs WHERE id=$1;", [row["id"]], callback);
+                                    },
+                                    function(results, callback)
+                                    {
+                                        if(results.rowCount != 1)
+                                        {
+                                            callback("couldnt find job to timeout");
+                                            return;
+                                        }
+
+                                        var timeouts = 1;
+                                        if(results.rows[0]["result"] && "timeouts" in results.rows[0]["result"])
+                                            timeouts += results.rows[0]["result"]["timeouts"];
+
+                                        if(timeouts > max_timeout_retries)
+                                        {
+                                            var failed_result = {"result":"too-many-timeouts", "timeouts": timeouts};
+                                            database.query("UPDATE Jobs SET finised=now(), result=$2 WHERE id=$1;", [row["id"], failed_result], callback);
+                                        }
+                                        else
+                                        {
+                                            var timeouted_result = {"timeouts": timeouts};
+                                            database.query("UPDATE Jobs SET assigned=NULL, result=$2 WHERE id=$1;", [row["id"], timeouted_result], callback);
+                                        }
+                                    }
+                                ],
+                                callback);
+                        }
+                        else
+                            callback();
+                    },
+                    callback)
+            },
+            function(callback)
+            {
+                if(locals["timeouted"] > 0)
+                {
+                    logging.log("timeouted "+locals["timeouted"]+" jobs");
+                    schedulerTick();
+                }
+
+                callback();
+            }
+        ],
+        function(err, results)
+        {
+            if(err)
+                logging.error({"message": "error during heartbeat", "err": err, "result": results});
+        });
+}
 
 
 var history_job_size = 50;
@@ -712,11 +482,9 @@ function updateAllHistories()
                                         "range-start":  range_row[0],
                                         "range-end":    range_row[1],
                                     };
-                                    createTemporaryJob(job_data, function(job_id){
-                                        jobs_queue[job_id]["callback"] = callback_request;
-                                    });
+                                    jobs.startJob(job_data, callback_request);
                                 },
-                                function(err, results){callback();});
+                                callback);
                 }
                 else
                     callback("db call failure",results);
@@ -741,26 +509,25 @@ function crawlCandidateMatches()
     var locals = {};
     async.waterfall(
         [
-            database.generateQueryFunction("SELECT data FROM Settings WHERE name=$1;", ["crawler_candidates_batch_size"]),
-            function(results, callback)
+            function(callback)
             {
-                var candidates_batch_size = results.rows[0]["data"]["value"];
+                settings.getSetting("crawler_candidates_batch_size", callback)
+            },
+            function(candidates_batch_size, callback)
+            {
                 var job_data = {
                     "message":      "CrawlCandidates",
                     "n":  candidates_batch_size
                 };
 
-                createTemporaryJob
-                    (job_data,
-                    function(job_id){ jobs_queue[job_id]["callback"] = callback; }
-                    );
+                jobs.startJob(job_data, callback);
             }
         ],
         function(err, results)
         {
             if (err)
             {
-                logging.error({"err": err, "result": results});
+                logging.error({"message": "error while adding crawl job", "err": err, "result": results});
             }
     
             setTimeout(crawlCandidateMatches, crawl_interval);
@@ -775,27 +542,25 @@ function addSampleMatches()
     var locals = {};
     async.waterfall(
         [
-            database.generateQueryFunction("SELECT data FROM Settings WHERE name=$1;", ["add_samples_batch_size"]),
-            function(results, callback)
+            function(callback)
             {
-                var add_samples_batch_size = results.rows[0]["data"]["value"];
-
+                settings.getSetting("add_samples_batch_size", callback)
+            },
+            function(add_samples_batch_size, callback)
+            {
                 var job_data = {
                     "message":      "AddSampleMatches",
                     "n":  add_samples_batch_size
                 };
 
-                createTemporaryJob
-                    (job_data,
-                    function(job_id){ jobs_queue[job_id]["callback"] = callback; }
-                    );
+                jobs.startJob(job_data, callback);
             }
         ],
         function(err, results)
         {
             if (err)
             {
-                logging.error({"err": err, "result": results});
+                logging.error({"message": "error while adding samples job", "err": err, "result": results});
             }
     
             setTimeout(addSampleMatches, add_interval);
@@ -811,280 +576,225 @@ function runScheduler()
     setTimeout(runScheduler, scheduler_tick_interval);
 }
 
+
+var error_code_no_free_services = "no-free-services";
+var last_tick = 0;
+var min_tick_interval = 100; //at most tick every 0.1sec
+var retrieve_capacity_timeout = 1000*60*60*4; //allow retry on retrieve jobs after 4 hours
+
 function schedulerTick()
 {
-    //Make async
-    //console.log("tick")
+    var current_time = Date.now();
+    if(current_time - last_tick < min_tick_interval)
+        return;
+    else
+        last_tick = current_time;
+
+    var locals = {};
     job_queue_block.take(
         function()
         {
-            var time =  new Date();
-           /*console.log(time.toDateString() ,time.toTimeString(),time.getUTCMilliseconds(), "scheduler tick, ", Object.keys(jobs_queue).length, " jobs in queue");
-            for(type in servers_by_type)
-            {
-                console.log("\t",type, "servers");
-                for(var i = 0; i < servers_by_type[type].length; ++i)
-                {
-                    var server_log_obj = servers[servers_by_type[type][i]];
-                    if("over-capacity-timeout" in server_log_obj)
-                        server_log_obj["over-capacity-timeout"] = new Date(server_log_obj["over-capacity-timeout"]);
-                    console.log("\t\t", servers_by_type[type][i], JSON.stringify(server_log_obj));
-                }
-            }*/
-            var job_keys =  Object.keys(jobs_queue);
-            //console.log("tick, n jobs:", job_keys.length);
-            /*job_keys.sort(
-                function(a, b){
-                    return jobs_queue[b]["time"] - jobs_queue[a]["time"];
-                })*/
-            job_keys = shuffleArray(job_keys);
-            async.eachSeries(
-                job_keys,
-                function(job_id, callback)
-                {
-                    if(jobs_queue[job_id]["state"] === "open")
+            async.waterfall(
+                [
+                    database.generateQueryFunction("SELECT identifier, type, status FROM Services WHERE current_job IS NULL;", []),
+                    function(results, callback)
                     {
-                        scheduleJob(job_id, callback);
-                    }
-                    else
+                        if(results.rowCount == 0)
+                        {
+                            callback(error_code_no_free_services);
+                            return;
+                        }
+                        locals.free_services = results.rows;
+                        settings.getSetting("max_jobs", callback);
+                    },
+                    function(max_jobs, callback)
                     {
-                        callback();
+
+                        database.query("SELECT id, date_part('epoch',started) as started, data FROM jobs WHERE finished is NULL AND assigned IS NULL ORDER BY started DESC LIMIT $1;", [max_jobs], callback);
+                    },
+                    function(results, callback)
+                    {
+                        locals.scheduler_items = [];
+
+                        async.each(results.rows,
+                            function(row, callback)
+                            {
+                                var scheduling_item = {
+                                    "primary_priority": 0,
+                                    "secondary_priority": 0,
+                                    "started": row["started"],
+                                    "data": row["data"]
+                                };
+                                scheduling_item.data["job"] = row["id"];
+
+                                //TODO add prioritisation within each job type
+                                switch(scheduling_item.data.message)
+                                {
+                                case "UpdateHistory":
+                                    scheduling_item.primary_priority = 2;
+                                    break;
+                                case "Retrieve":
+                                    scheduling_item.primary_priority = 1;
+                                    break;
+
+                                case "Download":
+                                    scheduling_item.primary_priority = 1;
+                                    break;
+
+                                case "Analyse":
+                                    scheduling_item.primary_priority = 1;
+                                    break;
+                                case "Score":
+                                    scheduling_item.primary_priority = 2;
+                                    break;
+
+                                case "CrawlCandidates":
+                                    scheduling_item.primary_priority = 2;
+                                    break;
+                                case "AddSampleMatches":
+                                    scheduling_item.primary_priority = 1;
+                                    break;
+
+                                default:
+                                    logging.log("unknown job message for scheduling "+scheduling_item.data.message)
+                                    scheduling_item.primary_priority = 0;
+                                    break;
+                                }
+                                locals.scheduler_items.push(scheduling_item);
+                                callback();
+                            },
+                            callback)
+                    },
+                    function(callback)
+                    {
+                        var scheduling_sets = {};
+
+                        for(var i = 0; i < locals.scheduler_items.length; ++i)
+                        {
+                            var scheduling_item = locals.scheduler_items[i];
+                            var service_type = "Unknown";
+                            switch(scheduling_item.data.message)
+                            {
+                            case "UpdateHistory":
+                            case "Retrieve": 
+                                service_type = "Retrieve";
+                                break;
+                            case "Download": 
+                                service_type = "Download";
+                                break;
+                            case "Analyse":
+                            case "Score": 
+                                service_type = "Analysis";
+                                break;
+                            case "CrawlCandidates":
+                            case "AddSampleMatches":
+                                service_type = "Crawl";
+                                break;
+                            default:
+                                logging.log("unknown job message "+scheduling_item.data.message)
+                                    break;
+                            }
+                            if(! (service_type in scheduling_sets))
+                                scheduling_sets[service_type] = [];
+                            scheduling_sets[service_type].push(scheduling_item);
+                        }
+                        for(var service_type in scheduling_sets)
+                        {
+                            scheduling_sets[service_type].sort(
+                                function(item_a, item_b)
+                                {
+                                    //Sort with ascending scheduling priority, tiebreak with secondary priority and then start time
+                                    if(item_a.primary_priority > item_b.primary_priority)
+                                        return 1;
+                                    else if (item_a.primary_priority < item_b.primary_priority)
+                                        return -1;
+                                    else
+                                    {
+                                        if(item_a.secondary_priority > item_b.secondary_priority)
+                                            return 1;
+                                        else if (item_a.secondary_priority < item_b.secondary_priority)
+                                            return -1;
+                                        else
+                                        {
+                                            return item_a.started - item_b.started;
+                                        }
+                                    }
+                                });
+                        }
+
+                        //console.log("sets", JSON.stringify(scheduling_sets));
+                        var current_time = Math.floor(Date.now() / 1000);
+                        async.eachSeries(locals.free_services,
+                            function(service, callback)
+                            {
+                                if(! (service["type"] in scheduling_sets))
+                                {
+                                    callback();
+                                    return;
+                                }
+
+                                var best_job = null;
+
+                                for(var i = scheduling_sets[service["type"]].length -1; i >= 0; --i)
+                                {
+                                    if( service["type"] === "Retrieve" &&
+                                        "no-retrieve-capacity" in service["status"] &&
+                                        current_time - service["status"]["no-retrieve-capacity"] < retrieve_capacity_timeout &&
+                                        scheduling_sets[service["type"]][i]["data"]["message"] === "Retrieve"
+                                        )
+                                        continue;
+                                    else if("machine" in scheduling_sets[service["type"]][i]["data"] &&
+                                        ! (scheduling_sets[service["type"]][i]["data"]["machine"] === service["status"]["machine"]))
+                                        continue;
+                                    else
+                                    {
+                                        best_job = scheduling_sets[service["type"]][i];
+                                        scheduling_sets[service["type"]].splice(0,1);//remove job from set
+                                        break;
+                                    }
+                                }
+
+                                if(!best_job)
+                                {
+                                    callback();
+                                    return;
+                                }
+                                logging.log({"message": "assigning job", "job": best_job, "service":service});
+                                //console.log("scheduling job", best_job, service);
+                                async.waterfall(
+                                    [
+                                        function(callback)
+                                        {
+                                            database.query("UPDATE Services SET current_job=$2 WHERE identifier=$1;", [service["identifier"], best_job["data"]["job"]], callback);
+                                        },
+                                        function(results, callback)
+                                        {
+                                            //update job
+                                            database.query("UPDATE Jobs SET assigned=now() WHERE id=$1;", [best_job["data"]["job"]], callback);
+                                        },
+                                        function(results, callback)
+                                        {
+                                            communication.publish(service["identifier"], best_job["data"], callback);
+                                        },
+                                    ],
+                                    callback);
+
+                            },
+                            callback)
                     }
-                },
-                function()
+                ],
+                function(err, results)
                 {
+                    if(err === error_code_no_free_services)
+                    {
+                        //do nothing, this is fine
+                    }
+                    if(err)
+                        logging.error({"message": "error during schedulerTick", "err": err, "result": results});
+
                     job_queue_block.leave();
-                    //console.log("left")
-                }
-            );
+                });
         }
     );
     //console.log("Jobs queue", jobs_queue);
-}
-
-function shuffleArray(array) {
-    for (var i = array.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
-        var temp = array[i];
-        array[i] = array[j];
-        array[j] = temp;
-    }
-    return array;
-}
-
-function scheduleJob(job_id, callback)
-{
-    var server_identifier = null;
-
-    var job  = jobs_queue[job_id];
-    switch(job["data"]["message"])
-    {
-        case "Retrieve":
-            server_identifier = chooseRetrieveServer(true);
-            break;
-        case "UpdateHistory":
-            server_identifier = chooseRetrieveServer(false);
-            break;
-        case "Download":
-            server_identifier = chooseServer("Download");
-            break;
-        case "Analyse":
-        case "Score":
-            server_identifier = chooseServer("Analysis");
-            break;
-        case "CrawlCandidates":
-        case "AddSampleMatches":
-            server_identifier = chooseServer("Crawl");
-            break;
-        default:
-            logging.log({"message": "unknown job scheduled", "job-id":job_id, "job":job});
-            return;
-    }
-
-    if(server_identifier)
-    {
-        logging.log({"message":"assigned job", "job-id": job_id, "server-id": server_identifier});
-    
-        //dispatch message to server to handle job
-        var message = job["data"];
-        message["job"] = String(job_id);
-
-        communication.publish(server_identifier, message,
-            function(){
-                logging.log({"message":"job message sent", "job-id":job_id});
-                job["state"] = "in-progress";
-                jobs_queue[String(job_id)] = job;
-                servers[server_identifier]["busy"] = true;
-                callback();
-            });
-    }
-    else
-    {
-        //console.log("no server available for ",job_id, "delaying");
-        callback();
-    }
-}
-
-
-function chooseRetrieveServer(capacity_required)
-{
-    for(var i = 0; i < servers_by_type["Retrieve"].length; ++i)
-    {
-        var server_identifier = servers_by_type["Retrieve"][i];
-        //console.log("checking server", server_identifier, servers[server_identifier]);
-        if(
-            !servers[server_identifier]["busy"] && 
-            (!capacity_required || servers[server_identifier]["over-capacity-timeout"] < Date.now() )
-            )
-        {
-            //console.log("OK");
-            return server_identifier;
-        }
-    }
-
-    return null;
-}
-
-function chooseServer(server_type)
-{
-    for(var i = 0; i < servers_by_type[server_type].length; ++i)
-    {
-        var server_identifier = servers_by_type[server_type][i];
-        //console.log("checking server", server_identifier, servers[server_identifier]);
-        if(
-            !servers[server_identifier]["busy"]
-            )
-        {
-            //console.log("OK");
-            return server_identifier;
-        }
-    }
-
-    return null;
-}
-
-function createTemporaryJob(data, callback)
-{
-    createJob(data, "temp"+shortid.generate(), null, callback);
-}
-
-function createJob(data, id, started, callback_job)
-{
-    if(id in jobs_queue)
-    {        
-        if(callback_job)
-            callback_job(id); // pass back id
-        return;
-    }
-
-    var job = {};
-    if(started)
-        job ["time"] = started*1000;
-    else
-        job ["time"] = Date.now();
-
-    //console.log("job ",started, job ["time"])
-    job ["state"] = "open";
-    job ["data"] = data;
-    //console.log("creating job", id, data);
-    if(id != null)
-    {
-        //logging.log("only queued");
-        job_queue_block.take(
-            function()
-            {
-                jobs_queue[id] = job;
-
-                job_queue_block.leave();
-                schedulerTick();
-
-                if(callback_job)
-                    callback_job(id); // pass back id
-            });
-    }
-    else
-    {
-        //console.log("putting into db");
-        async.waterfall(
-            [
-                database.generateQueryFunction("INSERT INTO Jobs(started, data) VALUES(now(),$1) RETURNING id;", [data]),
-                function(results, callback)
-                {
-                    if(results.rowCount == 1)
-                    {
-                        logging.log({"message":"created job", "job-id": results.rows[0]["id"]});
-                        callback(null, results.rows[0]["id"]);
-                    }
-                    else
-                        callback("db call failure",results);
-                }
-            ],
-            function(err, results)
-            {
-                if (err)
-                {
-                    logging.error({"message":"failure creating job", "err":err, "result":results});
-                }
-                else 
-                {
-                    var job_id = results;
-                    job_queue_block.take(
-                        function()
-                        {
-                            jobs_queue[String(job_id)] = job;
-                            job_queue_block.leave();
-                    
-                            schedulerTick();
-                            
-                            if(callback_job)
-                                callback_job(job_id);
-                        });
-                }
-            }
-        );   
-    }
-}
-
-function closeJob(server_identifier, job_id)
-{
-    async.waterfall(
-        [
-            function(callback)
-            {
-                if (job_id.substring(0, "temp".length) == "temp")
-                    callback("temp-job");
-                else
-                    database.query("UPDATE Jobs SET finished = now() WHERE id=$1;",[job_id], callback);
-            },
-            function(results, callback)
-            {
-                if(results.rowCount == 1)
-                {
-                    logging.log({"message":"closed job", "job-id":job_id});
-                    callback();
-                }
-                else
-                    callback("db call failure on job",job_id, results);
-            }
-        ],
-        function(err, results)
-        {
-            if(!err || err === "temp-job")
-            {
-                job_queue_block.take(
-                    function()
-                    {
-                        delete jobs_queue[job_id];
-                        servers[server_identifier]["busy"] = false;
-                        job_queue_block.leave();
-                        logging.log({"message":"freed server", "server_id": server_identifier});
-                        schedulerTick();
-                    });
-            }
-            else
-            {
-                logging.error({"message":"failure closing job", "err": err, "result":results});
-            }
-        }
-    );
 }

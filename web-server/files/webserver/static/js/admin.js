@@ -40,6 +40,14 @@ function showTab(tabref){
             }
         );
         break;
+    case "#scheduler":
+        $.getJSON("api/admin-scheduler-state",
+            function(data)
+            {
+                displayServices(data["services"]);
+            }
+        );
+        break;
     case "#retrieval-statuses":
         $.getJSON("api/admin-stats/retrieval-statuses",
             function(data)
@@ -136,6 +144,27 @@ $(document).on('click', '#logs-by-id', function () {
 });
 
 
+function displayServices(list)
+{
+    var user_table = d3.select("#services_list");
+    var rows  = user_table.selectAll(".service-row").data(list, function(d,i){return d["identifier"]});
+    
+    rows.enter()
+        .append("tr")
+        .attr("class", "service-row");
+            
+
+    rows.html(function(d){
+                var time = new Date(d["last_heartbeat"]*1000);
+                var timestring= time.getUTCHours()+":"+time.getUTCMinutes()+":"+time.getUTCSeconds()+"."+time.getUTCMilliseconds();
+                return "<td>"+d["identifier"]+"</td><td>"+d["type"]+"</td><td>"+timestring+"</td>"+"<td>"+transformDict(d["job"])+"</td>"+"<td>"+transformDict(d["status"])+"</td>";
+            });
+
+    rows.exit().remove();
+}
+
+
+
 function displayLogs(list)
 {
     var user_table = d3.select("#logs_list");
@@ -151,6 +180,8 @@ function displayLogs(list)
             });
 
     rows.exit().remove();
+
+    rows.order();
 }
 
 function transformDict(d){
@@ -160,7 +191,7 @@ function transformDict(d){
         if(d[k] instanceof Object)
             result+= k+": <br/><span style='margin-left:10px'>"+transformDict(d[k])+"</span>";
         else
-        result+= k+": "+d[k]+"<br/>";
+            result+= k+": "+d[k]+"<br/>";
     }
     return result;
 }
