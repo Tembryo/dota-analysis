@@ -515,7 +515,7 @@ router.route('/match/:match_id')
                         callback(null, JSON.parse(json));
                     }
                 ],
-                function(err, result)
+                function(err, results)
                 {
                     if(err)
                     {
@@ -524,7 +524,7 @@ router.route('/match/:match_id')
                         res.send(err);
                     }
                     else
-                        res.json(result);
+                        res.json(results);
                 }
             );
         }
@@ -578,7 +578,7 @@ router.route("/upload")
                     {
                         if(err)
                         {
-                            logging.error({"message": "err in upload end", "err": err});
+                            logging.error({"message": "err in upload end", "err": err, "result": results});
                         }
                     }
                 );
@@ -649,7 +649,7 @@ router.route("/retrieve/:match_id")
                         }
                     }
                 ],
-                function(err, job_id)
+                function(err, results)
                 {
                     if(err)
                     {
