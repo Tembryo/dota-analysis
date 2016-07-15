@@ -191,7 +191,7 @@ function transformDict(d){
         if(d[k] instanceof Object)
             result+= k+": <br/><span style='margin-left:10px'>"+transformDict(d[k])+"</span>";
         else
-            result+= k+": "+d[k]+"<br/>";
+            result+= k+": "+JSON.stringify(d[k])+"<br/>";
     }
     return result;
 }

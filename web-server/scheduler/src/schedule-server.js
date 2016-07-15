@@ -749,7 +749,7 @@ function schedulerTick()
                                     else
                                     {
                                         best_job = scheduling_sets[service["type"]][i];
-                                        scheduling_sets[service["type"]].splice(0,1);//remove job from set
+                                        scheduling_sets[service["type"]].splice(i,1);//remove job from set
                                         break;
                                     }
                                 }
