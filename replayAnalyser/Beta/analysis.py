@@ -562,35 +562,31 @@ def processHeroPosition(match):
         match["hero_alive_status"][hero] = np.zeros((len(match["raw"]["trajectories"]["time"]),1))
 
     for spawn_row in match["raw"]["spawn_rows"]:
-        if spawn_row[2].startswith("npc_dota_hero_"):
+        if spawn_row[2].startswith("npc_dota_hero_"): 
             if "ingame-entity" not in match["heroes"][transformName(spawn_row[2],3)]:
                 match["heroes"][transformName(spawn_row[2],3)]["ingame-entity"] = spawn_row[3]
-            #filter illusions
+            # store ingame-entity number for each hero
             if spawn_row[3] == match["heroes"][transformName(spawn_row[2],3)]["ingame-entity"]:
                 hero_spawns[transformName(spawn_row[2],3)].append(spawn_row[0])
 
     for death_row in match["raw"]["death_rows"]:
         if death_row[2].startswith("npc_dota_hero_"):
-            #filter illusions
+            #filter illusions 
             if death_row[3] == match["heroes"][transformName(death_row[2],3)]["ingame-entity"]:
                 hero_deaths[transformName(death_row[2],3)].append(death_row[0])
+
 
     for hero in match["heroes"]:
         for i in range(0,len(hero_spawns[hero])):
             start = hero_spawns[hero][i]
-            if i < len(hero_deaths[hero]):
-                end = hero_deaths[hero][i]                
-            elif i == len(hero_deaths[hero]):
-                #complete life for heros that are alive at the end of the match
+            j = bisect.bisect_left(hero_deaths[hero],start)
+            if j == len(hero_deaths[hero]):
                 end = match["raw"]["trajectories"]["time"][-1]
             else:
-                raise Exception("hero dies n times and spawns n+2 or more times")
-            if start > end:
-                raise Exception("hero dies before they spawn!")
-            else:
-                hero_lives[hero].append({"start":start,"end":end })
+                end = hero_deaths[hero][j]
+            hero_lives[hero].append({"start":start,"end":end })
 
-    max_time = max(match["raw"]["trajectories"]["time"])
+    max_time = match["raw"]["trajectories"]["time"][-1]
 
     for hero in match["heroes"]:
         for life in hero_lives[hero]:
@@ -609,8 +605,6 @@ def processHeroPosition(match):
                 i += 1
 
             stored = {
-                "start-index": start_index,
-                "end-index": end_index,
                 "time-start": life["start"],
                 "time-end": life["end"],
                 "timeseries": {"format":"samples","samples":samples_list}
@@ -652,7 +646,6 @@ def processGoldXP(match):
     for row in match["raw"]["gold_events"]:
         hero_name = transformName(row[2],3) #receiver
         if not hero_name in match["heroes"]:
-            print hero_name
             continue
         gold_amount = row[4]
         side = match["heroes"][hero_name]["side"]
@@ -883,7 +876,6 @@ def processFights(match):
         dire_involved = [x for x in heroes_involved if match["entities"][x]["side"] == "dire"]
         num_radiant_involved = len(radiant_involved)
         num_dire_involved = len(dire_involved)
-
 
         if dire_initiation_damage + radiant_initiation_damage != 0:
             side_indicator = (radiant_initiation_damage - dire_initiation_damage)/(dire_initiation_damage + radiant_initiation_damage)
@@ -2209,10 +2201,10 @@ def main():
     #delete intermediate/input files
     #shutil.rmtree(match_directory)
 
-    for fight in match["fight_list"]:
-        print ''
-        print fight["readable_time_start"]
-        print fight["initiation_side"]
+
+        
+
+
 
 if __name__ == "__main__":
     cProfile.run('main()')
