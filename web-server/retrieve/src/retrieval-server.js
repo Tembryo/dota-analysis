@@ -24,36 +24,28 @@ function markAccountStart(callback)
 {
     if(!steam_account)
     {
-        console.log("markaccount requesting new acc");
-        steam_account_callback = function(){
-            account_stop_id = steam_account["id"];
-            n_retries = 0;
-            logging.log({"message": "marking login (cb)", "account_stop_id":account_stop_id});
-            callback();
-        }
-        var account_request = 
+        ensureSteamLoggedIn(
+            function()
             {
-                "message": "GetSteamAccount",
-                "service": service._identifier
-            };
-        services.notifyScheduler(account_request);
+                markAccountStart(callback);
+            });
+
+        return;
     }
-    else
-    {
-        account_stop_id = steam_account["id"];
-        n_retries = 0;
-        logging.log({"message": "marking login", "account_stop_id":account_stop_id});
-        callback();
-    }
+
+    account_stop_id = steam_account["id"];
+    n_retries = 0;
+    logging.log({"message": "marking login", "account_stop_id":account_stop_id});
+    callback();
 }
 
-function getLogin(callback)
+function ensureSteamLoggedIn(callback)
 {
     if(!steam_account)
     {
         steam_account_callback = function(){
             logging.log({"message": "using login (cb)", "account":steam_account});
-            callback(null, steam_account);
+            callback();
         }
         var account_request = 
             {
@@ -65,7 +57,7 @@ function getLogin(callback)
     else
     {
         logging.log({"message": "using login", "account":steam_account});
-        callback(null, steam_account);
+        callback();
     }
 }
 
@@ -175,73 +167,48 @@ function handleRetrieveServerMsg(server_identifier, message)
     }
 }
 
+var error_code_no_users_to_update = "no users to update";
+var error_code_skip_ = "no users to update";
+
 function checkAPIHistoryData(message)
 {   
     locals =  {};
     async.waterfall(
         [
+            ensureSteamLoggedIn,
             function(callback)
             {
-                getLogin(callback);
-            },
-            function(login, callback)
-            {
-                locals.login = login;
                 database.query(
                     "SELECT u.id, u.steam_identifier, u.last_match FROM Users u WHERE u.id >= $1 AND u.id <= $2;",
                     [message["range-start"], message["range-end"]],
                     callback);
             },
-            function(users, jobs_callback)
+            function(results, callback)
             {
-                logging.log({"message": "updating user histories", "n": users.rowCount});
-                if(users.rowCount > 0)
+                if(results.rowCount == 0)
                 {
-                    dota.getClient(
-                        function(err, dota_client)
-                        {
-                            if(err)
-                            {
-                                jobs_callback(err);
-                            }
-                            async.eachSeries(
-                                users.rows,
-                                function(user_row, callback_request)
-                                {
-                                    updateUserHistory(user_row, dota_client, callback_request); 
-                                },
-                                function(err, results){jobs_callback(err, results);});
-                        });
+                    callback(error_code_no_users_to_update);
+                    return;
                 }
-                else
-                    jobs_callback(null, "no users to update");
-            },
-            function(results, callback)
-            {
-                //auto-request matches for plus users.
-                //console.log("results", results);
-                /*locals.client.query(
-                    "INSERT INTO MatchRetrievalRequests(id, retrieval_status, requester_id) (SELECT umh.match_id, mrs.id, MAX(umh.user_id) FROM UserMatchHistory umh, UserStatuses us, UserStatusTypes ust, MatchRetrievalStatuses mrs WHERE umh.user_id=us.user_id AND us.statustype_id=ust.id  AND ust.label=$1 AND mrs.label=$2 AND NOT EXISTS (SELECT id FROM Matches m WHERE m.id=umh.match_id) AND NOT EXISTS (SELECT id FROM MatchRetrievalRequests mrr2 WHERE mrr2.id=umh.match_id) AND to_timestamp((umh.data->>'start_time')::int) > current_timestamp - interval '7 days' GROUP BY umh.match_id, mrs.id);",
-                    ["plus", "requested"],
-                    callback);*/
-                //disabled auto retrieve
-                callback(null, -1);
-            },
-            function(results, callback)
-            {
-                var finished_message = 
-                {
-                    "message":"JobResponse",
-                    "result": "finished",
-                    "job": message["job"]
-                };
-                services.notifyScheduler(finished_message, callback);
-            },
 
+                logging.log({"message": "updating user histories", "n": results.rowCount});
+                locals.users = results.rows;
+                dota.getClient(callback);                    
+            },
+            function(dota_client, callback)
+            {
+                async.eachSeries(
+                    locals.users,
+                    function(user_row, callback_request)
+                    {
+                        updateUserHistory(user_row, dota_client, callback_request); 
+                    },
+                    callback);
+            }
         ],
         function(err, results)
         {
-            if (err)
+            if (err && !(err===error_code_no_users_to_update))
             {
                 var finished_message = 
                 {
@@ -254,6 +221,13 @@ function checkAPIHistoryData(message)
             else
             {
                 logging.log({"message": "finished updating user histories", "job": message["job"]});
+                var finished_message = 
+                {
+                    "message":"JobResponse",
+                    "result": "finished",
+                    "job": message["job"]
+                };
+                services.notifyScheduler(finished_message);
             }
         }
     );
@@ -420,7 +394,15 @@ function processRequest(message, callback_request)
             {   
                 if(results.rowCount > 0)
                 {
-                    callback(error_message_data_retrieved);
+                    var job_data = {
+                            "message":  "Download",
+                            "id":       message["id"]
+                        };
+                    jobs.startJob(job_data,
+                        function()
+                        {
+                            callback(error_message_data_retrieved);
+                        });
                     return;
                 }
 
@@ -493,7 +475,7 @@ function processRequest(message, callback_request)
                     [locals.request_id, "unavailable"],
                     function(err2, results2)
                     {
-                        if(err2 || results2.rowsCount != 1)
+                        if(err2 || results2.rowCount != 1)
                         {
                             logging.error({"message": "putting match as unavailable failed", "matchid": locals.request_id, "err": err2, "result": results2});
                         }
@@ -524,7 +506,7 @@ function processRequest(message, callback_request)
                     [locals.request_id, "download"],
                     function(err2, results2)
                     {
-                        if(err2 || results2.rowsCount != 1)
+                        if(err2 || results2.rowCount != 1)
                         {
                             logging.error({"message": "putting match as download failed", "matchid": locals.request_id, "err": err2, "result": results2});
                         }
@@ -559,7 +541,7 @@ function processRequest(message, callback_request)
                 service.setStatus(new_status, function(err){
                     var finished_message = 
                         {
-                            "message":"RetrieveResponse",
+                            "message":"JobResponse",
                             "result": "reschedule",
                             "job": message["job"]
                         };
@@ -636,11 +618,8 @@ function fetchMatchDetails(locals, callback)
 {
     async.waterfall(
         [
+            ensureSteamLoggedIn,
             function(callback)
-            {
-                getLogin(callback);
-            },
-            function(login, callback)
             {
                 dota.getClient(
                     function(err, dota_client)
