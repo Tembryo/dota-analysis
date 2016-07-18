@@ -171,6 +171,10 @@ function createSampleData(match, slot)
         win = 1;
     //console.log(match, match["player-stats"],id, match["player-stats"][id], player_stats);
 
+    if(!match["match-details"])
+    {
+        console.log("bad details", match["match-details"]);
+    }
     var my_team = [];
     var enemy_team = [];
     for(var i = 0; i < match["match-details"]["players"].length; ++i)
@@ -200,17 +204,16 @@ function createSampleData(match, slot)
 
     var durationMins =  (match_stats["duration"] /60);
     var fractionCreepsLasthit =  (match_stats["creeps-lasthit"] /match_stats["creeps-killed"]);
-    var fractionLasthits =  (player_stats["lasthits"] /match_stats["creeps-lasthit"]);
+    var fractionLasthits =  (player_stats["num-creeps-last-hit"] /match_stats["creeps-lasthit"]);
     var checksPerMin = player_stats["n-checks"] / durationMins;
     var timeFractionVisible = player_stats["time-visible"] / durationMins;
     var fightsPerMin =  (player_stats["num-of-fights"] /durationMins);  
 
-    if(player_stats["camera-stats"] == null)
-        console.log(match, match["player-stats"],id, match["player-stats"][id], player_stats);
-    var camJumpsPerMin =  player_stats["camera-stats"]["jumps"]/durationMins;
-    var lasthitsPerMin =  player_stats["lasthits"]/durationMins;
+
+    var camJumpsPerMin =  player_stats["num-camera-jumps"]/durationMins;
+    var lasthitsPerMin =  player_stats["num-creeps-last-hit"]/durationMins;
     var contestedCreepsLasthit =  player_stats["contested-lasthit"]/Math.max(player_stats["contested-total"], 1);
-    var percentFreeOfLasthits =  player_stats["lasthit-free"]/Math.max(player_stats["lasthits"], 1);
+    var percentFreeOfLasthits =  player_stats["lasthit-free"]/Math.max(player_stats["num-creeps-last-hit"], 1);
     var percentTakenAgainstContest = player_stats["lasthit-contested"]/Math.max((player_stats["lasthit-contested"]+player_stats["missed-contested"]), 1);
 
     var features =  [   player_stats["hero"],
@@ -229,13 +232,13 @@ function createSampleData(match, slot)
                         player_stats["num-of-deaths"],
                         fightsPerMin,
                         player_stats["initation-score"],
-                        player_stats["camera-stats"]["avg_movement"],
-                        player_stats["camera-stats"]["average_distance"],
-                        player_stats["camera-stats"]["distance_std_dev"],
+                        player_stats["avg_camera_movement"],
+                        player_stats["average_camera_distance"],
+                        player_stats["distance_std_dev"],
                         camJumpsPerMin,
-                        player_stats["camera-stats"]["percentFar"],
-                        player_stats["camera-stats"]["percentMove"],
-                        player_stats["camera-stats"]["percentSelf"],
+                        player_stats["percentFar"],
+                        player_stats["percentMove"],
+                        player_stats["percentSelf"],
                         lasthitsPerMin,
                         player_stats["contested-total"],
                         contestedCreepsLasthit,
@@ -267,4 +270,4 @@ function writeSample(file, sample)
 exports.header =  sampleHeader;
 exports.createSampleData =  createSampleData;
 exports.writeSample =  writeSample;
-exports.version = "24/05/16";
+exports.version = "18/06/16";

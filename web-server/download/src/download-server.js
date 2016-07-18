@@ -242,7 +242,20 @@ function downloadFile(url, dest, callback) {
     // errors dont get propagated, an error in the decoder will appear after the the file got closed -> after final callback was written
     //probably  wait for both callbacks, then return?
 
-
+    var result_status = 0;
+    function download_callback(err, results)
+    {
+        if(result_status == 0)
+        {
+            result_status = 1;
+            callback(err, results)
+        }
+        else
+        {
+            logging.log({"message": "got multiple download callback calls, skipping", "err": err, "result": results});
+            return;
+        }
+    }
     var file = fs.createWriteStream(dest);
     var sendReq = request.get({"url": url, "timeout": download_timeout});
     // verify response code
@@ -255,9 +268,8 @@ function downloadFile(url, dest, callback) {
     // check for request errors
     sendReq.on('error', function (err) {
         fs.unlink(dest);
-        if (callback) {
-            return callback("http req error: "+err);
-        }
+        download_callback("http req error: "+err);
+        return;
     });
 
     // check for request errors
@@ -271,12 +283,12 @@ function downloadFile(url, dest, callback) {
     }
     catch(e)
     {
-        callback(e);
+        download_callback("exception during download",e);
     }
     
     file.on('finish', function() {
         //console.log("finished writing, closing file", new Date());
-        file.close(callback);  // close() is async, call callback after close completes.
+        file.close(download_callback);  // close() is async, call callback after close completes.
     });
 
 
@@ -284,8 +296,8 @@ function downloadFile(url, dest, callback) {
         logging.error({"message":"file error on matchdownload", "err":err});
         fs.unlink(dest); // Delete the file async. (But we don't check the result)
 
-        if (callback) {
-            return callback(err.message);
-        }
+        download_callback(err.message);
+        return;
+
     });
 };
