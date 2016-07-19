@@ -14,7 +14,7 @@ import shutil
 def createParameters():
     # set variables that determine how the data is analysed - need to include all parameters
     parameters = {}
-    parameters["version"] = "0.2.00"
+    parameters["version"] = "0.2.01"
     parameters["datetime"] = {}
     parameters["datetime"]["date"] = str(datetime.date.today())
     parameters["datetime"]["time"] = str(datetime.datetime.now().time())
@@ -526,8 +526,10 @@ def processHeroDeaths(match):
 
                 if killer_name_1 in match["heroes"]:
                     killer_name = killer_name_1
-                if killer_name_2 in match["heroes"]:
+                elif killer_name_2 in match["heroes"]:
                     killer_name = killer_name_2
+                else:
+                    killer_name = transformName(killer,2)
             else:
                 killer_name = killer
             if not deceased_name in match["heroes"]:
