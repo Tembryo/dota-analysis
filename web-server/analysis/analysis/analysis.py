@@ -94,6 +94,7 @@ class Match:
         self.parameters["cameraEvaluation"] = {}
         self.parameters["cameraEvaluation"]["jump_threshold"] = 1500
         self.parameters["cameraEvaluation"]["self_range"] = 1500
+        
     def matchInfo(self):
 
         # extract the match and player info (id,team names,player names,hero names,match start and end times) from the header and events files
