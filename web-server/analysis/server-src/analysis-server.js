@@ -159,7 +159,9 @@ function processReplay(message, callback_replay)
                 child_process.execFile(
                     "python",
                     ["/analysis/analysis.py", locals.match_id, locals.match_dir, config.shared+"/"+locals.analysis_file, config.shared+"/"+locals.header_file, config.shared+"/"+locals.stats_file],
-                    {"timeout":max_analysis_time},
+                    {
+                        //"timeout":max_analysis_time
+                    },
                     callback);
             },
             function (stdout, stderr, callback) 
@@ -259,7 +261,7 @@ function processReplay(message, callback_replay)
                     //TODO fix match details
                     locals.csv_file.write("\n");
                     //logging.log({"message": "steamid"+ match["player-stats"][slot]["steamid"], "matchid": replay_id});
-                    var fullsample = {"label": match["player-stats"][slot]["steamid"], "data": samples.createSampleData(match, slot)};
+                    var fullsample = {"label": match["player-stats"][slot]["steam-id"], "data": samples.createSampleData(match, slot)};
                     samples.writeSample(locals.csv_file,fullsample);
                 }
                 locals.csv_file.end();
@@ -268,7 +270,9 @@ function processReplay(message, callback_replay)
                 child_process.execFile(
                     "python",
                     ["/score/score.py", locals.sample_filename],
-                    {"timeout":max_score_time},
+                    {
+                        //"timeout":max_score_time
+                    },
                     callback);
             },
             function(stdout, stderr, callback){
@@ -385,7 +389,7 @@ function parseStatsFile(locals, callback)
                             ps["slot"] = slot;
                             database.query(
                                 "INSERT INTO PlayerStats(match_id, steam_identifier, data) VALUES($1, $2, $3);",
-                                [locals.match_id, ps["steamid"], ps],
+                                [locals.match_id, ps["steam-id"], ps],
                                 callback_player);
                         }
                         else

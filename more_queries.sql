@@ -210,4 +210,18 @@ delete from replayfiles where id in  (select distinct rf1.id from replayfiles rf
 wisdota-bot@tembryo.com
 insert into steamaccounts(name, password) values ('wisdota_bot_59', 'crawley-the-bot-59');
 
+  insert into jobs (started, data) (SELECT NOW(), ('{"message":"Download", "id":'||id||'}')::json FROM Matchretrievalrequests where retrieval_status=14);
+
   insert into jobs (started, data) (SELECT NOW(), ('{"message":"Analyse", "id":'||id||', "machine":1}')::json FROM Replayfiles where processing_status=1);
+
+insert into jobs (started, data) (SELECT NOW(), ('{"message":"Retrieve", "id":'||id||'}')::json FROM Matchretrievalrequests where retrieval_status=5);
+
+insert into jobs (started, data) values (now(), '{"message":"Analyse", "id":"60185","machine":1}');
+
+insert into jobs (started, data) (select now(), data from jobs where result->>'result'='failed' and data->>'message'='Analyse' AND id>  311000  order by started desc);
+
+select * from logentries where filters->>'machine'='2' AND filters->>'module'='analysis-server' order by id desc limit 1000;
+
+insert into jobs (started, data) VALUES (SELECT NOW(), ('{"message":"Analyse", "id":2511064845}');
+
+  SELECT (SELECT COUNT(*) FROM UserMatchHistory umh WHERE umh.user_id=mrr.requester_id AND umh.match_id > mrr.id) as n_newer_matches FROM ReplayFiles rf, MatchRetrievalRequests mrr WHERE rf.id=60170 AND mrr.id=rf.upload_filename::bigint AND mrr.requester_id IS NOT NULL;

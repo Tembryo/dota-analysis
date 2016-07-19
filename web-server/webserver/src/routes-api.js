@@ -70,7 +70,7 @@ router.route("/get-player-matches")
                 [
                     database.generateQueryFunction(
                         "SELECT umh.match_id, umh.data as history_data, EXISTS(SELECT id FROM MatchRetrievalRequests where id = umh.match_id) as requested, "+
-                            "COALESCE( (SELECT ps.label FROM ProcessingStatuses ps, Replayfiles rf where rf.match_id = umh.match_id AND ps.id=rf.processing_status),"+
+                            "COALESCE( (SELECT MAX(ps.label) FROM ProcessingStatuses ps, Replayfiles rf where rf.match_id = umh.match_id AND ps.id=rf.processing_status),"+
                                         "'unknown') AS processing_status, "+
                             "COALESCE( (SELECT mrs.label FROM MatchRetrievalStatuses mrs, MatchRetrievalRequests mrr where mrr.id = umh.match_id AND mrs.id=mrr.retrieval_status),"+
                                         "'unknown') AS retrieval_status, "+
@@ -899,7 +899,9 @@ router.route('/admin-scheduler-state/')
             var locals = {};
             async.waterfall(
                 [
-                    database.generateQueryFunction("SELECT identifier, type, extract(epoch from last_heartbeat) as last_heartbeat, status, COALESCE( (SELECT data FROM Jobs WHERE id=current_job), '{}'::json) AS job  FROM Services;",[]),
+                    database.generateQueryFunction("SELECT identifier, type, extract(epoch from last_heartbeat) as last_heartbeat, status, "+
+                        "COALESCE( (SELECT row_to_json(tmp) FROM (SELECT id, started, assigned, data, result FROM Jobs) tmp "+
+                        "WHERE id=current_job), '{}'::json) AS job  FROM Services;",[]),
                     function(results, callback)
                     {
                         locals.services = results.rows;

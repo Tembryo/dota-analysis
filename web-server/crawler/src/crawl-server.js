@@ -2,6 +2,7 @@ var database    = require("/shared-code/database.js"),
     services    = require("/shared-code/services.js"),
     storage     = require("/shared-code/storage.js"),
     config      = require("/shared-code/config.js"),
+    logging     = require("/shared-code/logging.js")("crawl-server");
     dota        = require("/shared-code/dota.js");
 
 var async       = require("async");
@@ -12,24 +13,27 @@ var steam_account = null;
 var account_stop_id = null;
 
 
-function getLogin(callback)
+var reconnect_delay = 3000;
+
+function ensureSteamLoggedIn(callback)
 {
-    if(steam_account == null)
+    if(!steam_account)
     {
         steam_account_callback = function(){
-            console.log("callbacked login ", steam_account);
-            callback(null, steam_account);
+            logging.log({"message": "using login (cb)", "account":steam_account});
+            callback();
         }
         var account_request = 
             {
-                "message":"GetSteamAccount"
+                "message":"GetSteamAccount",
+                "service": service._identifier
             };
-        service.send(account_request);
+        services.notifyScheduler(account_request);
     }
     else
     {
-        console.log("giving out login ", steam_account);
-        callback(null, steam_account);
+        logging.log({"message": "using login", "account":steam_account});
+        callback();
     }
 }
 
@@ -44,7 +48,7 @@ async.series(
         },
         function(callback)
         {
-            console.log("Crawl service started");
+            logging.log("Crawl service started");
             callback();
         },
         function(callback)
@@ -60,43 +64,58 @@ async.series(
 );
 
 
-
-
 function handleCrawlServerMsg(server_identifier, message)
 {
     switch(message["message"])
     {
         case "CrawlCandidates":
             performCrawling(message,
-                function()
-                {
-                    console.log("finished crawling", message["id"]);
-                }
+                function(){}
             );
             break;
 
         case "AddSampleMatches":
             addSampleMatches(message,
-                function()
-                {
-                    console.log("finished adding", message["id"]);
-                }
+                function(){}
             );
             break;
         case "SteamAccount":
-            steam_account = 
-            {
-                "id": message["id"],
-                "steam_user": message["name"],
-                "steam_pw": message["password"]
-            };
-            steam_account_callback();
+            async.waterfall(
+                [
+                    function(callback)
+                    {
+                        if(steam_account != null)
+                            dota.closeDotaClient(callback);
+                        else
+                            callback();
+                    },
+                    function(callback)
+                    {
+                        steam_account = 
+                            {
+                                "id": message["id"],
+                                "steam_user": message["name"],
+                                "steam_pw": message["password"]
+                            };
+
+                        setTimeout(function(){
+                            dota.openDotaClient(steam_account, callback);
+                        },
+                        reconnect_delay);
+                    }
+                ],
+                steam_account_callback
+            );
+
             break;
         default:
-            console.log("unknown message:", server_identifier, message);
+            logging.log("unknown message:", server_identifier, message);
             break;
     }
 }
+
+var error_code_early_done = "done";
+
 
 var mmr_bin_size = 250;
 
@@ -106,6 +125,13 @@ function addSampleMatches(message, callback_request)
 
     async.waterfall(
         [
+            function(callback)
+            {
+                if(message["n"] == 0)
+                    callback(error_code_early_done);
+                else
+                    callback();
+            },
             function(callback)
             {
                 database.query(
@@ -126,24 +152,42 @@ function addSampleMatches(message, callback_request)
             function(results, callback)
             {
                 async.each(results.rows,
-                    function(game, callback){
-                        database.query(
-                            "INSERT INTO MatchRetrievalRequests (id) VALUES ($1);",
-                            [game["matchid"]],
-                            function(err, result){
-                                if(err)
-                                    console.log("error while adding sample match,", err, result);
-                                database.query(
-                                    "UPDATE CrawlingMatches SET status=(SELECT id FROM CrawlingMatchStatuses where label=$2) WHERE matchid =$1;",
-                                    [game["matchid"], "added"],
-                                    function(err, result)
+                    function(game, callback)
+                    {
+                        async.waterfall(
+                            [
+                                function(callback)
+                                {
+                                    database.query(
+                                        "INSERT INTO MatchRetrievalRequests (id) VALUES ($1);",
+                                        [game["matchid"]],
+                                        callback);
+                                },
+                                function(results, callback)
+                                {
+                                    if(results.rowCount != 1)
                                     {
-                                        if(err)
-                                        console.log("error while updating added sample match,", err, result);
-                                        callback();
+                                        callback("adding sample match failed", results);
+                                        return;
                                     }
-                                );
-                            });
+
+                                    database.query(
+                                        "UPDATE CrawlingMatches SET status=(SELECT id FROM CrawlingMatchStatuses where label=$2) WHERE matchid =$1;",
+                                        [game["matchid"], "added"],
+                                        callback
+                                    );
+                                },
+                                function(results, callback)
+                                {
+                                    if(results.rowCount != 1)
+                                    {
+                                        callback("updating crawlingMatch failed", results);
+                                        return;
+                                    }
+                                    callback();
+                                }
+                            ],
+                            callback);
                     },
                     callback)
 
@@ -151,8 +195,10 @@ function addSampleMatches(message, callback_request)
         ],
         function(err, results)
         {
-            if(err)
+            if(err && !(err === error_code_early_done))
             {
+                logging.error({"message": "addSampleMatches error", "err": err, "result":results});
+
                 var finished_message = 
                     {
                         "message":"JobResponse",
@@ -161,13 +207,13 @@ function addSampleMatches(message, callback_request)
                     };
                 services.notifyScheduler(finished_message,
                     function(){
-                        callback_request(null, "");
+                        callback_request();
                     }
                 );  
             } 
             else
             {
-                console.log("put replay data for", locals.request_id);
+                logging.log("addSampleMatches success");
 
                 var finished_message = 
                     {
@@ -177,12 +223,11 @@ function addSampleMatches(message, callback_request)
                     };
                 services.notifyScheduler(finished_message,
                     function(){
-                        callback_request(null, "");
-                    }
-                );
+                        callback_request();
+                    });
             }
         }
-        );
+    );
 }
 
 // skip most recent matches, as they contain comparatively far more short matches
@@ -199,7 +244,7 @@ function performCrawling(message, callback_request)
             function(callback)
             {
                 if(locals.n_to_crawl <= locals.n_crawled)
-                    callback("done");
+                    callback(error_code_early_done);
                 else
                     callback();
             },
@@ -207,24 +252,22 @@ function performCrawling(message, callback_request)
             function(match_sq_num, callback)
             {
                 locals.starting_num = match_sq_num - match_threshold;
-                callback();
+                ensureSteamLoggedIn(callback);
             },
-            getLogin,
-            function(steam_login, callback)
+            function(callback)
             {
-                console.log(arguments);
-                locals.steam_login = steam_login;
-                dota.performAction(
-                    steam_login,
-                    crawlMatchCandidates.bind(this, locals),
-                    callback);
+                dota.getClient(callback);
+            },
+            function(dota_client, callback)
+            {
+                crawlMatchCandidates(locals, dota_client, callback);
             }
         ],
         function(err, results)
         {
-            if(err && !(err==="done") )
+            if(err && !(err===error_code_early_done) )
             {
-                console.log("error while crawling", err, results);
+                logging.error({"message": "error while crawling", "err": err, "result": results});
 
                 var finished_message = 
                     {
@@ -232,15 +275,11 @@ function performCrawling(message, callback_request)
                         "result": "failed",
                         "job": message["job"]
                     };
-                services.notifyScheduler(finished_message,
-                    function(){
-                        callback_request(null, "");
-                    }
-                );  
+                services.notifyScheduler(finished_message, callback_request);  
             } 
             else
             {
-                console.log("successfully crawled", message["n"]);
+                logging.log("successfully crawled"+locals.n_crawled);
 
                 var finished_message = 
                     {
@@ -248,59 +287,61 @@ function performCrawling(message, callback_request)
                         "result": "finished",
                         "job": message["job"]
                     };
-                services.notifyScheduler(finished_message,
-                    function(){
-                        callback_request(null, "");
-                    }
-                );
+                services.notifyScheduler(finished_message, callback_request);
             }
         }
     );
 }
 
-function crawlMatchCandidates(locals, dota_client, callback)
+function crawlMatchCandidates(locals, dota_client, finished_callback)
 {
-        async.waterfall(
+    async.waterfall(
         [
-            getApiMatches.bind(this, locals["starting_num"]),
+            function(callback)
+            {
+                getApiMatches(locals["starting_num"], callback);
+            },
             function(matches, callback)
             {
-                async.each(matches,
+                async.each(
+                    matches,
                     function (match, callback)
                     {
                         processMatch(match, dota_client, locals, callback)
                     },
                     callback
-                    )
+                );
             }
         ],
         function(err,result)
         {   
             if(err)
-                callback(err);
+            {
+                finished_callback(err);
+                return;
+            }
+
+            if(locals.n_crawled >= locals.n_to_crawl)
+            {
+                finished_callback();
+            }
             else
             {
-                if(locals.n_crawled >= locals.n_to_crawl)
-                {
-                    callback();
-                }
-                else
-                {
-                    crawlMatchCandidates(locals, dota_client, callback);
-                }
+                crawlMatchCandidates(locals, dota_client, finished_callback);
             }
         }
-        );
+    );
 }
 
 var profilecard_timeout = 2000;
-var existing_replay_message = "exists";
+var error_code_already_crawled = "exists";
+var error_code_skip = "skip-this";
 
 function processMatch(match, dota_client, locals, callback)
 {
     var matchid = match.match_id;
     var match_mmrs = [];
-    console.log("Seq", locals["starting_num"], match["match_seq_num"]);
+
     locals["starting_num"] = Math.max(locals["starting_num"], match["match_seq_num"]);
     async.waterfall(
         [
@@ -308,7 +349,7 @@ function processMatch(match, dota_client, locals, callback)
             function(results, callback)
             {
                 if(results.rowCount > 0)
-                    callback(existing_replay_message);
+                    callback(error_code_already_crawled);
                 else
                     callback();
             },
@@ -316,7 +357,7 @@ function processMatch(match, dota_client, locals, callback)
             {
                 if(match["human_players"] != 10)
                 {
-                    callback("bots involved");
+                    callback(error_code_skip);
                     return;
                 }
 
@@ -329,7 +370,7 @@ function processMatch(match, dota_client, locals, callback)
                     }
                 }
                 if(leaver)
-                    callback("leaver");
+                    callback(error_code_skip);
                 else 
                     callback();
             },
@@ -344,57 +385,57 @@ function processMatch(match, dota_client, locals, callback)
                             callback_player();
                         else
                         {
-                            var status = 0;
+                            var request_timeout_status = 0;
                             dota_client.requestProfileCard(acc_id,
-                            function(err, profile)
-                            {
-                                if(status == 1)
+                                function(err, profile)
                                 {
-                                    return;
-                                }
-                                else status = 2;
-
-                                if(profile== null)
-                                {
-                                   callback_player("profile is null"); 
-                                   return;
-                                }
-                                var got_mmr = false;
-                                var entry = 
-                                {
-                                    "steamid": dota_client.ToSteamID(player["account_id"]),
-                                    "slot": player["player_slot"],
-                                    "hero": player["hero_id"]
-                                };
-
-                                for(var slot in profile["slots"])
-                                {
-                                    if(profile["slots"][slot]["stat"] && profile["slots"][slot]["stat"]["stat_id"]==1 && profile["slots"][slot]["stat"]["stat_score"] > 0)
+                                    if(request_timeout_status == 1)
                                     {
-
-                                        entry["solo_mmr"] = profile["slots"][slot]["stat"]["stat_score"];
-                                        got_mmr= true;
+                                        return;
                                     }
-                                    else if(profile["slots"][slot]["stat"] && profile["slots"][slot]["stat"]["stat_id"]==2 && profile["slots"][slot]["stat"]["stat_score"] > 0)
+                                    else request_timeout_status = 2;
+
+                                    if(profile== null)
                                     {
-
-                                        entry["group_mmr"] = profile["slots"][slot]["stat"]["stat_score"];
-                                        got_mmr= true;
+                                       callback_player("profile is null"); 
+                                       return;
                                     }
-                                }
-                                if(got_mmr)
-                                    match_mmrs.push(entry);
+                                    var got_mmr = false;
+                                    var entry = 
+                                    {
+                                        "steamid": dota_client.ToSteamID(player["account_id"]),
+                                        "slot": player["player_slot"],
+                                        "hero": player["hero_id"]
+                                    };
 
-                                callback_player();
-                            });
+                                    for(var slot in profile["slots"])
+                                    {
+                                        if(profile["slots"][slot]["stat"] && profile["slots"][slot]["stat"]["stat_id"]==1 && profile["slots"][slot]["stat"]["stat_score"] > 0)
+                                        {
+
+                                            entry["solo_mmr"] = profile["slots"][slot]["stat"]["stat_score"];
+                                            got_mmr= true;
+                                        }
+                                        else if(profile["slots"][slot]["stat"] && profile["slots"][slot]["stat"]["stat_id"]==2 && profile["slots"][slot]["stat"]["stat_score"] > 0)
+                                        {
+
+                                            entry["group_mmr"] = profile["slots"][slot]["stat"]["stat_score"];
+                                            got_mmr= true;
+                                        }
+                                    }
+                                    if(got_mmr)
+                                        match_mmrs.push(entry);
+
+                                    callback_player();
+                                });
 
                            setTimeout(
                             function()
                             {
-                                if(status == 0)
+                                if(request_timeout_status == 0)
                                 {
-                                    console.log("timeouted a profilecard");
-                                    status = 1;
+                                    //logging.log("timeouted a profilecard");
+                                    request_timeout_status = 1;
                                     callback_player();
                                 }
                             }, profilecard_timeout);
@@ -402,7 +443,7 @@ function processMatch(match, dota_client, locals, callback)
                     },
                     function(){
                         if(match_mmrs.length == 0)
-                            callback("no_mmrs");
+                            callback(error_code_skip);
                         else
                             callback()
                     });
@@ -410,6 +451,12 @@ function processMatch(match, dota_client, locals, callback)
             database.generateQueryFunction("INSERT INTO CrawlingMatches (matchid, status, data) VALUES($1, (SELECT id FROM CrawlingMatchStatuses WHERE label=$2), $3);", [matchid, "open", match]),
             function(results, callback)
             {
+                if(results.rowCount != 1)
+                {
+                    callback("inserting crawlingmatch failed", results);
+                    return;
+                }
+
                 async.each(match_mmrs,
                     function(sample, callback)
                     {
@@ -420,19 +467,15 @@ function processMatch(match, dota_client, locals, callback)
         ],
         function(err, result)
         {
-            if(err)
+            if(err === error_code_already_crawled)
+                callback();
+            else if(err === error_code_skip)
+                database.query("INSERT INTO CrawlingMatches (matchid, status) VALUES"+
+                    "($1, (SELECT id FROM CrawlingMatchStatuses WHERE label=$2));", [matchid, "skipped"], callback)
+            else if(err)
             {
-                if(! (err === existing_replay_message))
-                {
-                    //console.log("match rejected", matchid, err)
-                    database.query("INSERT INTO CrawlingMatches (matchid, status) VALUES($1, (SELECT id FROM CrawlingMatchStatuses WHERE label=$2));", [matchid, "skipped"], callback)
-                }
-                else
-                {
-                    if(result != null)
-                        console.log("match err", err, result);
-                    callback();
-                }
+                logging.error({"message":"crawling matches failed", "err": err, "result": result});
+                callback();
             }
             else
             {
@@ -452,30 +495,25 @@ function getMostRecentMatch(callback)
     api_semaphore.take(function(){
         request(url,
                 function (err, response, body)
+                {
+                    setTimeout(api_semaphore.leave.bind(api_semaphore), api_interval);
+                    if (response.statusCode == 200)
                     {
-                        console.log("got initial history");
-                        setTimeout(api_semaphore.leave.bind(api_semaphore), api_interval);
-                        if (response.statusCode == 200)
-                        {
-                            var responseData = JSON.parse(body);
+                        var responseData = JSON.parse(body);
+                        var seq_num = parseInt(responseData["result"]["matches"][0]["match_seq_num"]);
 
-                            var start_id = parseInt(responseData["result"]["matches"][0]["match_seq_num"]) - match_threshold;
-                            console.log(responseData["result"]["matches"][0]["match_id"], match_threshold, start_id);
-
-                            callback(null, start_id);
-                        }
-                        else
-                        {
-                            console.log("Got an error: "+response+" \n status code: ", response.statusCode);
-                            callback("Error code "+response.statusCode);
-                        }
-                    });
+                        callback(null, seq_num);
+                    }
+                    else
+                    {
+                        callback("Web API error code "+response.statusCode, response);
+                    }
+                });
     });
 }
 
 function getApiMatches(start_num, callback)
 {
-    console.log("API matches", start_num);
     async.waterfall(
         [
             function(callback)
@@ -491,16 +529,18 @@ function getApiMatches(start_num, callback)
             {
                 //console.log("got history "+body);
                 setTimeout(api_semaphore.leave.bind(api_semaphore), api_interval);
-                if (response.statusCode == 200) {
+                if (response.statusCode == 200)
+                {
                     var responseData = JSON.parse(body).result;
                     //console.log(Object.keys(responseData))
                     if(responseData.status == 1)
                         callback(null, responseData.matches)
                     else
-                        callback("bad api status "+responseData.status+" "+responseData.statusDetail)
-                } else {
-                    console.log("Got an a error: "+response+" \n status code: ", response.statusCode);
-                    callback("bad response status", response.statusCode);
+                        callback("bad api status "+response.statusCode, response);
+                }
+                else
+                {
+                    callback("bad response", response);
                 }
             }
         ],
