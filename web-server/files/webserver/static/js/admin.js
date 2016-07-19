@@ -189,7 +189,7 @@ function transformDict(d){
     for (var k in d)
     {
         if(d[k] instanceof Object)
-            result+= k+": <br/><span style='margin-left:10px'>"+transformDict(d[k])+"</span>";
+            result+= k+": <br/><div class='indented'>"+transformDict(d[k])+"</span>";
         else
             result+= k+": "+JSON.stringify(d[k])+"<br/>";
     }

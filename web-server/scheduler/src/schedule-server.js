@@ -360,7 +360,7 @@ function timeoutJobs()
                         switch(row["type"])
                         {
                         case "UpdateHistory":
-                            timeout = 5;
+                            timeout = 20;
                             break;
                         case "Retrieve":
                             timeout = 40;
@@ -371,14 +371,14 @@ function timeoutJobs()
                             break;
 
                         case "Analyse":
-                            timeout = 10*60;
+                            timeout = 15*60;
                             break;
                         case "Score":
-                            timeout = 3*60;
+                            timeout = 5*60;
                             break;
 
                         case "CrawlCandidates":
-                            timeout = 10*60;
+                            timeout = 15*60;
                             break;
                         case "AddSampleMatches":
                             timeout = 5*60;
@@ -412,13 +412,31 @@ function timeoutJobs()
                                         if(timeouts > max_timeout_retries)
                                         {
                                             var failed_result = {"result":"too-many-timeouts", "timeouts": timeouts};
-                                            database.query("UPDATE Jobs SET finised=now(), result=$2 WHERE id=$1;", [row["id"], failed_result], callback);
+                                            database.query("UPDATE Jobs SET finished=now(), result=$2 WHERE id=$1;", [row["id"], failed_result], callback);
                                         }
                                         else
                                         {
                                             var timeouted_result = {"timeouts": timeouts};
                                             database.query("UPDATE Jobs SET assigned=NULL, result=$2 WHERE id=$1;", [row["id"], timeouted_result], callback);
                                         }
+                                    },
+                                    function(results, callback)
+                                    {
+                                        if(results.rowCount != 1)
+                                        {
+                                            callback("couldnt update job in timeout");
+                                            return;
+                                        }
+                                        database.query("UPDATE Services SET current_job=NULL WHERE current_job=$1;", [row["id"]], callback);
+                                    },
+                                    function(results, callback)
+                                    {
+                                        if(results.rowCount != 1)
+                                        {
+                                            callback("couldnt update service in timeout", row);
+                                            return;
+                                        }
+                                        callback();
                                     }
                                 ],
                                 callback);
@@ -634,16 +652,99 @@ function schedulerTick()
                                     scheduling_item.primary_priority = 2;
                                     break;
                                 case "Retrieve":
-                                    scheduling_item.primary_priority = 1;
-                                    break;
+                                    database.query("SELECT (SELECT COUNT(*) FROM UserMatchHistory umh WHERE umh.user_id=mrr.requester_id AND umh.match_id > mrr.id) as n_newer_matches FROM MatchRetrievalRequests mrr WHERE mrr.id=$1 AND mrr.requester_id IS NOT NULL;", [row["data"]["id"]],
+                                        function(err, results)
+                                        {
+                                            if(err)
+                                            {
+                                                logging.error({"message":"getting secondary prio for retrieve failed", "err": err, "result": results});
+                                                locals.scheduler_items.push(scheduling_item);
+                                                callback();
+                                                return;
+                                            }
+
+                                            if(results.rowCount == 0)
+                                            {
+                                                scheduling_item.secondary_priority = Number.NEGATIVE_INFINITY;
+                                            }
+                                            else if(results.rowCount == 1)
+                                            {
+                                                scheduling_item.secondary_priority = -results.rows[0]["n_newer_matches"];
+                                            }
+                                            else
+                                            {
+                                                logging.log("weird result getting retrieve priority");
+                                                scheduling_item.secondary_priority = 0;
+                                            }
+
+                                            locals.scheduler_items.push(scheduling_item);
+                                            callback();
+                                        });
+                                    return;
 
                                 case "Download":
-                                    scheduling_item.primary_priority = 1;
-                                    break;
+                                        database.query("SELECT (SELECT COUNT(*) FROM UserMatchHistory umh WHERE umh.user_id=mrr.requester_id AND umh.match_id > mrr.id) as n_newer_matches FROM MatchRetrievalRequests mrr WHERE mrr.id=$1 AND mrr.requester_id IS NOT NULL;", [row["data"]["id"]],
+                                        function(err, results)
+                                        {
+                                            if(err)
+                                            {
+                                                logging.error({"message":"getting secondary prio for download failed", "err": err, "result": results});
+                                                locals.scheduler_items.push(scheduling_item);
+                                                callback();
+                                                return;
+                                            }
+
+                                            if(results.rowCount == 0)
+                                            {
+                                                scheduling_item.secondary_priority = Number.NEGATIVE_INFINITY;
+                                            }
+                                            else if(results.rowCount == 1)
+                                            {
+                                                scheduling_item.secondary_priority = -results.rows[0]["n_newer_matches"];
+                                            }
+                                            else
+                                            {
+                                                logging.log("weird result getting download priority");
+                                                scheduling_item.secondary_priority = 0;
+                                            }
+
+                                            locals.scheduler_items.push(scheduling_item);
+                                            callback();
+                                        });
+                                    return;
 
                                 case "Analyse":
                                     scheduling_item.primary_priority = 1;
-                                    break;
+                                    database.query("SELECT (SELECT COUNT(*) FROM UserMatchHistory umh WHERE umh.user_id=mrr.requester_id AND umh.match_id > mrr.id) as n_newer_matches FROM ReplayFiles rf, MatchRetrievalRequests mrr WHERE rf.id=$1 AND (rf.upload_filename~E'^\\d+$' AND mrr.id=rf.upload_filename::bigint) AND mrr.requester_id IS NOT NULL;", [row["data"]["id"]],
+                                        function(err, results)
+                                        {
+                                            if(err)
+                                            {
+                                                logging.error({"message":"getting secondary prio for analysis failed", "err": err, "result": results});
+                                                locals.scheduler_items.push(scheduling_item);
+                                                callback();
+                                                return;
+                                            }
+
+                                            if(results.rowCount == 0)
+                                            {
+                                                scheduling_item.secondary_priority = Number.NEGATIVE_INFINITY;
+                                            }
+                                            else if(results.rowCount == 1)
+                                            {
+                                                scheduling_item.secondary_priority = -results.rows[0]["n_newer_matches"];
+                                            }
+                                            else
+                                            {
+                                                logging.log("weird result getting analysis priority");
+                                                scheduling_item.secondary_priority = 0;
+                                            }
+
+                                            locals.scheduler_items.push(scheduling_item);
+                                            callback();
+                                        });
+                                    return;
+
                                 case "Score":
                                     scheduling_item.primary_priority = 2;
                                     break;
@@ -704,6 +805,7 @@ function schedulerTick()
                                 function(item_a, item_b)
                                 {
                                     //Sort with ascending scheduling priority, tiebreak with secondary priority and then start time
+                                    //scheduler takes jobs from end of the list (the one with highes prio)
                                     if(item_a.primary_priority > item_b.primary_priority)
                                         return 1;
                                     else if (item_a.primary_priority < item_b.primary_priority)

@@ -9,6 +9,7 @@ import numpy as np
 import scipy.sparse
 import matplotlib.pyplot as plt
 import cProfile
+import shutil
 
 def createParameters():
     # set variables that determine how the data is analysed - need to include all parameters
@@ -1524,6 +1525,8 @@ def makeStats(match):
                 "contested-total": 0,
                 "missed-contested": 0,
                 "missed-free": 0,
+                "contested-total": 0,
+                "contested-lasthit": 0,
 
                 #movement
                 "time-visible": 0,
@@ -1825,6 +1828,7 @@ def evaluateLastHits(match):
                 match["stats"]["player-stats"][match["entities"][creep_death["killed_by"]]["control"]]["lasthit-contested"] += 1
                 for contestant in creep_death["contested_by"]:
                     match["stats"]["player-stats"][match["entities"][contestant]["control"]]["contested-total"] += 1
+                    match["stats"]["player-stats"][match["entities"][contestant]["control"]]["contested-lasthit"] += 1
         elif creep_death["death_type"] == "denied":
             match["stats"]["player-stats"][match["entities"][creep_death["killed_by"]]["control"]]["num-creeps-denied"] += 1
             creeps_denied += 1
