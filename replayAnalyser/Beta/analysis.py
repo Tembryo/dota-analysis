@@ -14,7 +14,7 @@ import shutil
 def createParameters():
     # set variables that determine how the data is analysed - need to include all parameters
     parameters = {}
-    parameters["version"] = "0.2.00"
+    parameters["version"] = "0.2.01"
     parameters["datetime"] = {}
     parameters["datetime"]["date"] = str(datetime.date.today())
     parameters["datetime"]["time"] = str(datetime.datetime.now().time())
@@ -42,6 +42,9 @@ def createParameters():
     parameters["map"]["num_box"] = 32
     parameters["pregame_time_shift"] = 60
     # function specific parameters
+
+    parameters["processTPScrolls"] = {}
+    parameters["processTPScrolls"]["distance_threshold"] = 10000
 
     parameters["graphAttacks"] = {}
     parameters["graphAttacks"]["damage_threshold"] = 50
@@ -424,7 +427,7 @@ def loadFiles(match_id, match_directory):
         reader = csv.DictReader(file)    
         for i, row in enumerate(reader):
             absolute_time = float(row["time"])
-            if (absolute_time >= match["times"]["pregame_start_time"]) and (absolute_time <= match["times"]["match_end_time"]):
+            if (absolute_time >= match["times"]["pregame_start_time"]):
                 match["raw"]["trajectories"]["time"].append(absolute_time - match["times"]["match_start_time"])
                 for hero in match["heroes"]:
                     index = match["heroes"][hero]["player_index"]
@@ -523,8 +526,10 @@ def processHeroDeaths(match):
 
                 if killer_name_1 in match["heroes"]:
                     killer_name = killer_name_1
-                if killer_name_2 in match["heroes"]:
+                elif killer_name_2 in match["heroes"]:
                     killer_name = killer_name_2
+                else:
+                    killer_name = transformName(killer,2)
             else:
                 killer_name = killer
             if not deceased_name in match["heroes"]:
@@ -1246,15 +1251,16 @@ def processTPScrolls(match):
     for row in match["raw"]["item_events"]:
         if row[3] == "item_tpscroll":
             time = row[0]
-            time_index_cast = findTimeTick(match["raw"]["trajectories"]["time"],time)
-            time_index_end = findTimeTick(match["raw"]["trajectories"]["time"],time + 10)
+            time_index_cast = findTimeTick(match["raw"]["trajectories"]["time"],min(time,match["raw"]["trajectories"]["time"][-1])) 
+            time_index_end = findTimeTick(match["raw"]["trajectories"]["time"],min(time + 10,match["raw"]["trajectories"]["time"][-1]))
             hero = transformName(row[2],3)
             readable_time = readableTime(time)
-            end_position = None
+            start_position = match["raw"]["trajectories"][hero]["position"][time_index_cast]
+            end_position = start_position
             for index in range(time_index_cast,time_index_end):
                 # find squared distance between consecutive points 
                 dist_squared = ((match["raw"]["trajectories"][hero]["position"][index][0] - match["raw"]["trajectories"][hero]["position"][index - 1][0]) * (match["raw"]["trajectories"][hero]["position"][index][0] - match["raw"]["trajectories"][hero]["position"][index - 1][0]) + (match["raw"]["trajectories"][hero]["position"][index][1] - match["raw"]["trajectories"][hero]["position"][index - 1][1]) * (match["raw"]["trajectories"][hero]["position"][index][1] - match["raw"]["trajectories"][hero]["position"][index - 1][1]) )
-                if dist_squared > 10000:
+                if dist_squared > match["parameters"]["processTPScrolls"]["distance_threshold"]:
                     end_position = match["raw"]["trajectories"][hero]["position"][index]
                     break
      
@@ -2206,10 +2212,6 @@ def main():
     #shutil.rmtree(match_directory)
 
 
-        
-
-
-
 if __name__ == "__main__":
-    cProfile.run('main()')
-    #main()
+    #cProfile.run('main()')
+    main()
