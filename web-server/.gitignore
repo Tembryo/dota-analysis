@@ -6,3 +6,7 @@ start-minis.sh
 update-minis.sh
 addswap-minis.sh
 bigger-update-minis.sh
+clean-minis.sh
+reboot-minis.sh
+up-minis.sh
+up-swarm.sh

@@ -1,13 +1,14 @@
 // analysis - server.js
 var child_process   = require("child_process"),
     fs              = require("fs"),
-    async           = require("async"), 
+    async           = require("async"),
+    rimraf          = require("rimraf"), 
     bz2             = require('unbzip2-stream');
 
-var config          = require("./config.js"),
-    samples         = require("./samples.js")
+var samples         = require("./samples.js")
 
 var database        = require("/shared-code/database.js"),
+    config          = require("/shared-code/config.js"),
     services        = require("/shared-code/services.js"),
     storage         = require("/shared-code/storage.js"),
     logging         = require("/shared-code/logging.js")("analysis-server");
@@ -286,15 +287,6 @@ function processReplay(message, callback_replay)
                         callback);
                 },
                 callback);
-            },
-            function(callback)
-            {
-                fs.unlink(locals.decompressed_filename, callback);
-            }
-            ,
-            function(callback)
-            {
-                fs.unlink(locals.sample_filename, callback);
             }
         ],
         function(err, results)
@@ -333,8 +325,95 @@ function processReplay(message, callback_replay)
 
                 callback_replay();
             }
+
+            cleanFiles(locals, function(err, results)
+            {
+                logging.log({"message": "finished cleaning files", "err":err, "results": results});
+            })
         }
     );
+}
+
+function cleanFiles(locals, callback)
+{
+    async.waterfall(
+        [
+            function(callback)
+            {
+                if(locals.decompressed_filename)
+                    fs.unlink(locals.decompressed_filename, 
+                        function(err, results){
+                            if(err)
+                                logging.log({"message": "error while cleaning", "err":err, "results": results});
+                            callback();
+                        }
+                    );
+                else
+                    callback();
+            },
+            function(callback)
+            {
+                if(locals.match_dir)
+                    rimraf(locals.match_dir, , 
+                        function(err, results){
+                            if(err)
+                                logging.log({"message": "error while cleaning", "err":err, "results": results});
+                            callback();
+                        });
+                else
+                    callback();
+            },
+            function(callback)
+            {
+                if(locals.header_file)
+                    fs.unlink(config.shared+"/"+locals.header_file, , 
+                        function(err, results){
+                            if(err)
+                                logging.log({"message": "error while cleaning", "err":err, "results": results});
+                            callback();
+                        });
+                else
+                    callback();
+            },
+            function(callback)
+            {
+                if(locals.analysis_file)
+                    fs.unlink(config.shared+"/"+locals.analysis_file, , 
+                        function(err, results){
+                            if(err)
+                                logging.log({"message": "error while cleaning", "err":err, "results": results});
+                            callback();
+                        });
+                else
+                    callback();
+            },
+            function(callback)
+            {
+                if(locals.stats_file)
+                    fs.unlink(config.shared+"/"+locals.stats_file, , 
+                        function(err, results){
+                            if(err)
+                                logging.log({"message": "error while cleaning", "err":err, "results": results});
+                            callback();
+                        });
+                else
+                    callback();
+            },
+            function(callback)
+            {
+                if(locals.sample_filename)
+                    fs.unlink(locals.sample_filename, , 
+                        function(err, results){
+                            if(err)
+                                logging.log({"message": "error whiel cleaning", "err":err, "results": results});
+                            callback();
+                        });
+                else
+                    callback();
+            }
+        ],
+        callback
+        );
 }
 
 

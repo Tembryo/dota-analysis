@@ -9,7 +9,8 @@
         "unbzip2-stream": "^1.0.8", 
         "async": "^1.5.0",
         "semaphore": "^1.0.3",
-        "mkdirp": "^0.5.1"
+        "mkdirp": "^0.5.1",
+        "diskspace": "^1.0.3"
     }
 }
 

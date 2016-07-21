@@ -1,6 +1,7 @@
 var async       = require("async"),
     fs          = require('fs'),
-    request     = require('request');
+    request     = require('request'),
+    diskspace   = require('diskspace');
 
 var database    = require("/shared-code/database.js"),
     config      = require("/shared-code/config.js");
@@ -59,7 +60,10 @@ function handleDownloadServerMsg(server_identifier, message)
     }
 }
 
+var try_to_keep_replay = false;
+var minimum_disk_space_left =  2*1000*1000*1000; //keep 2GB
 var error_message_exists = "existing_match";
+var result_message_removed_local = "removed_local";
 
 function processDownloadRequest(message, callback_request)
 {
@@ -108,6 +112,7 @@ function processDownloadRequest(message, callback_request)
             },
             function(replay_file, callback)
             {
+                locals.replayfile= replay_file;
                 logging.log("finished dl")
                 storage.store("replays/"+locals.match_id+".dem.bz2",callback);
             },
@@ -141,14 +146,53 @@ function processDownloadRequest(message, callback_request)
                     return;
                 }
 
+                diskspace.check(locals.store_path, callback);
+            },
+            function(total, free, status, callback)
+            {
+                if(try_to_keep_replay)//(free > minimum_disk_space_left)
+                {
+                    locals.keep_replay = true;
+                    callback();
+                }
+                else
+                {
+                    locals.keep_replay = false;
+                    fs.unlink(locals.replayfile, callback);
+                }
+            },
+            function(callback)
+            {
                 machine.getMachineID(callback);
             },
             function(machine_id, callback)
             {
+                locals.machine_id = machine_id;
+                if(locals.keep_replay)
+                {
+                    database.query(
+                        "UPDATE ReplayFiles rf SET stored_at=$2 WHERE rf.id=$1;",
+                        [locals.replay_id, locals.machine_id],
+                        callback);
+                }
+                else
+                    callback(null, result_message_removed_local);
+            },
+            function(results, callback)
+            {
+                if(results === result_message_removed_local)
+                {
+                    //nothing, continue
+                }
+                else if(results.rowCount!=1)
+                {
+                    callback("setting replay as stored failed", results);
+                    return;
+                }
+
                 var job_data = {
                         "message":      "Analyse",
-                        "id":  locals.replay_id,
-                        "machine": machine_id
+                        "id":  locals.replay_id
                     };
 
                 jobs.startJob(job_data, callback);
@@ -208,7 +252,7 @@ function processDownloadRequest(message, callback_request)
     );
 }
 
-var minimum_filesize = 1024*1024; //require replays to be > 1MB
+var minimum_filesize = 512*1024; //require replays to be > 0.5MB
 
 function downloadMatch(replay_data, target, callback)
 {   
@@ -218,7 +262,7 @@ function downloadMatch(replay_data, target, callback)
     logging.log("Downloading from"+ replay_address+ " into "+ file);
 
     downloadFile(replay_address, file, 
-        function(err)
+        function(err, size)
         {
             if(err)
             {
@@ -227,46 +271,66 @@ function downloadMatch(replay_data, target, callback)
             }
             //check file size
             var stats = fs.statSync(file)
-            var fileSizeInBytes = stats["size"];
-            if(fileSizeInBytes > minimum_filesize)
-                callback(null, file);
-            else
+            var replayfile_size = stats["size"];
+            if(replayfile_size < minimum_filesize)
                 callback("replay too small", file);
+            else if(size != replayfile_size)
+                callback("got different file than expected", {"expected": size, "got": replayfile_size});
+            else
+                callback(null, file);
         });
 }
 
-var download_timeout = 3000;
+var download_timeout = 30000;
 
 function downloadFile(url, dest, callback) {
     //TODO clean this up
     // errors dont get propagated, an error in the decoder will appear after the the file got closed -> after final callback was written
     //probably  wait for both callbacks, then return?
 
-    var result_status = 0;
-    function download_callback(err, results)
+    var callback_called = false;
+    var result_length = 0;
+    var download_callback = function(err, results)
     {
-        if(result_status == 0)
+        logging.log({"message": "download cb", "err": err, "result": results, "callback_called": callback_called});
+        if(!callback_called)
         {
-            result_status = 1;
-            callback(err, results)
+            callback_called = true;
+            if(err)
+                callback(err, results);
+            else
+                callback(null, result_length);
         }
         else
         {
             logging.log({"message": "got multiple download callback calls, skipping", "err": err, "result": results});
-            return;
         }
     }
+
+
     var file = fs.createWriteStream(dest);
     var sendReq = request.get({"url": url, "timeout": download_timeout});
     // verify response code
     sendReq.on('response', function(response) {
         if (response.statusCode !== 200) {
-            return callback('Response status was ' + response.statusCode);
+            download_callback('Bad response status ', response);
+            return;
+        }
+        else if(! (response.headers["content-type"] === "application/octet-stream"))
+        {
+            download_callback('Bad content type', response);
+            return;
+        }
+        else
+        {
+            //logging.log({"message": "download response", "response": response, "desired length": response.headers["content-length"]});
+            result_length = parseInt(response.headers["content-length"]);
         }
     });
 
     // check for request errors
     sendReq.on('error', function (err) {
+        logging.log({"message": "download req error", "err": err});
         fs.unlink(dest);
         download_callback("http req error: "+err);
         return;
@@ -275,6 +339,7 @@ function downloadFile(url, dest, callback) {
     // check for request errors
     sendReq.on('end', function (err) {
         //console.log("sendreq got end");
+        //logging.log({"message": "download end", "err": err});
     });
 
     try
@@ -283,10 +348,12 @@ function downloadFile(url, dest, callback) {
     }
     catch(e)
     {
+        logging.log({"message": "download exception", "err": e});
         download_callback("exception during download",e);
     }
     
     file.on('finish', function() {
+       //logging.log({"message": "download finish"});
         //console.log("finished writing, closing file", new Date());
         file.close(download_callback);  // close() is async, call callback after close completes.
     });
@@ -296,7 +363,7 @@ function downloadFile(url, dest, callback) {
         logging.error({"message":"file error on matchdownload", "err":err});
         fs.unlink(dest); // Delete the file async. (But we don't check the result)
 
-        download_callback(err.message);
+        download_callback(err);
         return;
 
     });

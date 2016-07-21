@@ -2,7 +2,8 @@ var database    = require("/shared-code/database.js"),
     services    = require("/shared-code/services.js"),
     storage     = require("/shared-code/storage.js"),
     config      = require("/shared-code/config.js"),
-    logging     = require("/shared-code/logging.js")("crawl-server");
+    logging     = require("/shared-code/logging.js")("crawl-server"),
+    jobs        = require("/shared-code/jobs.js"),
     dota        = require("/shared-code/dota.js");
 
 var async       = require("async");
@@ -116,8 +117,10 @@ function handleCrawlServerMsg(server_identifier, message)
 
 var error_code_early_done = "done";
 
+var result_code_exists = "already_exists";
 
 var mmr_bin_size = 250;
+
 
 function addSampleMatches(message, callback_request)
 {
@@ -159,13 +162,27 @@ function addSampleMatches(message, callback_request)
                                 function(callback)
                                 {
                                     database.query(
-                                        "INSERT INTO MatchRetrievalRequests (id) VALUES ($1);",
+                                        "SELECT id FROM MatchRetrievalRequests WHERE id=$1;",
                                         [game["matchid"]],
                                         callback);
                                 },
                                 function(results, callback)
                                 {
-                                    if(results.rowCount != 1)
+                                    if(results.rowCount == 0)
+                                        database.query(
+                                            "INSERT INTO MatchRetrievalRequests (id) VALUES ($1);",
+                                            [game["matchid"]],
+                                            callback);
+                                    else
+                                        callback(null, result_code_exists)
+                                },
+                                function(results, callback)
+                                {
+                                    if(results === result_code_exists)
+                                    {
+                                        //keep going
+                                    }
+                                    else if(results.rowCount != 1)
                                     {
                                         callback("adding sample match failed", results);
                                         return;
@@ -184,7 +201,13 @@ function addSampleMatches(message, callback_request)
                                         callback("updating crawlingMatch failed", results);
                                         return;
                                     }
-                                    callback();
+
+                                    var job_data = {
+                                        "message":  "Retrieve",
+                                        "id":       game["matchid"]
+                                    };
+
+                                    jobs.startJob(job_data, callback);
                                 }
                             ],
                             callback);
