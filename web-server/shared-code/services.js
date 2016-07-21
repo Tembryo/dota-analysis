@@ -94,6 +94,7 @@ Service.prototype.setStatus = function(update_object, callback)
                     return;
                 }
 
+                //replicated in scheduler, care
                 var new_status = results.rows[0]["status"];
                 if(!new_status)
                     new_status = {};

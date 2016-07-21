@@ -855,7 +855,7 @@ router.route('/admin-get-logs/')
                     //console.log(result);
                     if(err)
                     {
-                        logging.error({"message": "error retrieving logs "+query_string, "err": err, "result": result});
+                        logging.error({"message": "error retrieving logs", "err": err, "result": result});
                         
                         res.json({"logs":[]});
                     }
