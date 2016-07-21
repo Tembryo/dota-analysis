@@ -213,6 +213,47 @@ function processJobResponse(message)
                             callback("couldn't find job to close", results);
                             return;
                         }
+
+                        database.query("SELECT identifier, status FROM Services WHERE current_job=$1;", [message["job"]], callback);
+                    },
+                    function(results, callback)
+                    {    
+                        if(results.rowCount != 1)
+                        {
+                            callback("weird result when getting status", results);
+                            return;
+                        }
+
+                        //care, replicated from services
+                        var service_identifier = results.rows[0]["identifier"];
+                        var new_status = results.rows[0]["status"];
+                        if(!new_status)
+                            new_status = {};
+
+                        if(message["result"] === "finished")
+                        {
+                            if(new_status["successes"])
+                                new_status["successes"] += 1;
+                            else
+                                new_status["successes"] = 1;
+                        }
+                        else if(message["result"] === "failed")
+                        {
+                            if(new_status["fails"])
+                                new_status["fails"] += 1;
+                            else
+                                new_status["fails"] = 1;
+                        }
+
+                        database.query("UPDATE Services SET status=$2 WHERE identifier=$1;", [service_identifier, new_status], callback);
+                    },
+                    function(results, callback)
+                    { 
+                        if(results.rowCount != 1)
+                        {
+                            callback("weird result when updating finished status", results);
+                            return;
+                        }
                         database.query("UPDATE Services SET current_job=NULL WHERE current_job=$1;", [message["job"]], callback);
                     },
                     function(results, callback)

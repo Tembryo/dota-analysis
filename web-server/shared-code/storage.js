@@ -2,6 +2,7 @@ var fs      = require('fs');
 var gcloud  = require('gcloud');
 
 var config  = require("./config.js");
+    logging = require("/shared-code/logging.js")("storage-lib");
 
 // Authenticating on a per-API-basis. You don't need to do this if you auth on a
 // global basis (see Authentication section above).
@@ -32,6 +33,7 @@ function retrieveFile(filename, callback)
     //catch old stuff
     if(filename.substring(0, config.shared.length) === config.shared)
     {
+        logging.log("old stuff "+ filename);
         callback(null, filename);
         return;
     }
@@ -40,10 +42,11 @@ function retrieveFile(filename, callback)
 
     fs.access(local_file, fs.F_OK, function(err) {
         if (!err) {
+            logging.log("using local file "+ filename);
             callback(null, local_file);
         } 
         else {
-            console.log("downloading stored file", filename);
+            logging.log("downloading stored file "+ filename);
             bucket.file(filename)
                 .download({destination: local_file}, 
                     function(err)
@@ -65,7 +68,7 @@ function storeFile(filename, callback)
         {
             if(err)
             {
-                console.log("store file failed", filename, err);
+                logging.log({"message": "store file failed", "filename": filename, "err": err});
                 callback(err)
             }
             else

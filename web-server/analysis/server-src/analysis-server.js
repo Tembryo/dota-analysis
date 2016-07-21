@@ -304,6 +304,7 @@ function processReplay(message, callback_replay)
                             {
                                 "message": "JobResponse",
                                 "result": "failed",
+                                "err": err,
                                 "job": message["job"]
                             };
                         services.notifyScheduler(failed_message);
@@ -354,7 +355,7 @@ function cleanFiles(locals, callback)
             function(callback)
             {
                 if(locals.match_dir)
-                    rimraf(locals.match_dir, , 
+                    rimraf(locals.match_dir,
                         function(err, results){
                             if(err)
                                 logging.log({"message": "error while cleaning", "err":err, "results": results});
@@ -366,7 +367,7 @@ function cleanFiles(locals, callback)
             function(callback)
             {
                 if(locals.header_file)
-                    fs.unlink(config.shared+"/"+locals.header_file, , 
+                    fs.unlink(config.shared+"/"+locals.header_file,
                         function(err, results){
                             if(err)
                                 logging.log({"message": "error while cleaning", "err":err, "results": results});
@@ -378,7 +379,7 @@ function cleanFiles(locals, callback)
             function(callback)
             {
                 if(locals.analysis_file)
-                    fs.unlink(config.shared+"/"+locals.analysis_file, , 
+                    fs.unlink(config.shared+"/"+locals.analysis_file,
                         function(err, results){
                             if(err)
                                 logging.log({"message": "error while cleaning", "err":err, "results": results});
@@ -390,7 +391,7 @@ function cleanFiles(locals, callback)
             function(callback)
             {
                 if(locals.stats_file)
-                    fs.unlink(config.shared+"/"+locals.stats_file, , 
+                    fs.unlink(config.shared+"/"+locals.stats_file,
                         function(err, results){
                             if(err)
                                 logging.log({"message": "error while cleaning", "err":err, "results": results});
@@ -402,10 +403,10 @@ function cleanFiles(locals, callback)
             function(callback)
             {
                 if(locals.sample_filename)
-                    fs.unlink(locals.sample_filename, , 
+                    fs.unlink(locals.sample_filename,
                         function(err, results){
                             if(err)
-                                logging.log({"message": "error whiel cleaning", "err":err, "results": results});
+                                logging.log({"message": "error while cleaning", "err":err, "results": results});
                             callback();
                         });
                 else
