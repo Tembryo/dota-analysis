@@ -1736,10 +1736,10 @@ def evaluateFightCoordination(match):
             num_radiant_involved = len(radiant_involved)
             num_dire_involved = len(dire_involved)
 
-            R = np.zeros((num_radiant_involved,n*num_dire_involved))
-            S = np.zeros((num_dire_involved,n*num_radiant_involved))
-            p = np.zeros(n*num_dire_involved)
-            q = np.zeros(n*num_radiant_involved)
+            R = np.zeros((num_radiant_involved,int(n*num_dire_involved)))
+            S = np.zeros((num_dire_involved, int(n*num_radiant_involved)))
+            p = np.zeros(int(n*num_dire_involved))
+            q = np.zeros(int(n*num_radiant_involved))
             #loop over all attacks in fight assigning them to correct signal
             for attack in fight["attack_sequence"]:
                 if attack["attacker"] in match["heroes"] and attack["victim"] in match["heroes"]:
@@ -1750,20 +1750,20 @@ def evaluateFightCoordination(match):
                         if match["entities"][attacker_id]["side"] == "radiant":
                             i = radiant_involved.index(attacker_id)
                             j = dire_involved.index(victim_id)
-                            R[i,j*n + start_index:j*n + start_index + n_steps] = attack["damage"]
+                            R[i,int(j*n + start_index):int(j*n + start_index + n_steps)] = attack["damage"]
                         elif match["entities"][attacker_id]["side"] == "dire":
                             i = dire_involved.index(attacker_id)
                             j = radiant_involved.index(victim_id)
-                            S[i,j*n + start_index:j*n + start_index + n_steps] = attack["damage"]
+                            S[i,int(j*n + start_index):int(j*n + start_index + n_steps)] = attack["damage"]
                             
             for i in range(0,num_radiant_involved):
                 for j in range(0,num_dire_involved):
-                    R[i,j*n:(j+1)*n] = normalize(R[i,j*n:(j+1)*n])/len(dire_involved)
-                    p[j*n:(j+1)*n] = p[j*n:(j+1)*n] + R[i,j*n:(j+1)*n]/len(radiant_involved)
+                    R[i,int(j*n):int((j+1)*n)] = normalize(R[i,int(j*n):int((j+1)*n)])/len(dire_involved)
+                    p[int(j*n):int((j+1)*n)] = p[int(j*n):int((j+1)*n)] + R[i,int(j*n):int((j+1)*n)]/len(radiant_involved)
             for i in range(0,num_dire_involved):
                 for j in range(0,num_radiant_involved):
-                    S[i,j*n:(j+1)*n] = normalize(S[i,j*n:(j+1)*n])/len(radiant_involved)
-                    q[j*n:(j+1)*n] = q[j*n:(j+1)*n] + S[i,j*n:(j+1)*n]/len(dire_involved)             
+                    S[i,int(j*n):int((j+1)*n)] = normalize(S[i,int(j*n):int((j+1)*n)])/len(radiant_involved)
+                    q[int(j*n):int((j+1)*n)] = q[int(j*n):int((j+1)*n)] + S[i,int(j*n):int((j+1)*n)]/len(dire_involved)             
             v = np.dot(R,p)
             for i in range(0,num_radiant_involved):
                 match["stats"]["player-stats"][match["entities"][radiant_involved[i]]["control"]]["fight-coordination"] += v[i]
@@ -2210,7 +2210,6 @@ def main():
     writeToJson(stats_filename,match["stats"]) 
     #delete intermediate/input files
     #shutil.rmtree(match_directory)
-
 
 if __name__ == "__main__":
     #cProfile.run('main()')
