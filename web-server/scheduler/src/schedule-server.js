@@ -282,9 +282,9 @@ function processJobResponse(message)
 var retrieve_capacity_block = 120*60*1000; //block server for 2 hours before retry
 
 
-var service_heartbeat_timeout   = "22 seconds";
-var heartbeat_interval  = 10000;
-var heartbeat_check_delay  = 1000;
+var service_heartbeat_timeout   = "125 seconds";
+var heartbeat_interval  = 60000;
+var heartbeat_check_delay  = 10000;
 function runHeartbeatRefresh()
 {
     heartbeatRefresh();
@@ -360,14 +360,14 @@ function timeoutJobs()
                         switch(row["type"])
                         {
                         case "UpdateHistory":
-                            timeout = 20;
+                            timeout = 2*60;
                             break;
                         case "Retrieve":
-                            timeout = 40;
+                            timeout = 2*60;
                             break;
 
                         case "Download":
-                            timeout = 5*60;
+                            timeout = 10*60;
                             break;
 
                         case "Analyse":
@@ -845,9 +845,9 @@ function schedulerTick()
                                         scheduling_sets[service["type"]][i]["data"]["message"] === "Retrieve"
                                         )
                                         continue;
-                                    else if("machine" in scheduling_sets[service["type"]][i]["data"] &&
+                                    /*else if("machine" in scheduling_sets[service["type"]][i]["data"] &&
                                         ! (scheduling_sets[service["type"]][i]["data"]["machine"] === service["status"]["machine"]))
-                                        continue;
+                                        continue; */
                                     else
                                     {
                                         best_job = scheduling_sets[service["type"]][i];

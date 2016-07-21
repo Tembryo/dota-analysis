@@ -1,0 +1,1 @@
+alter table replayfiles add column stored_at integer;

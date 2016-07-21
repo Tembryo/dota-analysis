@@ -165,7 +165,7 @@ function addSampleMatches(message, callback_request)
                                         "SELECT id FROM MatchRetrievalRequests WHERE id=$1;",
                                         [game["matchid"]],
                                         callback);
-                                }
+                                },
                                 function(results, callback)
                                 {
                                     if(results.rowCount == 0)
