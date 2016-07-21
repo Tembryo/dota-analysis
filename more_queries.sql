@@ -65,7 +65,7 @@ INSERT INTO matchretrievalrequests(id) (SELECT matchid from Candidates);
 INSERT INTO jobs(started, data) VALUES (now(), '{"message":"Retrieve", "id":2418509989}'::json);
 
 
-INSERT INTO jobs(started, data) VALUES (now(), '{"message":"AddSampleMatches", "n":1000}'::json);
+INSERT INTO jobs(started, data) VALUES (now(), '{"message":"AddSampleMatches", "n":2000}'::json);
 
 INSERT INTO jobs(started, data) (SELECT now(), ('{"message":"Score", "id":'||m.id||'}')::json FROM (SELECT * FROM Matches ORDER BY id DESC) m WHERE m.analysis_version = '24/05/16');
 
@@ -175,7 +175,7 @@ from (select max(time) last_login, count(*) as logins, data->>'user' as id
         COALESCE( (SELECT md.data FROM MatchDetails md WHERE umh.match_id = md.matchid),
       'null'::json) AS match_details 
  FROM Users u, UserMatchHistory umh 
- WHERE u.id = 2995 
+ WHERE u.id = 1 
  AND u.id = umh.user_id 
 ORDER BY umh.match_id DESC 
 ) md;
@@ -198,7 +198,7 @@ SELECT match_id, processing_status, retrieval_status FROM
         COALESCE( (SELECT md.data FROM MatchDetails md WHERE umh.match_id = md.matchid),
       'null'::json) AS match_details 
  FROM Users u, UserMatchHistory umh 
- WHERE u.id = 3548 
+ WHERE u.id = 1 
  AND u.id = umh.user_id 
 ORDER BY umh.match_id DESC 
 ) md;
@@ -210,9 +210,9 @@ delete from replayfiles where id in  (select distinct rf1.id from replayfiles rf
 wisdota-bot@tembryo.com
 insert into steamaccounts(name, password) values ('wisdota_bot_59', 'crawley-the-bot-59');
 
-  insert into jobs (started, data) (SELECT NOW(), ('{"message":"Download", "id":'||id||'}')::json FROM Matchretrievalrequests where retrieval_status=14);
+  insert into jobs (started, data) (SELECT NOW(), ('{"message":"Download", "id":'||id||'}')::json FROM Matchretrievalrequests where retrieval_status=13);
 
-  insert into jobs (started, data) (SELECT NOW(), ('{"message":"Analyse", "id":'||id||', "machine":1}')::json FROM Replayfiles where processing_status=1);
+  insert into jobs (started, data) (SELECT NOW(), ('{"message":"Analyse", "id":'||id||'}')::json FROM Replayfiles where processing_status=5);
 
 insert into jobs (started, data) (SELECT NOW(), ('{"message":"Retrieve", "id":'||id||'}')::json FROM Matchretrievalrequests where retrieval_status=5);
 
@@ -222,6 +222,20 @@ insert into jobs (started, data) (select now(), data from jobs where result->>'r
 
 select * from logentries where filters->>'machine'='2' AND filters->>'module'='analysis-server' order by id desc limit 1000;
 
-insert into jobs (started, data) VALUES (SELECT NOW(), ('{"message":"Analyse", "id":2511064845}');
+insert into jobs (started, data) VALUES (NOW(),'{"message":"Analyse", "id": 60168}');
+insert into jobs (started, data) VALUES ( NOW(), '{"message":"Download", "id":2506458958}'::json);
 
   SELECT (SELECT COUNT(*) FROM UserMatchHistory umh WHERE umh.user_id=mrr.requester_id AND umh.match_id > mrr.id) as n_newer_matches FROM ReplayFiles rf, MatchRetrievalRequests mrr WHERE rf.id=60170 AND mrr.id=rf.upload_filename::bigint AND mrr.requester_id IS NOT NULL;
+
+select analysis_version, count(*) from matches group by analysis_version;
+
+insert into jobs (started, data) (SELECT NOW(), ('{"message":"Analyse", "id":'||replayfile_id||'}')::json FROM Matches where analysis_version <> '18/06/16' LIMIT 1000);
+
+
+
+   analysis_version | count 
+------------------+-------
+ 18/06/16         |  4088
+                  |   129
+ 24/05/16         | 53626
+(3 rows)

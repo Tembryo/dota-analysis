@@ -1528,7 +1528,6 @@ def makeStats(match):
                 "num-neutral-creeps-lasthit": 0,
                 "lasthit-free": 0,
                 "lasthit-contested": 0,
-                "contested-total": 0,
                 "missed-contested": 0,
                 "missed-free": 0,
                 "contested-total": 0,
