@@ -1959,6 +1959,7 @@ def evaluateTPScrollUse(match):
             match["stats"]["player-stats"][match["heroes"][tp_event["hero"]]["player_index"]]["total-tp-distance"] += math.sqrt( (tp_event["start-position"][0] - tp_event["end-position"][0]) * (tp_event["start-position"][0] - tp_event["end-position"][0]) + (tp_event["start-position"][1] - tp_event["end-position"][1]) * (tp_event["start-position"][1] - tp_event["end-position"][1]) )
 
 def evaluateDistanceTraveled(match):
+    #evalutate the total distance traveled, total time alive and average distance from the centroid of their trajectores for each hero
     for hero in match["heroes"]:
         total_distance_traveled = 0
         total_time_alive = 0
@@ -2203,10 +2204,6 @@ def main():
     writeToJson(stats_filename,match["stats"]) 
     #delete intermediate/input files
     shutil.rmtree(match_directory)
-
-
-        
-
 
 
 if __name__ == "__main__":
