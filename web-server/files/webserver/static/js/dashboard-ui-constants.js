@@ -1,5 +1,6 @@
 var ratings =[
 {   "key":      "Mechanics",
+<<<<<<< HEAD
     "label":    "Mechanics",
     "colour":   '#0FA9D7'
 },
@@ -29,6 +30,20 @@ var skill_constants = {
 
     //        Mechanics skills
 
+=======
+    "label":    "Mechanics"
+},
+{
+    "key":      "Farming",
+    "label":    "Farming"
+},
+{
+    "key":      "Fighting",
+    "label":    "Fighting"
+}];
+
+var skill_constants = {
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
     "checks-per-minute":
         {   "label": "Item Checks",
             //"scale": d3.scale.linear().domain([0, 300]).range([0,100]).clamp(true),
@@ -139,8 +154,11 @@ var skill_constants = {
             "ordering": 8
         },
 
+<<<<<<< HEAD
     // Farming skills
 
+=======
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
     "GPM":
         {   "label": "GPM",
             //"scale": d3.scale.linear().domain([0, 900]).range([0,100]).clamp(true),
@@ -239,8 +257,11 @@ var skill_constants = {
             "ordering": 5
         },
 
+<<<<<<< HEAD
     // Fighting Skills
 
+=======
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
     "kills":
         {   "label": "Kills",
             //"scale": d3.scale.linear().domain([0, 20]).range([0,100]).clamp(true),
@@ -265,6 +286,7 @@ var skill_constants = {
             "format": function(value){return Math.floor(value)+" deaths";},
             "ordering": 1
         },
+<<<<<<< HEAD
     "1-vs-1-kills":
         {   "label": "Solo Kills",
             //"scale": d3.scale.linear().domain([0, 20]).range([0,100]).clamp(true),
@@ -337,6 +359,8 @@ var skill_constants = {
             "format": function(value){return Math.floor(value)+ " deaths";},
             "ordering": 7
         },
+=======
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
     "fightsPerMin":
         {   "label": "Fights",
             //"scale": d3.scale.linear().domain([0, 60]).range([0,100]).clamp(true),
@@ -347,7 +371,11 @@ var skill_constants = {
             },
             "fixed_direction": 0,
             "format": function(value){return (1/value).toFixed(2)+" minutes inbetween fights";},
+<<<<<<< HEAD
             "ordering": 8
+=======
+            "ordering": 2
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
         },
     "initiation-score":
         {   "label": "Initiation Score",
@@ -359,6 +387,7 @@ var skill_constants = {
             },
             "fixed_direction": 0,
             "format": function(value){return value.toFixed(2);},
+<<<<<<< HEAD
             "ordering": 9
         },
     "fight-coordination":
@@ -374,4 +403,8 @@ var skill_constants = {
             "ordering": 10
         }
 
+=======
+            "ordering": 3
+        }      
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
 };

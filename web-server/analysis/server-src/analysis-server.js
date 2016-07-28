@@ -3,8 +3,12 @@ var child_process   = require("child_process"),
     fs              = require("fs"),
     async           = require("async"),
     rimraf          = require("rimraf"), 
+<<<<<<< HEAD
     bz2             = require('unbzip2-stream'),
     mkdirp          = require('mkdirp');
+=======
+    bz2             = require('unbzip2-stream');
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
 
 var samples         = require("./samples.js")
 
@@ -581,9 +585,13 @@ function scoreReplay(message, callback_replay)
                 child_process.execFile(
                     "python",
                     ["/score/score.py", locals.sample_filename],
+<<<<<<< HEAD
                     {
                         //"timeout":max_score_time
                     },
+=======
+                    {"timeout":max_score_time},
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
                     callback);
             },
             function(stdout, stderr, callback){
@@ -660,7 +668,11 @@ function appedMatchSamples(matchid, csv_file, match_callback)
             {
                 //console.log("writing",i);
                 csv_file.write("\n");
+<<<<<<< HEAD
                 var slot = results.rows[i]["player_data"]["slot"];
+=======
+                var slot = results.rows[i]["slot"];
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
                 if(slot >= 128)
                     slot = slot - 128 + 5;
 

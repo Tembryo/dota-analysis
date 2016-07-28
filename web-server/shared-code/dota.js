@@ -3,12 +3,17 @@ var async   = require("async"),
     dota2   = require('dota2'),
     domain = require('domain');
 
+<<<<<<< HEAD
 var logging = require("./logging.js")("dota-lib"),
     config  = require("./config.js");
+=======
+var logging = require("./logging.js")("dota");
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
 
 var steam_client    = new Steam.SteamClient();
 var steam_user      = new Steam.SteamUser(steam_client);
 var steam_status    = "Open";
+<<<<<<< HEAD
 var dota_client     = null;
 if(config.version === "DEV")
     dota_client = new dota2.Dota2Client(steam_client, true, true);
@@ -17,6 +22,11 @@ else
 
 var dota_status     = "Open";
 
+=======
+var dota_client     = new dota2.Dota2Client(steam_client, true, true);
+var dota_status     = "Open";
+
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
 
 var reconnect_timeout = 3000;
 var n_retries = 0;
@@ -212,6 +222,7 @@ function openDotaClient(login_data, callback)
 
     steam_client.connect();
     counter += 1;
+<<<<<<< HEAD
 }
 
 
@@ -263,6 +274,59 @@ function closeDotaClient(callback)
         shutdown_delay);
 }
 
+=======
+}
+
+
+function closeDotaClient(callback)
+{
+    if(dota_status === "Open")
+    {
+        console.log("dota not connected, closing does nothing")
+        callback();
+        return; 
+    }
+    else if(dota_status === "Failed")
+    {
+        console.log("closing failed dota")
+        callback("Dota is Failed");
+        return;
+    }
+
+    var callback_called = false;
+    steam_client.removeListener("loggedOff", onLogOffRelaunch);
+    steam_client.on("loggedOff", onLogOffClose);
+
+    switchSteamErrorCB(
+        function(err) {
+            steam_status = "Failed";
+            console.log("Steam error while closing", err);
+            if(!callback_called)
+            {
+                callback("failed");
+                callback_called = true;
+            }
+            if( dota_status === "Connected")
+                dota_client.exit();
+        });
+
+    dota_client.exit();
+    dota_status = "Open";
+
+    steam_client.disconnect();
+    setTimeout(
+        function(){
+           steam_status = "Open";
+           if(!callback_called)
+            {
+                callback_called = true;
+                callback();
+            }
+        },
+        shutdown_delay);
+}
+
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
 function getClient(callback)
 {
     if(dota_status === "Connected")

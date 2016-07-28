@@ -415,7 +415,11 @@ function timeoutJobs()
                             timeout = 15*60;
                             break;
                         case "Score":
+<<<<<<< HEAD
                             timeout = 8*60;
+=======
+                            timeout = 5*60;
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
                             break;
 
                         case "CrawlCandidates":
@@ -755,7 +759,11 @@ function schedulerTick()
                                     return;
 
                                 case "Analyse":
+<<<<<<< HEAD
                                     scheduling_item.primary_priority = 2;
+=======
+                                    scheduling_item.primary_priority = 1;
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
                                     database.query("SELECT (SELECT COUNT(*) FROM UserMatchHistory umh WHERE umh.user_id=mrr.requester_id AND umh.match_id > mrr.id) as n_newer_matches FROM ReplayFiles rf, MatchRetrievalRequests mrr WHERE rf.id=$1 AND (rf.upload_filename~E'^\\d+$' AND mrr.id=rf.upload_filename::bigint) AND mrr.requester_id IS NOT NULL;", [row["data"]["id"]],
                                         function(err, results)
                                         {
@@ -787,7 +795,11 @@ function schedulerTick()
                                     return;
 
                                 case "Score":
+<<<<<<< HEAD
                                     scheduling_item.primary_priority = 1;
+=======
+                                    scheduling_item.primary_priority = 2;
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
                                     break;
 
                                 case "CrawlCandidates":

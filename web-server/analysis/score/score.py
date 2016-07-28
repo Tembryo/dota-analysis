@@ -18,7 +18,11 @@ import os
 dn = os.path.dirname(os.path.realpath(__file__))
 
 settings_filename = dn+"/model_files/settings.p"
+<<<<<<< HEAD
 model_path = dn+"/model_files/best-model.ckpt"
+=======
+model_path = dn+"/model_files/best-model.ckpt-2000"
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
 representatives_filename = dn+"/model_files/feature_representatives.json"
 samples_filename = sys.argv[1]
 
@@ -29,9 +33,23 @@ feature_to_subscore = {}
 #feature_to_subscore["hero"] = ""
 feature_to_subscore["win"] = ""
 feature_to_subscore["durationMins"] = ""
+<<<<<<< HEAD
 
 feature_to_subscore["checks-per-minute"] = "mechanics"
 feature_to_subscore["average-check-duration"] = "mechanics"
+=======
+feature_to_subscore["GPM"] = "farming"
+feature_to_subscore["XPM"] = "farming"
+#feature_to_subscore["fraction-creeps-lasthit"] = ""
+#feature_to_subscore["fraction-lasthits"] = ""
+feature_to_subscore["checks-per-minute"] = "mechanics"
+feature_to_subscore["average-check-duration"] = "mechanics"
+feature_to_subscore["time-fraction-visible"] = "movement"
+feature_to_subscore["kills"] = "fighting"
+feature_to_subscore["deaths"] = "fighting"
+feature_to_subscore["fightsPerMin"] = "fighting"
+feature_to_subscore["initiation-score"] = "fighting"
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
 feature_to_subscore["camera-average-movement"] = "mechanics"
 feature_to_subscore["camera-distance-average"] = "mechanics"
 feature_to_subscore["camera-distance-stdev"] = "mechanics"
@@ -39,6 +57,7 @@ feature_to_subscore["camera-jumps-per-minute"] = "mechanics"
 feature_to_subscore["camera-percent-far"] = "mechanics"
 feature_to_subscore["camera-percent-moving"] = "mechanics"
 feature_to_subscore["camera-percent-self"] = "mechanics"
+<<<<<<< HEAD
 
 feature_to_subscore["kills"] = "fighting"
 feature_to_subscore["deaths"] = "fighting"
@@ -62,12 +81,15 @@ feature_to_subscore["team-heal-amount"] = "fighting"
 
 feature_to_subscore["GPM"] = "farming"
 feature_to_subscore["XPM"] = "farming"
+=======
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
 feature_to_subscore["lasthits-per-minute"] = "farming"
 feature_to_subscore["lasthits-total-contested"] = "farming"
 feature_to_subscore["lasthits-contested-percent-lasthit"] = "farming"
 feature_to_subscore["lasthits-taken-percent-free"] = "farming"
 feature_to_subscore["lasthits-missed-free"] = "farming"
 feature_to_subscore["lasthits-percent-taken-against-contest"] = "farming"
+<<<<<<< HEAD
 
 feature_to_subscore["time-fraction-visible"] = "movement"
 feature_to_subscore["time-visible"] = "movement"
@@ -91,6 +113,10 @@ feature_to_subscore["num-of-tp-used"] = "misc"
 feature_to_subscore["total-tp-distance"] = "misc"
 feature_to_subscore["num-tp-bought"] = "misc"
 
+=======
+feature_to_subscore["tower-damage"] = "objectives"
+feature_to_subscore["rax-damage"] = "objectives"
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
 
 
 n_representatives = 99
@@ -175,6 +201,7 @@ def mean(lst):
         return mean
     else:
         return None 
+<<<<<<< HEAD
 
 def feature_map(value, feature, settings):
     if value is None:
@@ -198,6 +225,31 @@ with open(settings_filename) as settings_file:
 
     feature_to_col = settings["feature-encoder"].vocabulary_
 
+=======
+
+def feature_map(value, feature, settings):
+    if value is None:
+        return None
+    scaler_settings = (settings["feature-scaler"].mean_, settings["feature-scaler"].scale_)
+    feature_to_col = settings["feature-encoder"].vocabulary_
+    return (value - scaler_settings[0][feature_to_col[feature]])/scaler_settings[1][feature_to_col[feature]]
+
+def feature_inv_map(value, feature, settings):
+    if value is None:
+        return None
+    scaler_settings = (settings["feature-scaler"].mean_, settings["feature-scaler"].scale_)
+    feature_to_col = settings["feature-encoder"].vocabulary_
+    return (value*scaler_settings[1][feature_to_col[feature]]) + scaler_settings[0][feature_to_col[feature]]
+
+with open(settings_filename) as settings_file:
+    settings = pickle.load(settings_file)
+    settings["load_labels"] = False
+    model = tf_model.Model(settings=settings["model-settings"], logging=False)
+    model.load(model_path)
+
+    feature_to_col = settings["feature-encoder"].vocabulary_
+
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
     with open(representatives_filename) as representatives_file:
         representatives = json.load(representatives_file)
 

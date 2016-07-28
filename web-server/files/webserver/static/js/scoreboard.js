@@ -139,11 +139,19 @@ function createRow(pair)
         .append("div")
             .attr("class","image-thumbnail")
             .append("img")
+<<<<<<< HEAD
                 .attr("src", function(d){if(pair["radiant"]) return picture_by_name[pair["radiant"]["score"]["player_data"]["hero"]];})
                 .attr("style", "height:37px");
 
     row.append("td")
         .text(function(d){if(pair["dire"]) return pair["radiant"]["details"]["player_name"];});
+=======
+                .attr("src", function(d){if(pair["radiant"]) return pictures[pair["radiant"]["score"]["player_data"]["hero"]];})
+                .attr("style", "height:37px");
+
+    row.append("td")
+        .text(function(d){if(pair["dire"]) return pair["radiant"]["header"]["name"];});
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
 
     row.append("td")
         .attr("id","radiant-value");
@@ -154,11 +162,19 @@ function createRow(pair)
         .append("div")
             .attr("class","image-thumbnail")
             .append("img")
+<<<<<<< HEAD
                 .attr("src", function(d){if(pair["dire"]) return picture_by_name[pair["dire"]["score"]["player_data"]["hero"]];})
                 .attr("style", "height:37px");
 
     row.append("td")
         .text(function(d){if(pair["dire"]) return pair["dire"]["details"]["player_name"];});
+=======
+                .attr("src", function(d){if(pair["dire"]) return pictures[pair["dire"]["score"]["player_data"]["hero"]];})
+                .attr("style", "height:37px");
+
+    row.append("td")
+        .text(function(d){if(pair["dire"]) return pair["dire"]["header"]["name"];});
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
 
     row.append("td")
         .attr("id","dire-value");

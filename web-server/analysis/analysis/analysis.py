@@ -1774,8 +1774,12 @@ def evaluateFightCoordination(match):
 
     #normalise the fight coordination score by the number of fights with > 2 heroes that each hero was part of
     for hero in match["heroes"]:
+<<<<<<< HEAD
         if fight_counter[match["heroes"][hero]["entity_id"]] != 0:
             match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["fight-coordination"] = match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["fight-coordination"]/fight_counter[match["heroes"][hero]["entity_id"]]
+=======
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["fight-coordination"] = match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["fight-coordination"]/fight_counter[match["heroes"][hero]["entity_id"]]
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
 
 def evaluateFightMovementSpeed(match):
     #calculates the average speed a player/hero moves at during a fight
@@ -1927,9 +1931,14 @@ def evaluateFightCentroid(match):
                 hero_centroid_dist[match["entities"][hero_entity_id]["unit"]]["n"] += 1
 
     for hero in match["heroes"]:
+<<<<<<< HEAD
         if hero_centroid_dist[hero]["n"] != 0:
             match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["average-fight-centroid-dist"] = hero_centroid_dist[hero]["dist"]/hero_centroid_dist[hero]["n"]
             match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["average-fight-centroid-dist-team"] = hero_centroid_dist[hero]["team-dist"]/hero_centroid_dist[hero]["n"]
+=======
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["average-fight-centroid-dist"] = hero_centroid_dist[hero]["dist"]/hero_centroid_dist[hero]["n"]
+        match["stats"]["player-stats"][match["heroes"][hero]["player_index"]]["average-fight-centroid-dist-team"] = hero_centroid_dist[hero]["team-dist"]/hero_centroid_dist[hero]["n"]
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
 
 
 def evaluateHeroHeals(match):

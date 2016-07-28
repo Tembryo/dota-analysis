@@ -19,6 +19,7 @@ class Model:
             "durationMins"]
 
         self.subsets = {
+<<<<<<< HEAD
             "All": [            "checks-per-minute",
                                 "average-check-duration",
                                 "camera-average-movement",
@@ -84,6 +85,19 @@ class Model:
               ],
             "IMR": ["checks-per-minute",
                     "average-check-duration",
+=======
+            "All": [ "GPM",
+                    "XPM",
+                    "fraction-creeps-lasthit",
+                    "fraction-lasthits",
+                    "checks-per-minute",
+                    "average-check-duration",
+                    "time-fraction-visible",
+                    "kills",
+                    "deaths",
+                    "fightsPerMin",
+                    "initiation-score",
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
                     "camera-average-movement",
                     "camera-distance-average",
                     "camera-distance-stdev",
@@ -91,6 +105,7 @@ class Model:
                     "camera-percent-far",
                     "camera-percent-moving",
                     "camera-percent-self",
+<<<<<<< HEAD
 
                     "kills",
                     "deaths",
@@ -114,12 +129,15 @@ class Model:
 
                     "GPM",
                     "XPM",
+=======
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
                     "lasthits-per-minute",
                     "lasthits-total-contested",
                     "lasthits-contested-percent-lasthit",
                     "lasthits-taken-percent-free",
                     "lasthits-missed-free",
                     "lasthits-percent-taken-against-contest",
+<<<<<<< HEAD
 
                     "time-fraction-visible",
                     "time-visible",
@@ -146,6 +164,20 @@ class Model:
             "mechanics": [
                     "checks-per-minute",
                     "average-check-duration",
+=======
+                    "tower-damage",
+                    "rax-damage"
+              ],
+            "IMR": ["GPM",
+                    "XPM",
+                    "checks-per-minute",
+                    "average-check-duration",
+                    "time-fraction-visible",
+                    "kills",
+                    "deaths",
+                    "fightsPerMin",
+                    "initiation-score",
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
                     "camera-average-movement",
                     "camera-distance-average",
                     "camera-distance-stdev",
@@ -153,6 +185,7 @@ class Model:
                     "camera-percent-far",
                     "camera-percent-moving",
                     "camera-percent-self",
+<<<<<<< HEAD
             ],
             "fighting": [
                     "kills",
@@ -178,12 +211,15 @@ class Model:
             "farming": [
                     "GPM",
                     "XPM",
+=======
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
                     "lasthits-per-minute",
                     "lasthits-total-contested",
                     "lasthits-contested-percent-lasthit",
                     "lasthits-taken-percent-free",
                     "lasthits-missed-free",
                     "lasthits-percent-taken-against-contest",
+<<<<<<< HEAD
             ],
 
             "movement": [
@@ -210,6 +246,15 @@ class Model:
                     "total-tp-distance",
                     "num-tp-bought"
             ]
+=======
+                    "tower-damage",
+                    "rax-damage"],
+            "mechanics": ["average-check-duration", "checks-per-minute", "camera-average-movement", "camera-distance-average", "camera-distance-stdev", "camera-jumps-per-minute", "camera-percent-far", "camera-percent-moving", "camera-percent-self"],
+            "farming": ["GPM", "XPM", "lasthits-per-minute", "lasthits-total-contested", "lasthits-contested-percent-lasthit", "lasthits-taken-percent-free", "lasthits-missed-free", "lasthits-percent-taken-against-contest"],
+            "fighting": ["initiation-score", "fightsPerMin", "deaths", "kills"],
+            "movement": ["time-fraction-visible"],
+            "objectives": ["tower-damage", "rax-damage"]
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
         }
                 
         self.parameters = {}      
@@ -294,6 +339,7 @@ class Model:
 
     def build_prediction_graph(self, concatenated, n_layer, name):
         #input
+<<<<<<< HEAD
         mixed1 = self.nn_layer(concatenated, n_layer, 100, name+'/mixed1')
         mixed2 = self.nn_layer(mixed1, 100, 80, name+'/mixed2')
         mixed3 = self.nn_layer(mixed2, 80, 60, name+'/mixed3')
@@ -304,6 +350,16 @@ class Model:
 
 
         result = self.nn_layer(mixed7, 10, 1, name+'/result')
+=======
+        mixed1 = self.nn_layer(concatenated, n_layer, 60, name+'/mixed1')
+        mixed2 = self.nn_layer(mixed1, 60, 50, name+'/mixed2')
+        mixed3 = self.nn_layer(mixed2, 50, 40, name+'/mixed3')
+        mixed4 = self.nn_layer(mixed3, 40, 30, name+'/mixed4')
+        mixed5 = self.nn_layer(mixed4, 30, 20, name+'/mixed5')
+        mixed6 = self.nn_layer(mixed5, 20, 10, name+'/mixed6')
+
+        result = self.nn_layer(mixed6, 10, 1, name+'/result')
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
         return result
 
     def built_cost_graph(self, prediction, name):

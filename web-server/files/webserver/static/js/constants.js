@@ -341,6 +341,7 @@ var names =
     "91":   "Wisp",
     "30":   "Witch Doctor",
     "22":   "Zeus"
+<<<<<<< HEAD
 };
 
 var picture_by_name =
@@ -572,4 +573,6 @@ var name_by_name =
     "wisp":                 "Wisp",
     "witch_doctor":         "Witch Doctor",
     "zuus":                 "Zeus"
+=======
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
 };

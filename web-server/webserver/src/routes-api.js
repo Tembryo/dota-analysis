@@ -169,6 +169,7 @@ router.route("/get-player-matches")
                                         "skills":results.rows[i]["score_data"]["fighting"]["skills"]
                                     }
                                     next_result["ratings"].push(fighting_rating)
+<<<<<<< HEAD
                                 }
 
                                 if("movement" in results.rows[i]["score_data"])
@@ -189,6 +190,8 @@ router.route("/get-player-matches")
                                         "skills":results.rows[i]["score_data"]["misc"]["skills"]
                                     }
                                     next_result["ratings"].push(misc_rating)
+=======
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
                                 }
                             }
 
@@ -380,6 +383,7 @@ router.route('/match-details/:matchid')
                     },
                     function(results, callback)
                     {
+<<<<<<< HEAD
                         if( results.rowCount != 1)
                         {
                             callback("couldnt find match details");
@@ -387,11 +391,45 @@ router.route('/match-details/:matchid')
                         }
 
                         callback(null, results.rows[0]["data"]);
+=======
+                        async.each(
+                            results.rows,
+                            function(row, callback_file)
+                            {
+                                async.waterfall(
+                                    [
+                                        function (callback)
+                                        {
+                                            logging.log("retrievign header");
+                                            storage.retrieve(row.header_file, callback);
+                                        },
+                                        function(local_path, callback)
+                                        {
+                                            logging.log("reading header");
+                                            fs.readFile(local_path,'utf-8', callback);
+                                        },
+                                        function(json, callback)
+                                        {
+                                            logging.log("load "+row.header_file);
+                                            var header = JSON.parse(json);
+                                            if(row.label)
+                                                header["label"] = row.label;
+                                            locals.header_files.push(header);
+                                            logging.log("added header json to list "+row.header_file);
+                                            callback(null);
+                                        }
+                                    ],
+                                    callback_file
+                                );
+                            },
+                            callback);
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
                     }
                 ],
                 function(err, results)
                 {
                     if(err)
+<<<<<<< HEAD
                     {
                         logging.error({"message": "error getting match header", "err": err, "result": results});
 
@@ -411,6 +449,10 @@ router.route('/match-details/:matchid')
 
                         res.json(response);
                     }
+=======
+                        logging.error({"message": "error getting match header", "err": err});
+                    res.json(locals.header_files);
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
                 }
             );
         }

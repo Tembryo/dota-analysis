@@ -8,8 +8,12 @@
         "async": "^1.5.0",
         "semaphore": "^1.0.3",
         "unbzip2-stream": "^1.0.8",
+<<<<<<< HEAD
         "rimraf": "^2.5.3",
         "mkdirp": "^0.5.1"
+=======
+        "rimraf": "^2.5.3"
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
     }
 }
 

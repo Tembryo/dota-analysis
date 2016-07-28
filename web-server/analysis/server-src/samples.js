@@ -117,8 +117,12 @@ var id_to_hero =
 function sampleHeader()
 {
     var header = {  "label":"steamid", 
+<<<<<<< HEAD
                     "data": [
                                "hero",
+=======
+                    "data": [   "hero",
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
                                 "own_team",
                                 "enemy_team",
                                 "win",
@@ -217,7 +221,10 @@ function createSampleData(match, slot)
     var enemy_team = [];
     for(var i = 0; i < match["match-details"]["players"].length; ++i)
     {
+<<<<<<< HEAD
        //console.log("slot", slot, "playerd", match["match-details"]["players"][i]["player_slot"])
+=======
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
        if( (match["match-details"]["players"][i]["player_slot"] < 128 && slot < 5) ||
            (match["match-details"]["players"][i]["player_slot"] >= 128 && slot >= 5) )
             my_team.push(match["match-details"]["players"][i]["hero_id"])
@@ -237,10 +244,16 @@ function createSampleData(match, slot)
     for(var i = 0; i < enemy_team.length; ++i)
     {
         enemy_team_string +=id_to_hero[enemy_team[i]] ;
+<<<<<<< HEAD
         if(i+1 < enemy_team.length)
             enemy_team_string += "#";
     }
     //console.log(my_team_string, enemy_team_string);
+=======
+        if(i+1 < my_team.length)
+            enemy_team_string += "#";
+    }
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
 
     var durationMins =  (match_stats["duration"] /60);
     var fractionCreepsLasthit =  (match_stats["creeps-lasthit"] /match_stats["creeps-killed"]);
@@ -256,8 +269,12 @@ function createSampleData(match, slot)
     var percentFreeOfLasthits =  player_stats["lasthit-free"]/Math.max(player_stats["num-creeps-last-hit"], 1);
     var percentTakenAgainstContest = player_stats["lasthit-contested"]/Math.max((player_stats["lasthit-contested"]+player_stats["missed-contested"]), 1);
 
+<<<<<<< HEAD
     var features =  [
                         player_stats["hero"],
+=======
+    var features =  [   player_stats["hero"],
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
                         my_team_string,
                         enemy_team_string,
                         win,
@@ -276,6 +293,7 @@ function createSampleData(match, slot)
                         player_stats["num-of-kills"],
                         player_stats["num-of-deaths"],
                         fightsPerMin,
+<<<<<<< HEAD
                         player_stats["initiation_score"],
                         player_stats["1-vs-1-kills"],
                         player_stats["1-vs-1-deaths"],
@@ -297,6 +315,16 @@ function createSampleData(match, slot)
                         player_stats["XPM"],
                         fractionCreepsLasthit,
                         fractionLasthits,
+=======
+                        player_stats["initation-score"],
+                        player_stats["avg_camera_movement"],
+                        player_stats["average_camera_distance"],
+                        player_stats["distance_std_dev"],
+                        camJumpsPerMin,
+                        player_stats["percentFar"],
+                        player_stats["percentMove"],
+                        player_stats["percentSelf"],
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
                         lasthitsPerMin,
                         player_stats["contested-total"],
                         contestedCreepsLasthit,

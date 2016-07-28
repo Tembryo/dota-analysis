@@ -21,6 +21,7 @@
     <div id="user-dashboard">
         <div class="container">
             <div class="row">
+<<<<<<< HEAD
                 <div class="col-md-4">
 
                     <div class="playercard">
@@ -112,6 +113,108 @@
                             </div>
 
                         </div>
+=======
+                <div class="col-lg-4 text-center">
+                    <h2 id="user-name"> <%= user["name"] %> </h2>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-4 text-center">
+                    <div class="row">
+                        <div class="col-xs-12 text-center">
+                            <img id="user-pic" height="280px" width="280px" src ="<%= avatar %>">
+                        </div>
+                    </div>
+                    <hr class="featurette-divider">
+                    <div class="row">
+                    <div class="col-xs-12 text-center">
+                        <a id="analyse-matches-button" href="#" class="btn btn-warning btn-lg active">Parse all recent matches</a>
+                    </div>
+                    </div>
+                </div>
+                <div id="timeline-container" class="col-lg-8 text-center">
+                </div>
+            </div>
+            <hr class="featurette-divider">
+            <div class="row">
+                <div class ="col-lg-4 text-center"> 
+                    <h2>Match <span id="current-match-id"> </span></h2>
+                    <a id= "scoreboard-link" href='/scoreboard/"+ dataPoint["match-id"]+"'>Scoreboard</a>
+                    &mdash;
+                    <a id= "review-link" href='/match/"+ dataPoint["match-id"]+"'>Review</a>
+
+
+
+                </div>
+                <div class= "col-lg-8 text-center">
+                    <div class="hero-image-container">
+                        <img id="hero_0" height="32" width="60">
+                        <img id="hero_1" height="32" width="60">
+                        <img id="hero_2" height="32" width="60">
+                        <img id="hero_3" height="32" width="60">
+                        <img id="hero_4" height="32" width="60">
+                    </div>
+                    <div class="hero-image-container">
+                        <img id="hero_5" height="32" width="60">
+                        <img id="hero_6" height="32" width="60">
+                        <img id="hero_7" height="32" width="60">
+                        <img id="hero_8" height="32" width="60">
+                        <img id="hero_9" height="32" width="60">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="row">
+                        <div class="col-lg-4"> 
+                            <div class="row">
+                                <div class="col-xs-12 text-center">
+                                    <h3>
+                                        <img id="current-hero-icon" width="32px" style="margin:0px 10px 0px 10px">
+                                        <span id="current-hero"></span>: <span id="current-imr"></span> IMR 
+                                    </h3>
+                                </div>
+                            </div>
+                            <div class="row" id="polygon-container">
+                               <div class="col-xs-12 text-center">
+                                    <svg id="polygon-canvas"></svg>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-12 text-center" id="legend-container"></div>
+                            </div>
+
+                            <div class="row" style="margin-top:20px">
+                                <div class="col-xs-8 col-xs-offset-2" id="upcoming-features-container" >
+                                  <h3  class="text-center">Upcoming Features</h3>
+                                  <ul class="list-group">
+                                      <li class="list-group-item list-group-item-success">ETA: next 2 weeks </li>
+                                    <li class="list-group-item list-group-item-success">Let us know what you would like to see!</li>
+                                    <li  class="list-group-item">Teamfight coordination</li>
+                                    <li class="list-group-item">Solo kills/deaths</li>
+                                    <li class="list-group-item">Time visible, rotations</li>
+                                    <li class="list-group-item">Building damage, wards, Rosh</li>
+                                    <li class="list-group-item">Items bough and used</li>
+                                  </ul>
+
+
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="col-lg-8" id="tips-container" >
+                            <div class="row">
+                                <div class="col-lg-12" id="tips-container" style="margin:15px">
+                                    <h3>Tips</h3>
+                                    <p id="tip1"></p>
+                                    <p id="tip2"></p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div id="skills-container" class="col-lg-12 text-center"></div>
+                            </div>
+                        </div>
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
                     </div>
                 </div>
             </div>
@@ -212,6 +315,12 @@
     var avatar_source= "<%= avatar %>";
 </script>
 
+<<<<<<< HEAD
+=======
+<%        
+    }
+%>
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
 <script type="text/javascript" src="/static/js/constants.js"></script>
 <script type="text/javascript" src="/static/js/dashboard-ui-constants.js"></script>
 <script type="text/javascript" src="/static/js/dashboard.js"></script>

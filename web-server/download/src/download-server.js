@@ -81,6 +81,7 @@ function processDownloadRequest(message, callback_request)
                 {
                     callback("didnt find matchretrievalrequest", results);
                     return;
+<<<<<<< HEAD
                 }
 
                 locals.requester_id = results.rows[0].requester_id;
@@ -107,6 +108,34 @@ function processDownloadRequest(message, callback_request)
                     return;
                 }
 
+=======
+                }
+
+                locals.requester_id = results.rows[0].requester_id;
+                locals.match_id = locals.request_id;
+                locals.store_path = config.shared+"/replays/";
+                locals.data = results.rows[0].data;
+
+                database.query("SELECT id FROM ReplayFiles WHERE (upload_filename~E'^\\d+$' AND upload_filename::bigint = $1) OR match_id=$1;", [locals.request_id], callback);
+            },
+            function(results, callback)
+            {
+                if(results.rowCount != 0)
+                {
+                    database.query(
+                        "UPDATE MatchRetrievalRequests mrr SET retrieval_status=(SELECT mrs.id FROM MatchRetrievalStatuses mrs WHERE mrs.label=$2) WHERE mrr.id=$1;",
+                        [locals.request_id, "retrieved"],
+                        function(err, results)
+                        {
+                            if(err)
+                                callback(err, results);
+                            else
+                                callback(error_message_exists);
+                        });
+                    return;
+                }
+
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
                 logging.log("starting download");
                 downloadMatch(locals.data, locals.store_path, callback);
             },
@@ -256,12 +285,15 @@ var minimum_filesize = 512*1024; //require replays to be > 0.5MB
 
 function downloadMatch(replay_data, target, callback)
 {   
+<<<<<<< HEAD
     if(!replay_data || !("match_id" in replay_data) ||!("cluster" in replay_data) || !("replay_salt" in replay_data) )
     {
         callback("bad replay_data for download", replay_data);
         return;
     }
     
+=======
+>>>>>>> 2e1af2313645758671669fecce11f5d82b7eea54
     var file = target+replay_data.match_id+".dem.bz2"
     var replay_address = "http://replay"+replay_data.cluster+".valve.net/570/"+replay_data.match_id+"_"+replay_data.replay_salt+".dem.bz2";
 
