@@ -15,7 +15,7 @@ dn = os.path.dirname(os.path.realpath(__file__))
 
 settings_filename = dn+"/model_files/settings.p"
 model_path = \
-"logs2016-06-16_11-31/wisdota-model.ckpt-2000"
+"logs2016-07-22_13-30/best-model.ckpt-1600"
 #dn+"/model_files/wisdota-model.ckpt-99999"
 
 test_data_filename = "files/data_test.csv"

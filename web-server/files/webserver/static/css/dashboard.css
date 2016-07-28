@@ -1,69 +1,272 @@
-.hero-image-container {
-	display: inline-block;
-	padding-left: 10px;
-	margin-top: 20px;
-	margin-bottom: 10px;
+body {
+  background: url('/static/img/dashboard/background.jpg') center center;
+  background-size: cover;
 }
-
-
-.skills-table
-{
-    border-collapse: separate;
-    empty-cells: show;
+.all-matches-table {
+  background: #3e4156;
+  -webkit-box-shadow: 0px 0px 30px -2px rgba(108, 101, 115, 0.9);
+  -moz-box-shadow: 0px 0px 30px -2px rgba(108, 101, 115, 0.9);
+  box-shadow: 0px 0px 30px -2px rgba(108, 101, 115, 0.9);
 }
-
-.skills-table td
-{
-    padding: 5px;
+.all-matches-table .table-wrapper {
+  padding: 15px;
 }
-
-.skill-row 
-{}
-
-.skill-name
-{
-    float:left;
-    text-align: left;
+.top-dashboard {
+  margin-top: 100px;
+  color: #73798C;
 }
-
-.skill-name:hover
-{
-    color: #ec971f;
+.top-dashboard .top-table h4 {
+  margin-top: 12px;
+  margin-bottom: 0px;
+  text-transform: uppercase;
 }
-
-.skill-details{
-    text-align: left;
-    padding-left: 30px;
+.top-dashboard .top-table .download-all {
+  margin-top: 10px;
 }
-
-.skill-score
-{
-    font-weight: bold;
+.top-dashboard .top-table .download-all a {
+  border: 2px solid #A2621A;
+  padding-top: 10px;
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-bottom: 10px;
+  border-radius: 30px;
+  color: #e4d6ca;
+  letter-spacing: 0.5px;
 }
-
-.skill-bar
-{
-    height: 10px;
+.top-dashboard .top-table .download-all a i {
+  margin-right: 7px;
 }
-
-.skill-bar-value
-{
-    position: absolute;
-    background: #ec971f;
-    height: 15px;
-    opacity: 1;
+.top-dashboard .top-table .download-all a:hover {
+  background: #A2621A;
+  color: white;
+  text-decoration: none;
+  cursor: pointer;
 }
-
-.skill-bar-average
-{
-    position: absolute;
-    background: #000000;
-    height: 15px;
-    opacity: 0.2;
+.top-dashboard .top-table .download-all:hover {
+  cursor: pointer;
 }
-
-.skill-value
-{
-    font-variant: small-caps;
-    /*font-style: italic;*/
+.top-dashboard .actual-table {
+  position: relative;
+  height: 364px;
+  overflow: hidden;
+}
+.match-stats {
+  margin-top: 20px;
+}
+.match-stats .table-body {
+  background: #f6f5f7;
+}
+.match-stats .table-body .table-sidebar {
+  border-right: 1px solid #dedede;
+}
+.match-stats .table-body .heroes {
+  border-bottom: 1px solid #dedede;
+}
+.match-stats .table-body .heroes .hero {
+  max-width: 10%;
+  padding: 5px;
+  float: left;
+}
+.match-stats .tip {
+  border-left: 1px solid #dedede;
+  min-height: 90px;
+}
+.match-stats .tip:first-of-type {
+  border-left: none;
+}
+.match-stats .table-header {
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  background: #3f3f3f;
+  width: 100%;
+  height: 50px;
+  line-height: 50px;
+}
+.match-stats .table-header .hero-icon {
+  border-radius: 30px;
+  height: 30px;
+  width: 30px;
+  overflow: hidden;
+  margin-top: 10px;
+  margin-left: 10px;
+}
+.match-stats .table-header .hero-icon img {
+  vertical-align: top;
+}
+.match-stats .table-header h5 {
+  color: white;
+  margin: 0;
+  margin-left: 15px;
+  line-height: 50px;
+}
+.match-stats .table-header .match-buttons a {
+  background: #777777;
+  padding-top: 7px;
+  padding-bottom: 7px;
+  padding-left: 10px;
+  padding-right: 10px;
+  color: white;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+.match-stats .table-header .match-buttons a:hover {
+  text-decoration: none;
+  color: #e39426;
+}
+.table-sidebar {
+  padding: 0;
+}
+.table-sidebar h4 {
+  text-transform: uppercase;
+  font-size: 14px;
+  padding-left: 10px;
+}
+.table-sidebar .stats-sidebar ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.table-sidebar .stats-sidebar ul li {
+  width: 100%;
+  height: 50px;
+  border-top: 1px solid #dedede;
+  line-height: 50px;
+}
+.table-sidebar .stats-sidebar ul li a {
+  font-size: 18px;
+  color: #665e63;
+  font-weight: 300;
+  width: 100%;
+  display: block;
+  padding-left: 30px;
+}
+.table-sidebar .stats-sidebar ul li:last-of-type {
+  border-bottom: 1px solid #dedede;
+}
+.table-sidebar .stats-sidebar ul li.active {
+  background: #a3969d;
+}
+.table-sidebar .stats-sidebar ul li.active a {
+  color: white;
+}
+.table-sidebar .features {
+  background: #C7C1C4;
+}
+.table-sidebar .features ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.table-sidebar .features ul li {
+  width: 100%;
+  height: 40px;
+  border-top: 1px solid #dedede;
+  line-height: 40px;
+}
+.table-sidebar .features ul li a {
+  font-size: 16px;
+  color: #ffffff;
+  font-weight: 300;
+  width: 100%;
+  display: block;
+  padding-left: 30px;
+}
+.table-sidebar .features ul li:last-of-type {
+  border-bottom: 1px solid #dedede;
+}
+.actual-match-stats {
+  padding-top: 15px;
+  border-top: 1px solid #dedede;
+  padding-bottom: 15px;
+}
+.stats-container {
+  width: 100%;
+}
+.stats-container .skill {
+  width: 100%;
+  margin-bottom: 10px;
+}
+.stats-container .skill .skill-name {
+  float: left;
+  display: inline-block;
+  height: 25px;
+  line-height: 25px;
+  text-align: right;
+  padding-right: 10px;
+}
+.stats-container .skill .skill-level {
+  float: left;
+  height: 25px;
+  line-height: 25px;
+  background: #DFDCD7;
+  display: inline-block;
+  position: relative;
+}
+.stats-container .skill .skill-level-average {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 5;
+  height: 100%;
+  background: #bFbCb7;
+  -webkit-transition: all .3s ease;
+  -moz-transition: all .3s ease;
+  -ms-transition: all .3s ease;
+  -o-transition: all .3s ease;
+  transition: all .3s ease;
+}
+.stats-container .skill .skill-level-match {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 6;
+  width: 0%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.6);
+  -webkit-transition: all .3s ease;
+  -moz-transition: all .3s ease;
+  -ms-transition: all .3s ease;
+  -o-transition: all .3s ease;
+  transition: all .3s ease;
+}
+.stats-container .skill .skill-level-match-text {
+  position: absolute;
+  right: -24px;
+  color: #222;
+}
+#dummy-skill {
+  display: none;
+}
+#matches-graph-container {
+  position: relative;
+  left: -15px;
+}
+#matches-graph-iframe {
+  width: 100%;
+  height: 100%;
+}
+#change-nr-matches-container {
+  width: 300px;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  margin-left: -150px;
+  text-align: center;
+}
+#change-nr-matches-container .nr-matches {
+  display: inline;
+  margin: 0 4px;
+  font-size: 1.1em;
+  cursor: pointer;
+}
+#change-nr-matches-container .nr-matches:hover {
+  color: #eee;
+  text-decoration: underline;
+}
+#change-nr-matches-container .nr-matches-selected {
+  color: #eee;
+  text-decoration: underline;
+}
+.player-img {
+  background: #5B5258;
 }

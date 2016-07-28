@@ -1,17 +1,34 @@
 var ratings =[
 {   "key":      "Mechanics",
-    "label":    "Mechanics"
+    "label":    "Mechanics",
+    "colour":   '#0FA9D7'
 },
 {
     "key":      "Farming",
-    "label":    "Farming"
+    "label":    "Farming",
+    "colour":   '#4DD264'
 },
 {
     "key":      "Fighting",
-    "label":    "Fighting"
+    "label":    "Fighting",
+    "colour":   '#EA900C'
+},
+{
+    "key":      "Movement",
+    "label":    "Movement",
+    "colour":   '#D73356'
+},
+{
+    "key":      "Miscellaneous",
+    "label":    "Other",
+    "colour":   '#5A56DC'
 }];
 
+
 var skill_constants = {
+
+    //        Mechanics skills
+
     "checks-per-minute":
         {   "label": "Item Checks",
             //"scale": d3.scale.linear().domain([0, 300]).range([0,100]).clamp(true),
@@ -122,6 +139,8 @@ var skill_constants = {
             "ordering": 8
         },
 
+    // Farming skills
+
     "GPM":
         {   "label": "GPM",
             //"scale": d3.scale.linear().domain([0, 900]).range([0,100]).clamp(true),
@@ -220,6 +239,8 @@ var skill_constants = {
             "ordering": 5
         },
 
+    // Fighting Skills
+
     "kills":
         {   "label": "Kills",
             //"scale": d3.scale.linear().domain([0, 20]).range([0,100]).clamp(true),
@@ -244,6 +265,78 @@ var skill_constants = {
             "format": function(value){return Math.floor(value)+" deaths";},
             "ordering": 1
         },
+    "1-vs-1-kills":
+        {   "label": "Solo Kills",
+            //"scale": d3.scale.linear().domain([0, 20]).range([0,100]).clamp(true),
+            "explanation": "Number of enemies you killed in 1  vs. 1 fights.",
+            "tips": {
+                "1": "Killing enemies on your own has a massive impact on how a game will progress.",
+                "-1": "..."
+            },
+            "fixed_direction": 1,
+            "format": function(value){return Math.floor(value)+ " kills";},
+            "ordering": 2
+        },
+    "1-vs-1-deaths":
+        {   "label": "Solo Deaths",
+            //"scale": d3.scale.linear().domain([0, 20]).range([0,100]).clamp(true),
+            "explanation": "Number of death in 1  vs. 1 fights.",
+            "tips": {
+                "1": "...",
+                "-1": "Always try to keep track of which enemy hero can potentially kill you."
+            },
+            "fixed_direction": -1,
+            "format": function(value){return Math.floor(value)+ " deaths";},
+            "ordering": 3
+        },
+    "many-vs-1-kills":
+        {   "label": "Gank Kills",
+            //"scale": d3.scale.linear().domain([0, 20]).range([0,100]).clamp(true),
+            "explanation": "Number of kills in fights where multiple heroes faced off a single one.",
+            "tips": {
+                "1": "Ganking with some allies can give you a way to kill enemies even when they are stronger than you on your own.",
+                "-1": "Sometimes it is better if somebody else on your team takes the kill."
+            },
+            "fixed_direction": 0,
+            "format": function(value){return Math.floor(value)+ " kills";},
+            "ordering": 4
+        },
+    "many-vs-1-deaths":
+        {   "label": "Gank Deaths",
+            //"scale": d3.scale.linear().domain([0, 20]).range([0,100]).clamp(true),
+            "explanation": "Number of deaths in fights where multiple heroes faced off a single one.",
+            "tips": {
+                "1": "?",
+                "-1": "Always try to keep track of how you might die in a fight."
+            },
+            "fixed_direction": 0,
+            "format": function(value){return Math.floor(value)+ " deaths";},
+            "ordering": 5
+        },
+    "many-vs-many-kills":
+        {   "label": "Teamfight Kills",
+            //"scale": d3.scale.linear().domain([0, 20]).range([0,100]).clamp(true),
+            "explanation": "Number of kills in teamfights (multiple heroes on both sides involved).",
+            "tips": {
+                "1": "Sometimes you should make sure to secure the kills in the fight yourself.",
+                "-1": "Sometimes it is better if somebody else on your team takes the kill."
+            },
+            "fixed_direction": 0,
+            "format": function(value){return Math.floor(value)+ " kills";},
+            "ordering": 6
+        },
+    "many-vs-many-deaths":
+        {   "label": "Teamfight Deaths",
+            //"scale": d3.scale.linear().domain([0, 20]).range([0,100]).clamp(true),
+            "explanation": "Number of deaths in teamfights (multiple heroes on both sides involved).",
+            "tips": {
+                "1": "Sometimes sacrifices ofr the team have to be made.",
+                "-1": "Always try to keep track of how you might die in a fight."
+            },
+            "fixed_direction": 0,
+            "format": function(value){return Math.floor(value)+ " deaths";},
+            "ordering": 7
+        },
     "fightsPerMin":
         {   "label": "Fights",
             //"scale": d3.scale.linear().domain([0, 60]).range([0,100]).clamp(true),
@@ -254,7 +347,7 @@ var skill_constants = {
             },
             "fixed_direction": 0,
             "format": function(value){return (1/value).toFixed(2)+" minutes inbetween fights";},
-            "ordering": 2
+            "ordering": 8
         },
     "initiation-score":
         {   "label": "Initiation Score",
@@ -266,6 +359,19 @@ var skill_constants = {
             },
             "fixed_direction": 0,
             "format": function(value){return value.toFixed(2);},
-            "ordering": 3
-        }      
+            "ordering": 9
+        },
+    "fight-coordination":
+        {   "label": "Coordination Score",
+            //"scale": d3.scale.linear().domain([0, 60]).range([0,100]).clamp(true),
+            "explanation": "Measures the synchronisation of your teamfighting. <br/> Higher if you damage the same target as your teammates.",
+            "tips": {
+                "1": "Focus on one enemy at a time and kill him with your team.",
+                "-1": "If there is enough damage available, switch focus and start bringing down the next target."
+            },
+            "fixed_direction": 0,
+            "format": function(value){return value.toFixed(2);},
+            "ordering": 10
+        }
+
 };

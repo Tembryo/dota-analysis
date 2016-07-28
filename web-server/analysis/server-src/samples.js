@@ -117,22 +117,15 @@ var id_to_hero =
 function sampleHeader()
 {
     var header = {  "label":"steamid", 
-                    "data": [   "hero",
+                    "data": [
+                               "hero",
                                 "own_team",
                                 "enemy_team",
                                 "win",
                                 "durationMins",
-                                "GPM",
-                                "XPM",
-                                "fraction-creeps-lasthit",
-                                "fraction-lasthits",
-                                "checks-per-minute",
+
+                               "checks-per-minute",
                                 "average-check-duration",
-                                "time-fraction-visible",
-                                "kills",
-                                "deaths",
-                                "fightsPerMin",
-                                "initiation-score",
                                 "camera-average-movement",
                                 "camera-distance-average",
                                 "camera-distance-stdev",
@@ -140,14 +133,59 @@ function sampleHeader()
                                 "camera-percent-far",
                                 "camera-percent-moving",
                                 "camera-percent-self",
+
+                                "kills",
+                                "deaths",
+                                "fightsPerMin",
+                                "initiation-score",
+                                "1-vs-1-kills",
+                                "1-vs-1-deaths",
+                                "many-vs-1-kills",
+                                "many-vs-1-deaths",
+                                "many-vs-many-kills",
+                                "many-vs-many-deaths",
+                                "total-right-click-damage",
+                                "total-spell-damage",
+                                "fight-right-click-damage",
+                                "fight-spell-damage",
+                                "average-fight-movement-speed",
+                                "fight-coordination",
+                                "average-fight-centroid-dist",
+                                "average-fight-centroid-dist-team",
+                                "team-heal-amount",
+
+                                "GPM",
+                                "XPM",
+                                "fraction-creeps-lasthit",
+                                "fraction-lasthits",
                                 "lasthits-per-minute",
                                 "lasthits-total-contested",
                                 "lasthits-contested-percent-lasthit",
                                 "lasthits-taken-percent-free",
                                 "lasthits-missed-free",
                                 "lasthits-percent-taken-against-contest",
+
+                                "time-fraction-visible",
+                                "time-visible",
+                                "time-visible-first10",
+                                "total-distance-traveled",
+                                "total-time-alive",
+                                "average-distance-from-centroid",
+                                "num-of-rotations",
+                                "num-of-rotations-first10",
+                                "percentage-moving",
+                                "percentage-stationary",
+                                "percentage-stationary-farming",
+                                "percentage-stationary-fighting",
+
                                 "tower-damage",
-                                "rax-damage"
+                                "rax-damage",
+                                "roshan-damage",
+                                "num-sentry-wards-placed",
+                                "num-observer-wards-placed",
+                                "num-of-tp-used",
+                                "total-tp-distance",
+                                "num-tp-bought"
                                 ]};
     return header;
 }
@@ -179,6 +217,7 @@ function createSampleData(match, slot)
     var enemy_team = [];
     for(var i = 0; i < match["match-details"]["players"].length; ++i)
     {
+       //console.log("slot", slot, "playerd", match["match-details"]["players"][i]["player_slot"])
        if( (match["match-details"]["players"][i]["player_slot"] < 128 && slot < 5) ||
            (match["match-details"]["players"][i]["player_slot"] >= 128 && slot >= 5) )
             my_team.push(match["match-details"]["players"][i]["hero_id"])
@@ -198,9 +237,10 @@ function createSampleData(match, slot)
     for(var i = 0; i < enemy_team.length; ++i)
     {
         enemy_team_string +=id_to_hero[enemy_team[i]] ;
-        if(i+1 < my_team.length)
+        if(i+1 < enemy_team.length)
             enemy_team_string += "#";
     }
+    //console.log(my_team_string, enemy_team_string);
 
     var durationMins =  (match_stats["duration"] /60);
     var fractionCreepsLasthit =  (match_stats["creeps-lasthit"] /match_stats["creeps-killed"]);
@@ -216,22 +256,15 @@ function createSampleData(match, slot)
     var percentFreeOfLasthits =  player_stats["lasthit-free"]/Math.max(player_stats["num-creeps-last-hit"], 1);
     var percentTakenAgainstContest = player_stats["lasthit-contested"]/Math.max((player_stats["lasthit-contested"]+player_stats["missed-contested"]), 1);
 
-    var features =  [   player_stats["hero"],
+    var features =  [
+                        player_stats["hero"],
                         my_team_string,
                         enemy_team_string,
                         win,
                         durationMins.toFixed(3),
-                        player_stats["GPM"],
-                        player_stats["XPM"],
-                        fractionCreepsLasthit,
-                        fractionLasthits,
+
                         checksPerMin,
                         player_stats["average-check-duration"],
-                        timeFractionVisible,
-                        player_stats["num-of-kills"],
-                        player_stats["num-of-deaths"],
-                        fightsPerMin,
-                        player_stats["initation-score"],
                         player_stats["avg_camera_movement"],
                         player_stats["average_camera_distance"],
                         player_stats["distance_std_dev"],
@@ -239,14 +272,59 @@ function createSampleData(match, slot)
                         player_stats["percentFar"],
                         player_stats["percentMove"],
                         player_stats["percentSelf"],
+
+                        player_stats["num-of-kills"],
+                        player_stats["num-of-deaths"],
+                        fightsPerMin,
+                        player_stats["initiation_score"],
+                        player_stats["1-vs-1-kills"],
+                        player_stats["1-vs-1-deaths"],
+                        player_stats["many-vs-1-kills"],
+                        player_stats["many-vs-1-deaths"],
+                        player_stats["many-vs-many-kills"],
+                        player_stats["many-vs-many-deaths"],
+                        player_stats["total-right-click-damage"],
+                        player_stats["total-spell-damage"],
+                        player_stats["fight-right-click-damage"],
+                        player_stats["fight-spell-damage"],
+                        player_stats["average-fight-movement-speed"],
+                        player_stats["fight-coordination"],
+                        player_stats["average-fight-centroid-dist"],
+                        player_stats["average-fight-centroid-dist-team"],
+                        player_stats["team-heal-amount"],
+
+                        player_stats["GPM"],
+                        player_stats["XPM"],
+                        fractionCreepsLasthit,
+                        fractionLasthits,
                         lasthitsPerMin,
                         player_stats["contested-total"],
                         contestedCreepsLasthit,
                         percentFreeOfLasthits,
                         player_stats["missed-free"],
                         percentTakenAgainstContest,
+
+                        timeFractionVisible,
+                        player_stats["time-visible"],
+                        player_stats["time-visible-first10"],
+                        player_stats["total-distance-traveled"],
+                        player_stats["total-time-alive"],
+                        player_stats["average-distance-from-centroid"],
+                        player_stats["num-of-rotations"],
+                        player_stats["num-of-rotations-first10"],
+                        player_stats["percentage-moving"],
+                        player_stats["percentage-stationary"],
+                        player_stats["percentage-stationary-farming"],
+                        player_stats["percentage-stationary-fighting"],
+
                         player_stats["tower-damage"],
-                        player_stats["rax-damage"]
+                        player_stats["rax-damage"],
+                        player_stats["roshan-damage"], 
+                        player_stats["num-sentry-wards-placed"],
+                        player_stats["num-observer-wards-placed"],
+                        player_stats["num-of-tp-used"],
+                        player_stats["total-tp-distance"],
+                        player_stats["num-tp-bought"]
                         ];
     return features;    
 }

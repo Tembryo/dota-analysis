@@ -3,7 +3,8 @@ var child_process   = require("child_process"),
     fs              = require("fs"),
     async           = require("async"),
     rimraf          = require("rimraf"), 
-    bz2             = require('unbzip2-stream');
+    bz2             = require('unbzip2-stream'),
+    mkdirp          = require('mkdirp');
 
 var samples         = require("./samples.js")
 
@@ -27,6 +28,10 @@ async.series(
     [
         function(callback)
         {
+            createDirectories(callback);
+        },
+        function(callback)
+        {
             service = new services.Service("Analysis", handleAnalysisServerMsg, callback);
         },
         function(callback)
@@ -36,6 +41,46 @@ async.series(
     ]
 );
 
+function createDirectories(callback)
+{
+    async.series(
+        [
+            function(callback)
+            {
+                mkdirp('/shared/replays', function (err) {
+                    if (err) logging.error({"message": "mkdirp error", "err": err});
+                    else logging.log("replay folder is fine!");
+                    callback();
+                });
+            },
+            function(callback)
+            {
+                mkdirp('/shared/matches', function (err) {
+                    if (err) logging.error({"message": "mkdirp error", "err": err});
+                    else logging.log("matches folder is fine!");
+                    callback();
+                });
+            },
+            function(callback)
+            {
+                mkdirp('/shared/match_stats', function (err) {
+                    if (err) logging.error({"message": "mkdirp error", "err": err});
+                    else logging.log("matchstats folder is fine!");
+                    callback();
+                });
+            },
+            function(callback)
+            {
+                mkdirp('/shared/match_headers', function (err) {
+                    if (err) logging.error({"message": "mkdirp error", "err": err});
+                    else logging.log("matchheaders folder is fine!");
+                    callback();
+                });
+            }
+        ],
+        callback
+    );
+}
 
 function handleAnalysisServerMsg(server_identifier, message)
 {
@@ -536,7 +581,9 @@ function scoreReplay(message, callback_replay)
                 child_process.execFile(
                     "python",
                     ["/score/score.py", locals.sample_filename],
-                    {"timeout":max_score_time},
+                    {
+                        //"timeout":max_score_time
+                    },
                     callback);
             },
             function(stdout, stderr, callback){
@@ -613,7 +660,7 @@ function appedMatchSamples(matchid, csv_file, match_callback)
             {
                 //console.log("writing",i);
                 csv_file.write("\n");
-                var slot = results.rows[i]["slot"];
+                var slot = results.rows[i]["player_data"]["slot"];
                 if(slot >= 128)
                     slot = slot - 128 + 5;
 

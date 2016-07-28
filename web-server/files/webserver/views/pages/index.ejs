@@ -1,163 +1,329 @@
 <%  layout('base-template'); 
-    navigation_entries=[
-        {"label": "About", "link": "/about"},
-    ];
 -%>
 
-   <!-- Facebook Pixel --->
+    <script src="/static/js/libs/paper-full.js"></script>
+    <script type="text/paperscript" src="/static/js/logo.js" canvas="dota-logo"></script>
+    <script src="/static/js/slider.js"></script>
 
-    <script>
-    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
-    document,'script','//connect.facebook.net/en_US/fbevents.js');
+    <link rel="stylesheet" type="text/css" href="/static/css/style.css" />
+    <link rel="stylesheet" type="text/css" href="/static/css/slider.css">
 
-    fbq('init', '942559399156424');
-    fbq('track', "PageView");
+<header class="intro-header">
+    
 
-    <!--fb ViewContent tracking -->
-    fbq('track', 'ViewContent');
-    </script>
-    <noscript><img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=942559399156424&ev=PageView&noscript=1"
-    /></noscript>
-    <!-- End Facebook Pixel Code -->
+    <div class="canvas-container">
 
+        <div id="canvas-overlay"></div>
+        <canvas id="dota-logo" style="position: relative;"></canvas>
 
+       
+        <div id="top-slider">
+            
+            <i class="fa fa-angle-left" id="move-left" aria-hidden="true"></i>
+            <i class="fa fa-angle-right" id="move-right" aria-hidden="true"></i>
 
-
-<!-- Header -->
-<div id="hotornot">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12 text-center">
-                    <h1 class="page-header"> Let our AI analyse your Dota game</h1>
-                    <h2 class="pager-header-small"><span class="text-muted">Get insights on how to play better</span></h2>
-                </div>
+            <div id="top-slider-cards">
+                <div class="slider-card"></div>
+                <div class="slider-card"></div>
+                <div class="slider-card" style="background-image:url(/static/img/landing-page/test-card.png);background-size:cover;background-position:center;"></div>
+                <div class="slider-card" style="background-image:url(/static/img/landing-page/test-card.png);background-size:cover;background-position:center;"></div>
+                <div class="slider-card"></div>
+                <div class="slider-card"></div>
+                <div class="slider-card slider-card-active" style="background-image:url(/static/img/landing-page/test-card.png);background-size:cover;background-position:center;"></div>
+                <div class="slider-card"></div>
             </div>
+
         </div>
+    
 
-<!-- Player Image Carousel -->
-<!-- Todo: make this responsive -->
-    <div class="container">
-        <div id="player-slider" class="slider">
-
-            <div id="slide1" class="mugshots text-center"><img src="/static/img/heroes/portraits/earthshaker_vert.jpg" width="210px"><p class="mugshot-match-info"> /r/dota2 <br> Work on Last-hitting</p></div>
-
-            <div id="slide2" class="mugshots text-center"><img src="/static/img/heroes/portraits/brewmaster_vert.jpg" width="210px"><p class="mugshot-match-info"> xxMLG820xx <br> Improve mechanics</p></div>
-
-            <div id="slide3" class="mugshots text-center"><img src="/static/img/heroes/portraits/lina_vert.jpg" width="210px"><p class="mugshot-match-info"> MidOnly <br> Pick up more runes </p></div>
-
-            <div id="slide4" class="mugshots text-center"><img src="/static/img/heroes/portraits/lion_vert.jpg" width="210px"><p class="mugshot-match-info"> YoloMode <br> Check items more </p></div>
-
-            <div id="slide5" class="mugshots text-center"><img src="/static/img/heroes/portraits/juggernaut_vert.jpg" width="210px"><p class="mugshot-match-info"> safelane plz <br> Wasted TP-scroll </p></div>
-
-            <div id="slide6" class="mugshots text-center"><img src="/static/img/heroes/portraits/invoker_vert.jpg" width="210px"><p class="mugshot-match-info"> Solo_Hero <br> Remain hidden more</p></div>
-        </div>
     </div>
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-4 col-md-4 col-sm-2"></div>
-            <div class="col-lg-4 col-md-4 col-sm-8 text-center">
-                <div id ="ratePlayerDiv" data-target="#loading" data-toggle="modal">
-                    <p id="ratePlayerTxt"> View Example </p>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-4 col-sm-2"></div>
-        </div>
-
-        <div class="row">
-            <div class="col-lg-4 col-md-4 col-sm-2"></div>
-            <div class="col-lg-4 col-md-4 col-sm-8 text-center">
-                <input id="login-button" type="button" class="btn btn-warning active btn-lg" style="width:200px" value="Analyse Myself">
-                <p>(Requires Steam Sign-In <br/>to fetch your match history)</p>
-            </div>
-            <div class="col-lg-4 col-md-4 col-sm-2"></div>
-        </div>
-
-        <div class="row">
-            <div class="col-lg-4 col-md-4 col-sm-2"></div>
-            <div class="col-lg-4 col-md-4 col-sm-8 text-center">
-                <h4>Share Wisdota with your friends:</h4>
-                <div class="socialmedia_container center-block">
-                    <div class="fb-send socialmediabutton" data-href="http://wisdota.com"></div>
-                    <% tweet_text = "Rate your play on Wisdota! " %>
-                    <a href="https://twitter.com/share" class="twitter-share-button"{count} data-text="<%=tweet_text%>" data-url="http://www.wisdota.com/" data-hashtags="wisdota,dota2">Tweet</a>
-                    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
-                     <a href="mailto:?subject=Ready to turn pro?&body=Let Artificial Intelligence rate your Dota play! http://wisdota.com" class="mailLink socialmediabutton hidden-xs">
-                     <img src="/static/img/email.svg" width="61px" height="20px">
-                     </a>
-
-                    <div class="fb-share-button" data-href="http://wisdota.com" data-layout="button_count"></div>
-                </div>
-            <div class="col-lg-4 col-md-4 col-sm-2"></div>
         
-        </div>
-    </div>
-</div>
 
-<!-- Wisdota Featurette -->
-<section id ="about">
-    <div class="container">
-        <div class ="row">
-            <hr class="featurette-divider">
-            <div class="col-lg-12 text-center">
-                <h2 class="features-heading">Features</h2>
+
+
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+
+
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                        data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </div> <!-- navbar-header -->
+
+
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <div class="row">
+
+                    <div class="col-sm-2 col-sm-offset-1">
+                        <ul class="nav navbar-nav">
+                            <li><a href="/about">About Us</a></li>
+                            <li><a href="/about">Contact</a></li>
+                        </ul> <!-- nav navbar-nav -->
+                    </div>
+
+                    <div class="col-sm-6">
+                        <h1 class="title1 text-center">Let Artificial Intelligence</h1>
+                        <h1 class="title2 text-center">analyse your Dota game</h1>
+                    </div>
+
+                    <div class="col-sm-2">
+                        <ul class="nav navbar-nav navbar-right">
+                            <li id="steam-sign-up"><a href="/user"><i class="fa fa-steam"></i>Sign In</a></li>
+                        </ul> <!-- nav navbar-nav navbar-right -->
+                    </div>
+
+                </div> <!-- row -->
+            </div> <!-- collapse navbar-collapse -->
+        </div> <!-- container-fluid -->
+    </nav> <!-- navbar navbar-default -->
+
+
+
+
+
+    <div class="bottom">
+        <div class="container-fluid">
+            <a href="#" id="view-example">View Example</a>
+            <br>
+            <a href="/user" class="btn btn-primary"><i class="fa fa-steam"></i>Analyse Myself</a>
+        </div> <!-- container-fluid -->
+    </div> <!-- bottom -->
+
+
+</header> <!-- intro-header -->
+
+<article class="intro-content">
+    <section class="features">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-5 col-sm-offset-1 left">
+                    <div class="left-container">
+                        <div class="tab-content">
+                            <div role="tabpanel" class="tab-pane active" id="measure">
+                               <img src="/static/img/landing-page/PlayerCardFeature.jpg">
+                            </div>
+                            <div role="tabpanel" class="tab-pane" id="skills">
+                               <img src="/static/img/landing-page/SkillsFeature.jpg">
+                            </div>
+                            <div role="tabpanel" class="tab-pane" id="performance">
+                               <img src="/static/img/landing-page/MatchTimelineFeature.jpg">
+                            </div>
+                            <!--
+                            <div role="tabpanel" class="tab-pane" id="improve">
+                                <h2>Improve Content</h2>
+                            </div>
+                            <div role="tabpanel" class="tab-pane" id="visual">
+                                <h2>Visual Content</h2>
+                            </div>
+                            -->
+                        </div>
+                    </div> <!-- left-container -->
+                </div>
+                <div class="col-sm-4 col-sm-offset-1 right">
+                    <div class="right-container">
+                        <div class="content">
+
+                            <ul role="tablist">
+                                <li role="presentation" class="active">
+                                    <i class="fa fa-angle-left"></i>
+                                    <a href="#measure" aria-controls="measure" role="tab"
+                                       data-toggle="tab"><p>Measure your performance in each match</p>
+                                    </a>
+
+                                    <h4>Measure your performance in each match</h4>
+                                    <p class="about"> 
+                                        Our Individual Match Rating (IMR) system uses Artificial Intelligence to estimate the MMR level that you played at in each match. The IMR takes into account a wide range of information, such as the hero you played with, in order to provide a more accurate assessment of how well you and your teammates played.
+                                    </p>
+
+                                </li>
+
+                                <li role="presentation">
+                                    <i class="fa fa-angle-left"></i>
+                                    <a href="#skills" aria-controls="skills" role="tab"
+                                       data-toggle="tab"><p>Detailed breakdown of your Dota skills</p>
+                                    </a>
+
+                                    <h4>Detailed breakdown of your Dota skills</h4>
+                                    <p class="about">
+                                        We compare the features of your playing style to our dataset and provide a personalised analysis of your game. You can see information that is not available anywhere else, such as how well you last-hit when contested by an opponent or the amount of time you spend being visible to your opponents.
+                                    </p>
+                                </li>
+
+                                <li role="presentation">
+                                    <i class="fa fa-angle-left"></i>
+                                    <a href="#performance" aria-controls="performance" role="tab"
+                                       data-toggle="tab"><p>Performance over time</p>
+                                    </a>
+
+                                    <h4>Performance over time</h4>
+                                    <p class="about">
+                                        See trends in your play and compare your performance with different heroes.
+                                    </p>
+                                </li>
+
+                            <!--
+                                <li role="presentation">
+                                    <i class="fa fa-angle-left"></i>
+                                    <a href="#improve" aria-controls="improve" role="tab"
+                                       data-toggle="tab"><p>Feedback on how to improve</p>
+                                    </a>
+
+                                    <h4>Feedback on how to improve</h4>
+                                    <p class="about">
+                                        Our Artificial Intelligence gives you tips on the key areas of your game to work on, helping you win more matches. 
+                                    </p>
+                                </li>
+                                <li role="presentation">
+                                    <i class="fa fa-angle-left"></i>
+                                    <a href="#visual" aria-controls="visual" role="tab"
+                                       data-toggle="tab"><p>Detailed Visualization of your Match</p>
+                                    </a>
+
+                                    <h4>Detailed Visualization of your Match</h4>
+                                    <p class="about">
+                                        We parse your replay files and turn the data into interactive visualisations for you to explore.
+                                    </p>
+                                </li>
+                            -->
+                            </ul>
+                            
+                            <div class="calltoaction">
+                                <a href="/user" class="btn btn-primary"><i class="fa fa-steam"></i>Sign in</a>
+                            </div>
+                            
+
+
+
+                        </div> <!-- content -->
+                    </div> <!-- right-container -->
+                </div>
+            </div> <!-- row -->
+        </div> <!-- container-fluid -->
+    </section> <!-- features -->
+
+    <section class="details">
+        <div class="overlay"></div>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-8 col-sm-offset-2">
+                    <h2 class="text-center">Over 50.000 matches analysed</h2>
+
+                    <p>
+                        Each match that we analyse helps to improve our model and make our estimate of your performance better. Our mission is to build an AI coach for Dota 2 that can help you win more matches.
+                    </p>
+
+                    <div class="text-center">
+                        <a href="#subscribe-form" class="btn btn-default">Sign up for news <i class="fa fa-angle-down"></i></a>
+                    </div>
+                </div>
             </div>
         </div>
+    </section>
+</article>
+
+<footer class="intro-footer">
+    <div class="container-fluid">
         <div class="row">
-            <div class="col-lg-4 text-center">
-                <div>
-                    <img src="static/img/features/results.png" height="250px" width="300px">
-                </div>
-                <h3>Rate Your Play</h3>
-                <p class="lead">Measure your performance in each match using our <a href="/about">IMR</a>. </p>
-            </div>
-            <div class="col-lg-4 text-center">
-                <div>
-                    <img src="/static/img/features/dashboard.png" height="250px" width="300px">
-                </div>
-                <h3>Track Your Progress</h3>
-                <p class="lead">See trends in your performance over time. </p>
-            </div>
-            <div class="col-lg-4 text-center">
-                <div>
-                    <img src="/static/img/features/match_list.png" height="250px" width="300px">
-                </div>
-                <h3>See Your History</h3>
-                <p class="lead">Get a list of results for your recent matches. </p>
-            </div>
-        </div>
-        <!-- Click Me Button -->
-        <div class="row">
-            <div class="col-md-4"></div>
-            <div class="col-md-4 text-center">
-                <a id="try-wisdota-link" href="/user" class="btn btn-warning btn-lg btn-block active"><span class="glyphicon glyphicon-play"></span> Try Wisdota</a>
-                <hr class="primary">                
-            </div>
-            <div class="col-md-4"></div>
-        </div>
-    </div>
-</section>
+
+            <div class="col-sm-4 col-xs-12 pull-right right">
+                <div class="right-container">
+                    <h3>Get Wisdota <span>News</span></h3>
+                    <form action="" id="subscribe-form">
+                        <div class="form-group">
+                            <input type="email" class="form-control" id="email" placeholder="Your Email">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Get updates</button>
+                    </form> <!-- subscribe-form -->
+
+                    <script type="text/javascript">
+                      $("#subscribe-form").submit(
+                        function()
+                        {
+                            var email = $("#email").val();
+                            d3.json("/api/add-email/"+email, 
+                                function(data)
+                                {
+                                    console.log("added email", data);
+                                    if(data["result"] === "success")
+                                    {
+                                        alert("Subscription successful. Please check your inbox to confirm!")
+                                    }
+                                    else if(data["result"] === "failed")
+                                    {
+                                        alert("Subscription failed. Please double check you entered the correct email.")
+                                        console.log(data)
+                                    }
+                                    else
+                                    {
+                                        console.log("?", data);
+                                    }
+                                }
+                            );
+                            return false;
+                        }
+                        ); 
+                    </script>
+                </div> <!-- right container -->
+            </div><!-- right -->
+
+            <div class="col-sm-4 col-xs-12 left">
+                <div class="left-container">
+                    <div class="row">
+                        <div class="col-xs-6">
+                            <a href="http://www.joinef.com/">
+                                <img src="/static/img/landing-page/logo-ef.png" alt="ef" class="img-responsive">
+                            </a>
+                        </div>
+                        <div class="col-xs-6">
+                            <a href="https://fellowship.ycombinator.com">
+                                <img src="/static/img/landing-page/ycf.png" alt="ycf" id="ycf-logo" class="img-responsive">
+                            </a>
+                        </div>
+                        <div class="col-xs-12">
+                            <div class="social text-center">
+                                <a href="https://www.facebook.com/wisdota"><i class="fa fa-facebook"></i></a>
+                                <a href="https://twitter.com/wisdota"><i class="fa fa-twitter"></i></a>
+                                <a href="https://www.linkedin.com/company/tembryo"><i class="fa fa-linkedin"></i></a>
+                                <a href="https://github.com/tembryo"><i class="fa fa-github"></i></a>
+                                <a href="https://angel.co/tembryo"><i class="fa fa-angellist"></i></a>
+                            </div> <!-- social -->
+                        </div>
+                    </div>
+                </div> <!-- left container -->
+            </div> <!-- left -->
+
+            <div class="col-sm-4 col-xs-12 middle">
+                <div class="middle-container">
+                    <div class="row">
+                        <div class="col-xs-6">
+                            <ul>
+                                <li><a href="#">Home</a></li>
+                                <!--<li><a href="#">Learn more</a></li>-->
+                                <!--<li><a href="#">Blog</a></li>-->
+                            </ul>
+                        </div>
+                        <div class="col-xs-6">
+                            <ul>
+                                <!--<li><a href="#">Press</a></li>-->
+                                <li><a href="/about">About</a></li>
+                                <!--<li><a href="#">Careers</a></li>-->
+                            </ul>
+                        </div>
+                    </div> <!-- row -->
+                </div> <!-- middle container -->
+            </div> <!-- middle -->
 
 
+        </div><!-- row -->
+    </div> <!-- container-fluid -->
+</footer> <!-- intro footer -->
 
-<div class="modal fade" id="loading" role="dialog">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 id="my-modal-title">Downloading and Analysing Replay File</h4>
-            </div>
-            <div class="modal-body">
-                <div class="progress">
-                    <div id="progressTimer"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<script type="text/javascript" src="/static/js/index.js"></script>
-
-<!-- JavaScript for the progress bar -->
- <script src="/static/js/jquery.progressTimer.js"></script>
+<!-- assets for the logo animation (can be moved anywhere on this page inside the body tag) -->
+<img src="/static/img/landing-page/dota2logo.png" alt="" id="dota-logo-img">
+<img src="/static/img/landing-page/top-light.png" alt="" id="top-light">
+<img src="/static/img/landing-page/right-light.png" alt="" id="right-light">

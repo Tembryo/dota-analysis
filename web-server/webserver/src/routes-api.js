@@ -170,7 +170,26 @@ router.route("/get-player-matches")
                                     }
                                     next_result["ratings"].push(fighting_rating)
                                 }
-                                //objectives
+
+                                if("movement" in results.rows[i]["score_data"])
+                                {
+                                    var movement_rating = {
+                                        "attribute":"Movement",
+                                        "rating":results.rows[i]["score_data"]["movement"]["score"],
+                                        "skills":results.rows[i]["score_data"]["movement"]["skills"]
+                                    }
+                                    next_result["ratings"].push(movement_rating)
+                                }
+
+                                if("misc" in results.rows[i]["score_data"])
+                                {
+                                    var misc_rating = {
+                                        "attribute":"Miscellaneous",
+                                        "rating":results.rows[i]["score_data"]["misc"]["score"],
+                                        "skills":results.rows[i]["score_data"]["misc"]["skills"]
+                                    }
+                                    next_result["ratings"].push(misc_rating)
+                                }
                             }
 
                             response.push(next_result);
@@ -341,68 +360,57 @@ router.route("/check-job-finished/:job_id")
 // =============================================================================
 
 
-router.route('/match-header')
+router.route('/match-details/:matchid')
     // get all the matches
     .get(function(req, res)
         {
-            locals = {};
-            locals.header_files = [];
+            var locals = {};
             async.waterfall(
                 [
                     function(callback)
                     {
-                        var restriction_string = "";
-                        if(req.query.hasOwnProperty("matchid") && Number.isInteger(parseInt(req.query.matchid)))
+                        if(! req.params.hasOwnProperty("matchid") || !Number.isInteger(parseInt(req.params.matchid)))
                         {
-                            match_id= parseInt(req.query.matchid);
-                            database.query("SELECT header_file, label FROM Matches WHERE id=$1;",[match_id],callback);
+                            callback("no matchid", req.params);
+                            return;
                         }
-                        else
-                        {
-                            database.query("SELECT header_file, label FROM Matches;",[],callback);
-                        }
-
+                        
+                        var match_id= parseInt(req.params.matchid);
+                        database.query("SELECT data FROM MatchDetails WHERE matchid=$1;",[match_id],callback);
                     },
                     function(results, callback)
                     {
-                        async.each(
-                            results.rows,
-                            function(row, callback_file)
-                            {
-                                async.waterfall(
-                                    [
-                                        function (callback)
-                                        {
-                                            logging.log("retrievign header");
-                                            storage.retrieve(row.header_file, callback);
-                                        },
-                                        function(local_path, callback)
-                                        {
-                                            logging.log("reading header");
-                                            fs.readFile(local_path,'utf-8', callback);
-                                        },
-                                        function(json, callback)
-                                        {
-                                            logging.log("load "+row.header_file);
-                                            var header = JSON.parse(json);
-                                            if(row.label)
-                                                header["label"] = row.label;
-                                            locals.header_files.push(header);
-                                            logging.log("added header json to list "+row.header_file);
-                                            callback(null);
-                                        }
-                                    ],
-                                    callback_file
-                                );
-                            },
-                            callback);
+                        if( results.rowCount != 1)
+                        {
+                            callback("couldnt find match details");
+                            return;
+                        }
+
+                        callback(null, results.rows[0]["data"]);
                     }
                 ],
-                function(err)
+                function(err, results)
                 {
                     if(err)
-                        logging.error({"message": "error getting match header", "err": err});
-                    res.json(locals.header_files);
+                    {
+                        logging.error({"message": "error getting match header", "err": err, "result": results});
+
+                        var response = {
+                            "result": "error",
+                            "err": err
+                        };
+
+                        res.json(response);
+                    }
+                    else
+                    {
+                        var response = {
+                            "result": "success",
+                            "details": results
+                        };
+
+                        res.json(response);
+                    }
                 }
             );
         }
@@ -512,7 +520,16 @@ router.route('/match/:match_id')
                     },
                     function(json, callback)
                     {
-                        callback(null, JSON.parse(json));
+                        var parsed = {}
+                        try
+                        {
+                            parsed = JSON.parse(json);
+                        }
+                        catch(e)
+                        {
+                            logging.error({"message": "bad match json ", "exception": e, "json": json});
+                        }
+                        callback(null, parsed);
                     }
                 ],
                 function(err, results)

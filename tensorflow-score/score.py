@@ -17,9 +17,9 @@ random.seed()
 import os
 dn = os.path.dirname(os.path.realpath(__file__))
 
-settings_filename = dn+"/model_files/settings.p"
-model_path = dn+"/model_files/wisdota-model.ckpt-99999"
-representatives_filename = dn+"/model_files/feature_representatives.json"
+settings_filename = dn+"/model_release_5/settings.p"
+model_path = dn+"/model_release_5/best-model.ckpt"
+representatives_filename = dn+"/model_release_5/feature_representatives.json"
 samples_filename = sys.argv[1]
 
 
@@ -29,17 +29,9 @@ feature_to_subscore = {}
 #feature_to_subscore["hero"] = ""
 feature_to_subscore["win"] = ""
 feature_to_subscore["durationMins"] = ""
-feature_to_subscore["GPM"] = "farming"
-feature_to_subscore["XPM"] = "farming"
-#feature_to_subscore["fraction-creeps-lasthit"] = ""
-#feature_to_subscore["fraction-lasthits"] = ""
+
 feature_to_subscore["checks-per-minute"] = "mechanics"
 feature_to_subscore["average-check-duration"] = "mechanics"
-feature_to_subscore["time-fraction-visible"] = "movement"
-feature_to_subscore["kills"] = "fighting"
-feature_to_subscore["deaths"] = "fighting"
-feature_to_subscore["fightsPerMin"] = "fighting"
-feature_to_subscore["initiation-score"] = "fighting"
 feature_to_subscore["camera-average-movement"] = "mechanics"
 feature_to_subscore["camera-distance-average"] = "mechanics"
 feature_to_subscore["camera-distance-stdev"] = "mechanics"
@@ -47,38 +39,58 @@ feature_to_subscore["camera-jumps-per-minute"] = "mechanics"
 feature_to_subscore["camera-percent-far"] = "mechanics"
 feature_to_subscore["camera-percent-moving"] = "mechanics"
 feature_to_subscore["camera-percent-self"] = "mechanics"
+
+feature_to_subscore["kills"] = "fighting"
+feature_to_subscore["deaths"] = "fighting"
+feature_to_subscore["fightsPerMin"] = "fighting"
+feature_to_subscore["initiation-score"] = "fighting"
+feature_to_subscore["1-vs-1-kills"] = "fighting"
+feature_to_subscore["1-vs-1-deaths"] = "fighting"
+feature_to_subscore["many-vs-1-kills"] = "fighting"
+feature_to_subscore["many-vs-1-deaths"] = "fighting"
+feature_to_subscore["many-vs-many-kills"] = "fighting"
+feature_to_subscore["many-vs-many-deaths"] = "fighting"
+feature_to_subscore["total-right-click-damage"] = "fighting"
+feature_to_subscore["total-spell-damage"] = "fighting"
+feature_to_subscore["fight-right-click-damage"] = "fighting"
+feature_to_subscore["fight-spell-damage"] = "fighting"
+feature_to_subscore["average-fight-movement-speed"] = "fighting"
+feature_to_subscore["fight-coordination"] = "fighting"
+feature_to_subscore["average-fight-centroid-dist"] = "fighting"
+feature_to_subscore["average-fight-centroid-dist-team"] = "fighting"
+feature_to_subscore["team-heal-amount"] = "fighting"
+
+feature_to_subscore["GPM"] = "farming"
+feature_to_subscore["XPM"] = "farming"
 feature_to_subscore["lasthits-per-minute"] = "farming"
 feature_to_subscore["lasthits-total-contested"] = "farming"
 feature_to_subscore["lasthits-contested-percent-lasthit"] = "farming"
 feature_to_subscore["lasthits-taken-percent-free"] = "farming"
 feature_to_subscore["lasthits-missed-free"] = "farming"
 feature_to_subscore["lasthits-percent-taken-against-contest"] = "farming"
-feature_to_subscore["tower-damage"] = "objectives"
-feature_to_subscore["rax-damage"] = "objectives"
 
-n_baseline_variations = 1000
-def make_variations(batch, representatives, feature_to_col):
-    result = {}
-    for i in range(batch["features"].shape[0]):
-        result[i] = {}
-        feature_row = batch["features"][i,:]
-        feature_row = feature_row.reshape([1,-1]) #reshape into row
-        #print feature_row.shape
-        repeated_row = np.repeat(feature_row, n_baseline_variations, axis=0)
-        #print repeated_row.shape
+feature_to_subscore["time-fraction-visible"] = "movement"
+feature_to_subscore["time-visible"] = "movement"
+feature_to_subscore["time-visible-first10"] = "movement"
+feature_to_subscore["total-distance-traveled"] = "movement"
+feature_to_subscore["total-time-alive"] = "movement"
+feature_to_subscore["average-distance-from-centroid"] = "movement"
+feature_to_subscore["num-of-rotations"] = "movement"
+feature_to_subscore["num-of-rotations-first10"] = "movement"
+feature_to_subscore["percentage-moving"] = "movement"
+feature_to_subscore["percentage-stationary"] = "movement"
+feature_to_subscore["percentage-stationary-farming"] = "movement"
+feature_to_subscore["percentage-stationary-fighting"] = "movement"
 
-        hero_row = batch["features_hero"][i,:]
-        hero_row = hero_row.reshape([1,-1])#reshape into row
-        hero_repeated = np.repeat(hero_row, n_baseline_variations, axis=0)
-        result[i]["hero"] = hero_repeated
-        result[i]["label"] = np.zeros((n_baseline_variations,1),dtype=np.float32)
-        result[i]["features"] = {}
-        result[i]["features"]["any"] = np.copy(repeated_row)
-        for j in range(n_variations):
-            #vary all features randomly
-            for feature in feature_to_subscore:
-                result[i]["features"]["any"][j, feature_to_col[feature]] = random.choice(representatives[feature])
-    return result
+feature_to_subscore["tower-damage"] = "misc"
+feature_to_subscore["rax-damage"] = "misc"
+feature_to_subscore["roshan-damage"] = "misc"
+feature_to_subscore["num-sentry-wards-placed"] = "misc"
+feature_to_subscore["num-observer-wards-placed"] = "misc"
+feature_to_subscore["num-of-tp-used"] = "misc"
+feature_to_subscore["total-tp-distance"] = "misc"
+feature_to_subscore["num-tp-bought"] = "misc"
+
 
 
 n_representatives = 99
@@ -180,6 +192,7 @@ def feature_inv_map(value, feature, settings):
 
 with open(settings_filename) as settings_file:
     settings = pickle.load(settings_file)
+    settings["load_labels"] = False
     model = tf_model.Model(settings=settings["model-settings"], logging=False)
     model.load(model_path)
 
@@ -198,6 +211,7 @@ with open(settings_filename) as settings_file:
 
     batch = tf_load.get_batch(data, batched=False)
     predictions = model.predict(batch)
+    print predictions
 
     results = []
     for i in range(predictions.shape[0]):
@@ -209,17 +223,10 @@ with open(settings_filename) as settings_file:
             }
         results.append(score_result)
 
-
-    sampled_inputs_baseline = make_variations(batch, representatives, feature_to_col )
     sampled_inputs_narrow = make_variations_one_free(batch, representatives, feature_to_col )
     sampled_inputs_broad = make_variations_one_fixed(batch, representatives, feature_to_col )
     target_offset = 1
     for i in sampled_inputs_narrow:
-        baseline_predictions = evaluate_variation_set(model, sampled_inputs_baseline[i], "any")
-        baseline_mean = np.mean(baseline_predictions[:,model.result_entries["IMR"]])
-        baseline_std = np.std(baseline_predictions[:,model.result_entries["IMR"]])
-
-
         for feature in sampled_inputs_narrow[i]["features"]:
             if feature in feature_to_subscore and feature_to_subscore[feature] in results[i]["data"]:
                 broad_predictions = evaluate_variation_set(model, sampled_inputs_broad[i], feature)
@@ -239,7 +246,6 @@ with open(settings_filename) as settings_file:
 
                 sampled_pairs.sort(key=(lambda entry: entry[2]))
                 index = None
-
                 improved_imrs = []
                 improved_values = []
                 improved_pairs = []

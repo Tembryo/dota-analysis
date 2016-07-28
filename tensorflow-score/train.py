@@ -15,7 +15,7 @@ np.set_printoptions(suppress=True, precision=3)
 logs_directory = "logs{:%Y-%m-%d_%H-%M}".format(datetime.datetime.now())
 settings_filename = "settings{:%Y-%m-%d_%H-%M}.p".format(datetime.datetime.now())
 eval_filename = "logs{:%Y-%m-%d_%H-%M}/evals.json".format(datetime.datetime.now())
-predictions_filename = "logs{:%Y-%m-%d_%H-%M}/predictions.json".format(datetime.datetime.now())
+predictions_filename = "logs{:%Y-%m-%d_%H-%M}/predictions.txt".format(datetime.datetime.now())
 best_model_filename = "logs{:%Y-%m-%d_%H-%M}/best-model.ckpt".format(datetime.datetime.now())
 parameters_file = "logs{:%Y-%m-%d_%H-%M}/pra".format(datetime.datetime.now())
 
@@ -53,9 +53,9 @@ def main():
 
     #model.load(logs_directory)
 
-    log_evals = False
+    log_evals = True
     all_evals = {}
-    best_test_error = float("inf")
+    best_selection_metric = - float("inf")
     best_step = 0
     best_eval = {}
     for step in xrange(max_steps):
@@ -91,16 +91,21 @@ def main():
                     eval_file.write(json.dumps(all_evals))
 
             print "\n!test loss: {}".format(cost_all_test)
+            sum_test_r2s = 0
             for subset in evals_test:
                 evals_test[subset] = [float(evals_test[subset][i]) for i in range(len(evals_test[subset]))]
                 print "{}: {}".format(subset, evals_test[subset])
+                sum_test_r2s += float(evals_test[subset][0])
 
-            if cost_all_test < best_test_error:
+            if sum_test_r2s > best_selection_metric:
                 print "new best model at {}".format(step)
                 model.save(step, filename=best_model_filename)
-                best_test_error = cost_all_test
+                best_selection_metric = sum_test_r2s
                 best_step = step
                 best_eval = evals_test
+
+                test_predictions = model.predict(test_data)
+                np.savetxt(predictions_filename, test_predictions)
                 
             if step - best_step > step_delay_after_minimum:
                 break
@@ -113,7 +118,7 @@ def main():
                 model.save(step)
     print "done"
 
-    print "Best model at step {}, cost {}".format(best_step, best_test_error)
+    print "Best model at step {}, cost {}".format(best_step, best_selection_metric)
     for subset in best_eval:
         print "{}: {}".format(subset, best_eval[subset])
 

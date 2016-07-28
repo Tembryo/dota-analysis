@@ -10,3 +10,4 @@ clean-minis.sh
 reboot-minis.sh
 up-minis.sh
 up-swarm.sh
+swarm.sh

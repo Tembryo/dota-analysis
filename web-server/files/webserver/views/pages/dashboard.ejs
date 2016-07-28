@@ -3,136 +3,215 @@
     ];
 -%>
     <link href="/static/css/dashboard.css" rel="stylesheet">
+    <link href="/static/css/playercard.css" rel="stylesheet">
+    <link href="/static/css/dashboard_old.css" rel="stylesheet">
 
+    <style>
+        #matches-graph-canvas
+        {
+            width:750px;
+            height:344px;
+            margin:0;
+            padding:0;
+        }
+    </style>
+
+
+<section class="top-dashboard">
     <div id="user-dashboard">
         <div class="container">
             <div class="row">
-                <div class="col-lg-4 text-center">
-                    <h2 id="user-name"> <%= user["name"] %> </h2>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-4 text-center">
-                    <div class="row">
-                        <div class="col-xs-12 text-center">
-                            <img id="user-pic" height="280px" width="280px" src ="<%= avatar %>">
-                        </div>
-                    </div>
-                    <hr class="featurette-divider">
-                    <div class="row">
-                    <div class="col-xs-12 text-center">
-                        <a id="analyse-matches-button" href="#" class="btn btn-warning btn-lg active">Parse all recent matches</a>
-                    </div>
-                    </div>
-                </div>
-                <div id="timeline-container" class="col-lg-8 text-center">
-                </div>
-            </div>
-            <hr class="featurette-divider">
-            <div class="row">
-                <div class ="col-lg-4 text-center"> 
-                    <h2>Match <span id="current-match-id"> </span></h2>
-                    <a id= "scoreboard-link" href='/scoreboard/"+ dataPoint["match-id"]+"'>Scoreboard</a>
-                    &mdash;
-                    <a id= "review-link" href='/match/"+ dataPoint["match-id"]+"'>Review</a>
+                <div class="col-md-4">
 
-
-
-                </div>
-                <div class= "col-lg-8 text-center">
-                    <div class="hero-image-container">
-                        <img id="hero_0" height="32" width="60">
-                        <img id="hero_1" height="32" width="60">
-                        <img id="hero_2" height="32" width="60">
-                        <img id="hero_3" height="32" width="60">
-                        <img id="hero_4" height="32" width="60">
-                    </div>
-                    <div class="hero-image-container">
-                        <img id="hero_5" height="32" width="60">
-                        <img id="hero_6" height="32" width="60">
-                        <img id="hero_7" height="32" width="60">
-                        <img id="hero_8" height="32" width="60">
-                        <img id="hero_9" height="32" width="60">
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="row">
-                        <div class="col-lg-4"> 
-                            <div class="row">
-                                <div class="col-xs-12 text-center">
-                                    <h3>
-                                        <img id="current-hero-icon" width="32px" style="margin:0px 10px 0px 10px">
-                                        <span id="current-hero"></span>: <span id="current-imr"></span> IMR 
-                                    </h3>
+                    <div class="playercard">
+                        <div class="playercardwrapper">
+                            <div class="top-card">
+                                <div class="player-img" style="background: url(<%= avatar %>); background-size: 100%;">
+                                </div>
+                                <div class="player-title">
+                                    <h4>
+                                        <%= user["name"] %>
+                                    </h4>
                                 </div>
                             </div>
-                            <div class="row" id="polygon-container">
-                               <div class="col-xs-12 text-center">
-                                    <svg id="polygon-canvas"></svg>
+                            <div class="under-top-card">
+
+                                <div class="under-top-wrapper">
+                                    <a href="" style="color:#e4d6ca"><span id="current-imr"></span> IMR</a>
+                                    <a href="">
+                                        <i class="fa fa-list"></i>
+                                    </a>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-xs-12 text-center" id="legend-container"></div>
-                            </div>
-
-                            <div class="row" style="margin-top:20px">
-                                <div class="col-xs-8 col-xs-offset-2" id="upcoming-features-container" >
-                                  <h3  class="text-center">Upcoming Features</h3>
-                                  <ul class="list-group">
-                                      <li class="list-group-item list-group-item-success">ETA: next 2 weeks </li>
-                                    <li class="list-group-item list-group-item-success">Let us know what you would like to see!</li>
-                                    <li  class="list-group-item">Teamfight coordination</li>
-                                    <li class="list-group-item">Solo kills/deaths</li>
-                                    <li class="list-group-item">Time visible, rotations</li>
-                                    <li class="list-group-item">Building damage, wards, Rosh</li>
-                                    <li class="list-group-item">Items bough and used</li>
-                                  </ul>
-
-
-                                </div>
-                            </div>
-
-                        </div>
-                        <div class="col-lg-8" id="tips-container" >
-                            <div class="row">
-                                <div class="col-lg-12" id="tips-container" style="margin:15px">
-                                    <h3>Tips</h3>
-                                    <p id="tip1"></p>
-                                    <p id="tip2"></p>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div id="skills-container" class="col-lg-12 text-center"></div>
+                            <div class="mid-card">
+                                <svg id="polygon-canvas"></svg>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
+                <div class="col-md-8" id="matches-graph-container">
+                    <div class="row">
+                        <div class="all-matches-table col-md-12">
+                            <div class="table-wrapper">
 
+                                <div class="row">
+                                    <div class="top-table">
+                                        <div class="pull-left">
+                                            <h4>Your most recent matches</h4>
+                                        </div>
+                                        <div class="pull-right">
+                                            <div class="download-all">
+                                                <a href="#" id="queue-matches-button"><i class="fa fa-download" aria-hidden="true"></i> Parse all recent matches</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
-<%
-    if(display_newsletter)
-    {
-%>
+                                <div class="row">
+                                    <br>
+                                    <div class="actual-table">
+                                        <div id="timeline-container"></div>
+                                        <!--<canvas id="matches-graph-canvas"></canvas>-->
 
-<section id="announcement-container" class="container content-section">
-    <div class="row">
-        <div class="col col-xs-10 col-xs-offset-1 text-center">
-            <div id="announcement">
-                Updates and new features? <a href="#newsletter" data-toggle="modal">Sign up to our newsletter!</a>
+                                       <div id="change-nr-matches-container">
+                                            <div class="nr-matches nr-matches-selected" id="show-matches-5">5</div>
+                                            <div class="nr-matches" id="show-matches-10">10</div>
+                                            <div class="nr-matches" id="show-matches-20">20</div>
+                                            <div class="nr-matches" id="show-matches-50">50</div>
+                                       </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
+<section class="match-stats">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="main-stats-table">
+                    <div class="table-header">
+                        <div class="pull-left">
+                            <div class="hero-icon pull-left">
+                            </div>
+                            <div class="match-id pull-left">
+                                <h5 >Match ID : <span id="current-match-id"></span></h5>
+                            </div>
+                        </div>
 
-<%        
-    }
-%>
+                        <div class="pull-right">
+                            <div class="match-buttons">
+                                <a id= "review-link"  href="#" class="match-review"> <i class="fa fa-play" aria-hidden="true"></i>
+                                     Match Review</a>
+                                <a id= "scoreboard-link" href="#" class="scoreboard"><i class="fa fa-bars" aria-hidden="true"></i> Scoreboard</a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="table-body">
+                    <div class="col-md-3 table-sidebar">
+                        <div class="sidebar-wrapper">
+                            <h4>Performance Summary</h4>
+                            <div class="stats-sidebar">
+                                <ul id="ratings-tabs">
+                                    <li class="active">
+                                        <a href="#tips" aria-controls="tips" role="tab" data-toggle="tab">Tips</a>
+                                    </li>
+                                </ul>
+                            </div>
+<!--
+
+                            <br>
+                            <h4>Upcoming Features</h4>
+
+                            <div class="features">
+                                <ul>
+                                    <li><a href="">Eta: Next two weeks </a>  </li>
+                                    <li><a href="">Solo/Mid</a>  </li>
+                                    <li><a href=""> Win rates</a></li>
+                                </ul>
+                            </div>
+-->
+                        </div>
+
+                    </div>
+                    <div class="col-md-9">
+                        <div class="actual-stats">
+                            <div class="row">
+                                <div class="heroes">
+                                    <div class="hero">
+                                        <img id="hero_0" src="http://placehold.it/170x90" class="img-responsive" alt="">
+                                    </div>
+                                    <div class="hero">
+                                        <img id="hero_1" src="http://placehold.it/170x90" class="img-responsive" alt="">
+                                    </div>
+                                    <div class="hero">
+                                        <img id="hero_2" src="http://placehold.it/170x90" class="img-responsive" alt="">
+                                    </div>
+                                    <div class="hero">
+                                        <img id="hero_3" src="http://placehold.it/170x90" class="img-responsive" alt="">
+                                    </div>
+                                    <div class="hero">
+                                        <img id="hero_4" src="http://placehold.it/170x90" class="img-responsive" alt="">
+                                    </div>
+                                    <div class="hero">
+                                        <img id="hero_5" src="http://placehold.it/170x90" class="img-responsive" alt="">
+                                    </div>
+                                    <div class="hero">
+                                        <img id="hero_6" src="http://placehold.it/170x90" class="img-responsive" alt="">
+                                    </div>
+                                    <div class="hero">
+                                        <img id="hero_7" src="http://placehold.it/170x90" class="img-responsive" alt="">
+                                    </div>
+                                    <div class="hero">
+                                        <img id="hero_8" src="http://placehold.it/170x90" class="img-responsive" alt="">
+                                    </div>
+                                    <div class="hero">
+                                        <img id="hero_9" src="http://placehold.it/170x90" class="img-responsive" alt="">
+                                    </div>
+
+                                    <div class="clearfix"></div>
+
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="tab-content" id="ratings-tabcontents">
+                                    <div class="actual-match-stats tab-pane fade in active" id="tips" role="tabpanel">
+                                        <div class="tips">
+                                            <div id="tip1" class="col-md-4 tip"></div>
+                                            <div id="tip2" class="col-md-4 tip"></div>
+                                            <div id="tip3" class="col-md-4 tip"></div>
+                                            <div class="clearfix"></div>
+                                        </div>
+                                        <div class="clearfix"></div>
+                                    </div>                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script type="text/javascript">
+    var avatar_source= "<%= avatar %>";
+</script>
+
 <script type="text/javascript" src="/static/js/constants.js"></script>
 <script type="text/javascript" src="/static/js/dashboard-ui-constants.js"></script>
 <script type="text/javascript" src="/static/js/dashboard.js"></script>

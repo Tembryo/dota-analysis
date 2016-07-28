@@ -17,12 +17,12 @@ def importCSV(file):
         if feature_dict is None:
             feature_dict = {}
             for feature in row:
-                if feature == "MMR" or feature == "steamid" or feature == "hero":
+                if feature == "MMR" or feature == "steamid" or feature == "hero" or feature == "own_team" or feature == "enemy_team":
                     continue
                 feature_dict[feature] = []
         else:
             for feature in row:
-                if feature == "MMR" or feature == "steamid" or feature == "hero":
+                if feature == "MMR" or feature == "steamid" or feature == "hero" or feature == "own_team" or feature == "enemy_team":
                     continue
                 else:
                     try:

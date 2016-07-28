@@ -256,6 +256,12 @@ var minimum_filesize = 512*1024; //require replays to be > 0.5MB
 
 function downloadMatch(replay_data, target, callback)
 {   
+    if(!replay_data || !("match_id" in replay_data) ||!("cluster" in replay_data) || !("replay_salt" in replay_data) )
+    {
+        callback("bad replay_data for download", replay_data);
+        return;
+    }
+    
     var file = target+replay_data.match_id+".dem.bz2"
     var replay_address = "http://replay"+replay_data.cluster+".valve.net/570/"+replay_data.match_id+"_"+replay_data.replay_salt+".dem.bz2";
 

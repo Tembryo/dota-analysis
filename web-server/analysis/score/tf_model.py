@@ -19,42 +19,71 @@ class Model:
             "durationMins"]
 
         self.subsets = {
-            "All": [ "GPM",
-                    "XPM",
-                    "fraction-creeps-lasthit",
-                    "fraction-lasthits",
-                    "checks-per-minute",
-                    "average-check-duration",
-                    "time-fraction-visible",
-                    "kills",
-                    "deaths",
-                    "fightsPerMin",
-                    "initiation-score",
-                    "camera-average-movement",
-                    "camera-distance-average",
-                    "camera-distance-stdev",
-                    "camera-jumps-per-minute",
-                    "camera-percent-far",
-                    "camera-percent-moving",
-                    "camera-percent-self",
-                    "lasthits-per-minute",
-                    "lasthits-total-contested",
-                    "lasthits-contested-percent-lasthit",
-                    "lasthits-taken-percent-free",
-                    "lasthits-missed-free",
-                    "lasthits-percent-taken-against-contest",
-                    "tower-damage",
-                    "rax-damage"
+            "All": [            "checks-per-minute",
+                                "average-check-duration",
+                                "camera-average-movement",
+                                "camera-distance-average",
+                                "camera-distance-stdev",
+                                "camera-jumps-per-minute",
+                                "camera-percent-far",
+                                "camera-percent-moving",
+                                "camera-percent-self",
+
+                                "kills",
+                                "deaths",
+                                "fightsPerMin",
+                                "initiation-score",
+                                "1-vs-1-kills",
+                                "1-vs-1-deaths",
+                                "many-vs-1-kills",
+                                "many-vs-1-deaths",
+                                "many-vs-many-kills",
+                                "many-vs-many-deaths",
+                                "total-right-click-damage",
+                                "total-spell-damage",
+                                "fight-right-click-damage",
+                                "fight-spell-damage",
+                                "average-fight-movement-speed",
+                                "fight-coordination",
+                                "average-fight-centroid-dist",
+                                "average-fight-centroid-dist-team",
+                                "team-heal-amount",
+
+                                "GPM",
+                                "XPM",
+                                "fraction-creeps-lasthit",
+                                "fraction-lasthits",
+                                "lasthits-per-minute",
+                                "lasthits-total-contested",
+                                "lasthits-contested-percent-lasthit",
+                                "lasthits-taken-percent-free",
+                                "lasthits-missed-free",
+                                "lasthits-percent-taken-against-contest",
+
+                                "time-fraction-visible",
+                                "time-visible",
+                                "time-visible-first10",
+                                "total-distance-traveled",
+                                "total-time-alive",
+                                "average-distance-from-centroid",
+                                "num-of-rotations",
+                                "num-of-rotations-first10",
+                                "percentage-moving",
+                                "percentage-stationary",
+                                "percentage-stationary-farming",
+                                "percentage-stationary-fighting",
+
+                                "tower-damage",
+                                "rax-damage",
+                                "roshan-damage",
+                                "num-sentry-wards-placed",
+                                "num-observer-wards-placed",
+                                "num-of-tp-used",
+                                "total-tp-distance",
+                                "num-tp-bought"
               ],
-            "IMR": ["GPM",
-                    "XPM",
-                    "checks-per-minute",
+            "IMR": ["checks-per-minute",
                     "average-check-duration",
-                    "time-fraction-visible",
-                    "kills",
-                    "deaths",
-                    "fightsPerMin",
-                    "initiation-score",
                     "camera-average-movement",
                     "camera-distance-average",
                     "camera-distance-stdev",
@@ -62,19 +91,125 @@ class Model:
                     "camera-percent-far",
                     "camera-percent-moving",
                     "camera-percent-self",
+
+                    "kills",
+                    "deaths",
+                    "fightsPerMin",
+                    "initiation-score",
+                    "1-vs-1-kills",
+                    "1-vs-1-deaths",
+                    "many-vs-1-kills",
+                    "many-vs-1-deaths",
+                    "many-vs-many-kills",
+                    "many-vs-many-deaths",
+                    "total-right-click-damage",
+                    "total-spell-damage",
+                    "fight-right-click-damage",
+                    "fight-spell-damage",
+                    "average-fight-movement-speed",
+                    "fight-coordination",
+                    "average-fight-centroid-dist",
+                    "average-fight-centroid-dist-team",
+                    "team-heal-amount",
+
+                    "GPM",
+                    "XPM",
                     "lasthits-per-minute",
                     "lasthits-total-contested",
                     "lasthits-contested-percent-lasthit",
                     "lasthits-taken-percent-free",
                     "lasthits-missed-free",
                     "lasthits-percent-taken-against-contest",
+
+                    "time-fraction-visible",
+                    "time-visible",
+                    "time-visible-first10",
+                    "total-distance-traveled",
+                    "total-time-alive",
+                    "average-distance-from-centroid",
+                    "num-of-rotations",
+                    "num-of-rotations-first10",
+                    "percentage-moving",
+                    "percentage-stationary",
+                    "percentage-stationary-farming",
+                    "percentage-stationary-fighting",
+
                     "tower-damage",
-                    "rax-damage"],
-            "mechanics": ["average-check-duration", "checks-per-minute", "camera-average-movement", "camera-distance-average", "camera-distance-stdev", "camera-jumps-per-minute", "camera-percent-far", "camera-percent-moving", "camera-percent-self"],
-            "farming": ["GPM", "XPM", "lasthits-per-minute", "lasthits-total-contested", "lasthits-contested-percent-lasthit", "lasthits-taken-percent-free", "lasthits-missed-free", "lasthits-percent-taken-against-contest"],
-            "fighting": ["initiation-score", "fightsPerMin", "deaths", "kills"],
-            "movement": ["time-fraction-visible"],
-            "objectives": ["tower-damage", "rax-damage"]
+                    "rax-damage",
+                    "roshan-damage",
+                    "num-sentry-wards-placed",
+                    "num-observer-wards-placed",
+                    "num-of-tp-used",
+                    "total-tp-distance",
+                    "num-tp-bought"],
+
+            "mechanics": [
+                    "checks-per-minute",
+                    "average-check-duration",
+                    "camera-average-movement",
+                    "camera-distance-average",
+                    "camera-distance-stdev",
+                    "camera-jumps-per-minute",
+                    "camera-percent-far",
+                    "camera-percent-moving",
+                    "camera-percent-self",
+            ],
+            "fighting": [
+                    "kills",
+                    "deaths",
+                    "fightsPerMin",
+                    "initiation-score",
+                    "1-vs-1-kills",
+                    "1-vs-1-deaths",
+                    "many-vs-1-kills",
+                    "many-vs-1-deaths",
+                    "many-vs-many-kills",
+                    "many-vs-many-deaths",
+                    "total-right-click-damage",
+                    "total-spell-damage",
+                    "fight-right-click-damage",
+                    "fight-spell-damage",
+                    "average-fight-movement-speed",
+                    "fight-coordination",
+                    "average-fight-centroid-dist",
+                    "average-fight-centroid-dist-team",
+                    "team-heal-amount",
+            ],
+            "farming": [
+                    "GPM",
+                    "XPM",
+                    "lasthits-per-minute",
+                    "lasthits-total-contested",
+                    "lasthits-contested-percent-lasthit",
+                    "lasthits-taken-percent-free",
+                    "lasthits-missed-free",
+                    "lasthits-percent-taken-against-contest",
+            ],
+
+            "movement": [
+                    "time-fraction-visible",
+                    "time-visible",
+                    "time-visible-first10",
+                    "total-distance-traveled",
+                    "total-time-alive",
+                    "average-distance-from-centroid",
+                    "num-of-rotations",
+                    "num-of-rotations-first10",
+                    "percentage-moving",
+                    "percentage-stationary",
+                    "percentage-stationary-farming",
+                    "percentage-stationary-fighting",
+            ],
+            "misc": [
+                    "tower-damage",
+                    "rax-damage",
+                    "roshan-damage",
+                    "num-sentry-wards-placed",
+                    "num-observer-wards-placed",
+                    "num-of-tp-used",
+                    "total-tp-distance",
+                    "num-tp-bought"
+            ]
         }
                 
         self.parameters = {}      
@@ -159,14 +294,16 @@ class Model:
 
     def build_prediction_graph(self, concatenated, n_layer, name):
         #input
-        mixed1 = self.nn_layer(concatenated, n_layer, 60, name+'/mixed1')
-        mixed2 = self.nn_layer(mixed1, 60, 50, name+'/mixed2')
-        mixed3 = self.nn_layer(mixed2, 50, 40, name+'/mixed3')
-        mixed4 = self.nn_layer(mixed3, 40, 30, name+'/mixed4')
-        mixed5 = self.nn_layer(mixed4, 30, 20, name+'/mixed5')
-        mixed6 = self.nn_layer(mixed5, 20, 10, name+'/mixed6')
+        mixed1 = self.nn_layer(concatenated, n_layer, 100, name+'/mixed1')
+        mixed2 = self.nn_layer(mixed1, 100, 80, name+'/mixed2')
+        mixed3 = self.nn_layer(mixed2, 80, 60, name+'/mixed3')
+        mixed4 = self.nn_layer(mixed3, 60, 40, name+'/mixed4')
+        mixed5 = self.nn_layer(mixed4, 40, 30, name+'/mixed5')
+        mixed6 = self.nn_layer(mixed5, 30, 20, name+'/mixed6')
+        mixed7 = self.nn_layer(mixed6, 20, 10, name+'/mixed7')
 
-        result = self.nn_layer(mixed6, 10, 1, name+'/result')
+
+        result = self.nn_layer(mixed7, 10, 1, name+'/result')
         return result
 
     def built_cost_graph(self, prediction, name):

@@ -3,12 +3,18 @@ var async   = require("async"),
     dota2   = require('dota2'),
     domain = require('domain');
 
-var logging = require("./logging.js")("dota");
+var logging = require("./logging.js")("dota-lib"),
+    config  = require("./config.js");
 
 var steam_client    = new Steam.SteamClient();
 var steam_user      = new Steam.SteamUser(steam_client);
 var steam_status    = "Open";
-var dota_client     = new dota2.Dota2Client(steam_client, true, true);
+var dota_client     = null;
+if(config.version === "DEV")
+    dota_client = new dota2.Dota2Client(steam_client, true, true);
+else
+    dota_client = new dota2.Dota2Client(steam_client, false, false);
+
 var dota_status     = "Open";
 
 

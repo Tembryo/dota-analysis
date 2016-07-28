@@ -1,9 +1,15 @@
 var sensitive = require("./sensitive_config.js");
 
 if(process.env.VERSION === "DEV")
+{
     exports.database_host   = "POSTGRES_IP";
+    exports.version         = "DEV";
+}
 else    
+{
     exports.database_host   = "wisdota.com";
+    exports.version         = "PRODUCTION";
+}
 
 exports.database_pw   = sensitive.database_pw;
 

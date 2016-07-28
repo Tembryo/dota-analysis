@@ -62,7 +62,7 @@ AND to_timestamp((m.data->>'start_time')::bigint) > current_date - interval '7 d
 INSERT INTO matchretrievalrequests(id) (SELECT matchid from Candidates);
 
 
-INSERT INTO jobs(started, data) VALUES (now(), '{"message":"Retrieve", "id":2418509989}'::json);
+INSERT INTO jobs(started, data) VALUES (now(), '{"message":"Retrieve", "id":2506343109}'::json);
 
 
 INSERT INTO jobs(started, data) VALUES (now(), '{"message":"AddSampleMatches", "n":2000}'::json);
@@ -84,7 +84,7 @@ FROM mmrdata d,
 SELECT m.matchid, SUM(COALESCE(bin.entropy, (SELECT MAX(entropy) FROM SampleBins) )) AS value, json_agg(bin.mmr_bin) as bins, json_agg(bin.hero) as heroes 
 FROM CrawlingMatches m, CrawlingMatchStatuses s, CrawlingSamples smpl LEFT JOIN SampleBins bin ON floor(smpl.solo_mmr/250)*250=bin.mmr_bin AND bin.hero=smpl.hero
 WHERE smpl.matchid= m.matchid AND s.label='open' AND s.id=m.status 
-AND to_timestamp((m.data->>'start_time')::bigint) > current_date - interval '7 days' GROUP BY m.matchid ORDER BY value DESC LIMIT 1000;
+AND to_timestamp((m.data->>'start_time')::bigint) > current_date - interval '7 days' GROUP BY m.matchid ORDER BY value DESC LIMIT 2000;
 
 INSERT INTO jobs(started, data) VALUES (now(), '{"message":"Score", "id":2425170236}'::json);
 
@@ -216,26 +216,21 @@ insert into steamaccounts(name, password) values ('wisdota_bot_59', 'crawley-the
 
 insert into jobs (started, data) (SELECT NOW(), ('{"message":"Retrieve", "id":'||id||'}')::json FROM Matchretrievalrequests where retrieval_status=5);
 
-insert into jobs (started, data) values (now(), '{"message":"Analyse", "id":"60185","machine":1}');
+insert into jobs (started, data) values (now(), '{"message":"Analyse", "id":"60168","machine":1}');
 
 insert into jobs (started, data) (select now(), data from jobs where result->>'result'='failed' and data->>'message'='Analyse' AND id>  311000  order by started desc);
 
 select * from logentries where filters->>'machine'='2' AND filters->>'module'='analysis-server' order by id desc limit 1000;
 
-insert into jobs (started, data) VALUES (NOW(),'{"message":"Analyse", "id": 60168}');
-insert into jobs (started, data) VALUES ( NOW(), '{"message":"Download", "id":2506458958}'::json);
+insert into jobs (started, data) VALUES (NOW(),'{"message":"Analyse", "id": 1702}');
+insert into jobs (started, data) VALUES ( NOW(), '{"message":"Download", "id":2513321466}'::json);
 
   SELECT (SELECT COUNT(*) FROM UserMatchHistory umh WHERE umh.user_id=mrr.requester_id AND umh.match_id > mrr.id) as n_newer_matches FROM ReplayFiles rf, MatchRetrievalRequests mrr WHERE rf.id=60170 AND mrr.id=rf.upload_filename::bigint AND mrr.requester_id IS NOT NULL;
 
 select analysis_version, count(*) from matches group by analysis_version;
 
-insert into jobs (started, data) (SELECT NOW(), ('{"message":"Analyse", "id":'||replayfile_id||'}')::json FROM Matches where analysis_version <> '18/06/16' LIMIT 1000);
+insert into jobs (started, data) (SELECT NOW(), ('{"message":"Analyse", "id":'||replayfile_id||'}')::json FROM Matches where analysis_version <> '18/06/16');
 
+select count(*), n FROM ( select rf.id, (select count(*) from matchdetails md where md.matchid=rf.match_id) as n from replayfiles rf) detailsperreplay group by n;
 
-
-   analysis_version | count 
-------------------+-------
- 18/06/16         |  4088
-                  |   129
- 24/05/16         | 53626
-(3 rows)
+insert into jobs (started, data) (SELECT NOW(), ('{"message":"Score", "id":'||id||'}')::json FROM Matches where analysis_version='18/06/16');
