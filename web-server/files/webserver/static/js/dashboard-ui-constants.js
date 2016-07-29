@@ -413,27 +413,93 @@ var skill_constants = {
         },
     // Movement Skills
 
-    "time-visible":
-        {   "label": "Time Visible to Enemies",
-            "explanation": "Measures the amount of time you are visible to your opponents. In general you want to minimise this to deny them information.",
+    "time-fraction-visible":
+        {   "label": "Percentage of Time Visible",
+            "explanation": "The percentage of time you are visible to your opponents. In general you want to minimise this to deny them information.",
             "tips": {
                 "1": "Try to stay out of vision of your enemies more, be more aware of when you can be seen e.g., when you are near their creep wave.",
-                "-1": "Whilst staying out of vision is generally good, you might do better by trading off being seen by enemies with taking objectives or staying in lane to farm creeps."
+                "-1": "You might do better by trading off being seen more by enemies with taking objectives or staying in lane to farm creeps."
             },
             "fixed_direction": 0,
             "format": function(value){return value.toFixed(2);},
             "ordering": 0
+        },
+    "time-visible-first10":
+        {   "label": "Time Visible First 10 mins",
+            "explanation": "The amount of time you are visible to your opponents during the first 10 mins of the match. ",
+            "tips": {
+                "1": "Try to stay out of vision of your enemies more, be more aware of when you can be seen during the laning phase.",
+                "-1": "You might do better by trading off being seen more by enemies during the laning phase with taking objectives or staying in lane to farm creeps."
+            },
+            "fixed_direction": 0,
+            "format": function(value){return value.toFixed(2);},
+            "ordering": 1
         },
     "average-dist-from-centroid":
         {   "label": "Variation in Hero Position",
             "explanation": "Measures the variation in your position in the map - if you move around a lot this number will be high.",
             "tips": {
-                "1": "Try to move around more and not get stuck in one place - this makes it harder for opponents to play against you.",
+                "1": "Try to not stay in one location on the map for so long, greater variation in your positioning might make you harder for opponents to play against.",
                 "-1": "Consider moving less and optimising more for achieving objectives like getting more farmed."
             },
             "fixed_direction": 0,
             "format": function(value){return value.toFixed(2);},
-            "ordering": 0
+            "ordering": 2
         },
+    "num-of-rotations":
+        {   "label": "Number of Rotations",
+            "explanation": "The number of rotations between lanes/jungle that you made during the match",
+            "tips": {
+                "1": "You might be playing a bit static, look for opportunities where you can change the dynamics of the game by rotating into other lanes.",
+                "-1": "The time moving between lanes is time where you are not farming so make sure the trade off makes sense."
+            },
+            "fixed_direction": 0,
+            "format": function(value){return value.toFixed(2);},
+            "ordering": 3
+        },
+    "num-of-rotations-first10":
+        {   "label": "Number of Rotations First 10 mins",
+            "explanation": "The number of rotations between lanes/jungle that you made during the first 10 mins of the match",
+            "tips": {
+                "1": "During the first 10 minutes you might want to look for more opportunities to rotate into other lanes to gank.",
+                "-1": "During the first 10 minutes you might be rotating too frequently, unless you can achieve an ojective (kill/tower pushed) you might be better off farming in lane."
+            },
+            "fixed_direction": 0,
+            "format": function(value){return value.toFixed(2);},
+            "ordering": 4
+        },
+    "percentage-moving":
+        {   "label": "Percentage of Time Moving",
+            "explanation": "The percentage of time you spent moving around.",
+            "tips": {
+                "1": "Try to move around more and not get stuck in one place - this makes it harder for opponents to play against you.",
+                "-1": "You might be moving around more than you need to. Are you always moving from one objective to the next along the most efficient path?"
+            },
+            "fixed_direction": 0,
+            "format": function(value){return value.toFixed(2);},
+            "ordering": 5
+        },
+    "percentage-stationary-farming":
+        {   "label": "Percentage of Time Moving",
+            "explanation": "The percentage of time you spent farming.",
+            "tips": {
+                "1": "You might want to focus more of your time on farming up, by attaining crucial items and skills earlier in the match you will become more effective.",
+                "-1": "It looks like you would have gained more in this match by focussing less on farming and more on taking objectives/fights."
+            },
+            "fixed_direction": 0,
+            "format": function(value){return value.toFixed(2);},
+            "ordering": 6
+        },
+    "percentage-stationary-fighting":
+        {   "label": "Percentage of Time Fighting",
+            "explanation": "The percentage of time you spent in fights.",
+            "tips": {
+                "1": "It looks like in this match you would have gained more by spending more time engaging the enemy.",
+                "-1": "Sometimes you can have the biggest impact by denying the enemy the opportunity to fight you."
+            },
+            "fixed_direction": 0,
+            "format": function(value){return value.toFixed(2);},
+            "ordering": 7
+        }
 
 };
